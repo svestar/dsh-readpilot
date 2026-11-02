@@ -376,6 +376,8 @@ export function createPlugin(require) {
 
       const prefill = React.useCallback(kind => {
         if (!selection || screen.kind !== 'book') return
+        window.getSelection()?.removeAllRanges()
+        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
         const question = {
           explain: t('explainPrompt'),
           summarize: t('summarizePrompt'),

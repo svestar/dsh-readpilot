@@ -6,6 +6,7 @@ import {
   collectTextNodes,
   findNoteOccurrence,
   messageOf,
+  pdfNoteRects,
   rangeForNote,
   timestampOf,
 } from '../helpers.js'
@@ -126,15 +127,18 @@ export function useNotes({
   const selectionFields = React.useCallback(() => {
     if (!selection || selection.blockIndex == null || screen.kind !== 'book') return null
     const chapter = blocksText(screen.content.blocks)
-    const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset)
-    const occurrence = findNoteOccurrence(chapter, selection.text, preferred)
+    const stripped = selection.text.replace(/^[\s•·▪◦●]+/, '')
+    const quote = stripped || selection.text
+    const shift = selection.text.length - quote.length
+    const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset) + shift
+    const occurrence = findNoteOccurrence(chapter, quote, preferred)
     const start = occurrence?.start ?? preferred
-    const context = contextAround(chapter, start, start + selection.text.length)
+    const context = contextAround(chapter, start, start + quote.length)
     return {
       chapterId: activeChapterId,
       blockIndex: selection.blockIndex,
-      offset: selection.offset,
-      quote: selection.text,
+      offset: selection.offset + shift,
+      quote,
       quotePrefix: context.prefix,
       quoteSuffix: context.suffix,
       textHash: hashText(chapter),
@@ -144,6 +148,8 @@ export function useNotes({
   const addHighlight = React.useCallback(async color => {
     const fields = selectionFields()
     if (!fields || screen.kind !== 'book' || noteSaving) return
+    window.getSelection()?.removeAllRanges()
+    epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
     setNoteSaving(true)
     setNoteError('')
     try {
@@ -164,10 +170,14 @@ export function useNotes({
     setNoteSaving(false)
     setSelection(null)
     await loadNotes()
-  }, [call, loadNotes, noteSaving, screen, selectionFields, setSelection, t])
+    window.getSelection()?.removeAllRanges()
+    epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
+  }, [call, epubFrameRef, loadNotes, noteSaving, screen, selectionFields, setSelection, t])
 
   const openNoteEditor = React.useCallback(note => {
     if (note) {
+      window.getSelection()?.removeAllRanges()
+      epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
       setNoteEditor({
         noteId: note.id,
         kind: note.kind ?? 'note',
@@ -289,20 +299,28 @@ export function useNotes({
       if (!root.isConnected) return
       const { text } = collectTextNodes(root)
       const rootRect = root.getBoundingClientRect()
+      const isPdf = visual?.kind === 'pdf'
       for (const note of relevant) {
-        const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
+        const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
+        const quote = stripped || note.quote
+        const shift = note.quote.length - quote.length
+        let match = findNoteOccurrence(text, quote, note.offset + shift, note.quotePrefix, note.quoteSuffix)
+        if (!match) {
+          match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
+        }
         if (!match) continue
         const range = rangeForNote(root, match.start, match.end)
-        if (!range) continue
-        for (const rect of range.getClientRects()) {
+        const pdfRects = isPdf ? pdfNoteRects(pageView, match) : null
+        const rects = pdfRects ?? (range ? [...range.getClientRects()] : [])
+        for (const rect of rects) {
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')
           hit.className = note.kind === 'highlight'
             ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? 'yellow'}`
             : 'dsh-reader-note-hit'
           hit.dataset.noteId = note.id
-          hit.style.left = `${rect.left - rootRect.left}px`
-          hit.style.top = `${rect.top - rootRect.top}px`
+          hit.style.left = `${isPdf ? rect.left : rect.left - rootRect.left}px`
+          hit.style.top = `${isPdf ? rect.top : rect.top - rootRect.top}px`
           hit.style.width = `${rect.width}px`
           hit.style.height = `${rect.height}px`
           layer.appendChild(hit)

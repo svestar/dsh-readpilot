@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createNotesStore } from '../src/notes.js'
 import { bookmarkContext } from '../src/client/bookmark-label.js'
+import { pdfNoteRects } from '../src/client/helpers.js'
 
 test('highlight_and_bookmark_lifecycle', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-reader-marks-'))
@@ -63,4 +64,31 @@ test('bookmark_uses_pdf_outline_chapter', () => {
     chapterTitle: '第二章',
     pageLabel: '第 10 页',
   })
+})
+
+test('pdf_highlight_rects_do_not_overlap', () => {
+  const pageView = {
+    textItems: [
+      { text: '中', left: 0, top: 10, width: 10, height: 16 },
+      { text: 'English', left: 10, top: 10, width: 70, height: 16 },
+      { text: ' 空格', left: 80, top: 10, width: 30, height: 16 },
+    ],
+  }
+  const rects = pdfNoteRects(pageView, { start: 1, end: 8 })
+  assert.equal(rects.length, 1)
+  assert.equal(rects[0].left, 10)
+  assert.equal(rects[0].width, 70)
+  const mixed = pdfNoteRects(pageView, { start: 0, end: 8 })
+  assert.deepEqual(mixed.map(rect => [rect.left, rect.width]), [[0, 80]])
+})
+
+test('pdf_highlight_rects_merge_overlap', () => {
+  const pageView = {
+    textItems: [
+      { text: 'AB', left: 0, top: 10, width: 20, height: 16 },
+      { text: 'CD', left: 10, top: 10, width: 20, height: 16 },
+    ],
+  }
+  const rects = pdfNoteRects(pageView, { start: 0, end: 4 })
+  assert.deepEqual(rects.map(rect => [rect.left, rect.width]), [[0, 30]])
 })

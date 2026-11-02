@@ -225,6 +225,52 @@ var __dshReaderBundle = (() => {
     }
     return null;
   }
+  function pdfNoteRects(pageView, match) {
+    const items = Array.isArray(pageView?.textItems) ? pageView.textItems : [];
+    if (!match || !Number.isFinite(match.start) || !Number.isFinite(match.end)) return [];
+    const rects = [];
+    let cursor = 0;
+    for (const item of items) {
+      const text = typeof item?.text === "string" ? item.text : "";
+      const length = text.length;
+      const start = cursor;
+      const end = cursor + length;
+      cursor = end;
+      if (length === 0 || end <= match.start || start >= match.end) continue;
+      const from = Math.max(match.start, start);
+      const to = Math.min(match.end, end);
+      if (to <= from) continue;
+      const left = Number(item.left) || 0;
+      const top = Number(item.top) || 0;
+      const width = Math.max(1, Number(item.width) || 0);
+      const height = Math.max(1, Number(item.height) || 0);
+      rects.push({
+        left: left + width * (from - start) / length,
+        top,
+        width: Math.max(1, width * (to - from) / length),
+        height,
+        fontSize: Math.max(1, Number(item.fontSize) || height)
+      });
+    }
+    rects.sort((first, second) => first.top - second.top || first.left - second.left);
+    const merged = [];
+    for (const rect of rects) {
+      const previous = merged.at(-1);
+      const tolerance = Math.max(2, (previous?.fontSize ?? rect.fontSize) * 0.5);
+      const sameLine = previous && Math.abs(previous.top - rect.top) <= Math.max(2, rect.fontSize * 0.35);
+      const gap = previous ? rect.left - (previous.left + previous.width) : Number.POSITIVE_INFINITY;
+      if (sameLine && gap <= tolerance) {
+        const right = Math.max(previous.left + previous.width, rect.left + rect.width);
+        const bottom = Math.max(previous.top + previous.height, rect.top + rect.height);
+        previous.top = Math.min(previous.top, rect.top);
+        previous.height = bottom - previous.top;
+        previous.width = right - previous.left;
+      } else {
+        merged.push({ ...rect });
+      }
+    }
+    return merged.map(({ fontSize, ...rect }) => rect);
+  }
   function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jumpNoteId) {
     const doc = frame?.contentDocument;
     if (!doc?.body) return { cleanup: () => {
@@ -2571,15 +2617,18 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const selectionFields = React.useCallback(() => {
       if (!selection || selection.blockIndex == null || screen.kind !== "book") return null;
       const chapter = blocksText(screen.content.blocks);
-      const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset);
-      const occurrence = findNoteOccurrence(chapter, selection.text, preferred);
+      const stripped = selection.text.replace(/^[\s•·▪◦●]+/, "");
+      const quote = stripped || selection.text;
+      const shift = selection.text.length - quote.length;
+      const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset) + shift;
+      const occurrence = findNoteOccurrence(chapter, quote, preferred);
       const start = occurrence?.start ?? preferred;
-      const context = contextAround(chapter, start, start + selection.text.length);
+      const context = contextAround(chapter, start, start + quote.length);
       return {
         chapterId: activeChapterId,
         blockIndex: selection.blockIndex,
-        offset: selection.offset,
-        quote: selection.text,
+        offset: selection.offset + shift,
+        quote,
         quotePrefix: context.prefix,
         quoteSuffix: context.suffix,
         textHash: hashText(chapter)
@@ -2588,6 +2637,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const addHighlight = React.useCallback(async (color) => {
       const fields = selectionFields();
       if (!fields || screen.kind !== "book" || noteSaving) return;
+      window.getSelection()?.removeAllRanges();
+      epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
       setNoteSaving(true);
       setNoteError("");
       try {
@@ -2608,9 +2659,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setNoteSaving(false);
       setSelection(null);
       await loadNotes();
-    }, [call, loadNotes, noteSaving, screen, selectionFields, setSelection, t]);
+      window.getSelection()?.removeAllRanges();
+      epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
+    }, [call, epubFrameRef, loadNotes, noteSaving, screen, selectionFields, setSelection, t]);
     const openNoteEditor = React.useCallback((note) => {
       if (note) {
+        window.getSelection()?.removeAllRanges();
+        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
         setNoteEditor({
           noteId: note.id,
           kind: note.kind ?? "note",
@@ -2724,18 +2779,26 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (!root.isConnected) return;
         const { text } = collectTextNodes(root);
         const rootRect = root.getBoundingClientRect();
+        const isPdf = visual?.kind === "pdf";
         for (const note of relevant) {
-          const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix);
+          const stripped = note.quote.replace(/^[\s•·▪◦●]+/, "");
+          const quote = stripped || note.quote;
+          const shift = note.quote.length - quote.length;
+          let match = findNoteOccurrence(text, quote, note.offset + shift, note.quotePrefix, note.quoteSuffix);
+          if (!match) {
+            match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix);
+          }
           if (!match) continue;
           const range = rangeForNote(root, match.start, match.end);
-          if (!range) continue;
-          for (const rect of range.getClientRects()) {
+          const pdfRects = isPdf ? pdfNoteRects(pageView, match) : null;
+          const rects = pdfRects ?? (range ? [...range.getClientRects()] : []);
+          for (const rect of rects) {
             if (!rect.width || !rect.height) continue;
             const hit = document.createElement("div");
             hit.className = note.kind === "highlight" ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-hit";
             hit.dataset.noteId = note.id;
-            hit.style.left = `${rect.left - rootRect.left}px`;
-            hit.style.top = `${rect.top - rootRect.top}px`;
+            hit.style.left = `${isPdf ? rect.left : rect.left - rootRect.left}px`;
+            hit.style.top = `${isPdf ? rect.top : rect.top - rootRect.top}px`;
             hit.style.width = `${rect.width}px`;
             hit.style.height = `${rect.height}px`;
             layer.appendChild(hit);
@@ -2873,8 +2936,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const node = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
       const span = node?.closest?.("[data-offset]");
       if (!span) return;
-      const text = active.toString().trim();
+      const rawText = active.toString();
+      const text = rawText.trim();
       if (!text) return;
+      const leading = rawText.length - rawText.trimStart().length;
       const base = Number(span.getAttribute("data-offset")) || 0;
       const before = range.cloneRange();
       before.selectNodeContents(span);
@@ -2883,7 +2948,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setSelection({
         text: text.slice(0, 2e3),
         blockIndex: 0,
-        offset: base + before.toString().length,
+        offset: base + before.toString().length + leading,
         x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
         y: rect.top
       });
@@ -3239,6 +3304,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }, []);
       const prefill = React.useCallback((kind) => {
         if (!selection || screen.kind !== "book") return;
+        window.getSelection()?.removeAllRanges();
+        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
         const question = {
           explain: t("explainPrompt"),
           summarize: t("summarizePrompt"),

@@ -81,8 +81,10 @@ export function useVisual({
       : range.startContainer.parentElement
     const span = node?.closest?.('[data-offset]')
     if (!span) return
-    const text = active.toString().trim()
+    const rawText = active.toString()
+    const text = rawText.trim()
     if (!text) return
+    const leading = rawText.length - rawText.trimStart().length
     const base = Number(span.getAttribute('data-offset')) || 0
     const before = range.cloneRange()
     before.selectNodeContents(span)
@@ -91,7 +93,7 @@ export function useVisual({
     setSelection({
       text: text.slice(0, 2000),
       blockIndex: 0,
-      offset: base + before.toString().length,
+      offset: base + before.toString().length + leading,
       x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
       y: rect.top,
     })

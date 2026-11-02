@@ -218,6 +218,54 @@ export function rangeForNote(root, start, end) {
       return null
     }
 
+export function pdfNoteRects(pageView, match) {
+  const items = Array.isArray(pageView?.textItems) ? pageView.textItems : []
+  if (!match || !Number.isFinite(match.start) || !Number.isFinite(match.end)) return []
+  const rects = []
+  let cursor = 0
+  for (const item of items) {
+    const text = typeof item?.text === 'string' ? item.text : ''
+    const length = text.length
+    const start = cursor
+    const end = cursor + length
+    cursor = end
+    if (length === 0 || end <= match.start || start >= match.end) continue
+    const from = Math.max(match.start, start)
+    const to = Math.min(match.end, end)
+    if (to <= from) continue
+    const left = Number(item.left) || 0
+    const top = Number(item.top) || 0
+    const width = Math.max(1, Number(item.width) || 0)
+    const height = Math.max(1, Number(item.height) || 0)
+    rects.push({
+      left: left + (width * (from - start)) / length,
+      top,
+      width: Math.max(1, (width * (to - from)) / length),
+      height,
+      fontSize: Math.max(1, Number(item.fontSize) || height),
+    })
+  }
+
+  rects.sort((first, second) => first.top - second.top || first.left - second.left)
+  const merged = []
+  for (const rect of rects) {
+    const previous = merged.at(-1)
+    const tolerance = Math.max(2, (previous?.fontSize ?? rect.fontSize) * 0.5)
+    const sameLine = previous && Math.abs(previous.top - rect.top) <= Math.max(2, rect.fontSize * 0.35)
+    const gap = previous ? rect.left - (previous.left + previous.width) : Number.POSITIVE_INFINITY
+    if (sameLine && gap <= tolerance) {
+      const right = Math.max(previous.left + previous.width, rect.left + rect.width)
+      const bottom = Math.max(previous.top + previous.height, rect.top + rect.height)
+      previous.top = Math.min(previous.top, rect.top)
+      previous.height = bottom - previous.top
+      previous.width = right - previous.left
+    } else {
+      merged.push({ ...rect })
+    }
+  }
+  return merged.map(({ fontSize, ...rect }) => rect)
+}
+
 export function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jumpNoteId) {
       const doc = frame?.contentDocument
       if (!doc?.body) return { cleanup: () => {}, jumped: false }
