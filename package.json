@@ -5,6 +5,12 @@
   "description": "Read TXT, Markdown, EPUB and PDF books with an AI companion session per book.",
   "type": "module",
   "main": "index.js",
+  "dependencies": {
+    "htmlparser2": "^10.1.0",
+    "jszip": "^3.10.2",
+    "linkedom": "^0.18.15",
+    "pdfjs-dist": "^6.5.438"
+  },
   "exports": {
     ".": "./index.js",
     "./client": "./client.js",

@@ -96,6 +96,33 @@ export function registerTools(ctx, api) {
         }
       },
     },
+    {
+      name: 'reader_note',
+      description:
+        'Create or list notes for one book. For add, pass the book, chapter, quoted passage, and note text; blockIndex/offset come from a reader_read locator when available. Notes are stored per book under the reader data directory.',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: { type: 'string', enum: ['add', 'list'], description: 'add a note or list existing notes.' },
+          book: { type: 'string', description: 'Book id or title from reader_books.' },
+          chapter: { type: 'string', description: 'Chapter id or title; required for add.' },
+          blockIndex: { type: 'number', description: '0-based block index inside the chapter.' },
+          offset: { type: 'number', description: '0-based character offset inside the chapter text.' },
+          quote: { type: 'string', description: 'The quoted passage being annotated.' },
+          note: { type: 'string', description: 'The note text to save.' },
+        },
+        required: ['action', 'book'],
+        additionalProperties: false,
+      },
+      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      async execute(args) {
+        try {
+          return await api.toolNote(args ?? {})
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
+    },
   ]
 
   const disposers = definitions.map(definition => ctx.tools.register(definition))

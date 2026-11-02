@@ -16,7 +16,7 @@ test('scan_lists_books', async t => {
   const books = await scanLibrary(root)
   assert.deepEqual(books.map(book => book.title).sort(), ['a', 'b', 'c'])
   assert.equal(books.find(book => book.title === 'a').supported, true)
-  assert.equal(books.find(book => book.title === 'c').supported, false)
+  assert.equal(books.find(book => book.title === 'c').supported, true)
   assert.equal(findBookByKey(books, 'b').title, 'b')
   assert.equal(findBookByKey(books, 'missing'), undefined)
 })

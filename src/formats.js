@@ -18,7 +18,7 @@ export function formatOf(filePath) {
 }
 
 export function isSupportedFormat(format) {
-  return format === 'txt' || format === 'md'
+  return format === 'txt' || format === 'md' || format === 'epub' || format === 'pdf'
 }
 
 export function decodeText(buffer) {
@@ -202,8 +202,8 @@ export function chapterText(chapter) {
 }
 
 export function parseBook(buffer, format, filePath) {
-  if (!isSupportedFormat(format)) {
-    throw new Error(`不支持的格式：${format}`)
+  if (format !== 'txt' && format !== 'md') {
+    throw new Error(`同步解析不支持 ${format}，请使用 parseBookAsync`)
   }
   const raw = normalizeText(decodeText(buffer))
   const fallbackTitle = basename(filePath, extname(filePath))
@@ -215,6 +215,18 @@ export function parseBook(buffer, format, filePath) {
   }
   const chapters = splitChapters(raw, 'txt')
   return finalizeBook({ title: fallbackTitle, author: '', chapters, format })
+}
+
+export async function parseBookAsync(buffer, format, filePath) {
+  if (format === 'epub') {
+    const { parseEpub } = await import('./formats/epub.js')
+    return parseEpub(buffer, filePath)
+  }
+  if (format === 'pdf') {
+    const { parsePdf } = await import('./formats/pdf.js')
+    return parsePdf(buffer, filePath)
+  }
+  return parseBook(buffer, format, filePath)
 }
 
 function finalizeBook({ title, author, chapters, format }) {

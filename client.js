@@ -17,12 +17,12 @@ window.__ModuleLoader__.load({
       create: '创建书库',
       pathPlaceholder: '例如 E:\\Books',
       empty: '这个目录里还没有可阅读的电子书。',
-      emptyHint: '支持 .txt 与 .md，当前版本会列出 .epub 与 .pdf 但暂不能打开。',
+      emptyHint: '支持 .txt、.md、.epub 与 .pdf；PDF 仅抽取文本层，扫描版需要 OCR。',
       back: '返回书库',
       toc: '目录',
       reading: '阅读',
       unsupported: '暂不支持',
-      unsupportedHint: '当前版本只实现 TXT 与 Markdown 的文本阅读；EPUB 与 PDF 的解析会在后续版本加入。',
+      unsupportedHint: '这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。',
       unread: '未读',
       explain: '解释',
       summarize: '总结',
@@ -49,6 +49,24 @@ window.__ModuleLoader__.load({
       explainPrompt: '请解释这段文字。',
       summarizePrompt: '请总结这段文字。',
       translatePrompt: '请把这段文字翻译成中文。',
+      search: '搜索',
+      searchPlaceholder: '搜索本书…',
+      searching: '搜索中…',
+      searchEmpty: '没有找到匹配的内容。',
+      searchFailed: '搜索失败',
+      searchTruncated: '结果过多，仅显示前 30 条。',
+      closeSearch: '关闭搜索',
+      notes: '笔记',
+      noteAction: '笔记',
+      noteDialogTitle: '添加笔记',
+      notePlaceholder: '写下你的想法…',
+      save: '保存',
+      noteSaving: '保存中…',
+      noteEmpty: '这本书还没有笔记。',
+      notesFailed: '笔记加载失败',
+      noteSaveFailed: '笔记保存失败',
+      noteDeleteFailed: '笔记删除失败',
+      delete: '删除',
     }
 
     const en = {
@@ -63,12 +81,12 @@ window.__ModuleLoader__.load({
       create: 'Create library',
       pathPlaceholder: 'e.g. E:\\Books',
       empty: 'No readable ebooks in this folder yet.',
-      emptyHint: 'TXT and Markdown are supported now; EPUB and PDF are listed but not yet readable.',
+      emptyHint: 'TXT, Markdown, EPUB and PDF are supported; PDF reads only its text layer, so scanned files need OCR.',
       back: 'Back to library',
       toc: 'Contents',
       reading: 'Reading',
       unsupported: 'Not supported',
-      unsupportedHint: 'This version reads TXT and Markdown only. EPUB and PDF parsing arrives in a later version.',
+      unsupportedHint: 'This book cannot be opened yet; check whether the file is damaged or the PDF has no extractable text layer.',
       unread: 'Unread',
       explain: 'Explain',
       summarize: 'Summarize',
@@ -95,6 +113,24 @@ window.__ModuleLoader__.load({
       explainPrompt: 'Please explain this passage.',
       summarizePrompt: 'Please summarize this passage.',
       translatePrompt: 'Please translate this passage into Chinese.',
+      search: 'Search',
+      searchPlaceholder: 'Search this book…',
+      searching: 'Searching…',
+      searchEmpty: 'No matches found.',
+      searchFailed: 'Search failed',
+      searchTruncated: 'Too many matches; showing the first 30.',
+      closeSearch: 'Close search',
+      notes: 'Notes',
+      noteAction: 'Note',
+      noteDialogTitle: 'Add note',
+      notePlaceholder: 'Write your note…',
+      save: 'Save',
+      noteSaving: 'Saving…',
+      noteEmpty: 'No notes for this book yet.',
+      notesFailed: 'Could not load notes',
+      noteSaveFailed: 'Could not save the note',
+      noteDeleteFailed: 'Could not delete the note',
+      delete: 'Delete',
     }
 
     const CSS = `
@@ -148,7 +184,10 @@ window.__ModuleLoader__.load({
 .dsh-reader-chat-resizer{position:absolute;left:-3px;top:0;bottom:0;width:6px;z-index:3;cursor:col-resize;background:transparent;border:0;padding:0}
 .dsh-reader-chat-resizer:hover,.dsh-reader-chat-resizer:focus-visible{background:var(--dsw-alias-brand-primary);outline:none}
 .dsh-reader-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-chat-title{font-weight:600;font-size:13px}
+.dsh-reader-chat-tabs{display:flex;align-items:center;gap:2px;padding:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-chat-tab{height:24px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-reader-chat-tab:hover{color:var(--dsw-alias-label-primary)}
+.dsh-reader-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600}
 .dsh-reader-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-reader-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
@@ -181,6 +220,17 @@ window.__ModuleLoader__.load({
 .dsh-reader-md .dsh-reader-li{margin:0 0 .45em}
 .dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
 .dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
+.dsh-reader-notes{flex:1;min-height:0;overflow:auto;padding:10px 12px 16px}
+.dsh-reader-note{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-note:last-child{border-bottom:0}
+.dsh-reader-note-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-reader-note-main:hover .dsh-reader-note-body{color:var(--dsw-alias-brand-primary)}
+.dsh-reader-note-chapter{color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.5}
+.dsh-reader-note-quote{padding-left:8px;border-left:2px solid var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-note-body{color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-note-delete{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-reader-note-delete:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary)}
+.dsh-reader-note-delete:disabled{opacity:.45;cursor:default}
 .dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
 .dsh-reader-chat-compose textarea{display:block;width:100%;box-sizing:border-box;min-height:58px;max-height:140px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.55;resize:vertical}
 .dsh-reader-chat-compose textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
@@ -189,6 +239,17 @@ window.__ModuleLoader__.load({
 .dsh-reader-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
 .dsh-reader-chat-send:disabled{opacity:.45;cursor:default}
 .dsh-reader-chat-backdrop{display:none}
+.dsh-reader-search{flex:none;max-height:46vh;overflow:auto;padding:10px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-search-bar{display:flex;align-items:center;gap:8px}
+.dsh-reader-search-bar input{flex:1;min-width:0;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-reader-search-bar input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-search-list{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.dsh-reader-search-result{display:flex;flex-direction:column;gap:3px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-reader-search-result:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-search-chapter{color:var(--dsw-alias-label-primary);font-size:12px;font-weight:600}
+.dsh-reader-search-snippet{color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
+.dsh-reader-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 .dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px}
 .dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--dsw-alias-label-primary)}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
@@ -201,9 +262,18 @@ window.__ModuleLoader__.load({
 .dsh-reader-reader a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
 .dsh-reader-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
 .dsh-reader-li-marker{color:var(--dsw-alias-label-secondary);flex:none;min-width:1.1em}
+.dsh-reader-flash{background:var(--dsw-alias-bg-layer-2);border-radius:4px;transition:background .2s ease}
 .dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
 .dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-note-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.24)}
+.dsh-reader-note-dialog{width:min(520px,100%);max-height:min(82vh,620px);display:flex;flex-direction:column;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-overlay);box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.dsh-reader-note-dialog h3{margin:0 0 10px;font-size:14px;font-weight:650}
+.dsh-reader-note-dialog-quote{flex:none;max-height:140px;overflow:auto;margin-bottom:10px;padding:8px 10px;border-left:3px solid var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-note-dialog textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
+.dsh-reader-note-dialog textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-note-dialog-error{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
+.dsh-reader-note-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .dsh-reader-banner{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:12.5px;line-height:1.5}
 .dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
 .dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
@@ -433,22 +503,67 @@ window.__ModuleLoader__.load({
       return blocks
     }
 
+    function timestampOf(value) {
+      if (typeof value === 'number' && Number.isFinite(value)) return value
+      if (typeof value === 'string') {
+        const parsed = Date.parse(value)
+        if (Number.isFinite(parsed)) return parsed
+      }
+      return 0
+    }
+
+    function blockIndexAtOffset(blocks, offset) {
+      if (!Array.isArray(blocks) || blocks.length === 0) return 0
+      const wanted = Number.isFinite(offset) ? offset : 0
+      let start = 0
+      let fallback = 0
+      for (let index = 0; index < blocks.length; index += 1) {
+        const text = typeof blocks[index]?.text === 'string' ? blocks[index].text : ''
+        if (wanted < start) break
+        fallback = index
+        if (wanted <= start + text.length) return index
+        start += text.length + 2
+      }
+      return fallback
+    }
+
+    function selectionAnchor(range, container) {
+      const startNode = range.startContainer
+      const element = startNode.nodeType === 1 ? startNode : startNode.parentElement
+      const block = element && typeof element.closest === 'function'
+        ? element.closest('[data-block-index]')
+        : null
+      if (!block || !container.contains(block)) return null
+      const blockIndex = Number(block.getAttribute('data-block-index'))
+      if (!Number.isInteger(blockIndex) || blockIndex < 0) return null
+      const before = range.cloneRange()
+      before.selectNodeContents(block)
+      before.setEnd(range.startContainer, range.startOffset)
+      return { blockIndex, offset: before.toString().length }
+    }
+
     function renderBlocks(blocks, prefix) {
       return blocks.map((block, index) => {
         const key = `${prefix}-${index}`
         if (block.type === 'h') {
           const level = Math.min(6, Math.max(3, block.level ?? 3))
-          return h(`h${level}`, { key }, inline(block.text, key))
+          return h(`h${level}`, { key, 'data-block-index': index }, inline(block.text, key))
         }
-        if (block.type === 'code') return h('pre', { key }, h('code', null, block.text))
-        if (block.type === 'quote') return h('blockquote', { key }, inline(block.text, key))
-        if (block.type === 'hr') return h('hr', { key, className: 'dsh-reader-md-hr' })
+        if (block.type === 'code') {
+          return h('pre', { key, 'data-block-index': index }, h('code', null, block.text))
+        }
+        if (block.type === 'quote') {
+          return h('blockquote', { key, 'data-block-index': index }, inline(block.text, key))
+        }
+        if (block.type === 'hr') {
+          return h('hr', { key, 'data-block-index': index, className: 'dsh-reader-md-hr' })
+        }
         if (block.type === 'li') {
-          return h('div', { key, className: 'dsh-reader-li' },
+          return h('div', { key, 'data-block-index': index, className: 'dsh-reader-li' },
             h('span', { className: 'dsh-reader-li-marker' }, block.ordered ? `${block.index}.` : '•'),
             h('span', null, inline(block.text, key)))
         }
-        return h('p', { key }, inline(block.text, key))
+        return h('p', { key, 'data-block-index': index }, inline(block.text, key))
       })
     }
 
@@ -592,13 +707,31 @@ window.__ModuleLoader__.load({
       const [hasMore, setHasMore] = React.useState(false)
       const [loadingEarlier, setLoadingEarlier] = React.useState(false)
       const [chatBinding, setChatBinding] = React.useState(null)
+      const [chatTab, setChatTab] = React.useState('chat')
+      const [notes, setNotes] = React.useState([])
+      const [notesLoading, setNotesLoading] = React.useState(false)
+      const [notesError, setNotesError] = React.useState('')
+      const [noteDeletingId, setNoteDeletingId] = React.useState(null)
+      const [noteEditor, setNoteEditor] = React.useState(null)
+      const [noteDraft, setNoteDraft] = React.useState('')
+      const [noteSaving, setNoteSaving] = React.useState(false)
+      const [noteError, setNoteError] = React.useState('')
+      const [searchOpen, setSearchOpen] = React.useState(false)
+      const [searchQuery, setSearchQuery] = React.useState('')
+      const [searchBusy, setSearchBusy] = React.useState(false)
+      const [searchResults, setSearchResults] = React.useState(null)
+      const [searchError, setSearchError] = React.useState('')
       const chatRef = React.useRef(null)
       const chatBodyRef = React.useRef(null)
       const chatInputRef = React.useRef(null)
+      const noteInputRef = React.useRef(null)
+      const searchInputRef = React.useRef(null)
       const dragRef = React.useRef(null)
       const chatWidthRef = React.useRef(chatWidth)
       chatWidthRef.current = chatWidth
       const contentRef = React.useRef(null)
+      const pendingScrollRef = React.useRef(null)
+      const notesRequestRef = React.useRef(0)
 
       const refresh = React.useCallback(async () => {
         setBusy(true)
@@ -635,9 +768,56 @@ window.__ModuleLoader__.load({
         : null
       const workspaceId = snapshot?.settings?.workspaceId ?? null
 
+      const loadNotes = React.useCallback(async () => {
+        const bookId = activeBookId
+        if (!bookId) {
+          setNotes([])
+          return
+        }
+        const request = notesRequestRef.current + 1
+        notesRequestRef.current = request
+        setNotesLoading(true)
+        setNotesError('')
+        try {
+          const value = await call('notes', { action: 'list', bookId })
+          if (notesRequestRef.current !== request) return
+          const list = Array.isArray(value?.notes) ? value.notes.slice() : []
+          list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt))
+          setNotes(list)
+        } catch (cause) {
+          if (notesRequestRef.current === request) {
+            setNotesError(`${t('notesFailed')}：${messageOf(cause)}`)
+          }
+        } finally {
+          if (notesRequestRef.current === request) setNotesLoading(false)
+        }
+      }, [activeBookId, t])
+
+      React.useEffect(() => {
+        notesRequestRef.current += 1
+        setNotes([])
+        setNotesLoading(false)
+        setNotesError('')
+        setNoteDeletingId(null)
+        setNoteEditor(null)
+        setNoteDraft('')
+        setNoteError('')
+        setSearchOpen(false)
+        setSearchQuery('')
+        setSearchBusy(false)
+        setSearchResults(null)
+        setSearchError('')
+      }, [activeBookId])
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || chatTab !== 'notes') return
+        void loadNotes()
+      }, [screen.kind, chatTab, loadNotes])
+
       const openBook = React.useCallback(async book => {
         setBusy(true)
         setError('')
+        pendingScrollRef.current = null
         try {
           const detail = await call('open', { bookId: book.id })
           if (!detail.supported) {
@@ -658,11 +838,21 @@ window.__ModuleLoader__.load({
         }
       }, [t])
 
-      const selectChapter = React.useCallback(async (bookId, chapterId) => {
+      const selectChapter = React.useCallback(async (bookId, chapterId, target) => {
         setSelection(null)
         setBusy(true)
+        pendingScrollRef.current = null
         try {
           const content = await call('chapter', { bookId, chapterId })
+          pendingScrollRef.current = target
+            ? {
+              chapterId: content.chapterId,
+              blockIndex: Number.isInteger(target.blockIndex)
+                ? target.blockIndex
+                : blockIndexAtOffset(content.blocks, target.offset),
+              flash: Boolean(target.flash),
+            }
+            : null
           setScreen(previous => previous.kind === 'book'
             ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
             : previous)
@@ -674,9 +864,148 @@ window.__ModuleLoader__.load({
         }
       }, [t])
 
+      const scrollToBlock = React.useCallback(pending => {
+        const container = contentRef.current
+        if (!container || !Number.isInteger(pending.blockIndex)) return
+        const target = container.querySelector(`[data-block-index="${pending.blockIndex}"]`)
+        if (!target) return
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        if (pending.flash) {
+          target.classList.add('dsh-reader-flash')
+          window.setTimeout(() => target.classList.remove('dsh-reader-flash'), 1500)
+        }
+      }, [])
+
+      React.useEffect(() => {
+        const pending = pendingScrollRef.current
+        if (!pending || screen.kind !== 'book') return
+        if (screen.content.chapterId !== pending.chapterId) return
+        pendingScrollRef.current = null
+        const frame = requestAnimationFrame(() => scrollToBlock(pending))
+        return () => cancelAnimationFrame(frame)
+      }, [screen, scrollToBlock])
+
+      const openSearchMatch = React.useCallback(match => {
+        if (!match || screen.kind !== 'book') return
+        setSearchOpen(false)
+        void selectChapter(screen.detail.book.id, match.chapterId, { offset: match.offset })
+      }, [screen, selectChapter])
+
+      const runSearch = React.useCallback(async () => {
+        if (screen.kind !== 'book' || searchBusy) return
+        const query = searchQuery.trim()
+        if (!query) return
+        setSearchBusy(true)
+        setSearchError('')
+        setSearchResults(null)
+        try {
+          const value = await call('search', {
+            bookId: screen.detail.book.id,
+            query,
+            limit: 30,
+          })
+          setSearchResults({
+            matches: Array.isArray(value?.matches) ? value.matches : [],
+            truncated: Boolean(value?.truncated),
+          })
+        } catch (cause) {
+          setSearchResults({ matches: [], truncated: false })
+          setSearchError(`${t('searchFailed')}：${messageOf(cause)}`)
+        } finally {
+          setSearchBusy(false)
+        }
+      }, [screen, searchBusy, searchQuery, t])
+
+      const toggleSearch = React.useCallback(() => {
+        setSearchOpen(previous => !previous)
+        setSearchError('')
+      }, [])
+
+      React.useEffect(() => {
+        if (!searchOpen) return
+        const frame = requestAnimationFrame(() => searchInputRef.current?.focus())
+        return () => cancelAnimationFrame(frame)
+      }, [searchOpen])
+
+      const openNote = React.useCallback(note => {
+        if (!note || screen.kind !== 'book') return
+        setNoteEditor(null)
+        void selectChapter(screen.detail.book.id, note.chapterId, {
+          blockIndex: note.blockIndex,
+          flash: true,
+        })
+      }, [screen, selectChapter])
+
+      const deleteNote = React.useCallback(async note => {
+        if (!note?.id || noteDeletingId) return
+        setNoteDeletingId(note.id)
+        setNotesError('')
+        try {
+          await call('notes', {
+            action: 'delete',
+            bookId: note.bookId ?? activeBookId,
+            noteId: note.id,
+          })
+        } catch (cause) {
+          setNotesError(`${t('noteDeleteFailed')}：${messageOf(cause)}`)
+          setNoteDeletingId(null)
+          return
+        }
+        setNoteDeletingId(null)
+        await loadNotes()
+      }, [activeBookId, loadNotes, noteDeletingId, t])
+
+      const closeNoteEditor = React.useCallback(() => {
+        setNoteEditor(null)
+        setNoteDraft('')
+        setNoteError('')
+      }, [])
+
+      const openNoteEditor = React.useCallback(() => {
+        if (!selection || selection.blockIndex == null || screen.kind !== 'book') return
+        setNoteEditor({
+          chapterId: screen.content.chapterId,
+          blockIndex: selection.blockIndex,
+          offset: selection.offset,
+          quote: selection.text,
+        })
+        setNoteDraft('')
+        setNoteError('')
+        setSelection(null)
+        requestAnimationFrame(() => noteInputRef.current?.focus())
+      }, [selection, screen])
+
+      const saveNote = React.useCallback(async () => {
+        const editor = noteEditor
+        const text = noteDraft.trim()
+        if (!editor || !text || noteSaving || screen.kind !== 'book') return
+        setNoteSaving(true)
+        setNoteError('')
+        try {
+          await call('notes', {
+            action: 'add',
+            bookId: screen.detail.book.id,
+            chapterId: editor.chapterId,
+            blockIndex: editor.blockIndex,
+            offset: editor.offset,
+            quote: editor.quote,
+            note: text,
+          })
+        } catch (cause) {
+          setNoteError(`${t('noteSaveFailed')}：${messageOf(cause)}`)
+          setNoteSaving(false)
+          return
+        }
+        setNoteSaving(false)
+        setNoteEditor(null)
+        setNoteDraft('')
+        void loadNotes()
+      }, [noteEditor, noteDraft, noteSaving, screen, loadNotes, t])
+
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: 'library' })
         setSelection(null)
+        pendingScrollRef.current = null
         void refresh()
       }, [refresh])
 
@@ -714,6 +1043,7 @@ window.__ModuleLoader__.load({
         setDraft(`我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n${question}`)
         setSelection(null)
         setChatOpen(true)
+        setChatTab('chat')
         setChatError('')
         requestAnimationFrame(() => chatInputRef.current?.focus())
       }, [selection, screen, t])
@@ -736,10 +1066,13 @@ window.__ModuleLoader__.load({
           return
         }
         const rect = range.getBoundingClientRect()
+        const anchor = selectionAnchor(range, container)
         setSelection({
           text: text.slice(0, 2000),
           x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
           y: rect.top,
+          blockIndex: anchor ? anchor.blockIndex : null,
+          offset: anchor ? anchor.offset : 0,
         })
       }, [])
 
@@ -817,7 +1150,7 @@ window.__ModuleLoader__.load({
       React.useEffect(() => {
         const element = chatBodyRef.current
         if (element) element.scrollTop = element.scrollHeight
-      }, [lastEntrySeq, sending, chatBinding, chatOpen])
+      }, [lastEntrySeq, sending, chatBinding, chatOpen, chatTab])
 
       const sessionSnapshot = React.useSyncExternalStore(
         React.useCallback(callback => {
@@ -1012,6 +1345,84 @@ window.__ModuleLoader__.load({
             onClick: () => void send(),
           }, sending ? t('sending') : t('send'))))
 
+      const notesBody = h('div', { className: 'dsh-reader-notes' },
+        notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
+        notesLoading && notes.length === 0
+          ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))
+          : notes.length === 0
+            ? notesError ? null : h('div', { className: 'dsh-reader-chat-empty' }, t('noteEmpty'))
+            : notes.map(note => {
+              const chapterTitle = screen.kind === 'book'
+                ? screen.detail.toc.find(item => item.id === note.chapterId)?.title
+                : ''
+              return h('div', { key: note.id, className: 'dsh-reader-note' },
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-main',
+                  onClick: () => openNote(note),
+                },
+                h('div', { className: 'dsh-reader-note-chapter' }, chapterTitle || t('reading')),
+                note.quote ? h('div', { className: 'dsh-reader-note-quote' }, note.quote) : null,
+                h('div', { className: 'dsh-reader-note-body' }, note.note)),
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-delete',
+                  disabled: noteDeletingId === note.id,
+                  onClick: () => void deleteNote(note),
+                }, noteDeletingId === note.id ? t('loading') : t('delete')))
+            }))
+
+      const searchPanel = searchOpen && screen.kind === 'book'
+        ? h('div', { className: 'dsh-reader-search' },
+          h('div', { className: 'dsh-reader-search-bar' },
+            h('input', {
+              ref: searchInputRef,
+              value: searchQuery,
+              placeholder: t('searchPlaceholder'),
+              spellCheck: false,
+              onChange: event => setSearchQuery(event.target.value),
+              onKeyDown: event => {
+                if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+                  event.preventDefault()
+                  void runSearch()
+                }
+              },
+            }),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-primary',
+              disabled: searchBusy || !searchQuery.trim(),
+              onClick: () => void runSearch(),
+            }, searchBusy ? t('searching') : t('search')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-icon-btn',
+              title: t('closeSearch'),
+              'aria-label': t('closeSearch'),
+              onClick: () => setSearchOpen(false),
+            }, '×')),
+          searchError
+            ? h('div', { className: 'dsh-reader-search-hint', 'data-error': 'true' }, searchError)
+            : searchBusy
+              ? h('div', { className: 'dsh-reader-search-hint' }, t('searching'))
+              : searchResults === null
+                ? null
+                : searchResults.matches.length === 0
+                  ? h('div', { className: 'dsh-reader-search-hint' }, t('searchEmpty'))
+                  : h('div', { className: 'dsh-reader-search-list' },
+                    searchResults.matches.map((match, index) => h('button', {
+                      key: `${match.chapterId}:${match.offset}:${index}`,
+                      type: 'button',
+                      className: 'dsh-reader-search-result',
+                      onClick: () => openSearchMatch(match),
+                    },
+                    h('div', { className: 'dsh-reader-search-chapter' }, match.chapterTitle),
+                    h('div', { className: 'dsh-reader-search-snippet' }, match.snippet))),
+                    searchResults.truncated
+                      ? h('div', { className: 'dsh-reader-search-hint' }, t('searchTruncated'))
+                      : null))
+        : null
+
       const chatPanel = chatOpen
         ? h('aside', { className: 'dsh-reader-chat' },
           h('div', {
@@ -1032,15 +1443,35 @@ window.__ModuleLoader__.load({
             onKeyDown: resizeKeyDown,
           }),
           h('div', { className: 'dsh-reader-chat-head' },
-            h('span', { className: 'dsh-reader-chat-title' }, t('companion')),
+            h('div', { className: 'dsh-reader-chat-tabs', role: 'tablist' },
+              h('button', {
+                type: 'button',
+                role: 'tab',
+                className: 'dsh-reader-chat-tab',
+                'data-active': chatTab === 'chat' ? 'true' : 'false',
+                'aria-selected': chatTab === 'chat',
+                onClick: () => setChatTab('chat'),
+              }, t('companion')),
+              h('button', {
+                type: 'button',
+                role: 'tab',
+                className: 'dsh-reader-chat-tab',
+                'data-active': chatTab === 'notes' ? 'true' : 'false',
+                'aria-selected': chatTab === 'notes',
+                onClick: () => setChatTab('notes'),
+              }, t('notes'))),
             h('button', {
               type: 'button',
               className: 'dsh-reader-chat-close',
               onClick: () => setChatOpen(false),
             }, t('closeChat'))),
-          chatBody,
-          chatError ? h('div', { className: 'dsh-reader-chat-error' }, chatError) : null,
-          chatCompose)
+          chatTab === 'notes'
+            ? notesBody
+            : chatBody,
+          chatTab === 'chat' && chatError
+            ? h('div', { className: 'dsh-reader-chat-error' }, chatError)
+            : null,
+          chatTab === 'chat' ? chatCompose : null)
         : null
 
       const bookView = screen.kind === 'book'
@@ -1095,6 +1526,15 @@ window.__ModuleLoader__.load({
               ? h('button', {
                 type: 'button',
                 className: 'dsh-reader-icon-btn',
+                title: t('search'),
+                'aria-expanded': searchOpen ? 'true' : 'false',
+                onClick: toggleSearch,
+              }, t('search'))
+              : null,
+            screen.kind === 'book'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
                 title: t('companion'),
                 onClick: () => setChatOpen(previous => !previous),
               }, t('companion'))
@@ -1124,6 +1564,7 @@ window.__ModuleLoader__.load({
               }, 'A+')
               : null)),
         error ? h('div', { className: 'dsh-reader-error' }, error) : null,
+        searchPanel,
         !snapshot
           ? h('div', { className: 'dsh-reader-muted' }, busy ? t('loading') : t('loadFailed'))
           : screen.kind === 'setup' || !snapshot.settings.libraryDir
@@ -1164,7 +1605,48 @@ window.__ModuleLoader__.load({
           },
           h('button', { type: 'button', onClick: () => prefill('explain') }, t('explain')),
           h('button', { type: 'button', onClick: () => prefill('summarize') }, t('summarize')),
-          h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')))
+          h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')),
+          selection.blockIndex == null
+            ? null
+            : h('button', { type: 'button', onClick: openNoteEditor }, t('noteAction')))
+          : null,
+        noteEditor
+          ? h('div', {
+            className: 'dsh-reader-note-overlay',
+            onMouseDown: event => {
+              if (event.target === event.currentTarget) closeNoteEditor()
+            },
+          },
+          h('div', {
+            className: 'dsh-reader-note-dialog',
+            role: 'dialog',
+            'aria-modal': 'true',
+            'aria-label': t('noteDialogTitle'),
+          },
+          h('h3', null, t('noteDialogTitle')),
+          h('div', { className: 'dsh-reader-note-dialog-quote' }, noteEditor.quote),
+          h('textarea', {
+            ref: noteInputRef,
+            value: noteDraft,
+            rows: 4,
+            placeholder: t('notePlaceholder'),
+            disabled: noteSaving,
+            onChange: event => setNoteDraft(event.target.value),
+          }),
+          noteError ? h('div', { className: 'dsh-reader-note-dialog-error' }, noteError) : null,
+          h('div', { className: 'dsh-reader-note-dialog-actions' },
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-secondary',
+              disabled: noteSaving,
+              onClick: closeNoteEditor,
+            }, t('cancel')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-primary',
+              disabled: noteSaving || !noteDraft.trim(),
+              onClick: () => void saveNote(),
+            }, noteSaving ? t('noteSaving') : t('save')))))
           : null)
     }
 

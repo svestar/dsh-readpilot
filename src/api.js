@@ -1,7 +1,8 @@
 import { mkdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, isAbsolute, resolve } from 'node:path'
-import { chapterText, isSupportedFormat, parseBook } from './formats.js'
+import { chapterText, isSupportedFormat, parseBookAsync } from './formats.js'
 import { findBookByKey, scanLibrary } from './library.js'
+import { createNotesStore } from './notes.js'
 import {
   loadBookCache,
   loadProgress,
@@ -13,7 +14,7 @@ import {
   saveSettings,
 } from './store.js'
 
-const PARSER_VERSION = 1
+const PARSER_VERSION = 2
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -33,6 +34,7 @@ function positiveInteger(value, fallback) {
 
 export function createReaderApi({ ctx, dataDir, config = {} }) {
   const maxBookBytes = positiveInteger(config.maxBookBytes, DEFAULT_MAX_BOOK_BYTES)
+  const notesStore = createNotesStore(dataDir)
 
   async function currentSettings() {
     return loadSettings(dataDir)
@@ -116,7 +118,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       throw new ReaderError('book-too-large', `书籍超过 ${Math.round(maxBookBytes / 1024 / 1024)} MB 限制`)
     }
     const buffer = await readFile(book.path)
-    const parsed = parseBook(buffer, book.format, book.path)
+    const parsed = await parseBookAsync(buffer, book.format, book.path)
     const record = {
       parserVersion: PARSER_VERSION,
       source: { path: book.path, mtimeMs: info.mtimeMs, size: info.size },
@@ -133,6 +135,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       return { book, supported: false, toc: [], progress }
     }
     const parsed = await ensureParsed(book)
+    if (parsed.chapters.length === 0) {
+      throw new ReaderError(
+        'no-extractable-text',
+        book.format === 'pdf'
+          ? '这个 PDF 没有可提取的文本层；扫描版需要 OCR，当前不支持'
+          : '这本书没有可提取的文本',
+      )
+    }
     return {
       book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
       supported: true,
@@ -272,11 +282,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       title: detail.book.title,
       author: detail.book.author,
       format: found.format,
-      supported: detail.supported,
       toc: detail.toc.slice(0, 200),
       tocTruncated: detail.toc.length > 200,
       progress: detail.progress,
-      message: detail.supported ? undefined : '该格式尚未实现文本解析，暂时无法阅读。',
     }
   }
 
@@ -317,6 +325,70 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     return search({ bookId: found?.id, query, limit })
   }
 
+  async function toolNote({ action, book, chapter, blockIndex, offset, quote, note } = {}) {
+    const books = await libraryBooks()
+    const found = findBookByKey(books, book)
+    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    if (action === 'list') {
+      return { bookId: found.id, bookTitle: found.title, notes: await notesStore.list(found.id) }
+    }
+    if (action !== 'add') {
+      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(action)}`)
+    }
+    if (typeof quote !== 'string' || !quote.trim()) {
+      throw new ReaderError('invalid-note', '笔记需要引用原文')
+    }
+    if (typeof note !== 'string' || !note.trim()) {
+      throw new ReaderError('invalid-note', '笔记内容不能为空')
+    }
+    const parsed = await ensureParsed(found)
+    const target = parsed.chapters.find(item => item.id === chapter)
+      ?? parsed.chapters.find(item => item.title === chapter)
+      ?? parsed.chapters[0]
+    if (!target) throw new ReaderError('chapter-not-found', '这本书没有可读的章节')
+    const record = await notesStore.add(found.id, {
+      chapterId: target.id,
+      blockIndex: Number.isInteger(blockIndex) && blockIndex >= 0 ? blockIndex : 0,
+      offset: Number.isInteger(offset) && offset >= 0 ? offset : 0,
+      quote: typeof quote === 'string' ? quote : '',
+      note: typeof note === 'string' ? note : '',
+    })
+    return {
+      bookId: found.id,
+      bookTitle: parsed.title || found.title,
+      chapterId: target.id,
+      chapterTitle: target.title,
+      note: record,
+    }
+  }
+
+  async function handleNotes(payload = {}) {
+    const book = await resolveBook(payload.bookId)
+    if (payload.action === 'list') {
+      return { notes: await notesStore.list(book.id) }
+    }
+    if (payload.action === 'add') {
+      const record = await notesStore.add(book.id, {
+        chapterId: payload.chapterId,
+        blockIndex: payload.blockIndex,
+        offset: payload.offset,
+        quote: payload.quote,
+        note: payload.note,
+      })
+      return { note: record }
+    }
+    if (payload.action === 'update') {
+      const patch = {}
+      if (typeof payload.note === 'string') patch.note = payload.note
+      if (typeof payload.quote === 'string') patch.quote = payload.quote
+      return { note: await notesStore.update(book.id, payload.noteId, patch) }
+    }
+    if (payload.action === 'delete') {
+      return { deleted: await notesStore.remove(book.id, payload.noteId) }
+    }
+    throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
+  }
+
   async function handleRpc(endpoint, payload) {
     const handlers = {
       state,
@@ -327,6 +399,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       progress: saveReadingProgress,
       session: setCompanionSession,
       search,
+      notes: handleNotes,
     }
     const handler = handlers[endpoint]
     if (!handler) {
@@ -352,6 +425,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     toolOpen,
     toolRead,
     toolSearch,
+    toolNote,
     handleRpc,
   }
 }

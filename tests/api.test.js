@@ -98,3 +98,37 @@ test('rpc_envelope_dispatches', async t => {
   assert.equal(unknown.ok, false)
   assert.equal(unknown.error.code, 'unknown-endpoint')
 })
+
+test('notes_rpc_roundtrip', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const configured = await api.handleRpc('configure', { path: library })
+  const bookId = configured.value.books[0].id
+
+  const added = await api.handleRpc('notes', {
+    action: 'add',
+    bookId,
+    chapterId: 'c001',
+    blockIndex: 0,
+    offset: 0,
+    quote: '测试引用',
+    note: '测试笔记',
+  })
+  assert.equal(added.ok, true)
+  assert.match(added.value.note.id, /^note-/)
+
+  const listed = await api.handleRpc('notes', { action: 'list', bookId })
+  assert.equal(listed.ok, true)
+  assert.equal(listed.value.notes.length, 1)
+
+  const removed = await api.handleRpc('notes', {
+    action: 'delete',
+    bookId,
+    noteId: added.value.note.id,
+  })
+  assert.equal(removed.ok, true)
+  assert.equal(removed.value.deleted, true)
+
+  const empty = await api.handleRpc('notes', { action: 'list', bookId })
+  assert.equal(empty.value.notes.length, 0)
+})
