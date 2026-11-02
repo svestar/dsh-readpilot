@@ -8,11 +8,11 @@
 | `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.js` | `tests/formats.test.js` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.js` | `tests/api.test.js` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.js` | `tests/tools.test.js` | active |
-| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `client.js` | `tests/client-chat.test.js` | active |
+| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/helpers.js` | `tests/client-chat.test.js` | active |
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.js` | `tests/epub.test.js` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.js` | `tests/pdf.test.js` | active |
 | `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.js` | `tests/notes.test.js` | active |
 | `FTR-009` | PDF 视觉 | `docs/features/FTR-009-pdf-visual.md` | `src/visual/pdf.js` | `tests/pdf-visual.test.js` | active |
 | `FTR-010` | EPUB 视觉 | `docs/features/FTR-010-epub-visual.md` | `src/visual/epub.js` | `tests/epub-visual.test.js` | active |
-| `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `client.js` | `tests/palette.test.js` | active |
-| `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `client.js` | `tests/highlight.test.js` | active |
+| `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `src/client/helpers.js` | `tests/palette.test.js` | active |
+| `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `src/client/helpers.js` | `tests/highlight.test.js` | active |

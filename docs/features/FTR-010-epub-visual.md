@@ -3,7 +3,7 @@
 - **ID：** FTR-010
 - **名称：** EPUB 视觉
 - **状态：** active
-- **代码：** `src/visual/epub.js`（`createEpubVisual`）；`src/formats/epub.js`（`parseEpub` 的 `href`）；`src/api.js`（`epubDocument`、`epubAsset`）；`client.js`（`ReaderPanel`）
+- **代码：** `src/visual/epub.js`（`createEpubVisual`）；`src/formats/epub.js`（`parseEpub` 的 `href`）；`src/api.js`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.js`（`useVisual`）；`src/client/views/visual-reader.js`（`VisualReader`）；`src/client/plugin.js`（`ReaderPanel`）
 - **测试：** `tests/epub-visual.test.js`
 
 ## 行为
@@ -18,7 +18,9 @@
 | `parseEpub` | `src/formats/epub.js:parseEpub` | 在章节上写入相对 OPF 的 `href` |
 | `epubDocument` | `src/api.js:epubDocument` | 返回清洗后的章节 HTML |
 | `epubAsset` | `src/api.js:epubAsset` | 返回 CSS/图片/字体字节 |
-| `ReaderPanel` | `client.js:ReaderPanel` | iframe、章节切换与选区桥 |
+| `useVisual` | `src/client/hooks/use-visual.js:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
+| `VisualReader` | `src/client/views/visual-reader.js:VisualReader` | iframe 与章节工具栏 |
+| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为
 
