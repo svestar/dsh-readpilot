@@ -21,3 +21,4 @@
 | `FTR-015` | 文本编码 | `docs/features/FTR-015-text-encoding.md` | `src/formats.js` | `tests/formats.test.js` | active |
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.js` | `tests/reading-anchor.test.js` | active |
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.js` | `tests/prompt.test.js` | active |
+| `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.js` | `tests/marks.test.js` | active |

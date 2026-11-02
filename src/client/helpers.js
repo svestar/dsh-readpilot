@@ -235,7 +235,14 @@ export function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jum
         style.setAttribute('data-dsh-note', '')
         ;(doc.head ?? doc.documentElement)?.appendChild(style)
       }
-      style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`
+      const highlightColors = {
+        yellow: 'rgba(250,204,21,.38)',
+        green: 'rgba(74,222,128,.32)',
+        blue: 'rgba(96,165,250,.32)',
+        pink: 'rgba(244,114,182,.30)',
+        purple: 'rgba(192,132,252,.30)',
+      }
+      style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-reader-highlight-green{background:${highlightColors.green}!important}mark.dsh-reader-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-reader-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-reader-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`
       const onClick = event => {
         const mark = event.target.closest?.('mark[data-note-id]')
         if (!mark) return
@@ -250,7 +257,9 @@ export function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jum
         const range = rangeForNote(doc.body, match.start, match.end)
         if (!range) continue
         const mark = doc.createElement('mark')
-        mark.className = 'dsh-reader-note-mark'
+        mark.className = note.kind === 'highlight'
+          ? `dsh-reader-note-mark dsh-reader-highlight-${note.color ?? 'yellow'}`
+          : 'dsh-reader-note-mark'
         mark.dataset.noteId = note.id
         mark.appendChild(range.extractContents())
         range.insertNode(mark)

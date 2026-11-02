@@ -32,6 +32,7 @@ export function useNotes({
   const [noteDeletingId, setNoteDeletingId] = React.useState(null)
   const [noteEditor, setNoteEditor] = React.useState(null)
   const [noteDraft, setNoteDraft] = React.useState('')
+  const [noteColor, setNoteColor] = React.useState('yellow')
   const [noteSaving, setNoteSaving] = React.useState(false)
   const [noteError, setNoteError] = React.useState('')
   const [epubJumpToken, setEpubJumpToken] = React.useState(0)
@@ -117,31 +118,18 @@ export function useNotes({
   const closeNoteEditor = React.useCallback(() => {
     setNoteEditor(null)
     setNoteDraft('')
+    setNoteColor('yellow')
     setNoteError('')
   }, [])
 
-  const openNoteEditor = React.useCallback(note => {
-    if (note) {
-      setNoteEditor({
-        noteId: note.id,
-        chapterId: note.chapterId,
-        blockIndex: note.blockIndex,
-        offset: note.offset,
-        quote: note.quote,
-      })
-      setNoteDraft(note.note ?? '')
-      setNoteError('')
-      setSelection(null)
-      requestAnimationFrame(() => noteInputRef.current?.focus())
-      return
-    }
-    if (!selection || selection.blockIndex == null || screen.kind !== 'book') return
+  const selectionFields = React.useCallback(() => {
+    if (!selection || selection.blockIndex == null || screen.kind !== 'book') return null
     const chapter = blocksText(screen.content.blocks)
     const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset)
     const occurrence = findNoteOccurrence(chapter, selection.text, preferred)
     const start = occurrence?.start ?? preferred
     const context = contextAround(chapter, start, start + selection.text.length)
-    setNoteEditor({
+    return {
       chapterId: activeChapterId,
       blockIndex: selection.blockIndex,
       offset: selection.offset,
@@ -149,21 +137,103 @@ export function useNotes({
       quotePrefix: context.prefix,
       quoteSuffix: context.suffix,
       textHash: hashText(chapter),
-    })
+    }
+  }, [activeChapterId, screen, selection])
+
+  const addHighlight = React.useCallback(async color => {
+    const fields = selectionFields()
+    if (!fields || screen.kind !== 'book' || noteSaving) return
+    setNoteSaving(true)
+    setNoteError('')
+    try {
+      await call('notes', {
+        action: 'add',
+        bookId: screen.detail.book.id,
+        kind: 'highlight',
+        color,
+        annotation: '',
+        note: '',
+        ...fields,
+      })
+    } catch (cause) {
+      setNoteError(`${t('noteSaveFailed')}：${messageOf(cause)}`)
+      setNoteSaving(false)
+      return
+    }
+    setNoteSaving(false)
+    setSelection(null)
+    await loadNotes()
+  }, [call, loadNotes, noteSaving, screen, selectionFields, setSelection, t])
+
+  const openNoteEditor = React.useCallback(note => {
+    if (note) {
+      setNoteEditor({
+        noteId: note.id,
+        kind: note.kind ?? 'note',
+        chapterId: note.chapterId,
+        blockIndex: note.blockIndex,
+        offset: note.offset,
+        quote: note.quote,
+      })
+      setNoteDraft(note.kind === 'highlight' ? (note.annotation ?? '') : (note.note ?? ''))
+      setNoteColor(note.color ?? 'yellow')
+      setNoteError('')
+      setSelection(null)
+      requestAnimationFrame(() => noteInputRef.current?.focus())
+      return
+    }
+    const fields = selectionFields()
+    if (!fields) return
+    setNoteEditor({ kind: 'note', ...fields })
     setNoteDraft('')
+    setNoteColor('yellow')
     setNoteError('')
     setSelection(null)
     requestAnimationFrame(() => noteInputRef.current?.focus())
-  }, [activeChapterId, screen, selection, setSelection])
+  }, [noteInputRef, selectionFields, setSelection])
+
+  const addBookmark = React.useCallback(async label => {
+    if (screen.kind !== 'book' || noteSaving) return
+    setNoteSaving(true)
+    setNoteError('')
+    try {
+      await call('notes', {
+        action: 'add',
+        bookId: screen.detail.book.id,
+        kind: 'bookmark',
+        color: 'yellow',
+        chapterId: activeChapterId,
+        blockIndex: 0,
+        offset: 0,
+        quote: '',
+        note: (typeof label === 'string' && label.trim()) || screen.content.title || t('bookmark'),
+        annotation: '',
+      })
+    } catch (cause) {
+      setNoteError(`${t('noteSaveFailed')}：${messageOf(cause)}`)
+      setNoteSaving(false)
+      return
+    }
+    setNoteSaving(false)
+    await loadNotes()
+  }, [activeChapterId, call, loadNotes, noteSaving, screen, t])
 
   const saveNote = React.useCallback(async () => {
     const editor = noteEditor
     const text = noteDraft.trim()
-    if (!editor || !text || noteSaving || screen.kind !== 'book') return
+    if (!editor || (!text && editor.kind !== 'highlight') || noteSaving || screen.kind !== 'book') return
     setNoteSaving(true)
     setNoteError('')
     try {
-      if (editor.noteId) {
+      if (editor.kind === 'highlight') {
+        await call('notes', {
+          action: 'update',
+          bookId: screen.detail.book.id,
+          noteId: editor.noteId,
+          annotation: text,
+          color: noteColor,
+        })
+      } else if (editor.noteId) {
         await call('notes', {
           action: 'update',
           bookId: screen.detail.book.id,
@@ -174,6 +244,7 @@ export function useNotes({
         await call('notes', {
           action: 'add',
           bookId: screen.detail.book.id,
+          kind: 'note',
           chapterId: editor.chapterId,
           blockIndex: editor.blockIndex,
           offset: editor.offset,
@@ -192,8 +263,9 @@ export function useNotes({
     setNoteSaving(false)
     setNoteEditor(null)
     setNoteDraft('')
+    setNoteColor('yellow')
     void loadNotes()
-  }, [call, loadNotes, noteDraft, noteEditor, noteSaving, screen, t])
+  }, [call, loadNotes, noteColor, noteDraft, noteEditor, noteSaving, screen, t])
 
   React.useEffect(() => {
     const layer = noteLayerRef.current
@@ -223,7 +295,9 @@ export function useNotes({
         for (const rect of range.getClientRects()) {
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')
-          hit.className = 'dsh-reader-note-hit'
+          hit.className = note.kind === 'highlight'
+            ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? 'yellow'}`
+            : 'dsh-reader-note-hit'
           hit.dataset.noteId = note.id
           hit.style.left = `${rect.left - rootRect.left}px`
           hit.style.top = `${rect.top - rootRect.top}px`
@@ -267,14 +341,22 @@ export function useNotes({
     return result.cleanup
   }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.href, visual?.kind])
 
+  const noteItems = notes.filter(note => note.kind !== 'highlight' && note.kind !== 'bookmark')
+  const highlights = notes.filter(note => note.kind === 'highlight')
+  const bookmarks = notes.filter(note => note.kind === 'bookmark')
+
   return {
-    notes,
+    notes: noteItems,
+    highlights,
+    bookmarks,
     notesLoading,
     notesError,
     noteDeletingId,
     noteEditor,
     noteDraft,
     setNoteDraft,
+    noteColor,
+    setNoteColor,
     noteSaving,
     noteError,
     noteInputRef,
@@ -284,6 +366,8 @@ export function useNotes({
     deleteNote,
     closeNoteEditor,
     openNoteEditor,
+    addHighlight,
+    addBookmark,
     saveNote,
   }
 }

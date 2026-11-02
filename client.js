@@ -243,7 +243,14 @@ var __dshReaderBundle = (() => {
       style.setAttribute("data-dsh-note", "");
       (doc.head ?? doc.documentElement)?.appendChild(style);
     }
-    style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`;
+    const highlightColors = {
+      yellow: "rgba(250,204,21,.38)",
+      green: "rgba(74,222,128,.32)",
+      blue: "rgba(96,165,250,.32)",
+      pink: "rgba(244,114,182,.30)",
+      purple: "rgba(192,132,252,.30)"
+    };
+    style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-reader-highlight-green{background:${highlightColors.green}!important}mark.dsh-reader-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-reader-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-reader-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`;
     const onClick = (event) => {
       const mark = event.target.closest?.("mark[data-note-id]");
       if (!mark) return;
@@ -258,7 +265,7 @@ var __dshReaderBundle = (() => {
       const range = rangeForNote(doc.body, match.start, match.end);
       if (!range) continue;
       const mark = doc.createElement("mark");
-      mark.className = "dsh-reader-note-mark";
+      mark.className = note.kind === "highlight" ? `dsh-reader-note-mark dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-mark";
       mark.dataset.noteId = note.id;
       mark.appendChild(range.extractContents());
       range.insertNode(mark);
@@ -484,6 +491,18 @@ var __dshReaderBundle = (() => {
     closeSearch: "关闭搜索",
     notes: "笔记",
     noteAction: "笔记",
+    marks: "标记",
+    highlights: "划线",
+    highlight: "划线",
+    highlightYellow: "黄色",
+    highlightGreen: "绿色",
+    highlightBlue: "蓝色",
+    highlightPink: "粉色",
+    highlightPurple: "紫色",
+    annotationTitle: "批注",
+    annotationPlaceholder: "写批注（可选）",
+    bookmark: "书签",
+    bookmarks: "书签",
     noteDialogTitle: "添加笔记",
     noteEditTitle: "编辑笔记",
     notePlaceholder: "写下你的想法…",
@@ -576,6 +595,18 @@ var __dshReaderBundle = (() => {
     closeSearch: "Close search",
     notes: "Notes",
     noteAction: "Note",
+    marks: "Marks",
+    highlights: "Highlights",
+    highlight: "Highlight",
+    highlightYellow: "Yellow",
+    highlightGreen: "Green",
+    highlightBlue: "Blue",
+    highlightPink: "Pink",
+    highlightPurple: "Purple",
+    annotationTitle: "Annotation",
+    annotationPlaceholder: "Write an annotation (optional)",
+    bookmark: "Bookmark",
+    bookmarks: "Bookmarks",
     noteDialogTitle: "Add note",
     noteEditTitle: "Edit note",
     notePlaceholder: "Write your note…",
@@ -781,6 +812,24 @@ var __dshReaderBundle = (() => {
 .dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
 .dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
 .dsh-reader-note-hit:hover{opacity:1}
+.dsh-reader-highlight-yellow{background:rgba(250,204,21,.38)!important}
+.dsh-reader-highlight-green{background:rgba(74,222,128,.32)!important}
+.dsh-reader-highlight-blue{background:rgba(96,165,250,.32)!important}
+.dsh-reader-highlight-pink{background:rgba(244,114,182,.30)!important}
+.dsh-reader-highlight-purple{background:rgba(192,132,252,.30)!important}
+.dsh-reader-selection-colors{display:flex;align-items:center;gap:4px;padding-right:5px;margin-right:1px;border-right:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-color-btn{width:18px;height:18px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;cursor:pointer;box-sizing:border-box}
+.dsh-reader-color-btn[data-color="yellow"],.dsh-reader-color-dot.dsh-reader-color-yellow{background:#facc15}
+.dsh-reader-color-btn[data-color="green"],.dsh-reader-color-dot.dsh-reader-color-green{background:#4ade80}
+.dsh-reader-color-btn[data-color="blue"],.dsh-reader-color-dot.dsh-reader-color-blue{background:#60a5fa}
+.dsh-reader-color-btn[data-color="pink"],.dsh-reader-color-dot.dsh-reader-color-pink{background:#f472b6}
+.dsh-reader-color-btn[data-color="purple"],.dsh-reader-color-dot.dsh-reader-color-purple{background:#c084fc}
+.dsh-reader-color-btn[data-active="true"]{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
+.dsh-reader-note-colors{display:flex;gap:8px;margin:0 0 10px}
+.dsh-reader-mark-section{margin-bottom:14px}
+.dsh-reader-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.dsh-reader-mark-bookmark .dsh-reader-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
 .dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
@@ -795,6 +844,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
 .dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-selection .dsh-reader-color-btn{width:18px;height:18px;padding:0;border-radius:50%}
 .dsh-reader-note-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.24)}
 .dsh-reader-note-dialog{width:min(520px,100%);max-height:min(82vh,620px);display:flex;flex-direction:column;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-overlay);box-shadow:0 18px 50px rgba(0,0,0,.28)}
 .dsh-reader-note-dialog h3{margin:0 0 10px;font-size:14px;font-weight:650}
@@ -1358,41 +1408,102 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }
 
   // src/client/views/notes-search.js
-  function NotesBody({ t, notesError, notesLoading, notes, screen, openNote, noteDeletingId, deleteNote }) {
+  function chapterTitleOf(screen, chapterId) {
+    return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
+  }
+  function markActions({ t, item, noteDeletingId, deleteNote, openNote }) {
+    return [
+      h("button", {
+        key: "jump",
+        type: "button",
+        className: "dsh-reader-note-jump",
+        title: t("jump"),
+        onClick: () => openNote(item)
+      }, t("jump")),
+      h("button", {
+        key: "delete",
+        type: "button",
+        className: "dsh-reader-note-delete",
+        disabled: noteDeletingId === item.id,
+        onClick: () => void deleteNote(item)
+      }, noteDeletingId === item.id ? t("loading") : t("delete"))
+    ];
+  }
+  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
+    const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
     return h(
       "div",
       { className: "dsh-reader-notes" },
       notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-      notesLoading && notes.length === 0 ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : notes.length === 0 ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : notes.map((note) => {
-        const chapterTitle = screen.kind === "book" ? screen.detail.toc.find((item) => item.id === note.chapterId)?.title : "";
-        return h(
-          "div",
-          { key: note.id, className: "dsh-reader-note" },
-          h(
-            "button",
-            {
-              type: "button",
-              className: "dsh-reader-note-main",
-              onClick: () => openNote(note)
-            },
-            h("div", { className: "dsh-reader-note-chapter" }, chapterTitle || t("reading")),
-            note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
-            h("div", { className: "dsh-reader-note-body" }, note.note)
-          ),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-note-jump",
-            title: t("jump"),
-            onClick: () => openNote(note)
-          }, t("jump")),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-note-delete",
-            disabled: noteDeletingId === note.id,
-            onClick: () => void deleteNote(note)
-          }, noteDeletingId === note.id ? t("loading") : t("delete"))
-        );
-      })
+      notesLoading && !hasMarks ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
+        highlights.length > 0 ? h(
+          "section",
+          { key: "highlights", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("highlights")} · ${highlights.length}`),
+          highlights.map((highlight) => h(
+            "div",
+            { key: highlight.id, className: "dsh-reader-note dsh-reader-mark-highlight" },
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dsh-reader-note-main",
+                onClick: () => openNote(highlight)
+              },
+              h(
+                "div",
+                { className: "dsh-reader-note-chapter" },
+                h("span", { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? "yellow"}` }),
+                chapterTitleOf(screen, highlight.chapterId) || t("reading")
+              ),
+              h("div", { className: "dsh-reader-note-quote" }, highlight.quote),
+              highlight.annotation ? h("div", { className: "dsh-reader-note-body" }, highlight.annotation) : null
+            ),
+            ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote })
+          ))
+        ) : null,
+        notes.length > 0 ? h(
+          "section",
+          { key: "notes", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("notes")} · ${notes.length}`),
+          notes.map((note) => h(
+            "div",
+            { key: note.id, className: "dsh-reader-note" },
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dsh-reader-note-main",
+                onClick: () => openNote(note)
+              },
+              h("div", { className: "dsh-reader-note-chapter" }, chapterTitleOf(screen, note.chapterId) || t("reading")),
+              note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
+              h("div", { className: "dsh-reader-note-body" }, note.note)
+            ),
+            ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote })
+          ))
+        ) : null,
+        bookmarks.length > 0 ? h(
+          "section",
+          { key: "bookmarks", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
+          bookmarks.map((bookmark) => h(
+            "div",
+            { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dsh-reader-note-main",
+                onClick: () => openNote(bookmark)
+              },
+              h("div", { className: "dsh-reader-note-chapter" }, bookmark.note || t("bookmark")),
+              h("div", { className: "dsh-reader-note-body" }, chapterTitleOf(screen, bookmark.chapterId) || t("reading"))
+            ),
+            ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
+          ))
+        ) : null
+      ]
     );
   }
   function SearchPanel({
@@ -1650,7 +1761,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             "data-active": chatTab === "notes" ? "true" : "false",
             "aria-selected": chatTab === "notes",
             onClick: () => setChatTab("notes")
-          }, t("notes"))
+          }, t("marks"))
         ),
         h("button", {
           type: "button",
@@ -1677,6 +1788,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     onToggleSearch,
     onToggleChat,
     onToggleToc,
+    onBookmark,
     onFontDecrease,
     onFontIncrease
   }) {
@@ -1729,6 +1841,12 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         screen.kind === "book" ? h("button", {
           type: "button",
           className: "dsh-reader-icon-btn",
+          title: t("bookmark"),
+          onClick: onBookmark
+        }, "🔖") : null,
+        screen.kind === "book" ? h("button", {
+          type: "button",
+          className: "dsh-reader-icon-btn",
           title: t("toc"),
           onClick: onToggleToc
         }, "☰") : null,
@@ -1749,7 +1867,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }
 
   // src/client/views/selection-note.js
-  function SelectionToolbar({ t, selection, prefill, onNote }) {
+  var COLORS = ["yellow", "green", "blue", "pink", "purple"];
+  function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }) {
     if (!selection) return null;
     return h(
       "div",
@@ -1758,6 +1877,19 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         style: { left: selection.x, top: Math.max(8, selection.y - 48) },
         onMouseDown: (event) => event.preventDefault()
       },
+      selection.blockIndex == null ? null : h(
+        "div",
+        { className: "dsh-reader-selection-colors", role: "group", "aria-label": t("highlight") },
+        COLORS.map((color) => h("button", {
+          key: color,
+          type: "button",
+          className: "dsh-reader-color-btn",
+          "data-color": color,
+          title: `${t("highlight")}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
+          "aria-label": `${t("highlight")}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
+          onClick: () => onHighlight(color)
+        }))
+      ),
       h("button", { type: "button", onClick: () => prefill("explain") }, t("explain")),
       h("button", { type: "button", onClick: () => prefill("summarize") }, t("summarize")),
       h("button", { type: "button", onClick: () => prefill("translate") }, t("translate")),
@@ -1769,6 +1901,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     noteEditor,
     noteDraft,
     setNoteDraft,
+    noteColor,
+    setNoteColor,
     noteSaving,
     noteError,
     noteInputRef,
@@ -1778,6 +1912,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     saveNote
   }) {
     if (!noteEditor) return null;
+    const isHighlight = noteEditor.kind === "highlight";
+    const title = isHighlight ? t("annotationTitle") : noteEditor.noteId ? t("noteEditTitle") : t("noteDialogTitle");
     return h(
       "div",
       {
@@ -1792,15 +1928,29 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           className: "dsh-reader-note-dialog",
           role: "dialog",
           "aria-modal": "true",
-          "aria-label": noteEditor.noteId ? t("noteEditTitle") : t("noteDialogTitle")
+          "aria-label": title
         },
-        h("h3", null, noteEditor.noteId ? t("noteEditTitle") : t("noteDialogTitle")),
+        h("h3", null, title),
         h("div", { className: "dsh-reader-note-dialog-quote" }, noteEditor.quote),
+        isHighlight ? h(
+          "div",
+          { className: "dsh-reader-note-colors", role: "group", "aria-label": t("highlight") },
+          COLORS.map((color) => h("button", {
+            key: color,
+            type: "button",
+            className: "dsh-reader-color-btn",
+            "data-color": color,
+            "data-active": noteColor === color ? "true" : "false",
+            title: t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
+            "aria-label": t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
+            onClick: () => setNoteColor(color)
+          }))
+        ) : null,
         h("textarea", {
           ref: noteInputRef,
           value: noteDraft,
           rows: 4,
-          placeholder: t("notePlaceholder"),
+          placeholder: isHighlight ? t("annotationPlaceholder") : t("notePlaceholder"),
           disabled: noteSaving,
           onChange: (event) => setNoteDraft(event.target.value)
         }),
@@ -1826,7 +1976,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h("button", {
             type: "button",
             className: "dsh-reader-primary",
-            disabled: noteSaving || !noteDraft.trim(),
+            disabled: noteSaving || !isHighlight && !noteDraft.trim(),
             onClick: () => void saveNote()
           }, noteSaving ? t("noteSaving") : t("save"))
         )
@@ -2312,6 +2462,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [noteDeletingId, setNoteDeletingId] = React.useState(null);
     const [noteEditor, setNoteEditor] = React.useState(null);
     const [noteDraft, setNoteDraft] = React.useState("");
+    const [noteColor, setNoteColor] = React.useState("yellow");
     const [noteSaving, setNoteSaving] = React.useState(false);
     const [noteError, setNoteError] = React.useState("");
     const [epubJumpToken, setEpubJumpToken] = React.useState(0);
@@ -2391,30 +2542,17 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const closeNoteEditor = React.useCallback(() => {
       setNoteEditor(null);
       setNoteDraft("");
+      setNoteColor("yellow");
       setNoteError("");
     }, []);
-    const openNoteEditor = React.useCallback((note) => {
-      if (note) {
-        setNoteEditor({
-          noteId: note.id,
-          chapterId: note.chapterId,
-          blockIndex: note.blockIndex,
-          offset: note.offset,
-          quote: note.quote
-        });
-        setNoteDraft(note.note ?? "");
-        setNoteError("");
-        setSelection(null);
-        requestAnimationFrame(() => noteInputRef.current?.focus());
-        return;
-      }
-      if (!selection || selection.blockIndex == null || screen.kind !== "book") return;
+    const selectionFields = React.useCallback(() => {
+      if (!selection || selection.blockIndex == null || screen.kind !== "book") return null;
       const chapter = blocksText(screen.content.blocks);
       const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset);
       const occurrence = findNoteOccurrence(chapter, selection.text, preferred);
       const start = occurrence?.start ?? preferred;
       const context = contextAround(chapter, start, start + selection.text.length);
-      setNoteEditor({
+      return {
         chapterId: activeChapterId,
         blockIndex: selection.blockIndex,
         offset: selection.offset,
@@ -2422,20 +2560,99 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         quotePrefix: context.prefix,
         quoteSuffix: context.suffix,
         textHash: hashText(chapter)
-      });
-      setNoteDraft("");
-      setNoteError("");
-      setSelection(null);
-      requestAnimationFrame(() => noteInputRef.current?.focus());
-    }, [activeChapterId, screen, selection, setSelection]);
-    const saveNote = React.useCallback(async () => {
-      const editor = noteEditor;
-      const text = noteDraft.trim();
-      if (!editor || !text || noteSaving || screen.kind !== "book") return;
+      };
+    }, [activeChapterId, screen, selection]);
+    const addHighlight = React.useCallback(async (color) => {
+      const fields = selectionFields();
+      if (!fields || screen.kind !== "book" || noteSaving) return;
       setNoteSaving(true);
       setNoteError("");
       try {
-        if (editor.noteId) {
+        await call("notes", {
+          action: "add",
+          bookId: screen.detail.book.id,
+          kind: "highlight",
+          color,
+          annotation: "",
+          note: "",
+          ...fields
+        });
+      } catch (cause) {
+        setNoteError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
+        setNoteSaving(false);
+        return;
+      }
+      setNoteSaving(false);
+      setSelection(null);
+      await loadNotes();
+    }, [call, loadNotes, noteSaving, screen, selectionFields, setSelection, t]);
+    const openNoteEditor = React.useCallback((note) => {
+      if (note) {
+        setNoteEditor({
+          noteId: note.id,
+          kind: note.kind ?? "note",
+          chapterId: note.chapterId,
+          blockIndex: note.blockIndex,
+          offset: note.offset,
+          quote: note.quote
+        });
+        setNoteDraft(note.kind === "highlight" ? note.annotation ?? "" : note.note ?? "");
+        setNoteColor(note.color ?? "yellow");
+        setNoteError("");
+        setSelection(null);
+        requestAnimationFrame(() => noteInputRef.current?.focus());
+        return;
+      }
+      const fields = selectionFields();
+      if (!fields) return;
+      setNoteEditor({ kind: "note", ...fields });
+      setNoteDraft("");
+      setNoteColor("yellow");
+      setNoteError("");
+      setSelection(null);
+      requestAnimationFrame(() => noteInputRef.current?.focus());
+    }, [noteInputRef, selectionFields, setSelection]);
+    const addBookmark = React.useCallback(async (label) => {
+      if (screen.kind !== "book" || noteSaving) return;
+      setNoteSaving(true);
+      setNoteError("");
+      try {
+        await call("notes", {
+          action: "add",
+          bookId: screen.detail.book.id,
+          kind: "bookmark",
+          color: "yellow",
+          chapterId: activeChapterId,
+          blockIndex: 0,
+          offset: 0,
+          quote: "",
+          note: typeof label === "string" && label.trim() || screen.content.title || t("bookmark"),
+          annotation: ""
+        });
+      } catch (cause) {
+        setNoteError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
+        setNoteSaving(false);
+        return;
+      }
+      setNoteSaving(false);
+      await loadNotes();
+    }, [activeChapterId, call, loadNotes, noteSaving, screen, t]);
+    const saveNote = React.useCallback(async () => {
+      const editor = noteEditor;
+      const text = noteDraft.trim();
+      if (!editor || !text && editor.kind !== "highlight" || noteSaving || screen.kind !== "book") return;
+      setNoteSaving(true);
+      setNoteError("");
+      try {
+        if (editor.kind === "highlight") {
+          await call("notes", {
+            action: "update",
+            bookId: screen.detail.book.id,
+            noteId: editor.noteId,
+            annotation: text,
+            color: noteColor
+          });
+        } else if (editor.noteId) {
           await call("notes", {
             action: "update",
             bookId: screen.detail.book.id,
@@ -2446,6 +2663,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           await call("notes", {
             action: "add",
             bookId: screen.detail.book.id,
+            kind: "note",
             chapterId: editor.chapterId,
             blockIndex: editor.blockIndex,
             offset: editor.offset,
@@ -2464,8 +2682,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setNoteSaving(false);
       setNoteEditor(null);
       setNoteDraft("");
+      setNoteColor("yellow");
       void loadNotes();
-    }, [call, loadNotes, noteDraft, noteEditor, noteSaving, screen, t]);
+    }, [call, loadNotes, noteColor, noteDraft, noteEditor, noteSaving, screen, t]);
     React.useEffect(() => {
       const layer = noteLayerRef.current;
       if (!layer) return;
@@ -2489,7 +2708,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           for (const rect of range.getClientRects()) {
             if (!rect.width || !rect.height) continue;
             const hit = document.createElement("div");
-            hit.className = "dsh-reader-note-hit";
+            hit.className = note.kind === "highlight" ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-hit";
             hit.dataset.noteId = note.id;
             hit.style.left = `${rect.left - rootRect.left}px`;
             hit.style.top = `${rect.top - rootRect.top}px`;
@@ -2531,14 +2750,21 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       if (result.jumped) pendingEpubNoteRef.current = null;
       return result.cleanup;
     }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.href, visual?.kind]);
+    const noteItems = notes.filter((note) => note.kind !== "highlight" && note.kind !== "bookmark");
+    const highlights = notes.filter((note) => note.kind === "highlight");
+    const bookmarks = notes.filter((note) => note.kind === "bookmark");
     return {
-      notes,
+      notes: noteItems,
+      highlights,
+      bookmarks,
       notesLoading,
       notesError,
       noteDeletingId,
       noteEditor,
       noteDraft,
       setNoteDraft,
+      noteColor,
+      setNoteColor,
       noteSaving,
       noteError,
       noteInputRef,
@@ -2548,6 +2774,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       deleteNote,
       closeNoteEditor,
       openNoteEditor,
+      addHighlight,
+      addBookmark,
       saveNote
     };
   }
@@ -2917,12 +3145,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }, [screen, scrollToBlock]);
       const {
         notes,
+        highlights,
+        bookmarks,
         notesLoading,
         notesError,
         noteDeletingId,
         noteEditor,
         noteDraft,
         setNoteDraft,
+        noteColor,
+        setNoteColor,
         noteSaving,
         noteError,
         noteInputRef,
@@ -2931,6 +3163,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         deleteNote,
         closeNoteEditor,
         openNoteEditor,
+        addHighlight,
+        addBookmark,
         saveNote
       } = useNotes({
         call,
@@ -3053,6 +3287,8 @@ ${question}`);
         notesError,
         notesLoading,
         notes,
+        highlights,
+        bookmarks,
         screen,
         openNote,
         noteDeletingId,
@@ -3171,6 +3407,7 @@ ${question}`);
           onToggleSearch: toggleSearch,
           onToggleChat: () => setChatOpen((previous) => !previous),
           onToggleToc: () => setTocOpen((previous) => !previous),
+          onBookmark: addBookmark,
           onFontDecrease: () => setFontSize((previous) => Math.max(14, previous - 1)),
           onFontIncrease: () => setFontSize((previous) => Math.min(24, previous + 1))
         }),
@@ -3206,13 +3443,16 @@ ${question}`);
           t,
           selection,
           prefill,
-          onNote: () => openNoteEditor()
+          onNote: () => openNoteEditor(),
+          onHighlight: (color) => void addHighlight(color)
         }),
         h(NoteDialog, {
           t,
           noteEditor,
           noteDraft,
           setNoteDraft,
+          noteColor,
+          setNoteColor,
           noteSaving,
           noteError,
           noteInputRef,

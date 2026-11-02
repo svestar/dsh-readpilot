@@ -1,38 +1,85 @@
 import { h } from '../runtime.js'
 
-export function NotesBody({ t, notesError, notesLoading, notes, screen, openNote, noteDeletingId, deleteNote }) {
+function chapterTitleOf(screen, chapterId) {
+  return screen.kind === 'book'
+    ? screen.detail.toc.find(item => item.id === chapterId)?.title
+    : ''
+}
+
+function markActions({ t, item, noteDeletingId, deleteNote, openNote }) {
+  return [
+    h('button', {
+      key: 'jump',
+      type: 'button',
+      className: 'dsh-reader-note-jump',
+      title: t('jump'),
+      onClick: () => openNote(item),
+    }, t('jump')),
+    h('button', {
+      key: 'delete',
+      type: 'button',
+      className: 'dsh-reader-note-delete',
+      disabled: noteDeletingId === item.id,
+      onClick: () => void deleteNote(item),
+    }, noteDeletingId === item.id ? t('loading') : t('delete')),
+  ]
+}
+
+export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
+  const hasMarks = notes.length + highlights.length + bookmarks.length > 0
   return h('div', { className: 'dsh-reader-notes' },
     notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
-    notesLoading && notes.length === 0
+    notesLoading && !hasMarks
       ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))
-      : notes.length === 0
+      : !hasMarks
         ? notesError ? null : h('div', { className: 'dsh-reader-chat-empty' }, t('noteEmpty'))
-        : notes.map(note => {
-          const chapterTitle = screen.kind === 'book'
-            ? screen.detail.toc.find(item => item.id === note.chapterId)?.title
-            : ''
-          return h('div', { key: note.id, className: 'dsh-reader-note' },
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-note-main',
-              onClick: () => openNote(note),
-            },
-            h('div', { className: 'dsh-reader-note-chapter' }, chapterTitle || t('reading')),
-            note.quote ? h('div', { className: 'dsh-reader-note-quote' }, note.quote) : null,
-            h('div', { className: 'dsh-reader-note-body' }, note.note)),
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-note-jump',
-              title: t('jump'),
-              onClick: () => openNote(note),
-            }, t('jump')),
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-note-delete',
-              disabled: noteDeletingId === note.id,
-              onClick: () => void deleteNote(note),
-            }, noteDeletingId === note.id ? t('loading') : t('delete')))
-        }))
+        : [
+          highlights.length > 0
+            ? h('section', { key: 'highlights', className: 'dsh-reader-mark-section' },
+              h('h4', null, `${t('highlights')} · ${highlights.length}`),
+              highlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-reader-note dsh-reader-mark-highlight' },
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-main',
+                  onClick: () => openNote(highlight),
+                },
+                h('div', { className: 'dsh-reader-note-chapter' },
+                  h('span', { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? 'yellow'}` }),
+                  chapterTitleOf(screen, highlight.chapterId) || t('reading')),
+                h('div', { className: 'dsh-reader-note-quote' }, highlight.quote),
+                highlight.annotation
+                  ? h('div', { className: 'dsh-reader-note-body' }, highlight.annotation)
+                  : null),
+                ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote }))))
+            : null,
+          notes.length > 0
+            ? h('section', { key: 'notes', className: 'dsh-reader-mark-section' },
+              h('h4', null, `${t('notes')} · ${notes.length}`),
+              notes.map(note => h('div', { key: note.id, className: 'dsh-reader-note' },
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-main',
+                  onClick: () => openNote(note),
+                },
+                h('div', { className: 'dsh-reader-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
+                note.quote ? h('div', { className: 'dsh-reader-note-quote' }, note.quote) : null,
+                h('div', { className: 'dsh-reader-note-body' }, note.note)),
+                ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))
+            : null,
+          bookmarks.length > 0
+            ? h('section', { key: 'bookmarks', className: 'dsh-reader-mark-section' },
+              h('h4', null, `${t('bookmarks')} · ${bookmarks.length}`),
+              bookmarks.map(bookmark => h('div', { key: bookmark.id, className: 'dsh-reader-note dsh-reader-mark-bookmark' },
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-main',
+                  onClick: () => openNote(bookmark),
+                },
+                h('div', { className: 'dsh-reader-note-chapter' }, bookmark.note || t('bookmark')),
+                h('div', { className: 'dsh-reader-note-body' }, chapterTitleOf(screen, bookmark.chapterId) || t('reading'))),
+                ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))))
+            : null,
+        ])
 }
 
 export function SearchPanel({

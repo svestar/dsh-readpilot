@@ -189,6 +189,24 @@ export const CSS = `
 .dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
 .dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
 .dsh-reader-note-hit:hover{opacity:1}
+.dsh-reader-highlight-yellow{background:rgba(250,204,21,.38)!important}
+.dsh-reader-highlight-green{background:rgba(74,222,128,.32)!important}
+.dsh-reader-highlight-blue{background:rgba(96,165,250,.32)!important}
+.dsh-reader-highlight-pink{background:rgba(244,114,182,.30)!important}
+.dsh-reader-highlight-purple{background:rgba(192,132,252,.30)!important}
+.dsh-reader-selection-colors{display:flex;align-items:center;gap:4px;padding-right:5px;margin-right:1px;border-right:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-color-btn{width:18px;height:18px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;cursor:pointer;box-sizing:border-box}
+.dsh-reader-color-btn[data-color="yellow"],.dsh-reader-color-dot.dsh-reader-color-yellow{background:#facc15}
+.dsh-reader-color-btn[data-color="green"],.dsh-reader-color-dot.dsh-reader-color-green{background:#4ade80}
+.dsh-reader-color-btn[data-color="blue"],.dsh-reader-color-dot.dsh-reader-color-blue{background:#60a5fa}
+.dsh-reader-color-btn[data-color="pink"],.dsh-reader-color-dot.dsh-reader-color-pink{background:#f472b6}
+.dsh-reader-color-btn[data-color="purple"],.dsh-reader-color-dot.dsh-reader-color-purple{background:#c084fc}
+.dsh-reader-color-btn[data-active="true"]{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
+.dsh-reader-note-colors{display:flex;gap:8px;margin:0 0 10px}
+.dsh-reader-mark-section{margin-bottom:14px}
+.dsh-reader-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.dsh-reader-mark-bookmark .dsh-reader-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
 .dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
@@ -203,6 +221,7 @@ export const CSS = `
 .dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
 .dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-selection .dsh-reader-color-btn{width:18px;height:18px;padding:0;border-radius:50%}
 .dsh-reader-note-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.24)}
 .dsh-reader-note-dialog{width:min(520px,100%);max-height:min(82vh,620px);display:flex;flex-direction:column;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-overlay);box-shadow:0 18px 50px rgba(0,0,0,.28)}
 .dsh-reader-note-dialog h3{margin:0 0 10px;font-size:14px;font-weight:650}

@@ -13,6 +13,7 @@ export function Header({
   onToggleSearch,
   onToggleChat,
   onToggleToc,
+  onBookmark,
   onFontDecrease,
   onFontIncrease,
 }) {
@@ -56,6 +57,14 @@ export function Header({
           title: t('companion'),
           onClick: onToggleChat,
         }, t('companion'))
+        : null,
+      screen.kind === 'book'
+        ? h('button', {
+          type: 'button',
+          className: 'dsh-reader-icon-btn',
+          title: t('bookmark'),
+          onClick: onBookmark,
+        }, '🔖')
         : null,
       screen.kind === 'book'
         ? h('button', {

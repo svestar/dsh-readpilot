@@ -1,12 +1,26 @@
 import { h } from '../runtime.js'
 
-export function SelectionToolbar({ t, selection, prefill, onNote }) {
+const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']
+
+export function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }) {
   if (!selection) return null
   return h('div', {
     className: 'dsh-reader-selection',
     style: { left: selection.x, top: Math.max(8, selection.y - 48) },
     onMouseDown: event => event.preventDefault(),
   },
+  selection.blockIndex == null
+    ? null
+    : h('div', { className: 'dsh-reader-selection-colors', role: 'group', 'aria-label': t('highlight') },
+      COLORS.map(color => h('button', {
+        key: color,
+        type: 'button',
+        className: 'dsh-reader-color-btn',
+        'data-color': color,
+        title: `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
+        'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
+        onClick: () => onHighlight(color),
+      }))),
   h('button', { type: 'button', onClick: () => prefill('explain') }, t('explain')),
   h('button', { type: 'button', onClick: () => prefill('summarize') }, t('summarize')),
   h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')),
@@ -20,6 +34,8 @@ export function NoteDialog({
   noteEditor,
   noteDraft,
   setNoteDraft,
+  noteColor,
+  setNoteColor,
   noteSaving,
   noteError,
   noteInputRef,
@@ -29,6 +45,8 @@ export function NoteDialog({
   saveNote,
 }) {
   if (!noteEditor) return null
+  const isHighlight = noteEditor.kind === 'highlight'
+  const title = isHighlight ? t('annotationTitle') : noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')
   return h('div', {
     className: 'dsh-reader-note-overlay',
     onMouseDown: event => {
@@ -39,15 +57,28 @@ export function NoteDialog({
     className: 'dsh-reader-note-dialog',
     role: 'dialog',
     'aria-modal': 'true',
-    'aria-label': noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle'),
+    'aria-label': title,
   },
-  h('h3', null, noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')),
+  h('h3', null, title),
   h('div', { className: 'dsh-reader-note-dialog-quote' }, noteEditor.quote),
+  isHighlight
+    ? h('div', { className: 'dsh-reader-note-colors', role: 'group', 'aria-label': t('highlight') },
+      COLORS.map(color => h('button', {
+        key: color,
+        type: 'button',
+        className: 'dsh-reader-color-btn',
+        'data-color': color,
+        'data-active': noteColor === color ? 'true' : 'false',
+        title: t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
+        'aria-label': t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
+        onClick: () => setNoteColor(color),
+      })))
+    : null,
   h('textarea', {
     ref: noteInputRef,
     value: noteDraft,
     rows: 4,
-    placeholder: t('notePlaceholder'),
+    placeholder: isHighlight ? t('annotationPlaceholder') : t('notePlaceholder'),
     disabled: noteSaving,
     onChange: event => setNoteDraft(event.target.value),
   }),
@@ -73,7 +104,7 @@ export function NoteDialog({
     h('button', {
       type: 'button',
       className: 'dsh-reader-primary',
-      disabled: noteSaving || !noteDraft.trim(),
+      disabled: noteSaving || (!isHighlight && !noteDraft.trim()),
       onClick: () => void saveNote(),
     }, noteSaving ? t('noteSaving') : t('save')))))
 }

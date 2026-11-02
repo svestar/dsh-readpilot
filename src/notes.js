@@ -4,7 +4,17 @@ import { readJson, writeJson } from './fsjson.js'
 
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const MAX_TEXT_LENGTH = 4000
-const EDITABLE_FIELDS = ['note', 'quote']
+const EDITABLE_FIELDS = ['note', 'quote', 'annotation', 'color']
+const KINDS = new Set(['note', 'highlight', 'bookmark'])
+const COLORS = new Set(['yellow', 'green', 'blue', 'pink', 'purple'])
+
+function normalizeKind(kind) {
+  return KINDS.has(kind) ? kind : 'note'
+}
+
+function normalizeColor(color) {
+  return COLORS.has(color) ? color : 'yellow'
+}
 
 function assertBookId(bookId) {
   if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId)) {
@@ -49,17 +59,31 @@ function validateNewNote(input) {
   assertChapterId(input.chapterId)
   assertPosition('blockIndex', input.blockIndex)
   assertPosition('offset', input.offset)
-  assertText('quote', input.quote)
-  assertText('note', input.note)
+  const kind = normalizeKind(input.kind)
+  if (input.color !== undefined && !COLORS.has(input.color)) {
+    throw new Error(`unknown highlight color: ${String(input.color)}`)
+  }
+  const quote = input.quote ?? ''
+  const note = input.note ?? ''
+  const annotation = input.annotation ?? ''
+  assertText('quote', quote)
+  assertText('note', note)
+  assertText('annotation', annotation)
+  if (kind === 'bookmark' && !note.trim()) {
+    throw new Error('bookmark label must not be empty')
+  }
   const quotePrefix = assertOptionalText('quotePrefix', input.quotePrefix)
   const quoteSuffix = assertOptionalText('quoteSuffix', input.quoteSuffix)
   const textHash = assertOptionalText('textHash', input.textHash, 32)
   return {
+    kind,
+    color: normalizeColor(input.color),
     chapterId: input.chapterId,
     blockIndex: input.blockIndex,
     offset: input.offset,
-    quote: input.quote,
-    note: input.note,
+    quote,
+    note,
+    annotation,
     ...(quotePrefix ? { quotePrefix } : {}),
     ...(quoteSuffix ? { quoteSuffix } : {}),
     ...(textHash ? { textHash } : {}),
@@ -74,6 +98,11 @@ function validatePatch(patch) {
   for (const [name, value] of Object.entries(patch)) {
     if (!EDITABLE_FIELDS.includes(name)) {
       throw new Error(`patch may only update ${EDITABLE_FIELDS.join(' or ')}`)
+    }
+    if (name === 'color') {
+      if (!COLORS.has(value)) throw new Error(`unknown highlight color: ${String(value)}`)
+      changes.color = value
+      continue
     }
     assertText(name, value)
     changes[name] = value
@@ -99,7 +128,12 @@ export function createNotesStore(dataDir) {
   return {
     async list(bookId) {
       const notes = await readNotes(notesPath(dataDir, bookId))
-      return notes.slice().sort((left, right) => right.createdAt - left.createdAt)
+      return notes.map(note => ({
+        ...note,
+        kind: normalizeKind(note.kind),
+        color: normalizeColor(note.color),
+        annotation: typeof note.annotation === 'string' ? note.annotation : '',
+      })).sort((left, right) => right.createdAt - left.createdAt)
     },
 
     async add(bookId, input) {

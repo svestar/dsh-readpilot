@@ -55,7 +55,7 @@ export function ChatPanel({
           'data-active': chatTab === 'notes' ? 'true' : 'false',
           'aria-selected': chatTab === 'notes',
           onClick: () => setChatTab('notes'),
-        }, t('notes'))),
+        }, t('marks'))),
       h('button', {
         type: 'button',
         className: 'dsh-reader-chat-close',

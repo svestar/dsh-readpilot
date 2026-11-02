@@ -475,11 +475,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     }
     if (payload.action === 'add') {
       const record = await notesStore.add(book.id, {
+        kind: payload.kind,
+        color: payload.color,
         chapterId: payload.chapterId,
         blockIndex: payload.blockIndex,
         offset: payload.offset,
         quote: payload.quote,
         note: payload.note,
+        annotation: payload.annotation,
         quotePrefix: payload.quotePrefix,
         quoteSuffix: payload.quoteSuffix,
         textHash: payload.textHash,
@@ -490,6 +493,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       const patch = {}
       if (typeof payload.note === 'string') patch.note = payload.note
       if (typeof payload.quote === 'string') patch.quote = payload.quote
+      if (typeof payload.annotation === 'string') patch.annotation = payload.annotation
+      if (typeof payload.color === 'string') patch.color = payload.color
       return { note: await notesStore.update(book.id, payload.noteId, patch) }
     }
     if (payload.action === 'delete') {
