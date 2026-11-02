@@ -4,20 +4,10 @@ import {
   bookTags,
   categoryCounts,
   filterBooks,
-  recentBooks,
   tagCatalogue,
 } from '../library-utils.js'
 
 const FORMATS = ['txt', 'md', 'epub', 'pdf']
-
-function formatDate(value) {
-  if (!Number.isFinite(value)) return ''
-  try {
-    return new Date(value).toLocaleDateString()
-  } catch {
-    return ''
-  }
-}
 
 function TagDialog({ t, book, initialTags, allTags, onClose, onSave }) {
   const [draft, setDraft] = React.useState('')
@@ -160,25 +150,6 @@ function BookCard({ t, book, tags, onOpen, onEditTags }) {
   }, t('tags')))
 }
 
-function RecentCard({ t, book, tags, onOpen }) {
-  return h('button', {
-    type: 'button',
-    className: 'dsh-reader-recent-card',
-    onClick: () => onOpen(book),
-  },
-  h('div', { className: 'dsh-reader-recent-cover', 'data-format': book.format },
-    h('span', null, book.format.toUpperCase())),
-  h('div', { className: 'dsh-reader-recent-info' },
-    h('div', { className: 'dsh-reader-recent-title' }, book.title),
-    h('div', { className: 'dsh-reader-recent-meta' },
-      book.progress?.chapterTitle || t('reading'),
-      ' · ',
-      formatDate(book.progress?.updatedAt)),
-    tags.length > 0
-      ? h('div', { className: 'dsh-reader-recent-tags' },
-        tags.slice(0, 2).map(tag => h('span', { key: tag }, tag)))
-      : null))
-}
 
 export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags }) {
   const books = snapshot.books
@@ -189,12 +160,10 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
   const [tagEditor, setTagEditor] = React.useState(null)
   const counts = React.useMemo(() => categoryCounts(books, tags), [books, tags])
   const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags])
-  const recent = React.useMemo(() => recentBooks(books, 10), [books])
   const visible = React.useMemo(
     () => filterBooks(books, tags, { category, query, sort }),
     [books, tags, category, query, sort],
   )
-  const showRecent = recent.length > 0 && (category === 'all' || category === 'recent')
   const categoryTitle = category === 'all'
     ? t('allBooks')
     : category.startsWith('tag:')
@@ -261,20 +230,6 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
           h('h2', null, t('empty')),
           h('p', null, t('emptyHint')))
         : h('div', { className: 'dsh-reader-library-scroll' },
-          showRecent
-            ? h('section', { className: 'dsh-reader-recent-section' },
-              h('div', { className: 'dsh-reader-section-head' },
-                h('h3', null, t('recentReading')),
-                h('span', null, t('recentHint'))),
-              h('div', { className: 'dsh-reader-recent-row' },
-                recent.map(book => h(RecentCard, {
-                  key: book.id,
-                  t,
-                  book,
-                  tags: bookTags(book.id, tags),
-                  onOpen,
-                }))))
-            : null,
           h('section', { className: 'dsh-reader-all-section' },
             h('div', { className: 'dsh-reader-section-head' },
               h('h3', null, categoryTitle),

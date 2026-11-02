@@ -406,7 +406,6 @@ var __dshReaderBundle = (() => {
     categories: "分类",
     allBooks: "全部书籍",
     recentReading: "最近阅读",
-    recentHint: "接着上次读",
     formats: "格式",
     tags: "标签",
     editTags: "编辑分类",
@@ -499,7 +498,6 @@ var __dshReaderBundle = (() => {
     categories: "Categories",
     allBooks: "All books",
     recentReading: "Recently read",
-    recentHint: "Pick up where you left off",
     formats: "Formats",
     tags: "Tags",
     editTags: "Edit tags",
@@ -635,27 +633,14 @@ var __dshReaderBundle = (() => {
 .dsh-reader-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
 .dsh-reader-section-head h3{margin:0;font-size:13px;font-weight:650}
 .dsh-reader-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-recent-section{margin-bottom:20px}
-.dsh-reader-recent-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px}
-.dsh-reader-recent-card{flex:none;display:flex;align-items:center;gap:10px;width:230px;padding:9px;border:1px solid var(--dsw-alias-border-l2);border-radius:11px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer}
-.dsh-reader-recent-card:hover{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-recent-cover{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:52px;border-radius:6px;background:linear-gradient(135deg,#475569,#1e293b);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em}
-.dsh-reader-recent-cover[data-format="md"]{background:linear-gradient(135deg,#0f766e,#134e4a)}
-.dsh-reader-recent-cover[data-format="epub"]{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
-.dsh-reader-recent-cover[data-format="pdf"]{background:linear-gradient(135deg,#b45309,#7c2d12)}
-.dsh-reader-recent-info{min-width:0;display:flex;flex-direction:column;gap:3px}
-.dsh-reader-recent-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}
-.dsh-reader-recent-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:10px}
-.dsh-reader-recent-tags{display:flex;gap:4px;overflow:hidden}
-.dsh-reader-recent-tags span{padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px;white-space:nowrap}
 .dsh-reader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
 .dsh-reader-book-card{position:relative;min-width:0}
 .dsh-reader-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
 .dsh-reader-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
-.dsh-reader-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#64748b,#334155);color:#fff}
-.dsh-reader-book-card[data-format="md"] .dsh-reader-book-cover{background:linear-gradient(135deg,#0f766e,#134e4a)}
-.dsh-reader-book-card[data-format="epub"] .dsh-reader-book-cover{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
-.dsh-reader-book-card[data-format="pdf"] .dsh-reader-book-cover{background:linear-gradient(135deg,#b45309,#7c2d12)}
+.dsh-reader-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff}
+.dsh-reader-book-card[data-format="md"] .dsh-reader-book-cover{background:linear-gradient(135deg,#5b7a73,#344d47)}
+.dsh-reader-book-card[data-format="epub"] .dsh-reader-book-cover{background:linear-gradient(135deg,#6b6a86,#42415a)}
+.dsh-reader-book-card[data-format="pdf"] .dsh-reader-book-cover{background:linear-gradient(135deg,#8a735c,#4d3f33)}
 .dsh-reader-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
 .dsh-reader-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
 .dsh-reader-book-info{padding:9px 10px 10px}
@@ -1023,9 +1008,6 @@ var __dshReaderBundle = (() => {
     }
     return [...counts.entries()].map(([tag, count]) => ({ tag, count })).sort((left, right) => left.tag.localeCompare(right.tag));
   }
-  function recentBooks(books, limit = 10) {
-    return books.filter((book) => Number.isFinite(book.progress?.updatedAt)).sort((left, right) => right.progress.updatedAt - left.progress.updatedAt).slice(0, limit);
-  }
   function filterBooks(books, tags, options = {}) {
     const category = options.category ?? "all";
     const query = String(options.query ?? "").trim().toLowerCase();
@@ -1071,14 +1053,6 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
 
   // src/client/views/library-view.js
   var FORMATS = ["txt", "md", "epub", "pdf"];
-  function formatDate(value) {
-    if (!Number.isFinite(value)) return "";
-    try {
-      return new Date(value).toLocaleDateString();
-    } catch {
-      return "";
-    }
-  }
   function TagDialog({ t, book, initialTags, allTags, onClose, onSave }) {
     const [draft, setDraft] = React.useState("");
     const [tags, setTags] = React.useState(() => initialTags.slice());
@@ -1244,38 +1218,6 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, t("tags"))
     );
   }
-  function RecentCard({ t, book, tags, onOpen }) {
-    return h(
-      "button",
-      {
-        type: "button",
-        className: "dsh-reader-recent-card",
-        onClick: () => onOpen(book)
-      },
-      h(
-        "div",
-        { className: "dsh-reader-recent-cover", "data-format": book.format },
-        h("span", null, book.format.toUpperCase())
-      ),
-      h(
-        "div",
-        { className: "dsh-reader-recent-info" },
-        h("div", { className: "dsh-reader-recent-title" }, book.title),
-        h(
-          "div",
-          { className: "dsh-reader-recent-meta" },
-          book.progress?.chapterTitle || t("reading"),
-          " · ",
-          formatDate(book.progress?.updatedAt)
-        ),
-        tags.length > 0 ? h(
-          "div",
-          { className: "dsh-reader-recent-tags" },
-          tags.slice(0, 2).map((tag) => h("span", { key: tag }, tag))
-        ) : null
-      )
-    );
-  }
   function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags }) {
     const books = snapshot.books;
     const tags = snapshot.tags ?? {};
@@ -1285,12 +1227,10 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const [tagEditor, setTagEditor] = React.useState(null);
     const counts = React.useMemo(() => categoryCounts(books, tags), [books, tags]);
     const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags]);
-    const recent = React.useMemo(() => recentBooks(books, 10), [books]);
     const visible = React.useMemo(
       () => filterBooks(books, tags, { category, query, sort }),
       [books, tags, category, query, sort]
     );
-    const showRecent = recent.length > 0 && (category === "all" || category === "recent");
     const categoryTitle = category === "all" ? t("allBooks") : category.startsWith("tag:") ? `#${category.slice(4)}` : category.startsWith("format:") ? category.slice(7).toUpperCase() : category === "recent" ? t("recentReading") : category === "unread" ? t("unread") : t("inProgress");
     const categoryButton = (key, label, count) => h(
       "button",
@@ -1371,27 +1311,6 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ) : h(
           "div",
           { className: "dsh-reader-library-scroll" },
-          showRecent ? h(
-            "section",
-            { className: "dsh-reader-recent-section" },
-            h(
-              "div",
-              { className: "dsh-reader-section-head" },
-              h("h3", null, t("recentReading")),
-              h("span", null, t("recentHint"))
-            ),
-            h(
-              "div",
-              { className: "dsh-reader-recent-row" },
-              recent.map((book) => h(RecentCard, {
-                key: book.id,
-                t,
-                book,
-                tags: bookTags(book.id, tags),
-                onOpen
-              }))
-            )
-          ) : null,
           h(
             "section",
             { className: "dsh-reader-all-section" },
