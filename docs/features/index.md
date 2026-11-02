@@ -17,3 +17,5 @@
 | `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `src/client/helpers.js` | `tests/palette.test.js` | active |
 | `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `src/client/helpers.js` | `tests/highlight.test.js` | active |
 | `FTR-013` | 书库整理 | `docs/features/FTR-013-library-organization.md` | `src/library-meta.js` | `tests/library-organization.test.js` | active |
+| `FTR-014` | EPUB 章节合并 | `docs/features/FTR-014-epub-chapter-merge.md` | `src/formats/epub.js` | `tests/epub.test.js` | active |
+| `FTR-015` | 文本编码 | `docs/features/FTR-015-text-encoding.md` | `src/formats.js` | `tests/formats.test.js` | active |

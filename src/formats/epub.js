@@ -49,12 +49,36 @@ export async function parseEpub(buffer, filePath) {
     })
   }
 
+  // A spine item that only contains a short title/cover page is not a logical
+  // chapter. Keep its slot for stable ids and old progress anchors, but merge
+  // its body into the next content chapter and hide it from the TOC.
+  for (let index = 0; index + 1 < chapters.length; index += 1) {
+    const chapter = chapters[index]
+    const next = chapters[index + 1]
+    if (!isTitleOnly(chapter) || next.skip) continue
+    const tocTitle = tocTitles.get(chapter.href ? posix.join(opfDir, chapter.href) : '')
+    chapter.skip = true
+    chapter.chars = 0
+    // Keep the title page blocks available for old note anchors, but the
+    // reading chapter is the following content page.
+    next.blocks = [...chapter.blocks, ...next.blocks]
+    next.chars = chapterChars(next.blocks)
+    if (tocTitle && !/^(封面|cover|title\s*page|titlepage|目录|contents)$/i.test(tocTitle.trim())) {
+      next.title = tocTitle
+    }
+  }
+
   return {
     title: metadata.title || fallbackTitle,
     author: metadata.author,
     chapters,
     chars: chapters.reduce((sum, chapter) => sum + chapter.chars, 0),
   }
+}
+
+function isTitleOnly(chapter) {
+  if (!chapter || chapter.chars > 60) return false
+  return !chapter.blocks.some(block => block.type === 'p' && block.text.length > 40)
 }
 
 async function openZip(buffer) {

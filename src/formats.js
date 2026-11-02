@@ -21,29 +21,47 @@ export function isSupportedFormat(format) {
   return format === 'txt' || format === 'md' || format === 'epub' || format === 'pdf'
 }
 
+function decodeStrict(buffer, encoding) {
+  return new TextDecoder(encoding, { fatal: true }).decode(buffer)
+}
+
+function assertReadableText(text, encoding) {
+  if (typeof text !== 'string') throw new Error(`文本编码 ${encoding} 解码失败`)
+  const replacement = (text.match(/\uFFFD/g) ?? []).length
+  if (replacement > 0) {
+    throw new Error(`文本编码 ${encoding} 解码产生了替换字符，文件可能不是纯文本`)
+  }
+  let controls = 0
+  for (const character of text) {
+    const code = character.codePointAt(0)
+    if (code < 0x20 && character !== '\n' && character !== '\r' && character !== '\t') controls += 1
+  }
+  if (text.length > 0 && controls / text.length > 0.01) {
+    throw new Error(`文本编码 ${encoding} 解码后控制字符过多，文件可能不是纯文本`)
+  }
+  return text
+}
+
 export function decodeText(buffer) {
+  if (!Buffer.isBuffer(buffer)) throw new Error('文本解码需要 Buffer')
   if (buffer.length >= 3 && buffer[0] === 0xef && buffer[1] === 0xbb && buffer[2] === 0xbf) {
-    return new TextDecoder('utf-8').decode(buffer.subarray(3))
+    return assertReadableText(decodeStrict(buffer.subarray(3), 'utf-8'), 'utf-8')
   }
   if (buffer.length >= 2 && buffer[0] === 0xff && buffer[1] === 0xfe) {
-    return new TextDecoder('utf-16le').decode(buffer.subarray(2))
+    return assertReadableText(decodeStrict(buffer.subarray(2), 'utf-16le'), 'utf-16le')
   }
   if (buffer.length >= 2 && buffer[0] === 0xfe && buffer[1] === 0xff) {
-    return new TextDecoder('utf-16be').decode(buffer.subarray(2))
+    return assertReadableText(decodeStrict(buffer.subarray(2), 'utf-16be'), 'utf-16be')
   }
-  try {
-    return new TextDecoder('utf-8', { fatal: true }).decode(buffer)
-  } catch {
-    // Fall through to the CJK legacy encodings used by older Chinese ebooks.
-  }
-  for (const encoding of ['gb18030', 'big5']) {
+  const errors = []
+  for (const encoding of ['utf-8', 'gb18030', 'big5']) {
     try {
-      return new TextDecoder(encoding, { fatal: true }).decode(buffer)
-    } catch {
-      // Try the next candidate.
+      return assertReadableText(decodeStrict(buffer, encoding), encoding)
+    } catch (error) {
+      errors.push(`${encoding}: ${error.message}`)
     }
   }
-  return new TextDecoder('utf-8').decode(buffer)
+  throw new Error(`无法识别文本编码（已尝试 UTF-8、GB18030、Big5）：${errors.join('；')}`)
 }
 
 export function normalizeText(text) {

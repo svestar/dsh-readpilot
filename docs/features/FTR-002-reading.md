@@ -21,7 +21,7 @@
 
 ## 约束与失败行为
 
-同步 `parseBook` 只接受 txt 与 md；EPUB/PDF 走 `parseBookAsync`，各自的失败行为见 FTR-006/007。单文件超过 100 MB 返回 `book-too-large`。纯文本按段落保留换行，md 仅实现块级结构与常见行内强调、代码、链接；表格、脚注、数学公式不做特殊渲染。解码顺序无法识别时会回退 UTF-8，可能产生替换字符，但不会抛错。
+同步 `parseBook` 只接受 txt 与 md；EPUB/PDF 走 `parseBookAsync`，各自的失败行为见 FTR-006/007。单文件超过 100 MB 返回 `book-too-large`。纯文本按段落保留换行，md 仅实现块级结构与常见行内强调、代码、链接；表格、脚注、数学公式不做特殊渲染。文本解码使用严格编码判定，不再回退宽松 UTF-8；详细规则与失败行为见 [FTR-015](FTR-015-text-encoding.md)。
 
 ## 验收与测试
 

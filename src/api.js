@@ -15,7 +15,7 @@ import {
   saveSettings,
 } from './store.js'
 
-const PARSER_VERSION = 5
+const PARSER_VERSION = 6
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -180,10 +180,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
           : '这本书没有可提取的文本',
       )
     }
+    const visibleChapters = parsed.chapters.filter(chapter => !chapter.skip)
+    const tocSource = visibleChapters.length > 0 ? visibleChapters : parsed.chapters
     return {
       book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
       supported: true,
-      toc: parsed.chapters.map(chapter => {
+      toc: tocSource.map(chapter => {
         const item = { id: chapter.id, title: chapter.title, chars: chapter.chars }
         if (Number.isInteger(chapter.page)) item.page = chapter.page
         if (typeof chapter.href === 'string') item.href = chapter.href

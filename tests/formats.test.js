@@ -68,6 +68,10 @@ test('decode_legacy_chinese', () => {
   assert.equal(decodeText(gb18030), '第一章')
 })
 
+test('decode_invalid_text_rejected', () => {
+  assert.throws(() => decodeText(Buffer.from([0x81, 0x30])), /无法识别文本编码/)
+})
+
 test('format_of_known_suffixes', () => {
   assert.equal(formatOf('a.EPUB'), 'epub')
   assert.equal(formatOf('b.markdown'), 'md')
