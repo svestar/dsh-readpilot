@@ -11,7 +11,7 @@ DSH Web GUI 的电子书阅读插件。书库是一个用户指定的本机目�
 
 ## 安装与首次使用
 
-通过 Plugins 页面选择本地目录安装，或使用 `plugin_manager` 的 `install_bundle` 指向本目录。Host 端解析依赖 `jszip`、`linkedom`、`pdfjs-dist`，安装时会一并下载。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
+通过 Plugins 页面选择本地目录安装，或使用 `plugin_manager` 的 `install_bundle` 指向本目录。本地目录安装前先在本目录执行一次 `pnpm install`，确保 Host 解析依赖已就位。Host 端解析依赖 `jszip`、`linkedom`、`pdfjs-dist`。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
 
 ## 数据
 
