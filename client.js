@@ -251,6 +251,18 @@ window.__ModuleLoader__.load({
 .dsh-reader-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
 .dsh-reader-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 .dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px}
+.dsh-reader-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--dsw-alias-bg-base)}
+.dsh-reader-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
+.dsh-reader-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
+.dsh-reader-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-reader-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
+.dsh-reader-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.dsh-reader-pdf-text{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1}
+.dsh-reader-pdf-text-item{position:absolute;color:transparent;white-space:pre;transform-origin:0 0;user-select:text;cursor:text}
+.dsh-reader-pdf-text-item::selection{background:rgba(64,128,255,.35);color:transparent}
+.dsh-reader-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
+.dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
+.dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
 .dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--dsw-alias-label-primary)}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
 .dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
@@ -721,6 +733,11 @@ window.__ModuleLoader__.load({
       const [searchBusy, setSearchBusy] = React.useState(false)
       const [searchResults, setSearchResults] = React.useState(null)
       const [searchError, setSearchError] = React.useState('')
+      const [visual, setVisual] = React.useState(null)
+      const [pageView, setPageView] = React.useState(null)
+      const [pageInput, setPageInput] = React.useState('1')
+      const [visualLoading, setVisualLoading] = React.useState(false)
+      const [visualError, setVisualError] = React.useState('')
       const chatRef = React.useRef(null)
       const chatBodyRef = React.useRef(null)
       const chatInputRef = React.useRef(null)
@@ -730,6 +747,8 @@ window.__ModuleLoader__.load({
       const chatWidthRef = React.useRef(chatWidth)
       chatWidthRef.current = chatWidth
       const contentRef = React.useRef(null)
+      const epubFrameRef = React.useRef(null)
+      const epubCleanupRef = React.useRef(null)
       const pendingScrollRef = React.useRef(null)
       const notesRequestRef = React.useRef(0)
 
@@ -767,6 +786,17 @@ window.__ModuleLoader__.load({
         ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
         : null
       const workspaceId = snapshot?.settings?.workspaceId ?? null
+
+      const visualFor = React.useCallback((detail, item) => {
+        if (!detail || !item) return null
+        if (detail.book.format === 'pdf') {
+          return { kind: 'pdf', page: Number.isInteger(item.page) ? item.page : 1, scale: 1.5 }
+        }
+        if (detail.book.format === 'epub' && typeof item.href === 'string' && item.href) {
+          return { kind: 'epub', href: item.href }
+        }
+        return null
+      }, [])
 
       const loadNotes = React.useCallback(async () => {
         const bookId = activeBookId
@@ -830,13 +860,14 @@ window.__ModuleLoader__.load({
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
+          setVisual(visualFor(detail, target))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
           setBusy(false)
         }
-      }, [t])
+      }, [t, visualFor])
 
       const selectChapter = React.useCallback(async (bookId, chapterId, target) => {
         setSelection(null)
@@ -856,13 +887,17 @@ window.__ModuleLoader__.load({
           setScreen(previous => previous.kind === 'book'
             ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
             : previous)
+          if (screen.kind === 'book') {
+            const item = screen.detail.toc.find(entry => entry.id === chapterId)
+            setVisual(visualFor(screen.detail, item))
+          }
           void call('progress', { bookId, chapterId, chapterTitle: content.title }).catch(() => {})
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
           setBusy(false)
         }
-      }, [t])
+      }, [screen, t, visualFor])
 
       const scrollToBlock = React.useCallback(pending => {
         const container = contentRef.current
@@ -884,6 +919,106 @@ window.__ModuleLoader__.load({
         const frame = requestAnimationFrame(() => scrollToBlock(pending))
         return () => cancelAnimationFrame(frame)
       }, [screen, scrollToBlock])
+
+      React.useEffect(() => {
+        if (!visual || visual.kind !== 'pdf' || screen.kind !== 'book') {
+          setPageView(null)
+          return
+        }
+        let cancelled = false
+        setVisualLoading(true)
+        setVisualError('')
+        call('pageView', {
+          bookId: screen.detail.book.id,
+          page: visual.page,
+          scale: visual.scale,
+        }).then(value => {
+          if (cancelled) return
+          setPageView(value)
+          setPageInput(String(visual.page))
+        }).catch(cause => {
+          if (cancelled) return
+          setPageView(null)
+          setVisualError(`${t('loadFailed')}：${messageOf(cause)}`)
+        }).finally(() => {
+          if (!cancelled) setVisualLoading(false)
+        })
+        return () => { cancelled = true }
+      }, [visual, screen, t])
+
+      React.useEffect(() => () => {
+        epubCleanupRef.current?.()
+        epubCleanupRef.current = null
+      }, [visual?.href])
+
+      const goPdfPage = React.useCallback(next => {
+        const pageCount = pageView?.pageCount ?? 1
+        const page = Math.min(Math.max(1, next), pageCount)
+        setVisual(previous => previous?.kind === 'pdf' ? { ...previous, page } : previous)
+      }, [pageView])
+
+      const zoomPdf = React.useCallback(delta => {
+        setVisual(previous => previous?.kind === 'pdf'
+          ? { ...previous, scale: Math.min(3, Math.max(1, previous.scale + delta)) }
+          : previous)
+      }, [])
+
+      const onPdfMouseUp = React.useCallback(() => {
+        const active = window.getSelection()
+        if (!active || active.isCollapsed || active.rangeCount === 0) return
+        const range = active.getRangeAt(0)
+        const node = range.startContainer.nodeType === 1
+          ? range.startContainer
+          : range.startContainer.parentElement
+        const span = node?.closest?.('[data-offset]')
+        if (!span) return
+        const text = active.toString().trim()
+        if (!text) return
+        const base = Number(span.getAttribute('data-offset')) || 0
+        const before = range.cloneRange()
+        before.selectNodeContents(span)
+        before.setEnd(range.startContainer, range.startOffset)
+        const rect = range.getBoundingClientRect()
+        setSelection({
+          text: text.slice(0, 2000),
+          blockIndex: 0,
+          offset: base + before.toString().length,
+          x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+          y: rect.top,
+        })
+      }, [])
+
+      const onEpubLoad = React.useCallback(event => {
+        const frame = event.currentTarget
+        const doc = frame.contentDocument
+        epubCleanupRef.current?.()
+        epubCleanupRef.current = null
+        if (!doc) return
+        const handler = () => {
+          const selected = doc.getSelection()
+          const text = selected?.toString().trim()
+          if (!text || !selected.rangeCount) return
+          const range = selected.getRangeAt(0)
+          const rect = range.getBoundingClientRect()
+          const frameRect = frame.getBoundingClientRect()
+          setSelection({
+            text: text.slice(0, 2000),
+            blockIndex: 0,
+            offset: 0,
+            x: Math.min(Math.max(frameRect.left + rect.left + rect.width / 2, 120), window.innerWidth - 120),
+            y: frameRect.top + rect.top,
+          })
+        }
+        doc.addEventListener('mouseup', handler)
+        epubCleanupRef.current = () => doc.removeEventListener('mouseup', handler)
+      }, [])
+
+      const goEpubChapter = React.useCallback(delta => {
+        if (screen.kind !== 'book') return
+        const index = screen.detail.toc.findIndex(item => item.id === screen.content.chapterId)
+        const next = screen.detail.toc[index + delta]
+        if (next) void selectChapter(screen.detail.book.id, next.id)
+      }, [screen, selectChapter])
 
       const openSearchMatch = React.useCallback(match => {
         if (!match || screen.kind !== 'book') return
@@ -1005,6 +1140,9 @@ window.__ModuleLoader__.load({
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: 'library' })
         setSelection(null)
+        setVisual(null)
+        setPageView(null)
+        setVisualError('')
         pendingScrollRef.current = null
         void refresh()
       }, [refresh])
@@ -1474,6 +1612,100 @@ window.__ModuleLoader__.load({
           chatTab === 'chat' ? chatCompose : null)
         : null
 
+      const pdfPageUrl = visual?.kind === 'pdf' && screen.kind === 'book'
+        ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}`
+        : ''
+      const epubIndex = screen.kind === 'book'
+        ? screen.detail.toc.findIndex(item => item.id === screen.content.chapterId)
+        : -1
+      const visualReader = visual?.kind === 'pdf'
+        ? h('div', { className: 'dsh-reader-visual' },
+          h('div', { className: 'dsh-reader-visual-bar' },
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-secondary',
+              disabled: visual.page <= 1,
+              onClick: () => goPdfPage(visual.page - 1),
+            }, '‹'),
+            h('input', {
+              className: 'dsh-reader-page-input',
+              type: 'number',
+              min: 1,
+              max: pageView?.pageCount ?? 1,
+              value: pageInput,
+              onChange: event => setPageInput(event.target.value),
+              onKeyDown: event => {
+                if (event.key === 'Enter') goPdfPage(Number(pageInput))
+              },
+            }),
+            h('span', { className: 'dsh-reader-page-total' }, `/ ${pageView?.pageCount ?? '?'}`),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-secondary',
+              disabled: Boolean(pageView && visual.page >= pageView.pageCount),
+              onClick: () => goPdfPage(visual.page + 1),
+            }, '›'),
+            h('button', { type: 'button', className: 'dsh-reader-secondary', onClick: () => zoomPdf(-0.25) }, '−'),
+            h('span', { className: 'dsh-reader-page-total' }, `${Math.round(visual.scale * 100)}%`),
+            h('button', { type: 'button', className: 'dsh-reader-secondary', onClick: () => zoomPdf(0.25) }, '+')),
+          visualLoading
+            ? h('div', { className: 'dsh-reader-muted' }, t('loading'))
+            : visualError
+              ? h('div', { className: 'dsh-reader-visual-error' },
+                h('div', null, visualError),
+                h('div', { className: 'dsh-reader-reader-inner' },
+                  renderBlocks(screen.content.blocks, screen.content.chapterId)))
+              : pageView
+                ? h('div', {
+                  className: 'dsh-reader-pdf-page',
+                  style: { width: pageView.width, height: pageView.height },
+                },
+                h('img', { src: pdfPageUrl, alt: screen.content.title, draggable: false }),
+                h('div', { className: 'dsh-reader-pdf-text', onMouseUp: onPdfMouseUp },
+                  (pageView.textItems ?? []).map((item, index) => {
+                    const offset = (pageView.textItems ?? [])
+                      .slice(0, index)
+                      .reduce((sum, entry) => sum + entry.text.length, 0)
+                    return h('span', {
+                      key: `pdf-text-${index}`,
+                      className: 'dsh-reader-pdf-text-item',
+                      'data-offset': offset,
+                      style: {
+                        left: item.left,
+                        top: item.top,
+                        width: item.width,
+                        height: item.height,
+                        fontSize: item.fontSize,
+                      },
+                    }, item.text)
+                  })))
+                : null)
+        : visual?.kind === 'epub'
+          ? h('div', { className: 'dsh-reader-visual' },
+            h('div', { className: 'dsh-reader-visual-bar' },
+              h('button', {
+                type: 'button',
+                className: 'dsh-reader-secondary',
+                disabled: epubIndex <= 0,
+                onClick: () => goEpubChapter(-1),
+              }, '‹'),
+              h('span', { className: 'dsh-reader-page-total' }, screen.content.title),
+              h('button', {
+                type: 'button',
+                className: 'dsh-reader-secondary',
+                disabled: epubIndex < 0 || epubIndex >= screen.detail.toc.length - 1,
+                onClick: () => goEpubChapter(1),
+              }, '›')),
+            h('iframe', {
+              ref: epubFrameRef,
+              className: 'dsh-reader-epub-frame',
+              sandbox: 'allow-same-origin',
+              title: screen.content.title,
+              src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+              onLoad: onEpubLoad,
+            }))
+          : null
+
       const bookView = screen.kind === 'book'
         ? h('div', {
           className: 'dsh-reader-book',
@@ -1487,7 +1719,7 @@ window.__ModuleLoader__.load({
           activeChapter: screen.content.chapterId,
           onSelect: chapterId => void selectChapter(screen.detail.book.id, chapterId),
         }) : null,
-        h('div', {
+        visualReader ?? h('div', {
           className: 'dsh-reader-reader',
           ref: contentRef,
           style: { fontSize },

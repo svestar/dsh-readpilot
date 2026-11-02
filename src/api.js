@@ -1,5 +1,5 @@
 import { mkdir, readFile, realpath, stat } from 'node:fs/promises'
-import { basename, isAbsolute, resolve } from 'node:path'
+import { basename, isAbsolute, join, resolve } from 'node:path'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.js'
 import { findBookByKey, scanLibrary } from './library.js'
 import { createNotesStore } from './notes.js'
@@ -14,7 +14,7 @@ import {
   saveSettings,
 } from './store.js'
 
-const PARSER_VERSION = 2
+const PARSER_VERSION = 3
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -35,6 +35,24 @@ function positiveInteger(value, fallback) {
 export function createReaderApi({ ctx, dataDir, config = {} }) {
   const maxBookBytes = positiveInteger(config.maxBookBytes, DEFAULT_MAX_BOOK_BYTES)
   const notesStore = createNotesStore(dataDir)
+  let pdfRendererPromise
+  let epubVisualPromise
+
+  async function getPdfRenderer() {
+    if (!pdfRendererPromise) {
+      pdfRendererPromise = import('./visual/pdf.js').then(({ createPdfPageRenderer }) =>
+        createPdfPageRenderer({ cacheDir: join(dataDir, 'cache', 'pages') }))
+    }
+    return pdfRendererPromise
+  }
+
+  async function getEpubVisual() {
+    if (!epubVisualPromise) {
+      epubVisualPromise = import('./visual/epub.js').then(({ createEpubVisual }) =>
+        createEpubVisual({ dataDir }))
+    }
+    return epubVisualPromise
+  }
 
   async function currentSettings() {
     return loadSettings(dataDir)
@@ -146,11 +164,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     return {
       book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
       supported: true,
-      toc: parsed.chapters.map(chapter => ({
-        id: chapter.id,
-        title: chapter.title,
-        chars: chapter.chars,
-      })),
+      toc: parsed.chapters.map(chapter => {
+        const item = { id: chapter.id, title: chapter.title, chars: chapter.chars }
+        if (Number.isInteger(chapter.page)) item.page = chapter.page
+        if (typeof chapter.href === 'string') item.href = chapter.href
+        return item
+      }),
       progress,
     }
   }
@@ -389,6 +408,59 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
   }
 
+  async function pageView({ bookId, page, scale } = {}) {
+    const book = await resolveBook(bookId)
+    if (book.format !== 'pdf') throw new ReaderError('not-pdf', '只有 PDF 支持页面渲染')
+    const renderer = await getPdfRenderer()
+    const result = await renderer.render({
+      bookId: book.id,
+      filePath: book.path,
+      page,
+      scale,
+    })
+    return {
+      width: result.width,
+      height: result.height,
+      pageCount: result.pageCount,
+      textItems: result.textItems,
+    }
+  }
+
+  async function pdfPage(payload = {}) {
+    const book = await resolveBook(payload.bookId)
+    if (book.format !== 'pdf') throw new ReaderError('not-pdf', '只有 PDF 支持页面渲染')
+    const renderer = await getPdfRenderer()
+    const result = await renderer.render({
+      bookId: book.id,
+      filePath: book.path,
+      page: payload.page,
+      scale: payload.scale,
+    })
+    return { png: result.png, contentType: 'image/png' }
+  }
+
+  async function epubDocument({ bookId, href } = {}) {
+    const book = await resolveBook(bookId)
+    if (book.format !== 'epub') throw new ReaderError('not-epub', '只有 EPUB 支持原书渲染')
+    if (typeof href !== 'string' || !href) throw new ReaderError('invalid-href', '缺少 EPUB 章节 href')
+    const visual = await getEpubVisual()
+    return visual.readDocument({
+      bookId: book.id,
+      filePath: book.path,
+      href,
+      assetBase: '/api/dsh-reader/epub-asset',
+      docBase: '/api/dsh-reader/epub-doc',
+    })
+  }
+
+  async function epubAsset({ bookId, path } = {}) {
+    const book = await resolveBook(bookId)
+    if (book.format !== 'epub') throw new ReaderError('not-epub', '只有 EPUB 支持原书资源')
+    if (typeof path !== 'string' || !path) throw new ReaderError('invalid-path', '缺少 EPUB 资源路径')
+    const visual = await getEpubVisual()
+    return visual.readAsset({ bookId: book.id, filePath: book.path, path })
+  }
+
   async function handleRpc(endpoint, payload) {
     const handlers = {
       state,
@@ -400,6 +472,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       session: setCompanionSession,
       search,
       notes: handleNotes,
+      pageView,
     }
     const handler = handlers[endpoint]
     if (!handler) {
@@ -426,6 +499,10 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     toolRead,
     toolSearch,
     toolNote,
+    pageView,
+    pdfPage,
+    epubDocument,
+    epubAsset,
     handleRpc,
   }
 }

@@ -36,6 +36,7 @@ export async function parseEpub(buffer, filePath) {
   const spine = readSpine(packageDoc.documentElement, manifest)
   const tocTitles = await readTocTitles(zip, manifest, spine.tocId)
   const fallbackTitle = basename(filePath, extname(filePath)) || '未命名书籍'
+  const opfDir = posix.dirname(opfPath)
 
   const chapters = []
   for (const item of spine.items) {
@@ -43,6 +44,7 @@ export async function parseEpub(buffer, filePath) {
     if (!chapter) continue
     chapters.push({
       id: `c${String(chapters.length + 1).padStart(3, '0')}`,
+      href: posix.relative(opfDir, item.path),
       ...chapter,
     })
   }

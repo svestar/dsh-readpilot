@@ -12,3 +12,5 @@
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.js` | `tests/epub.test.js` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.js` | `tests/pdf.test.js` | active |
 | `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.js` | `tests/notes.test.js` | active |
+| `FTR-009` | PDF 视觉 | `docs/features/FTR-009-pdf-visual.md` | `src/visual/pdf.js` | `tests/pdf-visual.test.js` | active |
+| `FTR-010` | EPUB 视觉 | `docs/features/FTR-010-epub-visual.md` | `src/visual/epub.js` | `tests/epub-visual.test.js` | active |
