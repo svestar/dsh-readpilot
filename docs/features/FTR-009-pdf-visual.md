@@ -28,4 +28,5 @@
 ## 验收与测试
 
 - 正常路径：单页 PDF 渲染出 PNG、页面尺寸与页数正确，文本项包含原文（`render_pdf_page_png`）。
+- 正常路径：PDF 书签按层级和页目标解析为 outline（`parse_pdf_outline_hierarchy`）。
 - 失败：越界页码或非法缩放被拒绝（`pdf_page_rejects_out_of_range`）。

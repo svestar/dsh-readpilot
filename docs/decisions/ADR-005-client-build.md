@@ -11,7 +11,7 @@
 ## 决策
 
 1. 源码放在 `src/client/`，按职责拆分为入口、运行时绑定、locale、样式、纯函数、视图与 hooks 模块。
-2. 状态逻辑按领域拆为 `useCompanion`、`useSearch`、`useNotes`、`useVisual`；`ReaderPanel` 只负责组合这些 hooks 与布局。
+2. 状态逻辑按领域拆为 `useCompanion`、`useSearch`、`useNotes`、`useVisual`；`ReaderPanel` 负责打开书籍/章节、阅读布局与这些 hooks 的编排。
 3. 使用 esbuild 把 `src/client/index.js` 打包为单文件 `client.js`；React 由 loader 注入，不打包 React。
 4. 生成产物末尾注册 DSH 工厂：
    `window.__ModuleLoader__.load({ id: 'dsh-reader', factory: require => __dshReaderBundle.create(require) })`。
