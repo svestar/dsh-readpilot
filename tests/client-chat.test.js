@@ -78,3 +78,11 @@ test('fold_transcript_skips_context_messages', () => {
   ]
   assert.deepEqual(plugin.foldTranscript(entries).map(message => message.text), ['真正的问题'])
 })
+
+test('clamp_chat_width_bounds', () => {
+  assert.equal(plugin.clampChatWidth(200, 1440), 280)
+  assert.equal(plugin.clampChatWidth(900, 1440), 560)
+  assert.equal(plugin.clampChatWidth(400, 900), 310)
+  assert.equal(plugin.clampChatWidth(400, 700), 280)
+  assert.equal(plugin.clampChatWidth(Number.NaN, 1440), 340)
+})

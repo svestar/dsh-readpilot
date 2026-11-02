@@ -43,6 +43,7 @@ window.__ModuleLoader__.load({
       you: '你',
       assistant: '伴读',
       closeChat: '收起伴读',
+      resizeChat: '调整伴读栏宽度',
       chatDisabled: '先在设置中创建书库工作区。',
       sendFailed: '发送失败',
       explainPrompt: '请解释这段文字。',
@@ -88,6 +89,7 @@ window.__ModuleLoader__.load({
       you: 'You',
       assistant: 'Companion',
       closeChat: 'Hide companion',
+      resizeChat: 'Resize companion panel',
       chatDisabled: 'Create a library workspace in Settings first.',
       sendFailed: 'Could not send',
       explainPrompt: 'Please explain this passage.',
@@ -132,8 +134,8 @@ window.__ModuleLoader__.load({
 .dsh-reader-path-row{display:flex;gap:8px;margin-bottom:14px}
 .dsh-reader-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
 .dsh-reader-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) 340px}
-.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) 340px}
+.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) var(--dsh-reader-chat-width,340px)}
+.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) var(--dsh-reader-chat-width,340px)}
 .dsh-reader-book[data-chat="false"]{grid-template-columns:230px minmax(0,1fr)}
 .dsh-reader-book[data-toc="false"][data-chat="false"]{grid-template-columns:minmax(0,1fr)}
 .dsh-reader-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
@@ -142,7 +144,9 @@ window.__ModuleLoader__.load({
 .dsh-reader-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
 .dsh-reader-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-reader-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
-.dsh-reader-chat{min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-chat{position:relative;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-chat-resizer{position:absolute;left:-3px;top:0;bottom:0;width:6px;z-index:3;cursor:col-resize;background:transparent;border:0;padding:0}
+.dsh-reader-chat-resizer:hover,.dsh-reader-chat-resizer:focus-visible{background:var(--dsw-alias-brand-primary);outline:none}
 .dsh-reader-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-reader-chat-title{font-weight:600;font-size:13px}
 .dsh-reader-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
@@ -151,10 +155,15 @@ window.__ModuleLoader__.load({
 .dsh-reader-chat-empty{padding:18px 6px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.7}
 .dsh-reader-chat-more{display:block;width:100%;margin-bottom:10px;padding:5px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-chat-more:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-msg{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
-.dsh-reader-msg-role{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-msg-text{white-space:pre-wrap;word-break:break-word;line-height:1.65;font-size:13px}
-.dsh-reader-msg[data-role="user"] .dsh-reader-msg-text{padding:7px 9px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-msg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-width:100%}
+.dsh-reader-msg[data-role="user"]{align-items:flex-end;margin-left:28px}
+.dsh-reader-msg[data-role="assistant"]{align-items:flex-start;margin-right:28px}
+.dsh-reader-msg-role{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
+.dsh-reader-msg[data-role="user"] .dsh-reader-msg-role{color:var(--dsw-alias-brand-primary)}
+.dsh-reader-msg[data-role="assistant"] .dsh-reader-msg-role::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.dsh-reader-msg-text{max-width:92%;white-space:pre-wrap;word-break:break-word;line-height:1.7;font-size:13px}
+.dsh-reader-msg[data-role="user"] .dsh-reader-msg-text{padding:8px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;border-top-right-radius:3px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-msg[data-role="assistant"] .dsh-reader-msg-text{padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-brand-primary)}
 .dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
 .dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
 .dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
@@ -184,7 +193,7 @@ window.__ModuleLoader__.load({
 .dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
 .dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-spacer{flex:1}
-@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(360px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
+@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(360px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-resizer{display:none}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
 `
 
@@ -262,6 +271,39 @@ window.__ModuleLoader__.load({
         })
       }
       return messages
+    }
+
+    const CHAT_WIDTH_KEY = 'dsh-reader.chat-width'
+    const CHAT_WIDTH_DEFAULT = 340
+    const CHAT_WIDTH_MIN = 280
+    const CHAT_WIDTH_MAX = 560
+
+    function clampChatWidth(value, viewportWidth) {
+      const numeric = Number.isFinite(value) ? value : CHAT_WIDTH_DEFAULT
+      const available = Number.isFinite(viewportWidth)
+        ? viewportWidth - 230 - 360
+        : CHAT_WIDTH_MAX
+      const upper = Math.min(CHAT_WIDTH_MAX, Math.max(CHAT_WIDTH_MIN, available))
+      return Math.round(Math.min(Math.max(numeric, CHAT_WIDTH_MIN), upper))
+    }
+
+    function readChatWidth() {
+      let stored = CHAT_WIDTH_DEFAULT
+      try {
+        const raw = window.localStorage.getItem(CHAT_WIDTH_KEY)
+        if (raw !== null && Number.isFinite(Number(raw))) stored = Number(raw)
+      } catch {
+        // A browser with storage disabled keeps the default width.
+      }
+      return clampChatWidth(stored, window.innerWidth > 1100 ? window.innerWidth : 1440)
+    }
+
+    function saveChatWidth(width) {
+      try {
+        window.localStorage.setItem(CHAT_WIDTH_KEY, String(width))
+      } catch {
+        // Width persistence is best effort.
+      }
     }
 
     function inline(text, prefix) {
@@ -434,6 +476,7 @@ window.__ModuleLoader__.load({
       const [fontSize, setFontSize] = React.useState(17)
       const [selection, setSelection] = React.useState(null)
       const [chatOpen, setChatOpen] = React.useState(() => (typeof window !== 'undefined' ? window.innerWidth > 1100 : true))
+      const [chatWidth, setChatWidth] = React.useState(readChatWidth)
       const [draft, setDraft] = React.useState('')
       const [sending, setSending] = React.useState(false)
       const [chatError, setChatError] = React.useState('')
@@ -444,6 +487,9 @@ window.__ModuleLoader__.load({
       const chatRef = React.useRef(null)
       const chatBodyRef = React.useRef(null)
       const chatInputRef = React.useRef(null)
+      const dragRef = React.useRef(null)
+      const chatWidthRef = React.useRef(chatWidth)
+      chatWidthRef.current = chatWidth
       const contentRef = React.useRef(null)
 
       const refresh = React.useCallback(async () => {
@@ -743,6 +789,59 @@ window.__ModuleLoader__.load({
         }
       }, [loadingEarlier, t])
 
+      React.useEffect(() => {
+        const onResize = () => {
+          if (window.innerWidth > 1100) {
+            setChatWidth(current => clampChatWidth(current, window.innerWidth))
+          }
+        }
+        window.addEventListener('resize', onResize)
+        return () => window.removeEventListener('resize', onResize)
+      }, [])
+
+      const startResize = React.useCallback(event => {
+        if (event.button !== 0) return
+        event.preventDefault()
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch {
+          // Pointer capture is an optimization; dragging still works without it.
+        }
+        dragRef.current = { startX: event.clientX, startWidth: chatWidth }
+      }, [chatWidth])
+
+      const moveResize = React.useCallback(event => {
+        const drag = dragRef.current
+        if (!drag) return
+        const next = clampChatWidth(drag.startWidth - (event.clientX - drag.startX), window.innerWidth)
+        setChatWidth(next)
+      }, [])
+
+      const endResize = React.useCallback(event => {
+        if (!dragRef.current) return
+        dragRef.current = null
+        try {
+          event.currentTarget.releasePointerCapture(event.pointerId)
+        } catch {
+          // The pointer may already be released.
+        }
+        saveChatWidth(chatWidthRef.current)
+      }, [])
+
+      const resetResize = React.useCallback(() => {
+        setChatWidth(CHAT_WIDTH_DEFAULT)
+        saveChatWidth(CHAT_WIDTH_DEFAULT)
+      }, [])
+
+      const resizeKeyDown = React.useCallback(event => {
+        if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return
+        event.preventDefault()
+        const delta = event.key === 'ArrowLeft' ? 24 : -24
+        const next = clampChatWidth(chatWidthRef.current + delta, window.innerWidth)
+        setChatWidth(next)
+        saveChatWidth(next)
+      }, [])
+
       const headerTitle = screen.kind === 'book'
         ? screen.detail.book.title
         : screen.kind === 'unsupported'
@@ -805,6 +904,23 @@ window.__ModuleLoader__.load({
 
       const chatPanel = chatOpen
         ? h('aside', { className: 'dsh-reader-chat' },
+          h('div', {
+            key: 'resizer',
+            className: 'dsh-reader-chat-resizer',
+            role: 'separator',
+            'aria-orientation': 'vertical',
+            'aria-label': t('resizeChat'),
+            'aria-valuemin': CHAT_WIDTH_MIN,
+            'aria-valuemax': CHAT_WIDTH_MAX,
+            'aria-valuenow': chatWidth,
+            tabIndex: 0,
+            onPointerDown: startResize,
+            onPointerMove: moveResize,
+            onPointerUp: endResize,
+            onPointerCancel: endResize,
+            onDoubleClick: resetResize,
+            onKeyDown: resizeKeyDown,
+          }),
           h('div', { className: 'dsh-reader-chat-head' },
             h('span', { className: 'dsh-reader-chat-title' }, t('companion')),
             h('button', {
@@ -822,6 +938,7 @@ window.__ModuleLoader__.load({
           className: 'dsh-reader-book',
           'data-toc': tocOpen ? 'true' : 'false',
           'data-chat': chatOpen ? 'true' : 'false',
+          style: { '--dsh-reader-chat-width': `${chatWidth}px` },
         },
         tocOpen ? h(Toc, {
           t,
@@ -945,6 +1062,7 @@ window.__ModuleLoader__.load({
       name: 'dsh-reader-client',
       inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
       foldTranscript,
+      clampChatWidth,
       apply(ctx) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
