@@ -11,8 +11,8 @@ export const CSS = `
 .dsh-reader-body{flex:1;min-height:0;overflow:auto;padding:20px 24px 40px}
 .dsh-reader-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
 .dsh-reader-library-head h2{margin:0;font-size:15px;font-weight:600}
-.dsh-reader-primary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid transparent;border-radius:8px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font:inherit;font-weight:600;cursor:pointer}
-.dsh-reader-primary:disabled{opacity:.45;cursor:default}
+.dsh-reader-primary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid transparent;border-radius:8px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-weight:600;cursor:pointer}
+.dsh-reader-primary:disabled{opacity:.5;cursor:default}
 .dsh-reader-setup-actions{display:flex;gap:8px}
 .dsh-reader-secondary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;cursor:pointer}
 .dsh-reader-secondary:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -104,8 +104,8 @@ export const CSS = `
 .dsh-reader-chat-compose textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
 .dsh-reader-chat-compose-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
 .dsh-reader-chat-hint{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
-.dsh-reader-chat-send:disabled{opacity:.45;cursor:default}
+.dsh-reader-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.dsh-reader-chat-send:disabled{opacity:.5;cursor:default}
 .dsh-reader-chat-backdrop{display:none}
 .dsh-reader-search{flex:none;max-height:46vh;overflow:auto;padding:10px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-reader-search-bar{display:flex;align-items:center;gap:8px}

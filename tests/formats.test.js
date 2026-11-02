@@ -48,6 +48,21 @@ test('parse_markdown_metadata', () => {
   assert.equal(book.chapters[1].blocks[0].type, 'li')
 })
 
+test('parse_markdown_uses_filename_title', () => {
+  const markdown = [
+    '# 一级标题不是书名',
+    '',
+    '正文。',
+    '',
+    '## 第一节',
+    '',
+    '更多正文。',
+  ].join('\n')
+  const book = parseBook(Buffer.from(markdown, 'utf8'), 'md', 'E:\\Books\\My Notes.md')
+  assert.equal(book.title, 'My Notes')
+  assert.equal(book.chapters[0].title, '一级标题不是书名')
+})
+
 test('decode_legacy_chinese', () => {
   const gb18030 = Buffer.from([0xb5, 0xda, 0xd2, 0xbb, 0xd5, 0xc2])
   assert.equal(decodeText(gb18030), '第一章')

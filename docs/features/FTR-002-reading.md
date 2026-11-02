@@ -8,7 +8,7 @@
 
 ## 行为
 
-打开一本 txt 或 md 书籍时，Host 读取文件、按 BOM 或 UTF-8/GB18030/Big5 顺序解码，规范化换行与多余空行，再切分章节。txt 以“第 N 章/节/回/卷/篇”、`Chapter N` 行作为章节边界，没有边界时按约 6000 字在段落边界切分；md 以一级、二级标题作为章节边界，并解析文件头 frontmatter 中的 `title` 与 `author`。每章转换为 `p`、`h`、`quote`、`code`、`li` 块，并记录字数。EPUB/PDF 由 `parseBookAsync` 动态分派到各自解析器（见 FTR-006/007）。解析结果缓存在 `$DSH_HOME/dsh-reader/cache/<bookId>.json`，缓存命中要求解析器版本、`mtimeMs` 与 `size` 一致。
+打开一本 txt 或 md 书籍时，Host 读取文件、按 BOM 或 UTF-8/GB18030/Big5 顺序解码，规范化换行与多余空行，再切分章节。txt 以“第 N 章/节/回/卷/篇”、`Chapter N` 行作为章节边界，没有边界时按约 6000 字在段落边界切分；md 以一级、二级标题作为章节边界，并解析文件头 frontmatter 中的 `title` 与 `author`。书名取 frontmatter 的 `title`，没有时使用文件名，不把一级标题当作书名。每章转换为 `p`、`h`、`quote`、`code`、`li` 块，并记录字数。EPUB/PDF 由 `parseBookAsync` 动态分派到各自解析器（见 FTR-006/007）。解析结果缓存在 `$DSH_HOME/dsh-reader/cache/<bookId>.json`，缓存命中要求解析器版本、`mtimeMs` 与 `size` 一致。
 
 ## 接口与代码映射
 
@@ -27,4 +27,5 @@
 
 - 正常路径：中文 txt 的“第一章”“第二章”被切成独立章节，章节前的内容归入“前言”（`split_chinese_chapters`）。
 - 正常路径：md frontmatter 的标题与作者被读出，列表项生成 `li` 块（`parse_markdown_metadata`）。
+- 正常路径：md 没有 frontmatter 时，书名取文件名而不是第一个一级标题（`parse_markdown_uses_filename_title`）。
 - 边界：GB18030 编码的中文能正确解码（`decode_legacy_chinese`）。

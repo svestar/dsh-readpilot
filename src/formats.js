@@ -210,7 +210,7 @@ export function parseBook(buffer, format, filePath) {
   if (format === 'md') {
     const { meta, body } = takeFrontmatter(raw)
     const chapters = splitChapters(body, 'md')
-    const title = meta.title || chapters[0]?.title || fallbackTitle
+    const title = meta.title || fallbackTitle
     return finalizeBook({ title, author: meta.author ?? '', chapters, format })
   }
   const chapters = splitChapters(raw, 'txt')
