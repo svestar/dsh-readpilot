@@ -163,7 +163,22 @@ window.__ModuleLoader__.load({
 .dsh-reader-msg[data-role="assistant"] .dsh-reader-msg-role::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
 .dsh-reader-msg-text{max-width:92%;white-space:pre-wrap;word-break:break-word;line-height:1.7;font-size:13px}
 .dsh-reader-msg[data-role="user"] .dsh-reader-msg-text{padding:8px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;border-top-right-radius:3px;background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-msg[data-role="assistant"] .dsh-reader-msg-text{padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-brand-primary)}
+.dsh-reader-msg[data-role="assistant"] .dsh-reader-md{max-width:92%;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-brand-primary)}
+.dsh-reader-md{max-width:92%;min-width:0;font-size:13px;line-height:1.7;word-break:break-word;color:var(--dsw-alias-label-primary)}
+.dsh-reader-md p{margin:0 0 .7em;white-space:pre-wrap}
+.dsh-reader-md p:last-child{margin-bottom:0}
+.dsh-reader-md h3,.dsh-reader-md h4,.dsh-reader-md h5,.dsh-reader-md h6{margin:.9em 0 .35em;line-height:1.4;font-weight:650}
+.dsh-reader-md h3:first-child,.dsh-reader-md h4:first-child,.dsh-reader-md h5:first-child,.dsh-reader-md h6:first-child{margin-top:0}
+.dsh-reader-md h3{font-size:1.2em}
+.dsh-reader-md h4{font-size:1.1em}
+.dsh-reader-md h5,.dsh-reader-md h6{font-size:1em}
+.dsh-reader-md pre{margin:.6em 0;padding:10px 12px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12px;line-height:1.6}
+.dsh-reader-md code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
+.dsh-reader-md pre code{padding:0;background:transparent}
+.dsh-reader-md blockquote{margin:.6em 0;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
+.dsh-reader-md a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
+.dsh-reader-md hr.dsh-reader-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}
+.dsh-reader-md .dsh-reader-li{margin:0 0 .45em}
 .dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
 .dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
 .dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
@@ -185,7 +200,7 @@ window.__ModuleLoader__.load({
 .dsh-reader-reader pre code{padding:0;background:transparent}
 .dsh-reader-reader a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
 .dsh-reader-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
-.dsh-reader-li::before{content:"•";color:var(--dsw-alias-label-secondary);flex:none}
+.dsh-reader-li-marker{color:var(--dsw-alias-label-secondary);flex:none;min-width:1.1em}
 .dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
 .dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -337,15 +352,108 @@ window.__ModuleLoader__.load({
       return nodes
     }
 
+    function parseMarkdownBlocks(text) {
+      const lines = String(text ?? '').replace(/\r\n?/g, '\n').split('\n')
+      const blocks = []
+      let paragraph = []
+      let inFence = false
+      let fenceLang = ''
+      let fenceLines = []
+
+      const flushParagraph = () => {
+        const value = paragraph.join('\n').trim()
+        if (value) blocks.push({ type: 'p', text: value })
+        paragraph = []
+      }
+
+      for (let index = 0; index < lines.length; index += 1) {
+        const line = lines[index]
+        if (inFence) {
+          if (/^\s*(```|~~~)\s*$/.test(line)) {
+            blocks.push({ type: 'code', text: fenceLines.join('\n'), lang: fenceLang })
+            inFence = false
+            fenceLang = ''
+            fenceLines = []
+          } else {
+            fenceLines.push(line)
+          }
+          continue
+        }
+        const fence = /^\s*(```|~~~)([A-Za-z0-9_+-]*)\s*$/.exec(line)
+        if (fence) {
+          flushParagraph()
+          inFence = true
+          fenceLang = fence[2] || ''
+          continue
+        }
+        if (!line.trim()) {
+          flushParagraph()
+          continue
+        }
+        const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line)
+        if (heading) {
+          flushParagraph()
+          blocks.push({ type: 'h', level: heading[1].length, text: heading[2] })
+          continue
+        }
+        if (/^\s*(?:---|\*\*\*|___)\s*$/.test(line)) {
+          flushParagraph()
+          blocks.push({ type: 'hr' })
+          continue
+        }
+        if (/^>\s?/.test(line)) {
+          flushParagraph()
+          const quoteLines = []
+          while (index < lines.length && /^>\s?/.test(lines[index])) {
+            quoteLines.push(lines[index].replace(/^>\s?/, ''))
+            index += 1
+          }
+          index -= 1
+          blocks.push({ type: 'quote', text: quoteLines.join('\n') })
+          continue
+        }
+        const ordered = /^\s*(\d+)[.)]\s+(.*)$/.exec(line)
+        if (ordered) {
+          flushParagraph()
+          blocks.push({ type: 'li', ordered: true, index: Number(ordered[1]), text: ordered[2] })
+          continue
+        }
+        const bullet = /^\s*[-*+]\s+(.*)$/.exec(line)
+        if (bullet) {
+          flushParagraph()
+          blocks.push({ type: 'li', text: bullet[1] })
+          continue
+        }
+        paragraph.push(line)
+      }
+      if (inFence) {
+        blocks.push({ type: 'code', text: fenceLines.join('\n'), lang: fenceLang })
+      }
+      flushParagraph()
+      return blocks
+    }
+
     function renderBlocks(blocks, prefix) {
       return blocks.map((block, index) => {
         const key = `${prefix}-${index}`
-        if (block.type === 'h') return h('h3', { key }, inline(block.text, key))
+        if (block.type === 'h') {
+          const level = Math.min(6, Math.max(3, block.level ?? 3))
+          return h(`h${level}`, { key }, inline(block.text, key))
+        }
         if (block.type === 'code') return h('pre', { key }, h('code', null, block.text))
         if (block.type === 'quote') return h('blockquote', { key }, inline(block.text, key))
-        if (block.type === 'li') return h('div', { key, className: 'dsh-reader-li' }, h('span', null, inline(block.text, key)))
+        if (block.type === 'hr') return h('hr', { key, className: 'dsh-reader-md-hr' })
+        if (block.type === 'li') {
+          return h('div', { key, className: 'dsh-reader-li' },
+            h('span', { className: 'dsh-reader-li-marker' }, block.ordered ? `${block.index}.` : '•'),
+            h('span', null, inline(block.text, key)))
+        }
         return h('p', { key }, inline(block.text, key))
       })
+    }
+
+    function MarkdownMessage({ text, prefix }) {
+      return h('div', { className: 'dsh-reader-md' }, renderBlocks(parseMarkdownBlocks(text), prefix))
     }
 
     function PanelIcon({ size = 20, active }) {
@@ -872,7 +980,9 @@ window.__ModuleLoader__.load({
           },
           h('div', { className: 'dsh-reader-msg-role' },
             message.role === 'user' ? t('you') : t('assistant')),
-          h('div', { className: 'dsh-reader-msg-text' }, message.text))),
+          message.role === 'assistant'
+            ? h(MarkdownMessage, { text: message.text, prefix: message.key })
+            : h('div', { className: 'dsh-reader-msg-text' }, message.text))),
         sending || running
           ? h('div', { className: 'dsh-reader-chat-thinking' },
             sending ? t('sending') : t('thinking'))
@@ -1063,6 +1173,7 @@ window.__ModuleLoader__.load({
       inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
       foldTranscript,
       clampChatWidth,
+      parseMarkdownBlocks,
       apply(ctx) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)

@@ -86,3 +86,34 @@ test('clamp_chat_width_bounds', () => {
   assert.equal(plugin.clampChatWidth(400, 700), 280)
   assert.equal(plugin.clampChatWidth(Number.NaN, 1440), 340)
 })
+
+test('parse_markdown_blocks_basic', () => {
+  const blocks = plugin.parseMarkdownBlocks([
+    '# Title',
+    'intro **bold**',
+    '- one',
+    '- two',
+    '1. first',
+    '> quote',
+    '---',
+    '```js',
+    'const x = 1',
+    '```',
+  ].join('\n'))
+
+  assert.deepEqual(blocks.map(block => block.type), ['h', 'p', 'li', 'li', 'li', 'quote', 'hr', 'code'])
+  assert.equal(blocks[0].level, 1)
+  assert.equal(blocks[2].ordered, undefined)
+  assert.equal(blocks[4].ordered, true)
+  assert.equal(blocks[4].index, 1)
+  assert.equal(blocks[5].text, 'quote')
+  assert.equal(blocks[7].text, 'const x = 1')
+  assert.equal(blocks[7].lang, 'js')
+})
+
+test('parse_markdown_blocks_keeps_newlines', () => {
+  const blocks = plugin.parseMarkdownBlocks('line one\nline two\n\nsecond paragraph')
+  assert.equal(blocks.length, 2)
+  assert.equal(blocks[0].text, 'line one\nline two')
+  assert.equal(blocks[1].text, 'second paragraph')
+})
