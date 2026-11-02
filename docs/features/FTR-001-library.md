@@ -1,0 +1,28 @@
+# 书库配置
+
+- **ID：** FTR-001
+- **名称：** 书库配置
+- **状态：** active
+- **代码：** `src/api.js`（`configureLibrary`、`state`）；`src/library.js`（`scanLibrary`、`bookIdFor`）
+- **测试：** `tests/api.test.js`；`tests/library.test.js`
+
+## 行为
+
+用户在阅读面板输入一个绝对目录，或通过目录选择器选择目录，然后点击“创建书库”。`configureLibrary` 校验路径、按需创建目录、把该目录注册为 DSH 工作区（已注册则复用），并将 `libraryDir` 与 `workspaceId` 写入 `$DSH_HOME/dsh-reader/settings.json`。配置完成后 `state` 递归扫描该目录（深度 3，最多 2000 个文件），返回书籍列表与阅读进度。识别 `.txt`、`.md`、`.markdown`、`.epub`、`.pdf`；前两类标记为可读，后两类列出但标记为暂不支持。书籍 id 由绝对路径的 sha1 生成，文件修改不会改变 id，只让解析缓存失效。
+
+## 接口与代码映射
+
+| 入口/符号 | 位置 | 职责 |
+|---|---|---|
+| `configureLibrary` | `src/api.js:configureLibrary` | 校验路径、创建工作区、保存设置 |
+| `state` | `src/api.js:state` | 汇总设置、书籍、进度与会话映射 |
+| `scanLibrary` | `src/library.js:scanLibrary` | 递归扫描目录并过滤电子书 |
+| `bookIdFor` | `src/library.js:bookIdFor` | 由路径生成稳定书籍 id |
+
+## 约束与失败行为
+
+路径必须是绝对路径且为目录，否则返回 `invalid-path`。当前环境缺少 `workspaceRegistry` 时返回 `workspace-unavailable`，设置不会写入。扫描跳过隐藏目录、`node_modules`、空文件与无法读取的目录；同一路径重复配置复用已有工作区，不重复创建。书籍原地读取，不复制原文件。
+
+## 验收与测试
+
+- 正常路径：配置目录后返回非空 `workspaceId`，重复配置不再创建工作区（`configure_creates_workspace`）。

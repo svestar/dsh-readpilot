@@ -1,0 +1,689 @@
+window.__ModuleLoader__.load({
+  id: 'dsh-reader',
+  factory(require) {
+    const React = require('react')
+    const h = React.createElement
+    const NS = 'dshReader'
+
+    const zh = {
+      panel: '阅读',
+      library: '书库',
+      rescan: '重新扫描',
+      settings: '设置',
+      cancel: '取消',
+      setupTitle: '设置书库',
+      setupHint: '选择一个存放电子书的目录。创建后它会在左侧成为一个独立工作区，每本书的伴读会话也保存在那里。',
+      chooseDir: '选择目录',
+      create: '创建书库',
+      pathPlaceholder: '例如 E:\\Books',
+      empty: '这个目录里还没有可阅读的电子书。',
+      emptyHint: '支持 .txt 与 .md，当前版本会列出 .epub 与 .pdf 但暂不能打开。',
+      back: '返回书库',
+      toc: '目录',
+      reading: '阅读',
+      unsupported: '暂不支持',
+      unsupportedHint: '当前版本只实现 TXT 与 Markdown 的文本阅读；EPUB 与 PDF 的解析会在后续版本加入。',
+      unread: '未读',
+      explain: '解释',
+      summarize: '总结',
+      translate: '翻译',
+      askFailed: '发送失败',
+      loadFailed: '加载失败',
+      configureFailed: '创建书库失败',
+      retry: '重试',
+      loading: '加载中…',
+      noToc: '没有目录',
+      fontSize: '字号',
+    }
+
+    const en = {
+      panel: 'Reader',
+      library: 'Library',
+      rescan: 'Rescan',
+      settings: 'Settings',
+      cancel: 'Cancel',
+      setupTitle: 'Set up your library',
+      setupHint: 'Choose a folder that holds your ebooks. It becomes a dedicated workspace, and every book keeps its companion session there.',
+      chooseDir: 'Choose folder',
+      create: 'Create library',
+      pathPlaceholder: 'e.g. E:\\Books',
+      empty: 'No readable ebooks in this folder yet.',
+      emptyHint: 'TXT and Markdown are supported now; EPUB and PDF are listed but not yet readable.',
+      back: 'Back to library',
+      toc: 'Contents',
+      reading: 'Reading',
+      unsupported: 'Not supported',
+      unsupportedHint: 'This version reads TXT and Markdown only. EPUB and PDF parsing arrives in a later version.',
+      unread: 'Unread',
+      explain: 'Explain',
+      summarize: 'Summarize',
+      translate: 'Translate',
+      askFailed: 'Could not send',
+      loadFailed: 'Could not load',
+      configureFailed: 'Could not create the library',
+      retry: 'Retry',
+      loading: 'Loading…',
+      noToc: 'No contents',
+      fontSize: 'Font size',
+    }
+
+    const CSS = `
+.dsh-reader-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:14px}
+.dsh-reader-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-header-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.dsh-reader-header-actions{display:flex;align-items:center;gap:6px;flex:none}
+.dsh-reader-icon-btn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;cursor:pointer}
+.dsh-reader-icon-btn:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-reader-icon-btn:disabled{opacity:.45;cursor:default}
+.dsh-reader-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--dsw-alias-label-primary)}
+.dsh-reader-subtitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;margin-top:1px}
+.dsh-reader-body{flex:1;min-height:0;overflow:auto;padding:20px 24px 40px}
+.dsh-reader-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.dsh-reader-library-head h2{margin:0;font-size:15px;font-weight:600}
+.dsh-reader-primary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid transparent;border-radius:8px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font:inherit;font-weight:600;cursor:pointer}
+.dsh-reader-primary:disabled{opacity:.45;cursor:default}
+.dsh-reader-setup-actions{display:flex;gap:8px}
+.dsh-reader-secondary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;cursor:pointer}
+.dsh-reader-secondary:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-secondary:disabled{opacity:.45;cursor:default}
+.dsh-reader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.dsh-reader-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:14px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-reader-card:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-cover{height:64px;border-radius:8px;background:linear-gradient(135deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-2));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-secondary);font-size:12px;letter-spacing:.08em}
+.dsh-reader-card-title{font-weight:600;line-height:1.35;word-break:break-word}
+.dsh-reader-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-reader-progress{height:3px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);overflow:hidden}
+.dsh-reader-progress span{display:block;height:100%;background:var(--dsw-alias-brand-primary)}
+.dsh-reader-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:11px}
+.dsh-reader-empty{max-width:460px;margin:60px auto;text-align:center;color:var(--dsw-alias-label-secondary);line-height:1.7}
+.dsh-reader-empty h2{margin:0 0 8px;font-size:16px;color:var(--dsw-alias-label-primary)}
+.dsh-reader-setup{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.dsh-reader-setup-card{width:min(520px,100%);padding:26px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1);box-shadow:0 12px 40px rgba(0,0,0,.10)}
+.dsh-reader-setup-card h2{margin:0 0 8px;font-size:18px}
+.dsh-reader-setup-card p{margin:0 0 18px;color:var(--dsw-alias-label-secondary);line-height:1.65}
+.dsh-reader-path-row{display:flex;gap:8px;margin-bottom:14px}
+.dsh-reader-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
+.dsh-reader-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-book{flex:1;min-height:0;display:grid;grid-template-columns:230px minmax(0,1fr)}
+.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)}
+.dsh-reader-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-toc-title{padding:4px 8px 8px;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.04em}
+.dsh-reader-toc-list{display:flex;flex-direction:column;gap:2px}
+.dsh-reader-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
+.dsh-reader-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-reader-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px}
+.dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--dsw-alias-label-primary)}
+.dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
+.dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
+.dsh-reader-reader blockquote{margin:1em 0;padding:2px 0 2px 14px;border-left:3px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.dsh-reader-reader pre{margin:1em 0;padding:12px 14px;border-radius:9px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12.5px;line-height:1.6}
+.dsh-reader-reader code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
+.dsh-reader-reader pre code{padding:0;background:transparent}
+.dsh-reader-reader a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
+.dsh-reader-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
+.dsh-reader-li::before{content:"•";color:var(--dsw-alias-label-secondary);flex:none}
+.dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
+.dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-banner{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:12.5px;line-height:1.5}
+.dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
+.dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
+.dsh-reader-spacer{flex:1}
+@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
+`
+
+    const style = document.createElement('style')
+    style.dataset.plugin = 'dsh-reader'
+    style.dataset.pluginCss = 'dsh-reader/reader.css'
+    style.textContent = CSS
+    document.head.appendChild(style)
+
+    let runtime
+    let boundText = key => key
+
+    async function call(endpoint, payload) {
+      if (!runtime || !runtime.connection) throw new Error('连接服务不可用')
+      let response
+      try {
+        response = await fetch('/api/dsh-reader', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ endpoint, payload: payload ?? null }),
+        })
+      } catch (error) {
+        throw new Error(`无法连接阅读器服务：${messageOf(error)}`)
+      }
+      let result
+      try {
+        result = await response.json()
+      } catch {
+        throw new Error(`阅读器服务返回了无效响应（HTTP ${response.status}）`)
+      }
+      if (!result || result.ok !== true) {
+        throw new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`)
+      }
+      return result.value
+    }
+
+    function messageOf(error) {
+      return error instanceof Error ? error.message : String(error)
+    }
+
+    function formatSize(bytes) {
+      if (!Number.isFinite(bytes)) return ''
+      if (bytes < 1024) return `${bytes} B`
+      if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+      return `${(bytes / 1024 / 1024).toFixed(1)} MB`
+    }
+
+    function inline(text, prefix) {
+      const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g
+      const nodes = []
+      let last = 0
+      let index = 0
+      let match
+      while ((match = pattern.exec(text)) !== null) {
+        if (match.index > last) nodes.push(text.slice(last, match.index))
+        const token = match[0]
+        const key = `${prefix}-${index}`
+        index += 1
+        if (token.startsWith('**')) {
+          nodes.push(h('strong', { key }, token.slice(2, -2)))
+        } else if (token.startsWith('`')) {
+          nodes.push(h('code', { key }, token.slice(1, -1)))
+        } else if (token.startsWith('*')) {
+          nodes.push(h('em', { key }, token.slice(1, -1)))
+        } else {
+          const link = /^\[([^\]]+)\]\(([^)]+)\)$/.exec(token)
+          if (link && /^(https?:|mailto:|#)/i.test(link[2])) {
+            nodes.push(h('a', { key, href: link[2], target: '_blank', rel: 'noreferrer' }, link[1]))
+          } else {
+            nodes.push(link ? link[1] : token)
+          }
+        }
+        last = match.index + token.length
+      }
+      if (last < text.length) nodes.push(text.slice(last))
+      return nodes
+    }
+
+    function renderBlocks(blocks, prefix) {
+      return blocks.map((block, index) => {
+        const key = `${prefix}-${index}`
+        if (block.type === 'h') return h('h3', { key }, inline(block.text, key))
+        if (block.type === 'code') return h('pre', { key }, h('code', null, block.text))
+        if (block.type === 'quote') return h('blockquote', { key }, inline(block.text, key))
+        if (block.type === 'li') return h('div', { key, className: 'dsh-reader-li' }, h('span', null, inline(block.text, key)))
+        return h('p', { key }, inline(block.text, key))
+      })
+    }
+
+    function buildCompanionPrompt(book, chapter, quote, question) {
+      const quoted = quote.split('\n').map(line => `> ${line}`).join('\n')
+      return [
+        `我正在读《${book.title}》的《${chapter.title}》。`,
+        '',
+        `书籍 ID：${book.id}`,
+        `章节 ID：${chapter.chapterId}`,
+        '',
+        quoted,
+        '',
+        question,
+      ].join('\n')
+    }
+
+    async function promptSession(sessionId, text) {
+      await runtime.sessions.using(sessionId, { source: 'controllerOperation' }, async reference => {
+        const result = await reference.binding.session.prompt([{ type: 'text', text }], 'queue')
+        if (result && result.ok === false) {
+          throw new Error(result.error?.message ?? '发送失败')
+        }
+      })
+    }
+
+    async function askCompanion({ book, chapter, quote, question, workspaceId, sessions, onSession }) {
+      if (!workspaceId) throw new Error('尚未创建书库工作区')
+      let sessionId = sessions[book.id]?.sessionId
+      if (!sessionId) {
+        sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
+        await call('session', { bookId: book.id, sessionId })
+        onSession(book.id, sessionId)
+      } else {
+        runtime.uiWorkspace.openSession(sessionId)
+      }
+      const prompt = buildCompanionPrompt(book, chapter, quote, question)
+      try {
+        await promptSession(sessionId, prompt)
+      } catch (error) {
+        await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
+        sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
+        await call('session', { bookId: book.id, sessionId })
+        onSession(book.id, sessionId)
+        await promptSession(sessionId, prompt)
+      }
+      runtime.layout.selectPanel('conversation')
+    }
+
+    function PanelIcon({ size = 20, active }) {
+      return h('svg', {
+        width: size,
+        height: size,
+        viewBox: '0 0 24 24',
+        'aria-hidden': true,
+        style: { display: 'block' },
+      },
+      h('path', {
+        d: 'M4 6.5A2.5 2.5 0 0 1 6.5 4H11v15H6.5A2.5 2.5 0 0 0 4 21.5z',
+        fill: active ? 'currentColor' : 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.6,
+        strokeLinejoin: 'round',
+        opacity: active ? 0.9 : 1,
+      }),
+      h('path', {
+        d: 'M20 6.5A2.5 2.5 0 0 0 17.5 4H13v15h4.5A2.5 2.5 0 0 1 20 21.5z',
+        fill: 'none',
+        stroke: 'currentColor',
+        strokeWidth: 1.6,
+        strokeLinejoin: 'round',
+      }),
+      h('path', { d: 'M12 4v15.5', stroke: 'currentColor', strokeWidth: 1.2, opacity: 0.55 }))
+    }
+
+    function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }) {
+      const [path, setPath] = React.useState(initialPath ?? '')
+      const row = h('div', { className: 'dsh-reader-path-row' },
+        h('input', {
+          value: path,
+          placeholder: t('pathPlaceholder'),
+          spellCheck: false,
+          onChange: event => setPath(event.target.value),
+        }),
+        h('button', {
+          type: 'button',
+          className: 'dsh-reader-secondary',
+          onClick: () => onPick(setPath),
+        }, t('chooseDir')))
+      const actions = h('div', { className: 'dsh-reader-setup-actions' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-reader-primary',
+          disabled: busy || !path.trim(),
+          onClick: () => onConfigure(path.trim()),
+        }, busy ? t('loading') : t('create')),
+        onCancel
+          ? h('button', {
+            type: 'button',
+            className: 'dsh-reader-secondary',
+            onClick: onCancel,
+          }, t('cancel'))
+          : null)
+      return h('div', { className: 'dsh-reader-setup' },
+        h('div', { className: 'dsh-reader-setup-card' },
+          h('h2', null, t('setupTitle')),
+          h('p', null, t('setupHint')),
+          row,
+          actions))
+    }
+
+    function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings }) {
+      const books = snapshot.books
+      return h('div', { className: 'dsh-reader-body' },
+        h('div', { className: 'dsh-reader-library-head' },
+          h('h2', null, `${t('library')} · ${books.length}`),
+          h('div', { className: 'dsh-reader-header-actions' },
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-secondary',
+              onClick: onSettings,
+            }, t('settings')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-secondary',
+              disabled: busy,
+              onClick: onRefresh,
+            }, t('rescan')))),
+        books.length === 0
+          ? h('div', { className: 'dsh-reader-empty' },
+            h('h2', null, t('empty')),
+            h('p', null, t('emptyHint')))
+          : h('div', { className: 'dsh-reader-grid' },
+            books.map(book => h('button', {
+              key: book.id,
+              type: 'button',
+              className: 'dsh-reader-card',
+              onClick: () => onOpen(book),
+            },
+            h('div', { className: 'dsh-reader-cover' }, book.format.toUpperCase()),
+            h('div', { className: 'dsh-reader-card-title' }, book.title),
+            h('div', { className: 'dsh-reader-card-meta' },
+              h('span', null, `${formatSize(book.size)}`),
+              book.supported
+                ? null
+                : h('span', { className: 'dsh-reader-badge' }, t('unsupported'))),
+            book.progress
+              ? h('div', { className: 'dsh-reader-card-meta' },
+                h('span', null, book.progress.chapterTitle ?? t('reading')))
+              : h('div', { className: 'dsh-reader-card-meta' }, h('span', null, t('unread')))))))
+    }
+
+    function Toc({ t, detail, activeChapter, onSelect }) {
+      return h('aside', { className: 'dsh-reader-toc' },
+        h('div', { className: 'dsh-reader-toc-title' }, t('toc')),
+        detail.toc.length === 0
+          ? h('div', { className: 'dsh-reader-muted' }, t('noToc'))
+          : h('div', { className: 'dsh-reader-toc-list' },
+            detail.toc.map(item => h('button', {
+              key: item.id,
+              type: 'button',
+              className: 'dsh-reader-toc-item',
+              'data-active': item.id === activeChapter ? 'true' : 'false',
+              onClick: () => onSelect(item.id),
+            }, item.title))))
+    }
+
+    function ReaderPanel(props) {
+      const t = props.t ?? boundText
+      const [snapshot, setSnapshot] = React.useState(null)
+      const [screen, setScreen] = React.useState({ kind: 'library' })
+      const [error, setError] = React.useState('')
+      const [busy, setBusy] = React.useState(false)
+      const [tocOpen, setTocOpen] = React.useState(true)
+      const [fontSize, setFontSize] = React.useState(17)
+      const [selection, setSelection] = React.useState(null)
+      const contentRef = React.useRef(null)
+
+      const refresh = React.useCallback(async () => {
+        setBusy(true)
+        setError('')
+        try {
+          const value = await call('state')
+          setSnapshot(value)
+        } catch (cause) {
+          setError(`${t('loadFailed')}：${messageOf(cause)}`)
+        } finally {
+          setBusy(false)
+        }
+      }, [t])
+
+      React.useEffect(() => {
+        void refresh()
+      }, [refresh])
+
+      const rememberSession = React.useCallback((bookId, sessionId) => {
+        setSnapshot(previous => previous
+          ? {
+            ...previous,
+            sessions: {
+              ...previous.sessions,
+              [bookId]: { sessionId, updatedAt: Date.now() },
+            },
+          }
+          : previous)
+      }, [])
+
+      const openBook = React.useCallback(async book => {
+        setBusy(true)
+        setError('')
+        try {
+          const detail = await call('open', { bookId: book.id })
+          if (!detail.supported) {
+            setScreen({ kind: 'unsupported', book: detail.book })
+            return
+          }
+          const target = detail.toc.find(item => item.id === detail.progress?.chapterId) ?? detail.toc[0]
+          if (!target) {
+            setScreen({ kind: 'unsupported', book: detail.book })
+            return
+          }
+          const content = await call('chapter', { bookId: book.id, chapterId: target.id })
+          setScreen({ kind: 'book', detail, content })
+        } catch (cause) {
+          setError(`${t('loadFailed')}：${messageOf(cause)}`)
+        } finally {
+          setBusy(false)
+        }
+      }, [t])
+
+      const selectChapter = React.useCallback(async (bookId, chapterId) => {
+        setSelection(null)
+        setBusy(true)
+        try {
+          const content = await call('chapter', { bookId, chapterId })
+          setScreen(previous => previous.kind === 'book'
+            ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
+            : previous)
+          void call('progress', { bookId, chapterId, chapterTitle: content.title }).catch(() => {})
+        } catch (cause) {
+          setError(`${t('loadFailed')}：${messageOf(cause)}`)
+        } finally {
+          setBusy(false)
+        }
+      }, [t])
+
+      const backToLibrary = React.useCallback(() => {
+        setScreen({ kind: 'library' })
+        setSelection(null)
+        void refresh()
+      }, [refresh])
+
+      const configure = React.useCallback(async path => {
+        setBusy(true)
+        setError('')
+        try {
+          const value = await call('configure', { path })
+          setSnapshot(value)
+          setScreen({ kind: 'library' })
+        } catch (cause) {
+          setError(`${t('configureFailed')}：${messageOf(cause)}`)
+        } finally {
+          setBusy(false)
+        }
+      }, [t])
+
+      const pickDirectory = React.useCallback(async setPath => {
+        try {
+          const directory = await runtime.uiWorkspace.pickDirectory()
+          if (directory) setPath(directory)
+        } catch (cause) {
+          setError(messageOf(cause))
+        }
+      }, [])
+
+      const ask = React.useCallback(async kind => {
+        if (!selection || screen.kind !== 'book' || !snapshot) return
+        const question = {
+          explain: '请解释这段文字。',
+          summarize: '请总结这段文字。',
+          translate: '请把这段文字翻译成中文。',
+        }[kind]
+        const quote = selection.text
+        setSelection(null)
+        setBusy(true)
+        setError('')
+        try {
+          await askCompanion({
+            book: screen.detail.book,
+            chapter: screen.content,
+            quote,
+            question,
+            workspaceId: snapshot.settings.workspaceId,
+            sessions: snapshot.sessions,
+            onSession: rememberSession,
+          })
+        } catch (cause) {
+          setError(`${t('askFailed')}：${messageOf(cause)}`)
+        } finally {
+          setBusy(false)
+        }
+      }, [selection, screen, snapshot, rememberSession, t])
+
+      const onContentMouseUp = React.useCallback(() => {
+        const active = window.getSelection()
+        const container = contentRef.current
+        if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
+          setSelection(null)
+          return
+        }
+        const range = active.getRangeAt(0)
+        if (!container.contains(range.commonAncestorContainer)) {
+          setSelection(null)
+          return
+        }
+        const text = active.toString().trim()
+        if (!text) {
+          setSelection(null)
+          return
+        }
+        const rect = range.getBoundingClientRect()
+        setSelection({
+          text: text.slice(0, 2000),
+          x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+          y: rect.top,
+        })
+      }, [])
+
+      const openSetup = React.useCallback(() => setScreen({ kind: 'setup' }), [])
+
+      const headerTitle = screen.kind === 'book'
+        ? screen.detail.book.title
+        : screen.kind === 'unsupported'
+          ? screen.book.title
+          : screen.kind === 'setup'
+            ? t('setupTitle')
+            : snapshot?.settings.libraryDir ? t('library') : t('setupTitle')
+      const headerSubtitle = screen.kind === 'book'
+        ? screen.content.title
+        : snapshot?.settings.libraryDir ?? ''
+
+      return h('div', { className: 'dsh-reader-panel' },
+        h('div', { className: 'dsh-reader-header' },
+          h('div', { className: 'dsh-reader-header-main' },
+            screen.kind !== 'library'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
+                title: t('back'),
+                onClick: backToLibrary,
+              }, '←')
+              : null,
+            h('div', { style: { minWidth: 0 } },
+              h('div', { className: 'dsh-reader-title' }, headerTitle),
+              headerSubtitle ? h('div', { className: 'dsh-reader-subtitle' }, headerSubtitle) : null)),
+          h('div', { className: 'dsh-reader-header-actions' },
+            screen.kind === 'book'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
+                title: t('toc'),
+                onClick: () => setTocOpen(previous => !previous),
+              }, '☰')
+              : null,
+            screen.kind === 'book'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
+                title: t('fontSize'),
+                onClick: () => setFontSize(previous => Math.max(14, previous - 1)),
+              }, 'A-')
+              : null,
+            screen.kind === 'book'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
+                title: t('fontSize'),
+                onClick: () => setFontSize(previous => Math.min(24, previous + 1)),
+              }, 'A+')
+              : null)),
+        error ? h('div', { className: 'dsh-reader-error' }, error) : null,
+        !snapshot
+          ? h('div', { className: 'dsh-reader-muted' }, busy ? t('loading') : t('loadFailed'))
+          : screen.kind === 'setup' || !snapshot.settings.libraryDir
+            ? h(Setup, {
+              t,
+              initialPath: snapshot.settings.libraryDir ?? '',
+              busy,
+              onConfigure: configure,
+              onPick: pickDirectory,
+              onCancel: snapshot.settings.libraryDir
+                ? () => setScreen({ kind: 'library' })
+                : null,
+            })
+            : screen.kind === 'library'
+              ? h(Library, {
+                t,
+                snapshot,
+                busy,
+                onOpen: openBook,
+                onRefresh: refresh,
+                onSettings: openSetup,
+              })
+              : screen.kind === 'unsupported'
+                ? h('div', { className: 'dsh-reader-empty' },
+                  h('h2', null, screen.book.title),
+                  h('p', null, t('unsupportedHint')),
+                  h('button', {
+                    type: 'button',
+                    className: 'dsh-reader-secondary',
+                    onClick: backToLibrary,
+                  }, t('back')))
+                : h('div', { className: 'dsh-reader-book', 'data-toc': tocOpen ? 'true' : 'false' },
+                  tocOpen ? h(Toc, {
+                    t,
+                    detail: screen.detail,
+                    activeChapter: screen.content.chapterId,
+                    onSelect: chapterId => void selectChapter(screen.detail.book.id, chapterId),
+                  }) : null,
+                  h('div', {
+                    className: 'dsh-reader-reader',
+                    ref: contentRef,
+                    style: { fontSize },
+                    onMouseUp: onContentMouseUp,
+                  },
+                  h('div', { className: 'dsh-reader-reader-inner' },
+                    h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+                    renderBlocks(screen.content.blocks, screen.content.chapterId)))),
+        selection
+          ? h('div', {
+            className: 'dsh-reader-selection',
+            style: { left: selection.x, top: Math.max(8, selection.y - 48) },
+            onMouseDown: event => event.preventDefault(),
+          },
+          h('button', { type: 'button', onClick: () => void ask('explain') }, t('explain')),
+          h('button', { type: 'button', onClick: () => void ask('summarize') }, t('summarize')),
+          h('button', { type: 'button', onClick: () => void ask('translate') }, t('translate')))
+          : null)
+    }
+
+    return {
+      name: 'dsh-reader-client',
+      inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
+      apply(ctx) {
+        runtime = ctx
+        boundText = ctx.locale.bind(NS)
+        ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-reader: dictionaries')
+        ctx.effect(
+          () => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
+            name: 'sidebar.panellist',
+            id: 'dsh-reader',
+            order: 20,
+            label: () => boundText('panel'),
+            locale: NS,
+          }, PanelIcon)),
+          'dsh-reader: sidebar entry',
+        )
+        ctx.effect(
+          () => ctx.slots.inject('main', () => ctx.slots.register({
+            name: 'main',
+            key: 'dsh-reader',
+            locale: NS,
+          }, ReaderPanel)),
+          'dsh-reader: main panel',
+        )
+      },
+    }
+  },
+})
