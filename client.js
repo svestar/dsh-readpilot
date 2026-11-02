@@ -75,6 +75,7 @@ window.__ModuleLoader__.load({
       noteSaveFailed: '笔记保存失败',
       noteDeleteFailed: '笔记删除失败',
       delete: '删除',
+      jump: '跳转',
     }
 
     const en = {
@@ -147,6 +148,7 @@ window.__ModuleLoader__.load({
       noteSaveFailed: 'Could not save the note',
       noteDeleteFailed: 'Could not delete the note',
       delete: 'Delete',
+      jump: 'Jump',
     }
 
     const CSS = `
@@ -245,6 +247,8 @@ window.__ModuleLoader__.load({
 .dsh-reader-note-quote{padding-left:8px;border-left:2px solid var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-note-body{color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-note-delete{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-reader-note-jump{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-brand-primary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-reader-note-jump:hover{background:var(--dsw-alias-bg-layer-2)}
 .dsh-reader-note-delete:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary)}
 .dsh-reader-note-delete:disabled{opacity:.45;cursor:default}
 .dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
@@ -1845,6 +1849,12 @@ window.__ModuleLoader__.load({
                 h('div', { className: 'dsh-reader-note-chapter' }, chapterTitle || t('reading')),
                 note.quote ? h('div', { className: 'dsh-reader-note-quote' }, note.quote) : null,
                 h('div', { className: 'dsh-reader-note-body' }, note.note)),
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-jump',
+                  title: t('jump'),
+                  onClick: () => openNote(note),
+                }, t('jump')),
                 h('button', {
                   type: 'button',
                   className: 'dsh-reader-note-delete',
