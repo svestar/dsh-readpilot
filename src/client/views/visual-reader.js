@@ -77,14 +77,17 @@ export function VisualReader({
                 : null)
         : visual?.kind === 'epub'
           ? h('div', { className: 'dsh-reader-visual' },
-            h('div', { className: 'dsh-reader-visual-bar' },
+            h('div', { className: 'dsh-reader-visual-bar dsh-reader-epub-bar' },
               h('button', {
                 type: 'button',
                 className: 'dsh-reader-secondary',
                 disabled: epubIndex <= 0,
                 onClick: () => goEpubChapter(-1),
               }, '‹'),
-              h('span', { className: 'dsh-reader-page-total' }, screen.content.title),
+              h('span', {
+                className: 'dsh-reader-page-total dsh-reader-epub-title',
+                title: screen.content.title,
+              }, screen.content.title),
               h('button', {
                 type: 'button',
                 className: 'dsh-reader-secondary',

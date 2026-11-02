@@ -24,7 +24,7 @@
 
 ## 约束与失败行为
 
-iframe 使用 `sandbox="allow-same-origin"`，不启用 `allow-scripts`；原书 script、事件属性、iframe/object/form 等被移除，`javascript:` 与远程 URL 被清空。资源路径必须在解压根内，`..`/绝对路径被拒绝。CSS 中的 `url()` 会改写为同一资源路由；远程 CSS 资源被置空。EPUB 加密、缺 container/OPF、路径穿越或损坏章节返回明确错误。v1 为滚动阅读，不做分页和精确 CFI；搜索/笔记在视觉模式只做章节跳转，精确高亮留待后续。页面背景与基础文字色由 FTR-011 覆盖，图片、字体与布局保持原书。
+iframe 使用 `sandbox="allow-same-origin"`，不启用 `allow-scripts`；原书 script、事件属性、iframe/object/form 等被移除，`javascript:` 与远程 URL 被清空。资源路径必须在解压根内，`..`/绝对路径被拒绝。CSS 中的 `url()` 会改写为同一资源路由；远程 CSS 资源被置空。EPUB 加密、缺 container/OPF、路径穿越或损坏章节返回明确错误。v1 为滚动阅读，不做分页和精确 CFI；搜索/笔记在视觉模式只做章节跳转，精确高亮留待后续。章节工具栏左右按钮固定，章节名在中间截断，长标题不会推动翻页按钮。页面背景与基础文字色由 FTR-011 覆盖，图片、字体与布局保持原书。
 
 ## 验收与测试
 

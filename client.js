@@ -670,6 +670,8 @@ var __dshReaderBundle = (() => {
 .dsh-reader-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
 .dsh-reader-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
 .dsh-reader-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-reader-epub-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
+.dsh-reader-epub-title{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .dsh-reader-palette-select{height:28px;max-width:112px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
 .dsh-reader-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
@@ -1161,14 +1163,17 @@ var __dshReaderBundle = (() => {
       { className: "dsh-reader-visual" },
       h(
         "div",
-        { className: "dsh-reader-visual-bar" },
+        { className: "dsh-reader-visual-bar dsh-reader-epub-bar" },
         h("button", {
           type: "button",
           className: "dsh-reader-secondary",
           disabled: epubIndex <= 0,
           onClick: () => goEpubChapter(-1)
         }, "‹"),
-        h("span", { className: "dsh-reader-page-total" }, screen.content.title),
+        h("span", {
+          className: "dsh-reader-page-total dsh-reader-epub-title",
+          title: screen.content.title
+        }, screen.content.title),
         h("button", {
           type: "button",
           className: "dsh-reader-secondary",
