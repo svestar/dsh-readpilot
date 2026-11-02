@@ -1407,6 +1407,24 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
+  // src/client/bookmark-label.js
+  function bookmarkContext(screen, chapterId) {
+    if (!screen || screen.kind !== "book") return { chapterTitle: "", pageLabel: "" };
+    const item = screen.detail.toc.find((entry) => entry.id === chapterId);
+    const fallback = screen.content?.title || item?.title || "";
+    if (screen.detail.book.format !== "pdf") {
+      return { chapterTitle: fallback, pageLabel: "" };
+    }
+    const page = item?.page;
+    const outline = Array.isArray(screen.detail.outline) ? screen.detail.outline : [];
+    const candidates = outline.filter((entry) => Number.isInteger(entry.page) && (!Number.isInteger(page) || entry.page <= page)).sort((left, right) => left.page - right.page);
+    const chapterTitle = candidates.at(-1)?.title || fallback;
+    return {
+      chapterTitle,
+      pageLabel: chapterTitle === fallback ? "" : fallback
+    };
+  }
+
   // src/client/views/notes-search.js
   function chapterTitleOf(screen, chapterId) {
     return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
@@ -1487,21 +1505,26 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           "section",
           { key: "bookmarks", className: "dsh-reader-mark-section" },
           h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
-          bookmarks.map((bookmark) => h(
-            "div",
-            { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
-            h(
-              "button",
-              {
-                type: "button",
-                className: "dsh-reader-note-main",
-                onClick: () => openNote(bookmark)
-              },
-              h("div", { className: "dsh-reader-note-chapter" }, bookmark.note || t("bookmark")),
-              h("div", { className: "dsh-reader-note-body" }, chapterTitleOf(screen, bookmark.chapterId) || t("reading"))
-            ),
-            ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
-          ))
+          bookmarks.map((bookmark) => {
+            const context = bookmarkContext(screen, bookmark.chapterId);
+            const title = context.chapterTitle || bookmark.note || t("bookmark");
+            const detail = bookmark.annotation || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : "");
+            return h(
+              "div",
+              { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
+              h(
+                "button",
+                {
+                  type: "button",
+                  className: "dsh-reader-note-main",
+                  onClick: () => openNote(bookmark)
+                },
+                h("div", { className: "dsh-reader-note-chapter" }, title),
+                detail ? h("div", { className: "dsh-reader-note-body" }, detail) : null
+              ),
+              ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
+            );
+          })
         ) : null
       ]
     );
@@ -2614,6 +2637,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     }, [noteInputRef, selectionFields, setSelection]);
     const addBookmark = React.useCallback(async (label) => {
       if (screen.kind !== "book" || noteSaving) return;
+      const context = bookmarkContext(screen, activeChapterId);
       setNoteSaving(true);
       setNoteError("");
       try {
@@ -2626,8 +2650,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           blockIndex: 0,
           offset: 0,
           quote: "",
-          note: typeof label === "string" && label.trim() || screen.content.title || t("bookmark"),
-          annotation: ""
+          note: typeof label === "string" && label.trim() || context.chapterTitle || screen.content.title || t("bookmark"),
+          annotation: context.pageLabel
         });
       } catch (cause) {
         setNoteError(`${t("noteSaveFailed")}：${messageOf(cause)}`);

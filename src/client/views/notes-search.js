@@ -1,4 +1,5 @@
 import { h } from '../runtime.js'
+import { bookmarkContext } from '../bookmark-label.js'
 
 function chapterTitleOf(screen, chapterId) {
   return screen.kind === 'book'
@@ -69,15 +70,21 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
           bookmarks.length > 0
             ? h('section', { key: 'bookmarks', className: 'dsh-reader-mark-section' },
               h('h4', null, `${t('bookmarks')} · ${bookmarks.length}`),
-              bookmarks.map(bookmark => h('div', { key: bookmark.id, className: 'dsh-reader-note dsh-reader-mark-bookmark' },
-                h('button', {
-                  type: 'button',
-                  className: 'dsh-reader-note-main',
-                  onClick: () => openNote(bookmark),
-                },
-                h('div', { className: 'dsh-reader-note-chapter' }, bookmark.note || t('bookmark')),
-                h('div', { className: 'dsh-reader-note-body' }, chapterTitleOf(screen, bookmark.chapterId) || t('reading'))),
-                ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))))
+              bookmarks.map(bookmark => {
+                const context = bookmarkContext(screen, bookmark.chapterId)
+                const title = context.chapterTitle || bookmark.note || t('bookmark')
+                const detail = bookmark.annotation
+                  || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
+                return h('div', { key: bookmark.id, className: 'dsh-reader-note dsh-reader-mark-bookmark' },
+                  h('button', {
+                    type: 'button',
+                    className: 'dsh-reader-note-main',
+                    onClick: () => openNote(bookmark),
+                  },
+                  h('div', { className: 'dsh-reader-note-chapter' }, title),
+                  detail ? h('div', { className: 'dsh-reader-note-body' }, detail) : null),
+                  ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))
+              }))
             : null,
         ])
 }

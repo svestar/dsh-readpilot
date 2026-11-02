@@ -1,5 +1,6 @@
 import { React } from '../runtime.js'
 import { blocksText, contextAround, hashText, offsetInChapter } from '../anchor.js'
+import { bookmarkContext } from '../bookmark-label.js'
 import {
   applyEpubNoteMarks,
   collectTextNodes,
@@ -194,6 +195,7 @@ export function useNotes({
 
   const addBookmark = React.useCallback(async label => {
     if (screen.kind !== 'book' || noteSaving) return
+    const context = bookmarkContext(screen, activeChapterId)
     setNoteSaving(true)
     setNoteError('')
     try {
@@ -206,8 +208,8 @@ export function useNotes({
         blockIndex: 0,
         offset: 0,
         quote: '',
-        note: (typeof label === 'string' && label.trim()) || screen.content.title || t('bookmark'),
-        annotation: '',
+        note: (typeof label === 'string' && label.trim()) || context.chapterTitle || screen.content.title || t('bookmark'),
+        annotation: context.pageLabel,
       })
     } catch (cause) {
       setNoteError(`${t('noteSaveFailed')}：${messageOf(cause)}`)
