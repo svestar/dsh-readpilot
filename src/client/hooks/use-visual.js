@@ -8,7 +8,6 @@ export function useVisual({
   palette,
   setSelection,
   selectChapter,
-  activeChapterId,
 }) {
   const [visual, setVisual] = React.useState(null)
   const [pageView, setPageView] = React.useState(null)
@@ -18,6 +17,11 @@ export function useVisual({
   const [epubReady, setEpubReady] = React.useState(0)
   const epubFrameRef = React.useRef(null)
   const epubCleanupRef = React.useRef(null)
+  const activeChapterId = screen.kind === 'book'
+    ? (visual?.kind === 'pdf'
+      ? screen.detail.toc.find(item => item.page === visual.page)?.id ?? screen.content.chapterId
+      : screen.content.chapterId)
+    : ''
 
   React.useEffect(() => {
     if (!visual || visual.kind !== 'pdf' || screen.kind !== 'book') {

@@ -25,6 +25,7 @@ import { VisualReader } from './views/visual-reader.js'
 import { ChatPanel } from './views/chat-panel.js'
 import { Header } from './views/header.js'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.js'
+import { createReaderErrorBoundary } from './views/error-boundary.js'
 import { useCompanion } from './hooks/use-companion.js'
 import { ChatBody, ChatCompose } from './views/chat-content.js'
 import { useSearch } from './hooks/use-search.js'
@@ -33,6 +34,7 @@ import { useVisual } from './hooks/use-visual.js'
 
 export function createPlugin(require) {
     bindRuntime(require)
+    const ReaderErrorBoundary = createReaderErrorBoundary()
     const NS = 'dshReader'
 
 
@@ -122,11 +124,6 @@ export function createPlugin(require) {
       }, [])
 
       const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
-      const activeChapterId = screen.kind === 'book'
-        ? (visual?.kind === 'pdf'
-          ? screen.detail.toc.find(item => item.page === visual.page)?.id ?? screen.content.chapterId
-          : screen.content.chapterId)
-        : ''
       const activeSessionId = activeBookId && snapshot
         ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
         : null
@@ -260,7 +257,13 @@ export function createPlugin(require) {
         onPdfMouseUp,
         onEpubLoad,
         goEpubChapter,
-      } = useVisual({ call, t, screen, palette, setSelection, selectChapter, activeChapterId })
+      } = useVisual({ call, t, screen, palette, setSelection, selectChapter })
+
+      const activeChapterId = screen.kind === 'book'
+        ? (visual?.kind === 'pdf'
+          ? screen.detail.toc.find(item => item.page === visual.page)?.id ?? screen.content.chapterId
+          : screen.content.chapterId)
+        : ''
 
 
       const scrollToBlock = React.useCallback(pending => {
@@ -616,6 +619,10 @@ export function createPlugin(require) {
         }))
     }
 
+    function ReaderPanelWithBoundary(props) {
+      return h(ReaderErrorBoundary, null, h(ReaderPanel, props))
+    }
+
     return {
       name: 'dsh-reader-client',
       inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
@@ -645,7 +652,7 @@ export function createPlugin(require) {
             name: 'main',
             key: 'dsh-reader',
             locale: NS,
-          }, ReaderPanel)),
+          }, ReaderPanelWithBoundary)),
           'dsh-reader: main panel',
         )
       },

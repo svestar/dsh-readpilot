@@ -1433,6 +1433,37 @@ var __dshReaderBundle = (() => {
     );
   }
 
+  // src/client/views/error-boundary.js
+  function createReaderErrorBoundary() {
+    if (typeof React.Component !== "function") {
+      return function ReaderErrorBoundaryPassthrough({ children }) {
+        return children;
+      };
+    }
+    return class ReaderErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { error: null };
+      }
+      static getDerivedStateFromError(error) {
+        return { error };
+      }
+      componentDidCatch(error, info) {
+        console.error("dsh-reader: render failed", error, info);
+      }
+      render() {
+        if (this.state.error) {
+          return h("div", {
+            className: "dsh-reader-error",
+            style: { padding: 20, whiteSpace: "pre-wrap", fontFamily: "monospace" }
+          }, `阅读器渲染失败
+${String(this.state.error?.stack ?? this.state.error)}`);
+        }
+        return this.props.children;
+      }
+    };
+  }
+
   // src/client/hooks/use-companion.js
   function useCompanion({
     runtime,
@@ -2079,8 +2110,7 @@ var __dshReaderBundle = (() => {
     screen,
     palette,
     setSelection,
-    selectChapter,
-    activeChapterId
+    selectChapter
   }) {
     const [visual, setVisual] = React.useState(null);
     const [pageView, setPageView2] = React.useState(null);
@@ -2090,6 +2120,7 @@ var __dshReaderBundle = (() => {
     const [epubReady, setEpubReady] = React.useState(0);
     const epubFrameRef = React.useRef(null);
     const epubCleanupRef = React.useRef(null);
+    const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
     React.useEffect(() => {
       if (!visual || visual.kind !== "pdf" || screen.kind !== "book") {
         setPageView2(null);
@@ -2214,6 +2245,7 @@ var __dshReaderBundle = (() => {
   // src/client/plugin.js
   function createPlugin(require2) {
     bindRuntime(require2);
+    const ReaderErrorBoundary = createReaderErrorBoundary();
     const NS = "dshReader";
     const style = document.createElement("style");
     style.dataset.plugin = "dsh-reader";
@@ -2289,7 +2321,6 @@ var __dshReaderBundle = (() => {
         } : previous);
       }, []);
       const activeBookId = screen.kind === "book" ? screen.detail.book.id : null;
-      const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
       const activeSessionId = activeBookId && snapshot ? snapshot.sessions?.[activeBookId]?.sessionId ?? null : null;
       const workspaceId = snapshot?.settings?.workspaceId ?? null;
       const {
@@ -2409,7 +2440,8 @@ var __dshReaderBundle = (() => {
         onPdfMouseUp,
         onEpubLoad,
         goEpubChapter
-      } = useVisual({ call, t, screen, palette, setSelection, selectChapter, activeChapterId });
+      } = useVisual({ call, t, screen, palette, setSelection, selectChapter });
+      const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
       const scrollToBlock = React.useCallback((pending) => {
         const container = contentRef.current;
         if (!container || !Number.isInteger(pending.blockIndex)) return;
@@ -2736,6 +2768,9 @@ ${question}`);
         })
       );
     }
+    function ReaderPanelWithBoundary(props) {
+      return h(ReaderErrorBoundary, null, h(ReaderPanel, props));
+    }
     return {
       name: "dsh-reader-client",
       inject: ["slots", "layout", "locale", "connection", "sessions", "uiWorkspace"],
@@ -2765,7 +2800,7 @@ ${question}`);
             name: "main",
             key: "dsh-reader",
             locale: NS
-          }, ReaderPanel)),
+          }, ReaderPanelWithBoundary)),
           "dsh-reader: main panel"
         );
       }
