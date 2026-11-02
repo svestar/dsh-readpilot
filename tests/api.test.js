@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/api.js'
@@ -79,6 +79,9 @@ test('configure_creates_workspace', async t => {
   assert.ok(first.settings.workspaceId)
   assert.equal(ctx.workspaces.length, 1)
   assert.equal(first.books.length, 1)
+  const promptFile = await readFile(join(library, 'AGENTS.md'), 'utf8')
+  assert.match(promptFile, /dsh-reader:prompt:begin/)
+  assert.equal((await api.state()).books.length, 1)
 
   const second = await api.configureLibrary({ path: library })
   assert.equal(ctx.workspaces.length, 1)

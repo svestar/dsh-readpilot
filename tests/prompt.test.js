@@ -1,38 +1,36 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { installReadingPrompt, READING_PROMPT } from '../src/prompt.js'
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { ensureWorkspacePrompt, READING_PROMPT } from '../src/workspace-prompt.js'
 
-test('reading_prompt_section_registered', () => {
-  let section
-  let effectLabel = ''
-  const ctx = {
-    get(name) {
-      if (name === 'systemPrompt') {
-        return {
-          section(definition) {
-            section = definition
-            return () => {}
-          },
-        }
-      }
-      return undefined
-    },
-    effect(fn, label) {
-      effectLabel = label
-      return fn()
-    },
-  }
+test('workspace_prompt_created_and_managed', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-prompt-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
 
-  installReadingPrompt(ctx)
-  assert.equal(section.name, 'dsh-reader:reading-assistant')
-  assert.equal(section.order, 9000)
-  assert.equal(section.interpolate, false)
-  assert.equal(section.text, READING_PROMPT)
-  assert.match(section.text, /reader_context/)
-  assert.match(effectLabel, /reading assistant/)
+  assert.equal(await ensureWorkspacePrompt(root), true)
+  const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(created, /dsh-reader:prompt:begin/)
+  assert.match(created, /dsh-reader:prompt:end/)
+  assert.ok(created.includes(READING_PROMPT))
+  assert.match(created, /reader_context/)
+
+  assert.equal(await ensureWorkspacePrompt(root), false)
+  await writeFile(join(root, 'AGENTS.md'), `# 用户说明\n\n保留我。\n\n${created}`, 'utf8')
+  assert.equal(await ensureWorkspacePrompt(root), false)
+  const preserved = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(preserved, /保留我/)
+  assert.equal((preserved.match(/dsh-reader:prompt:begin/g) ?? []).length, 1)
+  assert.equal((preserved.match(/dsh-reader:prompt:end/g) ?? []).length, 1)
 })
 
-test('reading_prompt_optional_service_does_not_throw', () => {
-  assert.doesNotThrow(() => installReadingPrompt({ get() { return undefined }, effect() {} }))
-  assert.doesNotThrow(() => installReadingPrompt({ get() { throw new Error('missing') }, effect() {} }))
+test('workspace_prompt_replaces_managed_block', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-prompt-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'AGENTS.md'), '<!-- dsh-reader:prompt:begin -->\n旧内容\n<!-- dsh-reader:prompt:end -->\n', 'utf8')
+  assert.equal(await ensureWorkspacePrompt(root), true)
+  const content = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.doesNotMatch(content, /旧内容/)
+  assert.ok(content.includes(READING_PROMPT))
 })

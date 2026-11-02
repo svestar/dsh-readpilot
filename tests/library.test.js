@@ -12,6 +12,7 @@ test('scan_lists_books', async t => {
   await writeFile(join(root, 'b.md'), '# b', 'utf8')
   await writeFile(join(root, 'c.pdf'), '%PDF-1.7', 'utf8')
   await writeFile(join(root, 'skip.log'), 'ignored', 'utf8')
+  await writeFile(join(root, 'AGENTS.md'), '# instructions', 'utf8')
 
   const books = await scanLibrary(root)
   assert.deepEqual(books.map(book => book.title).sort(), ['a', 'b', 'c'])

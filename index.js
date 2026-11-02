@@ -1,6 +1,5 @@
 import { createReaderApi } from './src/api.js'
 import { pluginDataDir, resolveDshHome } from './src/home.js'
-import { installReadingPrompt } from './src/prompt.js'
 import { registerTools } from './src/tools.js'
 
 export const name = 'dsh-reader'
@@ -21,7 +20,6 @@ export function apply(ctx, config = {}) {
   })
 
   ctx.effect(() => registerTools(ctx, api), 'dsh-reader: tools')
-  installReadingPrompt(ctx)
 
   ctx.inject(['connection'], connectionCtx => {
     connectionCtx.effect(() => {

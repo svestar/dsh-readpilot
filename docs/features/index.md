@@ -20,4 +20,4 @@
 | `FTR-014` | EPUB 章节合并 | `docs/features/FTR-014-epub-chapter-merge.md` | `src/formats/epub.js` | `tests/epub.test.js` | active |
 | `FTR-015` | 文本编码 | `docs/features/FTR-015-text-encoding.md` | `src/formats.js` | `tests/formats.test.js` | active |
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.js` | `tests/reading-anchor.test.js` | active |
-| `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/prompt.js` | `tests/prompt.test.js` | active |
+| `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.js` | `tests/prompt.test.js` | active |

@@ -21,7 +21,7 @@
 
 ## 约束与失败行为
 
-路径必须是绝对路径且为目录，否则返回 `invalid-path`。当前环境缺少 `workspaceRegistry` 时返回 `workspace-unavailable`，设置不会写入。扫描跳过隐藏目录、`node_modules`、空文件与无法读取的目录；同一路径重复配置复用已有工作区，不重复创建。书籍原地读取，不复制原文件。
+路径必须是绝对路径且为目录，否则返回 `invalid-path`。当前环境缺少 `workspaceRegistry` 时返回 `workspace-unavailable`，设置不会写入。扫描跳过隐藏目录、`node_modules`、`AGENTS.md`、空文件与无法读取的目录；同一路径重复配置复用已有工作区，不重复创建。书籍原地读取，不复制原文件。
 
 ## 验收与测试
 

@@ -4,6 +4,7 @@ import { chapterText, isSupportedFormat, parseBookAsync } from './formats.js'
 import { findBookByKey, scanLibrary } from './library.js'
 import { createLibraryMetaStore } from './library-meta.js'
 import { createNotesStore } from './notes.js'
+import { ensureWorkspacePrompt } from './workspace-prompt.js'
 import {
   loadBookCache,
   loadProgress,
@@ -66,8 +67,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     return scanLibrary(settings.libraryDir)
   }
 
+  let promptDir = null
+
+  async function syncWorkspacePrompt(settings) {
+    if (!settings.libraryDir || promptDir === settings.libraryDir) return
+    try {
+      await ensureWorkspacePrompt(settings.libraryDir)
+      promptDir = settings.libraryDir
+    } catch {
+      // A read-only or removed library must not make the whole library page fail.
+    }
+  }
+
   async function state() {
     const settings = await currentSettings()
+    await syncWorkspacePrompt(settings)
     const [books, progress, sessions, meta] = await Promise.all([
       libraryBooks(),
       loadProgress(dataDir),

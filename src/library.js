@@ -35,7 +35,7 @@ export async function scanLibrary(root, options = {}) {
     }
     for (const entry of entries) {
       if (books.length >= maxFiles) return
-      if (entry.name.startsWith('.') || entry.name === 'node_modules') continue
+      if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'AGENTS.md') continue
       const full = join(directory, entry.name)
       if (entry.isDirectory()) {
         if (depth < maxDepth) await walk(full, depth + 1)
