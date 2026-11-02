@@ -1044,6 +1044,11 @@ window.__ModuleLoader__.load({
       }, [])
 
       const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
+      const activeChapterId = screen.kind === 'book'
+        ? (visual?.kind === 'pdf'
+          ? screen.detail.toc.find(item => item.page === visual.page)?.id ?? screen.content.chapterId
+          : screen.content.chapterId)
+        : ''
       const activeSessionId = activeBookId && snapshot
         ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
         : null
@@ -1207,6 +1212,12 @@ window.__ModuleLoader__.load({
         })
         return () => { cancelled = true }
       }, [visual, screen, t])
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || visual?.kind !== 'pdf' || !pageView) return
+        if (!activeChapterId || activeChapterId === screen.content.chapterId) return
+        void selectChapter(screen.detail.book.id, activeChapterId)
+      }, [activeChapterId, pageView, screen, selectChapter])
 
       React.useEffect(() => () => {
         epubCleanupRef.current?.()
@@ -1388,7 +1399,7 @@ window.__ModuleLoader__.load({
         }
         if (!selection || selection.blockIndex == null || screen.kind !== 'book') return
         setNoteEditor({
-          chapterId: screen.content.chapterId,
+          chapterId: activeChapterId,
           blockIndex: selection.blockIndex,
           offset: selection.offset,
           quote: selection.text,
@@ -1397,7 +1408,7 @@ window.__ModuleLoader__.load({
         setNoteError('')
         setSelection(null)
         requestAnimationFrame(() => noteInputRef.current?.focus())
-      }, [selection, screen])
+      }, [activeChapterId, selection, screen])
 
       const saveNote = React.useCallback(async () => {
         const editor = noteEditor
@@ -1441,7 +1452,7 @@ window.__ModuleLoader__.load({
         const root = visual?.kind === 'pdf'
           ? layer.parentElement
           : contentRef.current?.querySelector('.dsh-reader-reader-inner')
-        const currentChapter = screen.kind === 'book' ? screen.content.chapterId : ''
+        const currentChapter = activeChapterId
         const relevant = screen.kind === 'book'
           ? notes.filter(note => note.chapterId === currentChapter && typeof note.quote === 'string' && note.quote)
           : []
@@ -1491,7 +1502,7 @@ window.__ModuleLoader__.load({
           window.removeEventListener('resize', schedule)
           layer.textContent = ''
         }
-      }, [screen, notes, visual?.kind, visual?.page, pageView, fontSize, palette, openNoteEditor])
+      }, [activeChapterId, screen, notes, visual?.kind, visual?.page, pageView, fontSize, palette, openNoteEditor])
 
       React.useEffect(() => {
         if (visual?.kind !== 'epub' || screen.kind !== 'book' || !epubFrameRef.current) return
