@@ -45,6 +45,14 @@ export function useSearch({ call, screen, t, selectChapter }) {
     setSearchError('')
   }, [])
 
+  const resetSearch = React.useCallback(() => {
+    setSearchOpen(false)
+    setSearchQuery('')
+    setSearchBusy(false)
+    setSearchResults(null)
+    setSearchError('')
+  }, [])
+
   React.useEffect(() => {
     if (!searchOpen) return
     const frame = requestAnimationFrame(() => searchInputRef.current?.focus())
@@ -63,5 +71,6 @@ export function useSearch({ call, screen, t, selectChapter }) {
     openSearchMatch,
     runSearch,
     toggleSearch,
+    resetSearch,
   }
 }

@@ -1793,9 +1793,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   function useSearch({ call, screen, t, selectChapter }) {
     const [searchOpen, setSearchOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState("");
-    const [searchBusy, setSearchBusy2] = React.useState(false);
-    const [searchResults, setSearchResults2] = React.useState(null);
-    const [searchError, setSearchError2] = React.useState("");
+    const [searchBusy, setSearchBusy] = React.useState(false);
+    const [searchResults, setSearchResults] = React.useState(null);
+    const [searchError, setSearchError] = React.useState("");
     const searchInputRef = React.useRef(null);
     const openSearchMatch = React.useCallback((match) => {
       if (!match || screen.kind !== "book") return;
@@ -1806,29 +1806,36 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       if (screen.kind !== "book" || searchBusy) return;
       const query = searchQuery.trim();
       if (!query) return;
-      setSearchBusy2(true);
-      setSearchError2("");
-      setSearchResults2(null);
+      setSearchBusy(true);
+      setSearchError("");
+      setSearchResults(null);
       try {
         const value = await call("search", {
           bookId: screen.detail.book.id,
           query,
           limit: 30
         });
-        setSearchResults2({
+        setSearchResults({
           matches: Array.isArray(value?.matches) ? value.matches : [],
           truncated: Boolean(value?.truncated)
         });
       } catch (cause) {
-        setSearchResults2({ matches: [], truncated: false });
-        setSearchError2(`${t("searchFailed")}：${messageOf(cause)}`);
+        setSearchResults({ matches: [], truncated: false });
+        setSearchError(`${t("searchFailed")}：${messageOf(cause)}`);
       } finally {
-        setSearchBusy2(false);
+        setSearchBusy(false);
       }
     }, [call, screen, searchBusy, searchQuery, t]);
     const toggleSearch = React.useCallback(() => {
       setSearchOpen((previous) => !previous);
-      setSearchError2("");
+      setSearchError("");
+    }, []);
+    const resetSearch = React.useCallback(() => {
+      setSearchOpen(false);
+      setSearchQuery("");
+      setSearchBusy(false);
+      setSearchResults(null);
+      setSearchError("");
     }, []);
     React.useEffect(() => {
       if (!searchOpen) return;
@@ -1846,7 +1853,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       searchInputRef,
       openSearchMatch,
       runSearch,
-      toggleSearch
+      toggleSearch,
+      resetSearch
     };
   }
 
@@ -2357,13 +2365,6 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }
         return null;
       }, []);
-      React.useEffect(() => {
-        setSearchOpen(false);
-        setSearchQuery("");
-        setSearchBusy(false);
-        setSearchResults(null);
-        setSearchError("");
-      }, [activeBookId]);
       const openBook = React.useCallback(async (book) => {
         setBusy(true);
         setError("");
@@ -2423,8 +2424,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         searchInputRef,
         openSearchMatch,
         runSearch,
-        toggleSearch
+        toggleSearch,
+        resetSearch
       } = useSearch({ call, screen, t, selectChapter });
+      React.useEffect(() => {
+        resetSearch();
+      }, [activeBookId, resetSearch]);
       const {
         visual,
         setVisual,

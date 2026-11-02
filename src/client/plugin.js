@@ -165,14 +165,6 @@ export function createPlugin(require) {
         return null
       }, [])
 
-      React.useEffect(() => {
-        setSearchOpen(false)
-        setSearchQuery('')
-        setSearchBusy(false)
-        setSearchResults(null)
-        setSearchError('')
-      }, [activeBookId])
-
       const openBook = React.useCallback(async book => {
         setBusy(true)
         setError('')
@@ -240,7 +232,12 @@ export function createPlugin(require) {
         openSearchMatch,
         runSearch,
         toggleSearch,
+        resetSearch,
       } = useSearch({ call, screen, t, selectChapter })
+
+      React.useEffect(() => {
+        resetSearch()
+      }, [activeBookId, resetSearch])
 
       const {
         visual,
