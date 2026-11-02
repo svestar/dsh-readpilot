@@ -28,6 +28,8 @@ import { Library, PanelIcon, Setup } from './views/panels.js'
 import { NotesBody, SearchPanel } from './views/notes-search.js'
 import { VisualReader } from './views/visual-reader.js'
 import { ChatPanel } from './views/chat-panel.js'
+import { Header } from './views/header.js'
+import { NoteDialog, SelectionToolbar } from './views/selection-note.js'
 
 export function createPlugin(require) {
     bindRuntime(require)
@@ -1096,71 +1098,21 @@ export function createPlugin(require) {
           '--reader-highlight': palette.highlight,
         },
       },
-        h('div', { className: 'dsh-reader-header' },
-          h('div', { className: 'dsh-reader-header-main' },
-            screen.kind !== 'library'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('back'),
-                onClick: backToLibrary,
-              }, '←')
-              : null,
-            h('div', { style: { minWidth: 0 } },
-              h('div', { className: 'dsh-reader-title' }, headerTitle),
-              headerSubtitle ? h('div', { className: 'dsh-reader-subtitle' }, headerSubtitle) : null)),
-          h('div', { className: 'dsh-reader-header-actions' },
-            screen.kind === 'book'
-              ? h('select', {
-                className: 'dsh-reader-palette-select',
-                value: paletteId,
-                title: t('palette'),
-                'aria-label': t('palette'),
-                onChange: event => changePalette(event.target.value),
-              }, READER_PALETTE_IDS.map(id => h('option', { key: id, value: id },
-                t(`palette${id[0].toUpperCase()}${id.slice(1)}`))))
-              : null,
-            screen.kind === 'book'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('search'),
-                'aria-expanded': searchOpen ? 'true' : 'false',
-                onClick: toggleSearch,
-              }, t('search'))
-              : null,
-            screen.kind === 'book'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('companion'),
-                onClick: () => setChatOpen(previous => !previous),
-              }, t('companion'))
-              : null,
-            screen.kind === 'book'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('toc'),
-                onClick: () => setTocOpen(previous => !previous),
-              }, '☰')
-              : null,
-            screen.kind === 'book'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('fontSize'),
-                onClick: () => setFontSize(previous => Math.max(14, previous - 1)),
-              }, 'A-')
-              : null,
-            screen.kind === 'book'
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-icon-btn',
-                title: t('fontSize'),
-                onClick: () => setFontSize(previous => Math.min(24, previous + 1)),
-              }, 'A+')
-              : null)),
+        h(Header, {
+          t,
+          screen,
+          title: headerTitle,
+          subtitle: headerSubtitle,
+          onBack: backToLibrary,
+          paletteId,
+          onChangePalette: changePalette,
+          searchOpen,
+          onToggleSearch: toggleSearch,
+          onToggleChat: () => setChatOpen(previous => !previous),
+          onToggleToc: () => setTocOpen(previous => !previous),
+          onFontDecrease: () => setFontSize(previous => Math.max(14, previous - 1)),
+          onFontIncrease: () => setFontSize(previous => Math.min(24, previous + 1)),
+        }),
         error ? h('div', { className: 'dsh-reader-error' }, error) : null,
         searchPanel,
         !snapshot
@@ -1195,68 +1147,25 @@ export function createPlugin(require) {
                     onClick: backToLibrary,
                   }, t('back')))
                 : bookView,
-        selection
-          ? h('div', {
-            className: 'dsh-reader-selection',
-            style: { left: selection.x, top: Math.max(8, selection.y - 48) },
-            onMouseDown: event => event.preventDefault(),
-          },
-          h('button', { type: 'button', onClick: () => prefill('explain') }, t('explain')),
-          h('button', { type: 'button', onClick: () => prefill('summarize') }, t('summarize')),
-          h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')),
-          selection.blockIndex == null
-            ? null
-            : h('button', { type: 'button', onClick: () => openNoteEditor() }, t('noteAction')))
-          : null,
-        noteEditor
-          ? h('div', {
-            className: 'dsh-reader-note-overlay',
-            onMouseDown: event => {
-              if (event.target === event.currentTarget) closeNoteEditor()
-            },
-          },
-          h('div', {
-            className: 'dsh-reader-note-dialog',
-            role: 'dialog',
-            'aria-modal': 'true',
-            'aria-label': noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle'),
-          },
-          h('h3', null, noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')),
-          h('div', { className: 'dsh-reader-note-dialog-quote' }, noteEditor.quote),
-          h('textarea', {
-            ref: noteInputRef,
-            value: noteDraft,
-            rows: 4,
-            placeholder: t('notePlaceholder'),
-            disabled: noteSaving,
-            onChange: event => setNoteDraft(event.target.value),
-          }),
-          noteError ? h('div', { className: 'dsh-reader-note-dialog-error' }, noteError) : null,
-          h('div', { className: 'dsh-reader-note-dialog-actions' },
-            noteEditor.noteId
-              ? h('button', {
-                type: 'button',
-                className: 'dsh-reader-secondary',
-                disabled: noteSaving,
-                onClick: async () => {
-                  await deleteNote({ id: noteEditor.noteId, bookId: activeBookId })
-                  closeNoteEditor()
-                },
-              }, t('delete'))
-              : null,
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-secondary',
-              disabled: noteSaving,
-              onClick: closeNoteEditor,
-            }, t('cancel')),
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-primary',
-              disabled: noteSaving || !noteDraft.trim(),
-              onClick: () => void saveNote(),
-            }, noteSaving ? t('noteSaving') : t('save')))))
-          : null)
+        h(SelectionToolbar, {
+          t,
+          selection,
+          prefill,
+          onNote: () => openNoteEditor(),
+        }),
+        h(NoteDialog, {
+          t,
+          noteEditor,
+          noteDraft,
+          setNoteDraft,
+          noteSaving,
+          noteError,
+          noteInputRef,
+          activeBookId,
+          deleteNote,
+          closeNoteEditor,
+          saveNote,
+        }))
     }
 
     return {
