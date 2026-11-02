@@ -33,6 +33,13 @@ window.__ModuleLoader__.load({
       loading: '加载中…',
       noToc: '没有目录',
       fontSize: '字号',
+      palette: '配色',
+      paletteAuto: '跟随 DSH',
+      paletteLight: '浅色',
+      paletteDark: '深色',
+      paletteSepia: '羊皮纸',
+      paletteGreen: '护眼绿',
+      paletteNight: '夜间',
       companion: '伴读',
       chatEmpty: '针对这本书提问，或在正文中选中文字后使用“解释 / 总结 / 翻译”。',
       chatPlaceholder: '针对这本书提问…',
@@ -97,6 +104,13 @@ window.__ModuleLoader__.load({
       loading: 'Loading…',
       noToc: 'No contents',
       fontSize: 'Font size',
+      palette: 'Palette',
+      paletteAuto: 'Follow DSH',
+      paletteLight: 'Light',
+      paletteDark: 'Dark',
+      paletteSepia: 'Sepia',
+      paletteGreen: 'Green',
+      paletteNight: 'Night',
       companion: 'Companion',
       chatEmpty: 'Ask about this book, or select text and use Explain / Summarize / Translate.',
       chatPlaceholder: 'Ask about this book…',
@@ -250,20 +264,22 @@ window.__ModuleLoader__.load({
 .dsh-reader-search-snippet{color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
 .dsh-reader-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
-.dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px}
-.dsh-reader-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--dsw-alias-bg-base)}
+.dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-reader-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
 .dsh-reader-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
 .dsh-reader-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
 .dsh-reader-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-reader-palette-select{height:28px;max-width:112px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
 .dsh-reader-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
 .dsh-reader-pdf-text{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1}
 .dsh-reader-pdf-text-item{position:absolute;color:transparent;white-space:pre;transform-origin:0 0;user-select:text;cursor:text}
-.dsh-reader-pdf-text-item::selection{background:rgba(64,128,255,.35);color:transparent}
+.dsh-reader-pdf-text-item::selection{background:var(--reader-selection,rgba(64,128,255,.35));color:transparent}
+.dsh-reader-reader ::selection{background:var(--reader-selection,rgba(64,128,255,.30))}
 .dsh-reader-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
 .dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
-.dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--dsw-alias-label-primary)}
+.dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
 .dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
@@ -371,6 +387,123 @@ window.__ModuleLoader__.load({
     }
 
     const CHAT_WIDTH_KEY = 'dsh-reader.chat-width'
+    const READER_PALETTE_KEY = 'dsh-reader.palette'
+    const READER_PALETTE_IDS = ['auto', 'light', 'dark', 'sepia', 'green', 'night']
+    const READER_PALETTES = {
+      auto: {
+        id: 'auto',
+        bg: 'var(--dsw-alias-bg-base)',
+        fg: 'var(--dsw-alias-label-primary)',
+        muted: 'var(--dsw-alias-label-secondary)',
+        border: 'var(--dsw-alias-border-l2)',
+        selection: 'rgba(64,128,255,.30)',
+        highlight: 'rgba(245,197,66,.35)',
+      },
+      light: {
+        id: 'light',
+        bg: '#ffffff',
+        fg: '#1f2328',
+        muted: '#5b6573',
+        border: '#d8dee6',
+        selection: 'rgba(64,128,255,.22)',
+        highlight: 'rgba(245,197,66,.45)',
+      },
+      dark: {
+        id: 'dark',
+        bg: '#1b1b22',
+        fg: '#e6e6ea',
+        muted: '#a0a0aa',
+        border: '#33333d',
+        selection: 'rgba(96,160,255,.35)',
+        highlight: 'rgba(245,197,66,.35)',
+      },
+      sepia: {
+        id: 'sepia',
+        bg: '#f4ecd8',
+        fg: '#4b3a2a',
+        muted: '#7a6652',
+        border: '#d8c9ad',
+        selection: 'rgba(180,120,40,.25)',
+        highlight: 'rgba(220,170,70,.45)',
+      },
+      green: {
+        id: 'green',
+        bg: '#dbe9d5',
+        fg: '#1f3a2a',
+        muted: '#4f6b58',
+        border: '#b9cfae',
+        selection: 'rgba(40,120,70,.22)',
+        highlight: 'rgba(220,180,60,.45)',
+      },
+      night: {
+        id: 'night',
+        bg: '#0b0b0d',
+        fg: '#c9c9cf',
+        muted: '#7d7d87',
+        border: '#24242b',
+        selection: 'rgba(90,140,220,.35)',
+        highlight: 'rgba(200,160,60,.35)',
+      },
+    }
+
+    function resolveReaderPalette(id) {
+      return READER_PALETTES[id] ?? READER_PALETTES.auto
+    }
+
+    function readPaletteId() {
+      try {
+        const value = window.localStorage.getItem(READER_PALETTE_KEY)
+        return READER_PALETTES[value] ? value : 'auto'
+      } catch {
+        return 'auto'
+      }
+    }
+
+    function savePaletteId(id) {
+      try {
+        window.localStorage.setItem(READER_PALETTE_KEY, id)
+      } catch {
+        // Palette persistence is best effort.
+      }
+    }
+
+    function paletteCssColors(palette) {
+      if (palette.id !== 'auto') {
+        return { bg: palette.bg, fg: palette.fg, selection: palette.selection }
+      }
+      let css = null
+      try {
+        css = getComputedStyle(document.documentElement)
+      } catch {
+        css = null
+      }
+      const bg = css?.getPropertyValue('--dsw-alias-bg-base').trim() ?? ''
+      const fg = css?.getPropertyValue('--dsw-alias-label-primary').trim() ?? ''
+      const dark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? true
+      return {
+        bg: bg || (dark ? '#1b1b22' : '#ffffff'),
+        fg: fg || (dark ? '#e6e6ea' : '#1f2328'),
+        selection: palette.selection,
+      }
+    }
+
+    function applyPaletteToFrame(frame, palette) {
+      const doc = frame?.contentDocument
+      if (!doc) return
+      const colors = paletteCssColors(palette)
+      let style = doc.querySelector('style[data-dsh-palette]')
+      if (!style) {
+        style = doc.createElement('style')
+        style.setAttribute('data-dsh-palette', '')
+        ;(doc.head ?? doc.documentElement)?.appendChild(style)
+      }
+      style.textContent = [
+        `html,body{background:${colors.bg}!important;color:${colors.fg}!important}`,
+        `body :is(p,div,span,li,blockquote,td,th,h1,h2,h3,h4,h5,h6){color:inherit!important}`,
+        `::selection{background:${colors.selection}}`,
+      ].join('')
+    }
+
     const CHAT_WIDTH_DEFAULT = 340
     const CHAT_WIDTH_MIN = 280
     const CHAT_WIDTH_MAX = 560
@@ -738,6 +871,8 @@ window.__ModuleLoader__.load({
       const [pageInput, setPageInput] = React.useState('1')
       const [visualLoading, setVisualLoading] = React.useState(false)
       const [visualError, setVisualError] = React.useState('')
+      const [paletteId, setPaletteId] = React.useState(readPaletteId)
+      const palette = resolveReaderPalette(paletteId)
       const chatRef = React.useRef(null)
       const chatBodyRef = React.useRef(null)
       const chatInputRef = React.useRef(null)
@@ -764,6 +899,12 @@ window.__ModuleLoader__.load({
           setBusy(false)
         }
       }, [t])
+
+      const changePalette = React.useCallback(id => {
+        if (!READER_PALETTES[id]) return
+        setPaletteId(id)
+        savePaletteId(id)
+      }, [])
 
       React.useEffect(() => {
         void refresh()
@@ -994,6 +1135,7 @@ window.__ModuleLoader__.load({
         epubCleanupRef.current?.()
         epubCleanupRef.current = null
         if (!doc) return
+        applyPaletteToFrame(frame, palette)
         const handler = () => {
           const selected = doc.getSelection()
           const text = selected?.toString().trim()
@@ -1011,7 +1153,13 @@ window.__ModuleLoader__.load({
         }
         doc.addEventListener('mouseup', handler)
         epubCleanupRef.current = () => doc.removeEventListener('mouseup', handler)
-      }, [])
+      }, [palette])
+
+      React.useEffect(() => {
+        if (visual?.kind === 'epub' && epubFrameRef.current) {
+          applyPaletteToFrame(epubFrameRef.current, palette)
+        }
+      }, [palette, visual?.href])
 
       const goEpubChapter = React.useCallback(delta => {
         if (screen.kind !== 'book') return
@@ -1739,7 +1887,17 @@ window.__ModuleLoader__.load({
         chatPanel)
         : null
 
-      return h('div', { className: 'dsh-reader-panel' },
+      return h('div', {
+        className: 'dsh-reader-panel',
+        style: {
+          '--reader-bg': palette.bg,
+          '--reader-fg': palette.fg,
+          '--reader-muted': palette.muted,
+          '--reader-border': palette.border,
+          '--reader-selection': palette.selection,
+          '--reader-highlight': palette.highlight,
+        },
+      },
         h('div', { className: 'dsh-reader-header' },
           h('div', { className: 'dsh-reader-header-main' },
             screen.kind !== 'library'
@@ -1754,6 +1912,16 @@ window.__ModuleLoader__.load({
               h('div', { className: 'dsh-reader-title' }, headerTitle),
               headerSubtitle ? h('div', { className: 'dsh-reader-subtitle' }, headerSubtitle) : null)),
           h('div', { className: 'dsh-reader-header-actions' },
+            screen.kind === 'book'
+              ? h('select', {
+                className: 'dsh-reader-palette-select',
+                value: paletteId,
+                title: t('palette'),
+                'aria-label': t('palette'),
+                onChange: event => changePalette(event.target.value),
+              }, READER_PALETTE_IDS.map(id => h('option', { key: id, value: id },
+                t(`palette${id[0].toUpperCase()}${id.slice(1)}`))))
+              : null,
             screen.kind === 'book'
               ? h('button', {
                 type: 'button',
@@ -1888,6 +2056,9 @@ window.__ModuleLoader__.load({
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
+      READER_PALETTE_IDS,
+      READER_PALETTES,
+      resolveReaderPalette,
       apply(ctx) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
