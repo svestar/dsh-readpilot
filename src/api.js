@@ -2,6 +2,7 @@ import { mkdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, isAbsolute, join, resolve } from 'node:path'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.js'
 import { findBookByKey, scanLibrary } from './library.js'
+import { createLibraryMetaStore } from './library-meta.js'
 import { createNotesStore } from './notes.js'
 import {
   loadBookCache,
@@ -35,6 +36,7 @@ function positiveInteger(value, fallback) {
 export function createReaderApi({ ctx, dataDir, config = {} }) {
   const maxBookBytes = positiveInteger(config.maxBookBytes, DEFAULT_MAX_BOOK_BYTES)
   const notesStore = createNotesStore(dataDir)
+  const libraryMetaStore = createLibraryMetaStore(dataDir)
   let pdfRendererPromise
   let epubVisualPromise
 
@@ -66,16 +68,18 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
 
   async function state() {
     const settings = await currentSettings()
-    const [books, progress, sessions] = await Promise.all([
+    const [books, progress, sessions, meta] = await Promise.all([
       libraryBooks(),
       loadProgress(dataDir),
       loadSessions(dataDir),
+      libraryMetaStore.list(),
     ])
     return {
       settings,
       books: books.map(book => ({ ...book, progress: progress[book.id] ?? null })),
       progress,
       sessions,
+      tags: meta.tags,
     }
   }
 
@@ -108,6 +112,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       title: workspace.title ?? (basename(real) || '书库'),
     })
     return state()
+  }
+
+  async function libraryMeta() {
+    return libraryMetaStore.list()
+  }
+
+  async function setBookTags({ bookId, tags } = {}) {
+    const book = await resolveBook(bookId)
+    let normalized
+    try {
+      normalized = await libraryMetaStore.setTags(book.id, tags)
+    } catch (error) {
+      throw new ReaderError('invalid-tags', error.message)
+    }
+    return { bookId: book.id, tags: normalized }
   }
 
   async function resolveBook(bookId) {
@@ -483,6 +502,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
       search,
       notes: handleNotes,
       pageView,
+      libraryMeta,
+      setBookTags,
     }
     const handler = handlers[endpoint]
     if (!handler) {
@@ -504,6 +525,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     saveReadingProgress,
     setCompanionSession,
     search,
+    libraryMeta,
+    setBookTags,
     toolBooks,
     toolOpen,
     toolRead,

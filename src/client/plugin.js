@@ -19,7 +19,8 @@ import { CSS } from './styles.js'
 import { React, h, bindRuntime } from './runtime.js'
 import { Toc } from './views/toc.js'
 import { renderBlocks, selectionAnchor } from './views/markdown.js'
-import { Library, PanelIcon, Setup } from './views/panels.js'
+import { PanelIcon, Setup } from './views/panels.js'
+import { Library } from './views/library-view.js'
 import { NotesBody, SearchPanel } from './views/notes-search.js'
 import { VisualReader } from './views/visual-reader.js'
 import { ChatPanel } from './views/chat-panel.js'
@@ -105,6 +106,14 @@ export function createPlugin(require) {
         if (!READER_PALETTES[id]) return
         setPaletteId(id)
         savePaletteId(id)
+      }, [])
+
+      const setBookTags = React.useCallback(async (book, tags) => {
+        const result = await call('setBookTags', { bookId: book.id, tags })
+        setSnapshot(previous => previous
+          ? { ...previous, tags: { ...previous.tags, [book.id]: result.tags } }
+          : previous)
+        return result.tags
       }, [])
 
       React.useEffect(() => {
@@ -584,6 +593,7 @@ export function createPlugin(require) {
                 onOpen: openBook,
                 onRefresh: refresh,
                 onSettings: openSetup,
+                onSetTags: setBookTags,
               })
               : screen.kind === 'unsupported'
                 ? h('div', { className: 'dsh-reader-empty' },

@@ -39,6 +39,26 @@ async function makeLibrary(t) {
   return { root, library, data }
 }
 
+test('book_tags_persist_and_validate', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  await api.setBookTags({ bookId, tags: ['技术', '技术', '待读'] })
+  assert.deepEqual((await api.state()).tags[bookId], ['技术', '待读'])
+
+  const reloaded = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  assert.deepEqual((await reloaded.state()).tags[bookId], ['技术', '待读'])
+
+  await reloaded.setBookTags({ bookId, tags: [] })
+  assert.equal((await reloaded.state()).tags[bookId], undefined)
+  await assert.rejects(
+    () => reloaded.setBookTags({ bookId, tags: ['x'.repeat(25)] }),
+    /24/,
+  )
+})
+
 test('configure_creates_workspace', async t => {
   const { library, data } = await makeLibrary(t)
   const ctx = fakeContext()

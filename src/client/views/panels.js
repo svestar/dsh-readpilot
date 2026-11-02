@@ -1,5 +1,4 @@
 import { React, h } from '../runtime.js'
-import { formatSize } from '../helpers.js'
 
 export function PanelIcon({ size = 20, active }) {
   return h('svg', {
@@ -63,43 +62,3 @@ export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }) {
       actions))
 }
 
-export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings }) {
-  const books = snapshot.books
-  return h('div', { className: 'dsh-reader-body' },
-    h('div', { className: 'dsh-reader-library-head' },
-      h('h2', null, `${t('library')} · ${books.length}`),
-      h('div', { className: 'dsh-reader-header-actions' },
-        h('button', {
-          type: 'button',
-          className: 'dsh-reader-secondary',
-          onClick: onSettings,
-        }, t('settings')),
-        h('button', {
-          type: 'button',
-          className: 'dsh-reader-secondary',
-          disabled: busy,
-          onClick: onRefresh,
-        }, t('rescan')))),
-    books.length === 0
-      ? h('div', { className: 'dsh-reader-empty' },
-        h('h2', null, t('empty')),
-        h('p', null, t('emptyHint')))
-      : h('div', { className: 'dsh-reader-grid' },
-        books.map(book => h('button', {
-          key: book.id,
-          type: 'button',
-          className: 'dsh-reader-card',
-          onClick: () => onOpen(book),
-        },
-        h('div', { className: 'dsh-reader-cover' }, book.format.toUpperCase()),
-        h('div', { className: 'dsh-reader-card-title' }, book.title),
-        h('div', { className: 'dsh-reader-card-meta' },
-          h('span', null, `${formatSize(book.size)}`),
-          book.supported
-            ? null
-            : h('span', { className: 'dsh-reader-badge' }, t('unsupported'))),
-        book.progress
-          ? h('div', { className: 'dsh-reader-card-meta' },
-            h('span', null, book.progress.chapterTitle ?? t('reading')))
-          : h('div', { className: 'dsh-reader-card-meta' }, h('span', null, t('unread')))))))
-}

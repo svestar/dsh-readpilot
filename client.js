@@ -402,6 +402,26 @@ var __dshReaderBundle = (() => {
   var zh = {
     panel: "阅读",
     library: "书库",
+    librarySubtitle: "整理、分类并继续阅读",
+    categories: "分类",
+    allBooks: "全部书籍",
+    recentReading: "最近阅读",
+    recentHint: "接着上次读",
+    formats: "格式",
+    tags: "标签",
+    editTags: "编辑分类",
+    tagPlaceholder: "输入标签，回车添加",
+    addTag: "添加",
+    removeTag: "移除",
+    noTags: "还没有标签",
+    tagTooLong: "标签不能超过 24 个字符",
+    searchLibrary: "搜索书名或标签…",
+    sortBy: "排序",
+    sortRecent: "最近阅读",
+    sortTitle: "书名",
+    sortSize: "文件大小",
+    sortAdded: "文件时间",
+    noMatches: "当前分类下没有书籍。",
     rescan: "重新扫描",
     settings: "设置",
     cancel: "取消",
@@ -415,6 +435,7 @@ var __dshReaderBundle = (() => {
     back: "返回书库",
     toc: "目录",
     reading: "阅读",
+    inProgress: "在读",
     unsupported: "暂不支持",
     unsupportedHint: "这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。",
     unread: "未读",
@@ -474,6 +495,26 @@ var __dshReaderBundle = (() => {
   var en = {
     panel: "Reader",
     library: "Library",
+    librarySubtitle: "Organize, tag and continue reading",
+    categories: "Categories",
+    allBooks: "All books",
+    recentReading: "Recently read",
+    recentHint: "Pick up where you left off",
+    formats: "Formats",
+    tags: "Tags",
+    editTags: "Edit tags",
+    tagPlaceholder: "Type a tag and press Enter",
+    addTag: "Add",
+    removeTag: "Remove",
+    noTags: "No tags yet",
+    tagTooLong: "Tags cannot exceed 24 characters",
+    searchLibrary: "Search title or tag…",
+    sortBy: "Sort",
+    sortRecent: "Recently read",
+    sortTitle: "Title",
+    sortSize: "File size",
+    sortAdded: "File time",
+    noMatches: "No books in this category.",
     rescan: "Rescan",
     settings: "Settings",
     cancel: "Cancel",
@@ -487,6 +528,7 @@ var __dshReaderBundle = (() => {
     back: "Back to library",
     toc: "Contents",
     reading: "Reading",
+    inProgress: "In progress",
     unsupported: "Not supported",
     unsupportedHint: "This book cannot be opened yet; check whether the file is damaged or the PDF has no extractable text layer.",
     unread: "Unread",
@@ -575,6 +617,69 @@ var __dshReaderBundle = (() => {
 .dsh-reader-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:11px}
 .dsh-reader-empty{max-width:460px;margin:60px auto;text-align:center;color:var(--dsw-alias-label-secondary);line-height:1.7}
 .dsh-reader-empty h2{margin:0 0 8px;font-size:16px;color:var(--dsw-alias-label-primary)}
+.dsh-reader-library{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}
+.dsh-reader-library-side{min-height:0;overflow:auto;padding:16px 10px 28px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-library-side-title{padding:10px 8px 5px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;letter-spacing:.04em}
+.dsh-reader-library-category{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.dsh-reader-library-category:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-reader-library-category[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-reader-library-count{color:var(--dsw-alias-label-secondary);font-size:10px;font-weight:400}
+.dsh-reader-library-main{min-height:0;display:flex;flex-direction:column;padding:16px 22px 30px;overflow:hidden}
+.dsh-reader-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.dsh-reader-library-head h2{margin:0;font-size:16px;font-weight:650}
+.dsh-reader-library-subtitle{margin-top:3px;color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-library-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.dsh-reader-library-search{flex:1;min-width:120px;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
+.dsh-reader-library-search:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-library-scroll{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.dsh-reader-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
+.dsh-reader-section-head h3{margin:0;font-size:13px;font-weight:650}
+.dsh-reader-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-recent-section{margin-bottom:20px}
+.dsh-reader-recent-row{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 8px}
+.dsh-reader-recent-card{flex:none;display:flex;align-items:center;gap:10px;width:230px;padding:9px;border:1px solid var(--dsw-alias-border-l2);border-radius:11px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-reader-recent-card:hover{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-recent-cover{flex:none;display:flex;align-items:center;justify-content:center;width:38px;height:52px;border-radius:6px;background:linear-gradient(135deg,#475569,#1e293b);color:#fff;font-size:9px;font-weight:700;letter-spacing:.06em}
+.dsh-reader-recent-cover[data-format="md"]{background:linear-gradient(135deg,#0f766e,#134e4a)}
+.dsh-reader-recent-cover[data-format="epub"]{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
+.dsh-reader-recent-cover[data-format="pdf"]{background:linear-gradient(135deg,#b45309,#7c2d12)}
+.dsh-reader-recent-info{min-width:0;display:flex;flex-direction:column;gap:3px}
+.dsh-reader-recent-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:600}
+.dsh-reader-recent-meta{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:10px}
+.dsh-reader-recent-tags{display:flex;gap:4px;overflow:hidden}
+.dsh-reader-recent-tags span{padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px;white-space:nowrap}
+.dsh-reader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
+.dsh-reader-book-card{position:relative;min-width:0}
+.dsh-reader-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+.dsh-reader-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.dsh-reader-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#64748b,#334155);color:#fff}
+.dsh-reader-book-card[data-format="md"] .dsh-reader-book-cover{background:linear-gradient(135deg,#0f766e,#134e4a)}
+.dsh-reader-book-card[data-format="epub"] .dsh-reader-book-cover{background:linear-gradient(135deg,#7c3aed,#4c1d95)}
+.dsh-reader-book-card[data-format="pdf"] .dsh-reader-book-cover{background:linear-gradient(135deg,#b45309,#7c2d12)}
+.dsh-reader-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
+.dsh-reader-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.dsh-reader-book-info{padding:9px 10px 10px}
+.dsh-reader-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
+.dsh-reader-book-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px}
+.dsh-reader-book-meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+.dsh-reader-book-reading{margin-top:6px;color:var(--dsw-alias-brand-primary);font-size:10px;font-weight:600}
+.dsh-reader-book-tags{display:flex;gap:4px;margin-top:6px;overflow:hidden}
+.dsh-reader-book-tag{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px}
+.dsh-reader-book-tag-edit{position:absolute;top:7px;right:7px;padding:2px 6px;border:0;border-radius:5px;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:9px;cursor:pointer;opacity:0;transition:opacity .14s ease}
+.dsh-reader-book-card:hover .dsh-reader-book-tag-edit,.dsh-reader-book-tag-edit:focus{opacity:1}
+.dsh-reader-library-empty{padding:36px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;text-align:center}
+.dsh-reader-tag-dialog{width:min(480px,94vw)}
+.dsh-reader-tag-book{margin-bottom:10px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-reader-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
+.dsh-reader-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
+.dsh-reader-tag-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer}
+.dsh-reader-tag-remove:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-error-primary)}
+.dsh-reader-tag-input-row{display:flex;gap:8px}
+.dsh-reader-tag-input-row input{flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
+.dsh-reader-tag-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;max-height:92px;overflow:auto}
+.dsh-reader-tag-suggestion{padding:3px 7px;border:1px dashed var(--dsw-alias-border-l2);border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:10px;cursor:pointer}
+.dsh-reader-tag-suggestion:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary)}
+@media (max-width:760px){.dsh-reader-library{grid-template-columns:1fr;overflow:auto}.dsh-reader-library-side{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l2)}.dsh-reader-library-side-title{display:none}.dsh-reader-library-category{width:auto;flex:none;white-space:nowrap}.dsh-reader-library-main{overflow:visible;padding:14px 14px 30px}.dsh-reader-library-scroll{overflow:visible}.dsh-reader-book-tag-edit{opacity:1}}
 .dsh-reader-setup{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
 .dsh-reader-setup-card{width:min(520px,100%);padding:26px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1);box-shadow:0 12px 40px rgba(0,0,0,.10)}
 .dsh-reader-setup-card h2{margin:0 0 8px;font-size:18px}
@@ -902,62 +1007,429 @@ var __dshReaderBundle = (() => {
       )
     );
   }
-  function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings }) {
-    const books = snapshot.books;
+
+  // src/client/library-utils.js
+  var SORTS = ["recent", "title", "size", "added"];
+  function bookTags(bookId, tags) {
+    const list = tags?.[bookId];
+    return Array.isArray(list) ? list : [];
+  }
+  function tagCatalogue(books, tags) {
+    const counts = /* @__PURE__ */ new Map();
+    for (const book of books) {
+      for (const tag of bookTags(book.id, tags)) {
+        counts.set(tag, (counts.get(tag) ?? 0) + 1);
+      }
+    }
+    return [...counts.entries()].map(([tag, count]) => ({ tag, count })).sort((left, right) => left.tag.localeCompare(right.tag));
+  }
+  function recentBooks(books, limit = 10) {
+    return books.filter((book) => Number.isFinite(book.progress?.updatedAt)).sort((left, right) => right.progress.updatedAt - left.progress.updatedAt).slice(0, limit);
+  }
+  function filterBooks(books, tags, options = {}) {
+    const category = options.category ?? "all";
+    const query = String(options.query ?? "").trim().toLowerCase();
+    const sort = SORTS.includes(options.sort) ? options.sort : "recent";
+    const filtered = books.filter((book) => {
+      if (category === "recent" && !book.progress) return false;
+      if (category === "unread" && book.progress) return false;
+      if (category === "reading" && !book.progress) return false;
+      if (category.startsWith("format:") && book.format !== category.slice(7)) return false;
+      if (category.startsWith("tag:")) {
+        const tag = category.slice(4);
+        if (!bookTags(book.id, tags).includes(tag)) return false;
+      }
+      if (!query) return true;
+      const searchable = `${book.title}
+${book.format}
+${bookTags(book.id, tags).join(" ")}`.toLowerCase();
+      return searchable.includes(query);
+    });
+    const sorted = filtered.slice();
+    sorted.sort((left, right) => {
+      if (sort === "title") return left.title.localeCompare(right.title);
+      if (sort === "size") return right.size - left.size;
+      if (sort === "added") return right.mtimeMs - left.mtimeMs;
+      const leftTime = left.progress?.updatedAt ?? 0;
+      const rightTime = right.progress?.updatedAt ?? 0;
+      return rightTime - leftTime || right.mtimeMs - left.mtimeMs;
+    });
+    return sorted;
+  }
+  function categoryCounts(books, tags) {
+    return {
+      all: books.length,
+      recent: books.filter((book) => book.progress).length,
+      unread: books.filter((book) => !book.progress).length,
+      reading: books.filter((book) => book.progress).length,
+      formats: ["txt", "md", "epub", "pdf"].reduce((counts, format) => {
+        counts[format] = books.filter((book) => book.format === format).length;
+        return counts;
+      }, {})
+    };
+  }
+
+  // src/client/views/library-view.js
+  var FORMATS = ["txt", "md", "epub", "pdf"];
+  function formatDate(value) {
+    if (!Number.isFinite(value)) return "";
+    try {
+      return new Date(value).toLocaleDateString();
+    } catch {
+      return "";
+    }
+  }
+  function TagDialog({ t, book, initialTags, allTags, onClose, onSave }) {
+    const [draft, setDraft] = React.useState("");
+    const [tags, setTags] = React.useState(() => initialTags.slice());
+    const [saving, setSaving] = React.useState(false);
+    const [error, setError] = React.useState("");
+    const inputRef = React.useRef(null);
+    React.useEffect(() => {
+      inputRef.current?.focus();
+    }, []);
+    const add = (value) => {
+      const tag = String(value ?? "").replace(/\s+/g, " ").trim();
+      if (!tag || tags.includes(tag) || tags.length >= 20) return;
+      if (tag.length > 24) {
+        setError(t("tagTooLong"));
+        return;
+      }
+      setTags((previous) => [...previous, tag]);
+      setDraft("");
+      setError("");
+    };
+    const save = async () => {
+      if (saving) return;
+      setSaving(true);
+      setError("");
+      try {
+        await onSave(tags);
+        onClose();
+      } catch (cause) {
+        setError(cause.message ?? String(cause));
+      } finally {
+        setSaving(false);
+      }
+    };
     return h(
       "div",
-      { className: "dsh-reader-body" },
+      {
+        className: "dsh-reader-note-overlay",
+        onMouseDown: (event) => {
+          if (event.target === event.currentTarget) onClose();
+        }
+      },
       h(
         "div",
-        { className: "dsh-reader-library-head" },
-        h("h2", null, `${t("library")} · ${books.length}`),
+        {
+          className: "dsh-reader-note-dialog dsh-reader-tag-dialog",
+          role: "dialog",
+          "aria-modal": "true",
+          "aria-label": t("editTags")
+        },
+        h("h3", null, t("editTags")),
+        h("div", { className: "dsh-reader-tag-book" }, book.title),
         h(
           "div",
-          { className: "dsh-reader-header-actions" },
+          { className: "dsh-reader-tag-list" },
+          tags.length === 0 ? h("span", { className: "dsh-reader-muted" }, t("noTags")) : tags.map((tag) => h(
+            "span",
+            { key: tag, className: "dsh-reader-tag-chip" },
+            tag,
+            h("button", {
+              type: "button",
+              className: "dsh-reader-tag-remove",
+              "aria-label": `${t("removeTag")} ${tag}`,
+              onClick: () => setTags((previous) => previous.filter((item) => item !== tag))
+            }, "×")
+          ))
+        ),
+        h(
+          "div",
+          { className: "dsh-reader-tag-input-row" },
+          h("input", {
+            ref: inputRef,
+            value: draft,
+            placeholder: t("tagPlaceholder"),
+            spellCheck: false,
+            onChange: (event) => setDraft(event.target.value),
+            onKeyDown: (event) => {
+              if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+                event.preventDefault();
+                add(draft);
+              }
+            }
+          }),
           h("button", {
             type: "button",
             className: "dsh-reader-secondary",
-            onClick: onSettings
-          }, t("settings")),
+            disabled: !draft.trim() || tags.length >= 20,
+            onClick: () => add(draft)
+          }, t("addTag"))
+        ),
+        allTags.length > 0 ? h(
+          "div",
+          { className: "dsh-reader-tag-suggestions" },
+          allTags.filter((tag) => !tags.includes(tag)).slice(0, 12).map((tag) => h("button", {
+            key: tag,
+            type: "button",
+            className: "dsh-reader-tag-suggestion",
+            onClick: () => add(tag)
+          }, `+ ${tag}`))
+        ) : null,
+        error ? h("div", { className: "dsh-reader-note-dialog-error" }, error) : null,
+        h(
+          "div",
+          { className: "dsh-reader-note-dialog-actions" },
           h("button", {
             type: "button",
             className: "dsh-reader-secondary",
-            disabled: busy,
-            onClick: onRefresh
-          }, t("rescan"))
+            disabled: saving,
+            onClick: onClose
+          }, t("cancel")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-primary",
+            disabled: saving,
+            onClick: () => void save()
+          }, saving ? t("loading") : t("save"))
         )
-      ),
-      books.length === 0 ? h(
-        "div",
-        { className: "dsh-reader-empty" },
-        h("h2", null, t("empty")),
-        h("p", null, t("emptyHint"))
-      ) : h(
-        "div",
-        { className: "dsh-reader-grid" },
-        books.map((book) => h(
-          "button",
-          {
-            key: book.id,
-            type: "button",
-            className: "dsh-reader-card",
-            onClick: () => onOpen(book)
-          },
-          h("div", { className: "dsh-reader-cover" }, book.format.toUpperCase()),
-          h("div", { className: "dsh-reader-card-title" }, book.title),
+      )
+    );
+  }
+  function BookCard({ t, book, tags, onOpen, onEditTags }) {
+    return h(
+      "div",
+      {
+        className: "dsh-reader-book-card",
+        "data-format": book.format
+      },
+      h(
+        "button",
+        {
+          type: "button",
+          className: "dsh-reader-book-open",
+          onClick: () => onOpen(book)
+        },
+        h(
+          "div",
+          { className: "dsh-reader-book-cover" },
+          h("span", { className: "dsh-reader-book-format" }, book.format.toUpperCase()),
+          h("span", { className: "dsh-reader-book-cover-title" }, book.title)
+        ),
+        h(
+          "div",
+          { className: "dsh-reader-book-info" },
+          h("div", { className: "dsh-reader-book-title" }, book.title),
           h(
             "div",
-            { className: "dsh-reader-card-meta" },
-            h("span", null, `${formatSize(book.size)}`),
-            book.supported ? null : h("span", { className: "dsh-reader-badge" }, t("unsupported"))
+            { className: "dsh-reader-book-meta" },
+            h("span", null, formatSize(book.size)),
+            h("span", null, book.progress ? book.progress.chapterTitle || t("reading") : t("unread"))
           ),
-          book.progress ? h(
+          tags.length > 0 ? h(
             "div",
-            { className: "dsh-reader-card-meta" },
-            h("span", null, book.progress.chapterTitle ?? t("reading"))
-          ) : h("div", { className: "dsh-reader-card-meta" }, h("span", null, t("unread")))
-        ))
+            { className: "dsh-reader-book-tags" },
+            tags.slice(0, 3).map((tag) => h("span", { key: tag, className: "dsh-reader-book-tag" }, tag)),
+            tags.length > 3 ? h("span", { className: "dsh-reader-book-tag" }, `+${tags.length - 3}`) : null
+          ) : null
+        )
+      ),
+      h("button", {
+        type: "button",
+        className: "dsh-reader-book-tag-edit",
+        title: t("editTags"),
+        onClick: () => onEditTags(book)
+      }, t("tags"))
+    );
+  }
+  function RecentCard({ t, book, tags, onOpen }) {
+    return h(
+      "button",
+      {
+        type: "button",
+        className: "dsh-reader-recent-card",
+        onClick: () => onOpen(book)
+      },
+      h(
+        "div",
+        { className: "dsh-reader-recent-cover", "data-format": book.format },
+        h("span", null, book.format.toUpperCase())
+      ),
+      h(
+        "div",
+        { className: "dsh-reader-recent-info" },
+        h("div", { className: "dsh-reader-recent-title" }, book.title),
+        h(
+          "div",
+          { className: "dsh-reader-recent-meta" },
+          book.progress?.chapterTitle || t("reading"),
+          " · ",
+          formatDate(book.progress?.updatedAt)
+        ),
+        tags.length > 0 ? h(
+          "div",
+          { className: "dsh-reader-recent-tags" },
+          tags.slice(0, 2).map((tag) => h("span", { key: tag }, tag))
+        ) : null
       )
+    );
+  }
+  function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags }) {
+    const books = snapshot.books;
+    const tags = snapshot.tags ?? {};
+    const [category, setCategory] = React.useState("all");
+    const [query, setQuery] = React.useState("");
+    const [sort, setSort] = React.useState("recent");
+    const [tagEditor, setTagEditor] = React.useState(null);
+    const counts = React.useMemo(() => categoryCounts(books, tags), [books, tags]);
+    const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags]);
+    const recent = React.useMemo(() => recentBooks(books, 10), [books]);
+    const visible = React.useMemo(
+      () => filterBooks(books, tags, { category, query, sort }),
+      [books, tags, category, query, sort]
+    );
+    const showRecent = recent.length > 0 && (category === "all" || category === "recent");
+    const categoryTitle = category === "all" ? t("allBooks") : category.startsWith("tag:") ? `#${category.slice(4)}` : category.startsWith("format:") ? category.slice(7).toUpperCase() : category === "recent" ? t("recentReading") : category === "unread" ? t("unread") : t("inProgress");
+    const categoryButton = (key, label, count) => h(
+      "button",
+      {
+        key,
+        type: "button",
+        className: "dsh-reader-library-category",
+        "data-active": category === key ? "true" : "false",
+        onClick: () => setCategory(key)
+      },
+      h("span", null, label),
+      typeof count === "number" ? h("span", { className: "dsh-reader-library-count" }, count) : null
+    );
+    return h(
+      "div",
+      { className: "dsh-reader-library" },
+      h(
+        "aside",
+        { className: "dsh-reader-library-side" },
+        h("div", { className: "dsh-reader-library-side-title" }, t("categories")),
+        categoryButton("all", t("allBooks"), counts.all),
+        categoryButton("recent", t("recentReading"), counts.recent),
+        categoryButton("reading", t("inProgress"), counts.reading),
+        categoryButton("unread", t("unread"), counts.unread),
+        h("div", { className: "dsh-reader-library-side-title" }, t("formats")),
+        FORMATS.map((format) => categoryButton(`format:${format}`, format.toUpperCase(), counts.formats[format])),
+        tagStats.length > 0 ? h("div", { className: "dsh-reader-library-side-title" }, t("tags")) : null,
+        tagStats.map(({ tag, count }) => categoryButton(`tag:${tag}`, `# ${tag}`, count))
+      ),
+      h(
+        "div",
+        { className: "dsh-reader-library-main" },
+        h(
+          "div",
+          { className: "dsh-reader-library-head" },
+          h(
+            "div",
+            null,
+            h("h2", null, `${t("library")} · ${books.length}`),
+            h("div", { className: "dsh-reader-library-subtitle" }, t("librarySubtitle"))
+          ),
+          h(
+            "div",
+            { className: "dsh-reader-header-actions" },
+            h("button", { type: "button", className: "dsh-reader-secondary", onClick: onSettings }, t("settings")),
+            h("button", { type: "button", className: "dsh-reader-secondary", disabled: busy, onClick: onRefresh }, t("rescan"))
+          )
+        ),
+        h(
+          "div",
+          { className: "dsh-reader-library-toolbar" },
+          h("input", {
+            className: "dsh-reader-library-search",
+            value: query,
+            placeholder: t("searchLibrary"),
+            spellCheck: false,
+            onChange: (event) => setQuery(event.target.value)
+          }),
+          h(
+            "select",
+            {
+              className: "dsh-reader-palette-select",
+              value: sort,
+              onChange: (event) => setSort(event.target.value),
+              "aria-label": t("sortBy")
+            },
+            h("option", { value: "recent" }, t("sortRecent")),
+            h("option", { value: "title" }, t("sortTitle")),
+            h("option", { value: "size" }, t("sortSize")),
+            h("option", { value: "added" }, t("sortAdded"))
+          )
+        ),
+        books.length === 0 ? h(
+          "div",
+          { className: "dsh-reader-empty" },
+          h("h2", null, t("empty")),
+          h("p", null, t("emptyHint"))
+        ) : h(
+          "div",
+          { className: "dsh-reader-library-scroll" },
+          showRecent ? h(
+            "section",
+            { className: "dsh-reader-recent-section" },
+            h(
+              "div",
+              { className: "dsh-reader-section-head" },
+              h("h3", null, t("recentReading")),
+              h("span", null, t("recentHint"))
+            ),
+            h(
+              "div",
+              { className: "dsh-reader-recent-row" },
+              recent.map((book) => h(RecentCard, {
+                key: book.id,
+                t,
+                book,
+                tags: bookTags(book.id, tags),
+                onOpen
+              }))
+            )
+          ) : null,
+          h(
+            "section",
+            { className: "dsh-reader-all-section" },
+            h(
+              "div",
+              { className: "dsh-reader-section-head" },
+              h("h3", null, categoryTitle),
+              h("span", null, `${visible.length}`)
+            ),
+            visible.length === 0 ? h("div", { className: "dsh-reader-library-empty" }, t("noMatches")) : h(
+              "div",
+              { className: "dsh-reader-grid" },
+              visible.map((book) => h(BookCard, {
+                key: book.id,
+                t,
+                book,
+                tags: bookTags(book.id, tags),
+                onOpen,
+                onEditTags: (entry) => setTagEditor({
+                  book: entry,
+                  initialTags: bookTags(entry.id, tags)
+                })
+              }))
+            )
+          )
+        )
+      ),
+      tagEditor ? h(TagDialog, {
+        t,
+        book: tagEditor.book,
+        initialTags: tagEditor.initialTags,
+        allTags: tagStats.map((item) => item.tag),
+        onClose: () => setTagEditor(null),
+        onSave: async (nextTags) => {
+          await onSetTags(tagEditor.book, nextTags);
+          setTagEditor(null);
+        }
+      }) : null
     );
   }
 
@@ -2321,6 +2793,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setPaletteId(id);
         savePaletteId(id);
       }, []);
+      const setBookTags = React.useCallback(async (book, tags) => {
+        const result = await call("setBookTags", { bookId: book.id, tags });
+        setSnapshot((previous) => previous ? { ...previous, tags: { ...previous.tags, [book.id]: result.tags } } : previous);
+        return result.tags;
+      }, []);
       React.useEffect(() => {
         void refresh();
       }, [refresh]);
@@ -2745,7 +3222,8 @@ ${question}`);
           busy,
           onOpen: openBook,
           onRefresh: refresh,
-          onSettings: openSetup
+          onSettings: openSetup,
+          onSetTags: setBookTags
         }) : screen.kind === "unsupported" ? h(
           "div",
           { className: "dsh-reader-empty" },
