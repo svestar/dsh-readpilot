@@ -8,7 +8,7 @@
 
 ## 行为
 
-阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为该工作区的指令加载，而不是全局系统提示词。内容放在 `<!-- dsh-reader:prompt:begin -->` 与 `<!-- dsh-reader:prompt:end -->` 管理块中：文件不存在时创建；已有用户内容时保留并在末尾追加；重复同步只替换管理块，不重复追加。书库扫描跳过根目录/子目录的 `AGENTS.md`，不会把提示词文件当成 Markdown 书籍。
+阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为该工作区的指令加载，而不是全局系统提示词。Host 启动和书库状态加载时同步；内容放在 `<!-- dsh-reader:prompt:begin -->` 与 `<!-- dsh-reader:prompt:end -->` 管理块中：文件不存在时创建；已有用户内容时保留并在末尾追加；重复同步只替换管理块，不重复追加。书库扫描跳过根目录/子目录的 `AGENTS.md`，不会把提示词文件当成 Markdown 书籍。
 
 `reader_context` 是只读工具：不传书时按 `progress.updatedAt` 返回最近阅读的书；传 `book` 时返回指定书的元数据、进度、前 60 条目录和最近 10 条笔记。现有 `reader_books`、`reader_open`、`reader_read`、`reader_search`、`reader_note` 保持不变。
 

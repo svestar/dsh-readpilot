@@ -79,6 +79,11 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     }
   }
 
+  async function syncPrompt() {
+    const settings = await currentSettings()
+    await syncWorkspacePrompt(settings)
+  }
+
   async function state() {
     const settings = await currentSettings()
     await syncWorkspacePrompt(settings)
@@ -575,6 +580,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
 
   return {
     state,
+    syncPrompt,
     configureLibrary,
     open,
     chapter,

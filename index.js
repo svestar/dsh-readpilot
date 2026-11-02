@@ -18,6 +18,7 @@ export function apply(ctx, config = {}) {
     dataDir: pluginDataDir(resolveDshHome()),
     config,
   })
+  void api.syncPrompt().catch(() => {})
 
   ctx.effect(() => registerTools(ctx, api), 'dsh-reader: tools')
 
