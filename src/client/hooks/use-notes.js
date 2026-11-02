@@ -1,4 +1,5 @@
 import { React } from '../runtime.js'
+import { blocksText, contextAround, hashText, offsetInChapter } from '../anchor.js'
 import {
   applyEpubNoteMarks,
   collectTextNodes,
@@ -135,11 +136,19 @@ export function useNotes({
       return
     }
     if (!selection || selection.blockIndex == null || screen.kind !== 'book') return
+    const chapter = blocksText(screen.content.blocks)
+    const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset)
+    const occurrence = findNoteOccurrence(chapter, selection.text, preferred)
+    const start = occurrence?.start ?? preferred
+    const context = contextAround(chapter, start, start + selection.text.length)
     setNoteEditor({
       chapterId: activeChapterId,
       blockIndex: selection.blockIndex,
       offset: selection.offset,
       quote: selection.text,
+      quotePrefix: context.prefix,
+      quoteSuffix: context.suffix,
+      textHash: hashText(chapter),
     })
     setNoteDraft('')
     setNoteError('')
@@ -169,6 +178,9 @@ export function useNotes({
           blockIndex: editor.blockIndex,
           offset: editor.offset,
           quote: editor.quote,
+          quotePrefix: editor.quotePrefix,
+          quoteSuffix: editor.quoteSuffix,
+          textHash: editor.textHash,
           note: text,
         })
       }
@@ -204,7 +216,7 @@ export function useNotes({
       const { text } = collectTextNodes(root)
       const rootRect = root.getBoundingClientRect()
       for (const note of relevant) {
-        const match = findNoteOccurrence(text, note.quote, note.offset)
+        const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
         if (!match) continue
         const range = rangeForNote(root, match.start, match.end)
         if (!range) continue

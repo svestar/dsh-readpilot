@@ -170,15 +170,20 @@ var __dshReaderBundle = (() => {
       `::selection{background:${colors.selection}}`
     ].join("");
   }
-  function findNoteOccurrence(text, quote, preferredOffset = 0) {
+  function findNoteOccurrence(text, quote, preferredOffset = 0, prefix = "", suffix = "") {
     if (typeof text !== "string" || typeof quote !== "string" || !quote) return null;
     const preferred = Number.isFinite(Number(preferredOffset)) ? Number(preferredOffset) : 0;
+    const wantedPrefix = typeof prefix === "string" ? prefix : "";
+    const wantedSuffix = typeof suffix === "string" ? suffix : "";
     let best = null;
     let index = text.indexOf(quote);
     while (index !== -1) {
-      const distance = Math.abs(index - preferred);
-      if (!best || distance < best.distance) {
-        best = { start: index, end: index + quote.length, distance };
+      const before = wantedPrefix ? text.slice(Math.max(0, index - wantedPrefix.length), index) : "";
+      const after = wantedSuffix ? text.slice(index + quote.length, index + quote.length + wantedSuffix.length) : "";
+      const mismatch = (wantedPrefix && before !== wantedPrefix ? 1e5 : 0) + (wantedSuffix && after !== wantedSuffix ? 1e5 : 0);
+      const score = Math.abs(index - preferred) + mismatch;
+      if (!best || score < best.score) {
+        best = { start: index, end: index + quote.length, score };
       }
       index = text.indexOf(quote, index + 1);
     }
@@ -248,7 +253,7 @@ var __dshReaderBundle = (() => {
     doc.addEventListener("click", onClick);
     const text = doc.body.textContent ?? "";
     for (const note of relevant) {
-      const match = findNoteOccurrence(text, note.quote, note.offset);
+      const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix);
       if (!match) continue;
       const range = rangeForNote(doc.body, match.start, match.end);
       if (!range) continue;
@@ -2254,6 +2259,35 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
+  // src/client/anchor.js
+  function blocksText(blocks) {
+    return (Array.isArray(blocks) ? blocks : []).map((block) => block?.text ?? "").join("\n\n");
+  }
+  function offsetInChapter(blocks, blockIndex, offset) {
+    let start = 0;
+    for (let index = 0; index < blockIndex; index += 1) {
+      start += (blocks[index]?.text ?? "").length + 2;
+    }
+    return start + Math.max(0, Number.isInteger(offset) ? offset : 0);
+  }
+  function contextAround(text, start, end, size = 32) {
+    const value = typeof text === "string" ? text : "";
+    const from = Math.max(0, Math.min(value.length, start));
+    const to = Math.max(from, Math.min(value.length, end));
+    return {
+      prefix: value.slice(Math.max(0, from - size), from),
+      suffix: value.slice(to, Math.min(value.length, to + size))
+    };
+  }
+  function hashText(text) {
+    let hash = 2166136261;
+    for (const character of String(text ?? "")) {
+      hash ^= character.codePointAt(0);
+      hash = Math.imul(hash, 16777619);
+    }
+    return (hash >>> 0).toString(16).padStart(8, "0");
+  }
+
   // src/client/hooks/use-notes.js
   function useNotes({
     call,
@@ -2375,11 +2409,19 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         return;
       }
       if (!selection || selection.blockIndex == null || screen.kind !== "book") return;
+      const chapter = blocksText(screen.content.blocks);
+      const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset);
+      const occurrence = findNoteOccurrence(chapter, selection.text, preferred);
+      const start = occurrence?.start ?? preferred;
+      const context = contextAround(chapter, start, start + selection.text.length);
       setNoteEditor({
         chapterId: activeChapterId,
         blockIndex: selection.blockIndex,
         offset: selection.offset,
-        quote: selection.text
+        quote: selection.text,
+        quotePrefix: context.prefix,
+        quoteSuffix: context.suffix,
+        textHash: hashText(chapter)
       });
       setNoteDraft("");
       setNoteError("");
@@ -2408,6 +2450,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             blockIndex: editor.blockIndex,
             offset: editor.offset,
             quote: editor.quote,
+            quotePrefix: editor.quotePrefix,
+            quoteSuffix: editor.quoteSuffix,
+            textHash: editor.textHash,
             note: text
           });
         }
@@ -2437,7 +2482,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         const { text } = collectTextNodes(root);
         const rootRect = root.getBoundingClientRect();
         for (const note of relevant) {
-          const match = findNoteOccurrence(text, note.quote, note.offset);
+          const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix);
           if (!match) continue;
           const range = rangeForNote(root, match.start, match.end);
           if (!range) continue;
@@ -2806,7 +2851,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             const item = screen.detail.toc.find((entry) => entry.id === chapterId);
             setVisual(visualFor(screen.detail, item));
           }
-          void call("progress", { bookId, chapterId, chapterTitle: content.title }).catch(() => {
+          const toc = screen.kind === "book" ? screen.detail.toc : [];
+          const index = toc.findIndex((item) => item.id === chapterId);
+          const percent = index >= 0 && toc.length > 0 ? index / toc.length * 100 : void 0;
+          void call("progress", { bookId, chapterId, chapterTitle: content.title, percent }).catch(() => {
           });
         } catch (cause) {
           setError(`${t("loadFailed")}：${messageOf(cause)}`);

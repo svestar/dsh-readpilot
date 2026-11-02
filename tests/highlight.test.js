@@ -32,3 +32,9 @@ test('find_note_occurrence_missing', () => {
   assert.equal(plugin.findNoteOccurrence('hello', '', 0), null)
   assert.equal(plugin.findNoteOccurrence('', 'hello', 0), null)
 })
+
+test('find_note_occurrence_uses_context', () => {
+  const text = '开头 target 结尾；另一段 target 后续'
+  const match = plugin.findNoteOccurrence(text, 'target', 0, '另一段 ', ' 后续')
+  assert.deepEqual(match, { start: text.lastIndexOf('target'), end: text.lastIndexOf('target') + 6 })
+})

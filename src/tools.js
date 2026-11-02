@@ -50,6 +50,26 @@ export function registerTools(ctx, api) {
       },
     },
     {
+      name: 'reader_context',
+      description:
+        'Return the current or most recently read book, its chapter progress, TOC and recent notes. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
+      parameters: {
+        type: 'object',
+        properties: {
+          book: { type: 'string', description: 'Optional book id or title; omit for the most recently read book.' },
+        },
+        additionalProperties: false,
+      },
+      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      async execute(args) {
+        try {
+          return await api.toolContext(args ?? {})
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
+    },
+    {
       name: 'reader_read',
       description:
         'Read a bounded passage from one chapter. offset is a 0-based character offset; limit defaults to 4000 and is capped at 8000. Continue with nextOffset while hasMore is true. Quote the locator when citing the passage.',

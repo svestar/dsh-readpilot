@@ -59,6 +59,17 @@ test('book_tags_persist_and_validate', async t => {
   )
 })
 
+test('progress_percent_persists', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.saveReadingProgress({ bookId, chapterId: 'c002', chapterTitle: '第二章', percent: 42.5 })
+  const progress = (await api.state()).progress[bookId]
+  assert.equal(progress.chapterId, 'c002')
+  assert.equal(progress.percent, 42.5)
+})
+
 test('configure_creates_workspace', async t => {
   const { library, data } = await makeLibrary(t)
   const ctx = fakeContext()

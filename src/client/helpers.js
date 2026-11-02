@@ -159,15 +159,21 @@ export function applyPaletteToFrame(frame, palette) {
       ].join('')
     }
 
-export function findNoteOccurrence(text, quote, preferredOffset = 0) {
+export function findNoteOccurrence(text, quote, preferredOffset = 0, prefix = '', suffix = '') {
       if (typeof text !== 'string' || typeof quote !== 'string' || !quote) return null
       const preferred = Number.isFinite(Number(preferredOffset)) ? Number(preferredOffset) : 0
+      const wantedPrefix = typeof prefix === 'string' ? prefix : ''
+      const wantedSuffix = typeof suffix === 'string' ? suffix : ''
       let best = null
       let index = text.indexOf(quote)
       while (index !== -1) {
-        const distance = Math.abs(index - preferred)
-        if (!best || distance < best.distance) {
-          best = { start: index, end: index + quote.length, distance }
+        const before = wantedPrefix ? text.slice(Math.max(0, index - wantedPrefix.length), index) : ''
+        const after = wantedSuffix ? text.slice(index + quote.length, index + quote.length + wantedSuffix.length) : ''
+        const mismatch = (wantedPrefix && before !== wantedPrefix ? 100000 : 0)
+          + (wantedSuffix && after !== wantedSuffix ? 100000 : 0)
+        const score = Math.abs(index - preferred) + mismatch
+        if (!best || score < best.score) {
+          best = { start: index, end: index + quote.length, score }
         }
         index = text.indexOf(quote, index + 1)
       }
@@ -239,7 +245,7 @@ export function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jum
       doc.addEventListener('click', onClick)
       const text = doc.body.textContent ?? ''
       for (const note of relevant) {
-        const match = findNoteOccurrence(text, note.quote, note.offset)
+        const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
         if (!match) continue
         const range = rangeForNote(doc.body, match.start, match.end)
         if (!range) continue

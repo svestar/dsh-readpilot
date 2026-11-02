@@ -221,7 +221,10 @@ export function createPlugin(require) {
             const item = screen.detail.toc.find(entry => entry.id === chapterId)
             setVisual(visualFor(screen.detail, item))
           }
-          void call('progress', { bookId, chapterId, chapterTitle: content.title }).catch(() => {})
+          const toc = screen.kind === 'book' ? screen.detail.toc : []
+          const index = toc.findIndex(item => item.id === chapterId)
+          const percent = index >= 0 && toc.length > 0 ? (index / toc.length) * 100 : undefined
+          void call('progress', { bookId, chapterId, chapterTitle: content.title, percent }).catch(() => {})
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {

@@ -223,15 +223,19 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     }
   }
 
-  async function saveReadingProgress({ bookId, chapterId, chapterTitle } = {}) {
+  async function saveReadingProgress({ bookId, chapterId, chapterTitle, percent } = {}) {
     if (typeof bookId !== 'string' || typeof chapterId !== 'string') {
       throw new ReaderError('invalid-progress', '进度需要 bookId 与 chapterId')
     }
     const book = await resolveBook(bookId)
     const progress = await loadProgress(dataDir)
+    const numericPercent = Number(percent)
     progress[book.id] = {
       chapterId,
       chapterTitle: typeof chapterTitle === 'string' ? chapterTitle : '',
+      ...(Number.isFinite(numericPercent)
+        ? { percent: Math.max(0, Math.min(100, numericPercent)) }
+        : {}),
       updatedAt: Date.now(),
     }
     await saveProgress(dataDir, progress)
@@ -338,6 +342,39 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     }
   }
 
+  async function toolContext({ book } = {}) {
+    const books = await libraryBooks()
+    let found
+    if (book) {
+      found = findBookByKey(books, book)
+      if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    } else {
+      const progress = await loadProgress(dataDir)
+      found = books
+        .filter(candidate => progress[candidate.id])
+        .sort((left, right) => progress[right.id].updatedAt - progress[left.id].updatedAt)[0]
+      if (!found) throw new ReaderError('no-current-book', '还没有最近阅读的书籍，请先用 reader_books 选择一本书')
+    }
+    const detail = await open({ bookId: found.id })
+    const notes = await notesStore.list(found.id)
+    return {
+      bookId: found.id,
+      title: detail.book.title,
+      author: detail.book.author,
+      format: found.format,
+      progress: detail.progress,
+      toc: detail.toc.slice(0, 60),
+      tocTruncated: detail.toc.length > 60,
+      notes: notes.slice(0, 10).map(note => ({
+        id: note.id,
+        chapterId: note.chapterId,
+        quote: note.quote,
+        note: note.note,
+      })),
+      notesTruncated: notes.length > 10,
+    }
+  }
+
   async function toolRead({ book, chapter: chapterKey, offset, limit } = {}) {
     const books = await libraryBooks()
     const found = findBookByKey(books, book)
@@ -424,6 +461,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
         offset: payload.offset,
         quote: payload.quote,
         note: payload.note,
+        quotePrefix: payload.quotePrefix,
+        quoteSuffix: payload.quoteSuffix,
+        textHash: payload.textHash,
       })
       return { note: record }
     }
@@ -531,6 +571,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
     setBookTags,
     toolBooks,
     toolOpen,
+    toolContext,
     toolRead,
     toolSearch,
     toolNote,

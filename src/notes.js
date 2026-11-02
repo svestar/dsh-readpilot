@@ -36,6 +36,14 @@ function assertChapterId(chapterId) {
   }
 }
 
+function assertOptionalText(name, value, limit = 120) {
+  if (value === undefined) return ''
+  if (typeof value !== 'string' || value.length > limit) {
+    throw new Error(`${name} must be a string of at most ${limit} characters`)
+  }
+  return value
+}
+
 function validateNewNote(input) {
   if (!input || typeof input !== 'object') throw new Error('note input is required')
   assertChapterId(input.chapterId)
@@ -43,12 +51,18 @@ function validateNewNote(input) {
   assertPosition('offset', input.offset)
   assertText('quote', input.quote)
   assertText('note', input.note)
+  const quotePrefix = assertOptionalText('quotePrefix', input.quotePrefix)
+  const quoteSuffix = assertOptionalText('quoteSuffix', input.quoteSuffix)
+  const textHash = assertOptionalText('textHash', input.textHash, 32)
   return {
     chapterId: input.chapterId,
     blockIndex: input.blockIndex,
     offset: input.offset,
     quote: input.quote,
     note: input.note,
+    ...(quotePrefix ? { quotePrefix } : {}),
+    ...(quoteSuffix ? { quoteSuffix } : {}),
+    ...(textHash ? { textHash } : {}),
   }
 }
 

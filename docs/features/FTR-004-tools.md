@@ -3,18 +3,19 @@
 - **ID：** FTR-004
 - **名称：** Agent 工具
 - **状态：** active
-- **代码：** `src/tools.js`（`registerTools`）；`src/api.js`（`toolBooks`、`toolOpen`、`toolRead`、`toolSearch`、`toolNote`）
+- **代码：** `src/tools.js`（`registerTools`）；`src/api.js`（`toolBooks`、`toolOpen`、`toolContext`、`toolRead`、`toolSearch`、`toolNote`）
 - **测试：** `tests/tools.test.js`
 
 ## 行为
 
-Host 插件向 `ctx.tools` 注册五个全局工具：`reader_books` 列出书库与进度；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_note` 按书新增或列出笔记。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节、引用原文与笔记正文。
+Host 插件向 `ctx.tools` 注册六个全局工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录与最近笔记；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_note` 按书新增或列出笔记。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节、引用原文与笔记正文。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `registerTools` | `src/tools.js:registerTools` | 注册五个工具并返回统一卸载函数 |
+| `registerTools` | `src/tools.js:registerTools` | 注册六个工具并返回统一卸载函数 |
+| `toolContext` | `src/api.js:toolContext` | 最近阅读/指定书的进度、目录与笔记摘要 |
 | `toolRead` | `src/api.js:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
 | `toolSearch` | `src/api.js:toolSearch` | 把书名解析为书 id 后调用检索 |
 | `toolNote` | `src/api.js:toolNote` | 解析书名/章节并读写该书的笔记 |
