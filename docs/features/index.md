@@ -15,3 +15,4 @@
 | `FTR-009` | PDF 视觉 | `docs/features/FTR-009-pdf-visual.md` | `src/visual/pdf.js` | `tests/pdf-visual.test.js` | active |
 | `FTR-010` | EPUB 视觉 | `docs/features/FTR-010-epub-visual.md` | `src/visual/epub.js` | `tests/epub-visual.test.js` | active |
 | `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `client.js` | `tests/palette.test.js` | active |
+| `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `client.js` | `tests/highlight.test.js` | active |

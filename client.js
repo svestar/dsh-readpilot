@@ -66,6 +66,7 @@ window.__ModuleLoader__.load({
       notes: '笔记',
       noteAction: '笔记',
       noteDialogTitle: '添加笔记',
+      noteEditTitle: '编辑笔记',
       notePlaceholder: '写下你的想法…',
       save: '保存',
       noteSaving: '保存中…',
@@ -137,6 +138,7 @@ window.__ModuleLoader__.load({
       notes: 'Notes',
       noteAction: 'Note',
       noteDialogTitle: 'Add note',
+      noteEditTitle: 'Edit note',
       notePlaceholder: 'Write your note…',
       save: 'Save',
       noteSaving: 'Saving…',
@@ -279,7 +281,10 @@ window.__ModuleLoader__.load({
 .dsh-reader-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
 .dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
-.dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-reader-reader-inner{position:relative;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
+.dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
+.dsh-reader-note-hit:hover{opacity:1}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
 .dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
 .dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
@@ -469,7 +474,7 @@ window.__ModuleLoader__.load({
 
     function paletteCssColors(palette) {
       if (palette.id !== 'auto') {
-        return { bg: palette.bg, fg: palette.fg, selection: palette.selection }
+        return { bg: palette.bg, fg: palette.fg, selection: palette.selection, highlight: palette.highlight }
       }
       let css = null
       try {
@@ -484,6 +489,7 @@ window.__ModuleLoader__.load({
         bg: bg || (dark ? '#1b1b22' : '#ffffff'),
         fg: fg || (dark ? '#e6e6ea' : '#1f2328'),
         selection: palette.selection,
+        highlight: palette.highlight,
       }
     }
 
@@ -502,6 +508,99 @@ window.__ModuleLoader__.load({
         `body :is(p,div,span,li,blockquote,td,th,h1,h2,h3,h4,h5,h6){color:inherit!important}`,
         `::selection{background:${colors.selection}}`,
       ].join('')
+    }
+
+    function findNoteOccurrence(text, quote, preferredOffset = 0) {
+      if (typeof text !== 'string' || typeof quote !== 'string' || !quote) return null
+      const preferred = Number.isFinite(Number(preferredOffset)) ? Number(preferredOffset) : 0
+      let best = null
+      let index = text.indexOf(quote)
+      while (index !== -1) {
+        const distance = Math.abs(index - preferred)
+        if (!best || distance < best.distance) {
+          best = { start: index, end: index + quote.length, distance }
+        }
+        index = text.indexOf(quote, index + 1)
+      }
+      return best ? { start: best.start, end: best.end } : null
+    }
+
+    function collectTextNodes(root) {
+      if (!root) return { nodes: [], text: '' }
+      const doc = root.ownerDocument ?? document
+      const view = doc.defaultView ?? window
+      const walker = doc.createTreeWalker(root, view.NodeFilter.SHOW_TEXT)
+      const nodes = []
+      let node = walker.nextNode()
+      while (node) {
+        const parent = node.parentElement
+        if (!parent?.closest('.dsh-reader-note-layer')) nodes.push(node)
+        node = walker.nextNode()
+      }
+      return { nodes, text: nodes.map(entry => entry.nodeValue ?? '').join('') }
+    }
+
+    function rangeForNote(root, start, end) {
+      const { nodes } = collectTextNodes(root)
+      const doc = root.ownerDocument ?? document
+      const range = doc.createRange()
+      let cursor = 0
+      let started = false
+      for (const node of nodes) {
+        const length = node.nodeValue?.length ?? 0
+        const nodeStart = cursor
+        const nodeEnd = cursor + length
+        if (!started && start >= nodeStart && start <= nodeEnd) {
+          range.setStart(node, Math.max(0, Math.min(length, start - nodeStart)))
+          started = true
+        }
+        if (started && end >= nodeStart && end <= nodeEnd) {
+          range.setEnd(node, Math.max(0, Math.min(length, end - nodeStart)))
+          return range
+        }
+        cursor = nodeEnd
+      }
+      return null
+    }
+
+    function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen) {
+      const doc = frame?.contentDocument
+      if (!doc?.body) return () => {}
+      for (const mark of [...doc.querySelectorAll('mark[data-note-id]')]) {
+        const parent = mark.parentNode
+        if (!parent) continue
+        while (mark.firstChild) parent.insertBefore(mark.firstChild, mark)
+        parent.removeChild(mark)
+        parent.normalize?.()
+      }
+      const relevant = notes.filter(note => note.chapterId === chapterId && note.quote)
+      let style = doc.querySelector('style[data-dsh-note]')
+      if (!style) {
+        style = doc.createElement('style')
+        style.setAttribute('data-dsh-note', '')
+        ;(doc.head ?? doc.documentElement)?.appendChild(style)
+      }
+      style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}`
+      const onClick = event => {
+        const mark = event.target.closest?.('mark[data-note-id]')
+        if (!mark) return
+        const note = notes.find(entry => entry.id === mark.dataset.noteId)
+        if (note) onOpen(note)
+      }
+      doc.addEventListener('click', onClick)
+      const text = doc.body.textContent ?? ''
+      for (const note of relevant) {
+        const match = findNoteOccurrence(text, note.quote, note.offset)
+        if (!match) continue
+        const range = rangeForNote(doc.body, match.start, match.end)
+        if (!range) continue
+        const mark = doc.createElement('mark')
+        mark.className = 'dsh-reader-note-mark'
+        mark.dataset.noteId = note.id
+        mark.appendChild(range.extractContents())
+        range.insertNode(mark)
+      }
+      return () => doc.removeEventListener('click', onClick)
     }
 
     const CHAT_WIDTH_DEFAULT = 340
@@ -871,6 +970,7 @@ window.__ModuleLoader__.load({
       const [pageInput, setPageInput] = React.useState('1')
       const [visualLoading, setVisualLoading] = React.useState(false)
       const [visualError, setVisualError] = React.useState('')
+      const [epubReady, setEpubReady] = React.useState(0)
       const [paletteId, setPaletteId] = React.useState(readPaletteId)
       const palette = resolveReaderPalette(paletteId)
       const chatRef = React.useRef(null)
@@ -882,6 +982,8 @@ window.__ModuleLoader__.load({
       const chatWidthRef = React.useRef(chatWidth)
       chatWidthRef.current = chatWidth
       const contentRef = React.useRef(null)
+      const noteLayerRef = React.useRef(null)
+      const epubNoteCleanupRef = React.useRef(null)
       const epubFrameRef = React.useRef(null)
       const epubCleanupRef = React.useRef(null)
       const pendingScrollRef = React.useRef(null)
@@ -981,9 +1083,9 @@ window.__ModuleLoader__.load({
       }, [activeBookId])
 
       React.useEffect(() => {
-        if (screen.kind !== 'book' || chatTab !== 'notes') return
+        if (screen.kind !== 'book') return
         void loadNotes()
-      }, [screen.kind, chatTab, loadNotes])
+      }, [screen.kind, activeBookId, loadNotes])
 
       const openBook = React.useCallback(async book => {
         setBusy(true)
@@ -1136,6 +1238,7 @@ window.__ModuleLoader__.load({
         epubCleanupRef.current = null
         if (!doc) return
         applyPaletteToFrame(frame, palette)
+        setEpubReady(previous => previous + 1)
         const handler = () => {
           const selected = doc.getSelection()
           const text = selected?.toString().trim()
@@ -1244,7 +1347,21 @@ window.__ModuleLoader__.load({
         setNoteError('')
       }, [])
 
-      const openNoteEditor = React.useCallback(() => {
+      const openNoteEditor = React.useCallback(note => {
+        if (note) {
+          setNoteEditor({
+            noteId: note.id,
+            chapterId: note.chapterId,
+            blockIndex: note.blockIndex,
+            offset: note.offset,
+            quote: note.quote,
+          })
+          setNoteDraft(note.note ?? '')
+          setNoteError('')
+          setSelection(null)
+          requestAnimationFrame(() => noteInputRef.current?.focus())
+          return
+        }
         if (!selection || selection.blockIndex == null || screen.kind !== 'book') return
         setNoteEditor({
           chapterId: screen.content.chapterId,
@@ -1265,15 +1382,24 @@ window.__ModuleLoader__.load({
         setNoteSaving(true)
         setNoteError('')
         try {
-          await call('notes', {
-            action: 'add',
-            bookId: screen.detail.book.id,
-            chapterId: editor.chapterId,
-            blockIndex: editor.blockIndex,
-            offset: editor.offset,
-            quote: editor.quote,
-            note: text,
-          })
+          if (editor.noteId) {
+            await call('notes', {
+              action: 'update',
+              bookId: screen.detail.book.id,
+              noteId: editor.noteId,
+              note: text,
+            })
+          } else {
+            await call('notes', {
+              action: 'add',
+              bookId: screen.detail.book.id,
+              chapterId: editor.chapterId,
+              blockIndex: editor.blockIndex,
+              offset: editor.offset,
+              quote: editor.quote,
+              note: text,
+            })
+          }
         } catch (cause) {
           setNoteError(`${t('noteSaveFailed')}：${messageOf(cause)}`)
           setNoteSaving(false)
@@ -1284,6 +1410,75 @@ window.__ModuleLoader__.load({
         setNoteDraft('')
         void loadNotes()
       }, [noteEditor, noteDraft, noteSaving, screen, loadNotes, t])
+
+      React.useEffect(() => {
+        const layer = noteLayerRef.current
+        if (!layer) return
+        const root = visual?.kind === 'pdf'
+          ? layer.parentElement
+          : contentRef.current?.querySelector('.dsh-reader-reader-inner')
+        const currentChapter = screen.kind === 'book' ? screen.content.chapterId : ''
+        const relevant = screen.kind === 'book'
+          ? notes.filter(note => note.chapterId === currentChapter && typeof note.quote === 'string' && note.quote)
+          : []
+        layer.textContent = ''
+        if (!root || relevant.length === 0) return
+
+        let frame = 0
+        const paint = () => {
+          frame = 0
+          layer.textContent = ''
+          if (!root.isConnected) return
+          const { text } = collectTextNodes(root)
+          const rootRect = root.getBoundingClientRect()
+          for (const note of relevant) {
+            const match = findNoteOccurrence(text, note.quote, note.offset)
+            if (!match) continue
+            const range = rangeForNote(root, match.start, match.end)
+            if (!range) continue
+            for (const rect of range.getClientRects()) {
+              if (!rect.width || !rect.height) continue
+              const hit = document.createElement('div')
+              hit.className = 'dsh-reader-note-hit'
+              hit.dataset.noteId = note.id
+              hit.style.left = `${rect.left - rootRect.left}px`
+              hit.style.top = `${rect.top - rootRect.top}px`
+              hit.style.width = `${rect.width}px`
+              hit.style.height = `${rect.height}px`
+              layer.appendChild(hit)
+            }
+          }
+        }
+        const schedule = () => {
+          if (!frame) frame = requestAnimationFrame(paint)
+        }
+        const onClick = event => {
+          const hit = event.target.closest?.('.dsh-reader-note-hit')
+          if (!hit) return
+          const note = notes.find(entry => entry.id === hit.dataset.noteId)
+          if (note) openNoteEditor(note)
+        }
+        layer.addEventListener('click', onClick)
+        window.addEventListener('resize', schedule)
+        paint()
+        return () => {
+          if (frame) cancelAnimationFrame(frame)
+          layer.removeEventListener('click', onClick)
+          window.removeEventListener('resize', schedule)
+          layer.textContent = ''
+        }
+      }, [screen, notes, visual?.kind, visual?.page, pageView, fontSize, palette, openNoteEditor])
+
+      React.useEffect(() => {
+        if (visual?.kind !== 'epub' || screen.kind !== 'book' || !epubFrameRef.current) return
+        return applyEpubNoteMarks(
+          epubFrameRef.current,
+          notes,
+          screen.content.chapterId,
+          palette,
+          openNoteEditor,
+        )
+      }, [visual?.kind, visual?.href, notes, palette, epubReady, openNoteEditor, screen])
 
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: 'library' })
@@ -1826,7 +2021,8 @@ window.__ModuleLoader__.load({
                         fontSize: item.fontSize,
                       },
                     }, item.text)
-                  })))
+                  })),
+                h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))
                 : null)
         : visual?.kind === 'epub'
           ? h('div', { className: 'dsh-reader-visual' },
@@ -1875,7 +2071,8 @@ window.__ModuleLoader__.load({
         },
         h('div', { className: 'dsh-reader-reader-inner' },
           h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
-          renderBlocks(screen.content.blocks, screen.content.chapterId))),
+          renderBlocks(screen.content.blocks, screen.content.chapterId),
+          h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))),
         chatOpen
           ? h('button', {
             type: 'button',
@@ -2008,7 +2205,7 @@ window.__ModuleLoader__.load({
           h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')),
           selection.blockIndex == null
             ? null
-            : h('button', { type: 'button', onClick: openNoteEditor }, t('noteAction')))
+            : h('button', { type: 'button', onClick: () => openNoteEditor() }, t('noteAction')))
           : null,
         noteEditor
           ? h('div', {
@@ -2021,9 +2218,9 @@ window.__ModuleLoader__.load({
             className: 'dsh-reader-note-dialog',
             role: 'dialog',
             'aria-modal': 'true',
-            'aria-label': t('noteDialogTitle'),
+            'aria-label': noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle'),
           },
-          h('h3', null, t('noteDialogTitle')),
+          h('h3', null, noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')),
           h('div', { className: 'dsh-reader-note-dialog-quote' }, noteEditor.quote),
           h('textarea', {
             ref: noteInputRef,
@@ -2035,6 +2232,17 @@ window.__ModuleLoader__.load({
           }),
           noteError ? h('div', { className: 'dsh-reader-note-dialog-error' }, noteError) : null,
           h('div', { className: 'dsh-reader-note-dialog-actions' },
+            noteEditor.noteId
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-secondary',
+                disabled: noteSaving,
+                onClick: async () => {
+                  await deleteNote({ id: noteEditor.noteId, bookId: activeBookId })
+                  closeNoteEditor()
+                },
+              }, t('delete'))
+              : null,
             h('button', {
               type: 'button',
               className: 'dsh-reader-secondary',
@@ -2059,6 +2267,7 @@ window.__ModuleLoader__.load({
       READER_PALETTE_IDS,
       READER_PALETTES,
       resolveReaderPalette,
+      findNoteOccurrence,
       apply(ctx) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
