@@ -251,6 +251,8 @@ window.__ModuleLoader__.load({
         if (event.type !== 'user/message' && event.type !== 'assistant/message') continue
         const data = event.data ?? {}
         const message = data.message ?? data
+        const source = message.source ?? data.source
+        if (event.type === 'user/message' && source && source.kind !== 'user') continue
         const text = textOfContent(message.content ?? data.content)
         if (!text) continue
         messages.push({

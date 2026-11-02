@@ -26,7 +26,9 @@ function event(type, seq, data) {
 
 test('fold_transcript_keeps_text', () => {
   const entries = [
-    event('user/message', 1, { message: { content: [{ type: 'text', text: '你好' }] } }),
+    event('user/message', 1, {
+      message: { source: { kind: 'user' }, content: [{ type: 'text', text: '你好' }] },
+    }),
     event('assistant/message', 2, {
       message: {
         content: [
@@ -52,7 +54,27 @@ test('fold_transcript_skips_non_text', () => {
     event('tool/result', 1, { content: 'x' }),
     event('system/notice', 2, { message: { content: [{ type: 'text', text: 'system' }] } }),
     event('assistant/message', 3, { message: { content: [{ type: 'tool-call' }] } }),
-    event('user/message', 4, { message: { content: [{ type: 'text', text: '   ' }] } }),
+    event('user/message', 4, {
+      message: { source: { kind: 'user' }, content: [{ type: 'text', text: '   ' }] },
+    }),
   ]
   assert.deepEqual(plugin.foldTranscript(entries), [])
+})
+
+test('fold_transcript_skips_context_messages', () => {
+  const entries = [
+    event('user/message', 1, {
+      message: { source: { kind: 'runtime-context' }, content: [{ type: 'text', text: 'runtime context' }] },
+    }),
+    event('user/message', 2, {
+      message: { source: { kind: 'skill-catalog' }, content: [{ type: 'text', text: 'skills' }] },
+    }),
+    event('user/message', 3, {
+      message: { source: { kind: 'time-context' }, content: [{ type: 'text', text: 'time' }] },
+    }),
+    event('user/message', 4, {
+      message: { source: { kind: 'user' }, content: [{ type: 'text', text: '真正的问题' }] },
+    }),
+  ]
+  assert.deepEqual(plugin.foldTranscript(entries).map(message => message.text), ['真正的问题'])
 })
