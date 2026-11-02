@@ -567,9 +567,9 @@ window.__ModuleLoader__.load({
       return null
     }
 
-    function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen) {
+    function applyEpubNoteMarks(frame, notes, chapterId, palette, onOpen, jumpNoteId) {
       const doc = frame?.contentDocument
-      if (!doc?.body) return () => {}
+      if (!doc?.body) return { cleanup: () => {}, jumped: false }
       for (const mark of [...doc.querySelectorAll('mark[data-note-id]')]) {
         const parent = mark.parentNode
         if (!parent) continue
@@ -584,7 +584,7 @@ window.__ModuleLoader__.load({
         style.setAttribute('data-dsh-note', '')
         ;(doc.head ?? doc.documentElement)?.appendChild(style)
       }
-      style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}`
+      style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`
       const onClick = event => {
         const mark = event.target.closest?.('mark[data-note-id]')
         if (!mark) return
@@ -604,7 +604,20 @@ window.__ModuleLoader__.load({
         mark.appendChild(range.extractContents())
         range.insertNode(mark)
       }
-      return () => doc.removeEventListener('click', onClick)
+      let jumped = false
+      if (jumpNoteId) {
+        const target = doc.querySelector(`mark[data-note-id="${jumpNoteId}"]`)
+        if (target) {
+          target.scrollIntoView({ block: 'center', behavior: 'auto' })
+          target.classList.add('dsh-reader-note-flash')
+          setTimeout(() => target.classList.remove('dsh-reader-note-flash'), 1600)
+          jumped = true
+        }
+      }
+      return {
+        cleanup: () => doc.removeEventListener('click', onClick),
+        jumped,
+      }
     }
 
     const CHAT_WIDTH_DEFAULT = 340
@@ -975,6 +988,7 @@ window.__ModuleLoader__.load({
       const [visualLoading, setVisualLoading] = React.useState(false)
       const [visualError, setVisualError] = React.useState('')
       const [epubReady, setEpubReady] = React.useState(0)
+      const [epubJumpToken, setEpubJumpToken] = React.useState(0)
       const [paletteId, setPaletteId] = React.useState(readPaletteId)
       const palette = resolveReaderPalette(paletteId)
       const chatRef = React.useRef(null)
@@ -988,6 +1002,7 @@ window.__ModuleLoader__.load({
       const contentRef = React.useRef(null)
       const noteLayerRef = React.useRef(null)
       const epubNoteCleanupRef = React.useRef(null)
+      const pendingEpubNoteRef = React.useRef(null)
       const epubFrameRef = React.useRef(null)
       const epubCleanupRef = React.useRef(null)
       const pendingScrollRef = React.useRef(null)
@@ -1320,6 +1335,11 @@ window.__ModuleLoader__.load({
       const openNote = React.useCallback(note => {
         if (!note || screen.kind !== 'book') return
         setNoteEditor(null)
+        if (screen.detail.book.format === 'epub') {
+          pendingEpubNoteRef.current = note.id
+          setEpubJumpToken(previous => previous + 1)
+          if (screen.content.chapterId === note.chapterId) return
+        }
         void selectChapter(screen.detail.book.id, note.chapterId, {
           blockIndex: note.blockIndex,
           flash: true,
@@ -1475,14 +1495,17 @@ window.__ModuleLoader__.load({
 
       React.useEffect(() => {
         if (visual?.kind !== 'epub' || screen.kind !== 'book' || !epubFrameRef.current) return
-        return applyEpubNoteMarks(
+        const result = applyEpubNoteMarks(
           epubFrameRef.current,
           notes,
           screen.content.chapterId,
           palette,
           openNoteEditor,
+          pendingEpubNoteRef.current,
         )
-      }, [visual?.kind, visual?.href, notes, palette, epubReady, openNoteEditor, screen])
+        if (result.jumped) pendingEpubNoteRef.current = null
+        return result.cleanup
+      }, [visual?.kind, visual?.href, notes, palette, epubReady, epubJumpToken, openNoteEditor, screen])
 
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: 'library' })
