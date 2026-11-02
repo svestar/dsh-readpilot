@@ -8,3 +8,4 @@
 | `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.js` | `tests/formats.test.js` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.js` | `tests/api.test.js` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.js` | `tests/tools.test.js` | active |
+| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `client.js` | `tests/client-chat.test.js` | active |

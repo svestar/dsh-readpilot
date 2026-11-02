@@ -27,13 +27,27 @@ window.__ModuleLoader__.load({
       explain: '解释',
       summarize: '总结',
       translate: '翻译',
-      askFailed: '发送失败',
       loadFailed: '加载失败',
       configureFailed: '创建书库失败',
       retry: '重试',
       loading: '加载中…',
       noToc: '没有目录',
       fontSize: '字号',
+      companion: '伴读',
+      chatEmpty: '针对这本书提问，或在正文中选中文字后使用“解释 / 总结 / 翻译”。',
+      chatPlaceholder: '针对这本书提问…',
+      send: '发送',
+      sending: '发送中…',
+      thinking: '思考中…',
+      loadEarlier: '加载更早',
+      you: '你',
+      assistant: '伴读',
+      closeChat: '收起伴读',
+      chatDisabled: '先在设置中创建书库工作区。',
+      sendFailed: '发送失败',
+      explainPrompt: '请解释这段文字。',
+      summarizePrompt: '请总结这段文字。',
+      translatePrompt: '请把这段文字翻译成中文。',
     }
 
     const en = {
@@ -58,13 +72,27 @@ window.__ModuleLoader__.load({
       explain: 'Explain',
       summarize: 'Summarize',
       translate: 'Translate',
-      askFailed: 'Could not send',
       loadFailed: 'Could not load',
       configureFailed: 'Could not create the library',
       retry: 'Retry',
       loading: 'Loading…',
       noToc: 'No contents',
       fontSize: 'Font size',
+      companion: 'Companion',
+      chatEmpty: 'Ask about this book, or select text and use Explain / Summarize / Translate.',
+      chatPlaceholder: 'Ask about this book…',
+      send: 'Send',
+      sending: 'Sending…',
+      thinking: 'Thinking…',
+      loadEarlier: 'Load earlier',
+      you: 'You',
+      assistant: 'Companion',
+      closeChat: 'Hide companion',
+      chatDisabled: 'Create a library workspace in Settings first.',
+      sendFailed: 'Could not send',
+      explainPrompt: 'Please explain this passage.',
+      summarizePrompt: 'Please summarize this passage.',
+      translatePrompt: 'Please translate this passage into Chinese.',
     }
 
     const CSS = `
@@ -104,14 +132,39 @@ window.__ModuleLoader__.load({
 .dsh-reader-path-row{display:flex;gap:8px;margin-bottom:14px}
 .dsh-reader-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
 .dsh-reader-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-book{flex:1;min-height:0;display:grid;grid-template-columns:230px minmax(0,1fr)}
-.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)}
+.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) 340px}
+.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) 340px}
+.dsh-reader-book[data-chat="false"]{grid-template-columns:230px minmax(0,1fr)}
+.dsh-reader-book[data-toc="false"][data-chat="false"]{grid-template-columns:minmax(0,1fr)}
 .dsh-reader-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-reader-toc-title{padding:4px 8px 8px;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.04em}
 .dsh-reader-toc-list{display:flex;flex-direction:column;gap:2px}
 .dsh-reader-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
 .dsh-reader-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-reader-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-reader-chat{min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-chat-title{font-weight:600;font-size:13px}
+.dsh-reader-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-reader-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-reader-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
+.dsh-reader-chat-empty{padding:18px 6px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.7}
+.dsh-reader-chat-more{display:block;width:100%;margin-bottom:10px;padding:5px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-reader-chat-more:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-msg{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+.dsh-reader-msg-role{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-msg-text{white-space:pre-wrap;word-break:break-word;line-height:1.65;font-size:13px}
+.dsh-reader-msg[data-role="user"] .dsh-reader-msg-text{padding:7px 9px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
+.dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
+.dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-chat-compose textarea{display:block;width:100%;box-sizing:border-box;min-height:58px;max-height:140px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.55;resize:vertical}
+.dsh-reader-chat-compose textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-chat-compose-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.dsh-reader-chat-hint{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-bg-base);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.dsh-reader-chat-send:disabled{opacity:.45;cursor:default}
+.dsh-reader-chat-backdrop{display:none}
 .dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px}
 .dsh-reader-reader-inner{max-width:760px;margin:0 auto;line-height:1.9;color:var(--dsw-alias-label-primary)}
 .dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
@@ -131,7 +184,8 @@ window.__ModuleLoader__.load({
 .dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
 .dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-spacer{flex:1}
-@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
+@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(360px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
+@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
 `
 
     const style = document.createElement('style')
@@ -179,6 +233,35 @@ window.__ModuleLoader__.load({
       return `${(bytes / 1024 / 1024).toFixed(1)} MB`
     }
 
+    function textOfContent(content) {
+      if (typeof content === 'string') return content.trim()
+      if (!Array.isArray(content)) return ''
+      return content
+        .filter(block => block && block.type === 'text' && typeof block.text === 'string')
+        .map(block => block.text)
+        .join('\n')
+        .trim()
+    }
+
+    function foldTranscript(entries) {
+      const messages = []
+      for (const entry of entries ?? []) {
+        if (!entry || entry.type !== 'event' || !entry.event) continue
+        const event = entry.event
+        if (event.type !== 'user/message' && event.type !== 'assistant/message') continue
+        const data = event.data ?? {}
+        const message = data.message ?? data
+        const text = textOfContent(message.content ?? data.content)
+        if (!text) continue
+        messages.push({
+          key: `${event.type}-${event.seq ?? messages.length}`,
+          role: event.type === 'user/message' ? 'user' : 'assistant',
+          text,
+        })
+      }
+      return messages
+    }
+
     function inline(text, prefix) {
       const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g
       const nodes = []
@@ -219,52 +302,6 @@ window.__ModuleLoader__.load({
         if (block.type === 'li') return h('div', { key, className: 'dsh-reader-li' }, h('span', null, inline(block.text, key)))
         return h('p', { key }, inline(block.text, key))
       })
-    }
-
-    function buildCompanionPrompt(book, chapter, quote, question) {
-      const quoted = quote.split('\n').map(line => `> ${line}`).join('\n')
-      return [
-        `我正在读《${book.title}》的《${chapter.title}》。`,
-        '',
-        `书籍 ID：${book.id}`,
-        `章节 ID：${chapter.chapterId}`,
-        '',
-        quoted,
-        '',
-        question,
-      ].join('\n')
-    }
-
-    async function promptSession(sessionId, text) {
-      await runtime.sessions.using(sessionId, { source: 'controllerOperation' }, async reference => {
-        const result = await reference.binding.session.prompt([{ type: 'text', text }], 'queue')
-        if (result && result.ok === false) {
-          throw new Error(result.error?.message ?? '发送失败')
-        }
-      })
-    }
-
-    async function askCompanion({ book, chapter, quote, question, workspaceId, sessions, onSession }) {
-      if (!workspaceId) throw new Error('尚未创建书库工作区')
-      let sessionId = sessions[book.id]?.sessionId
-      if (!sessionId) {
-        sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
-        await call('session', { bookId: book.id, sessionId })
-        onSession(book.id, sessionId)
-      } else {
-        runtime.uiWorkspace.openSession(sessionId)
-      }
-      const prompt = buildCompanionPrompt(book, chapter, quote, question)
-      try {
-        await promptSession(sessionId, prompt)
-      } catch (error) {
-        await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
-        sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
-        await call('session', { bookId: book.id, sessionId })
-        onSession(book.id, sessionId)
-        await promptSession(sessionId, prompt)
-      }
-      runtime.layout.selectPanel('conversation')
     }
 
     function PanelIcon({ size = 20, active }) {
@@ -394,6 +431,17 @@ window.__ModuleLoader__.load({
       const [tocOpen, setTocOpen] = React.useState(true)
       const [fontSize, setFontSize] = React.useState(17)
       const [selection, setSelection] = React.useState(null)
+      const [chatOpen, setChatOpen] = React.useState(() => (typeof window !== 'undefined' ? window.innerWidth > 1100 : true))
+      const [draft, setDraft] = React.useState('')
+      const [sending, setSending] = React.useState(false)
+      const [chatError, setChatError] = React.useState('')
+      const [entries, setEntries] = React.useState([])
+      const [hasMore, setHasMore] = React.useState(false)
+      const [loadingEarlier, setLoadingEarlier] = React.useState(false)
+      const [chatBinding, setChatBinding] = React.useState(null)
+      const chatRef = React.useRef(null)
+      const chatBodyRef = React.useRef(null)
+      const chatInputRef = React.useRef(null)
       const contentRef = React.useRef(null)
 
       const refresh = React.useCallback(async () => {
@@ -424,6 +472,12 @@ window.__ModuleLoader__.load({
           }
           : previous)
       }, [])
+
+      const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
+      const activeSessionId = activeBookId && snapshot
+        ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
+        : null
+      const workspaceId = snapshot?.settings?.workspaceId ?? null
 
       const openBook = React.useCallback(async book => {
         setBusy(true)
@@ -493,33 +547,20 @@ window.__ModuleLoader__.load({
         }
       }, [])
 
-      const ask = React.useCallback(async kind => {
-        if (!selection || screen.kind !== 'book' || !snapshot) return
+      const prefill = React.useCallback(kind => {
+        if (!selection || screen.kind !== 'book') return
         const question = {
-          explain: '请解释这段文字。',
-          summarize: '请总结这段文字。',
-          translate: '请把这段文字翻译成中文。',
+          explain: t('explainPrompt'),
+          summarize: t('summarizePrompt'),
+          translate: t('translatePrompt'),
         }[kind]
-        const quote = selection.text
+        const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
+        setDraft(`我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n${question}`)
         setSelection(null)
-        setBusy(true)
-        setError('')
-        try {
-          await askCompanion({
-            book: screen.detail.book,
-            chapter: screen.content,
-            quote,
-            question,
-            workspaceId: snapshot.settings.workspaceId,
-            sessions: snapshot.sessions,
-            onSession: rememberSession,
-          })
-        } catch (cause) {
-          setError(`${t('askFailed')}：${messageOf(cause)}`)
-        } finally {
-          setBusy(false)
-        }
-      }, [selection, screen, snapshot, rememberSession, t])
+        setChatOpen(true)
+        setChatError('')
+        requestAnimationFrame(() => chatInputRef.current?.focus())
+      }, [selection, screen, t])
 
       const onContentMouseUp = React.useCallback(() => {
         const active = window.getSelection()
@@ -548,6 +589,158 @@ window.__ModuleLoader__.load({
 
       const openSetup = React.useCallback(() => setScreen({ kind: 'setup' }), [])
 
+      const disposeChat = React.useCallback(() => {
+        const current = chatRef.current
+        chatRef.current = null
+        if (!current) return
+        try {
+          current.unsubscribe()
+        } catch {
+          // The event source may already be disposed with its session.
+        }
+        try {
+          current.reference.release()
+        } catch {
+          // The session may already be gone.
+        }
+      }, [])
+
+      const releaseChat = React.useCallback(() => {
+        disposeChat()
+        setChatBinding(null)
+        setEntries([])
+        setHasMore(false)
+      }, [disposeChat])
+
+      const bindSession = React.useCallback(sessionId => {
+        if (!sessionId) {
+          releaseChat()
+          return null
+        }
+        if (chatRef.current?.sessionId === sessionId) return chatRef.current.reference
+        releaseChat()
+        setChatError('')
+        let reference
+        try {
+          reference = runtime.sessions.retain(sessionId, { source: 'controllerOperation' })
+        } catch (error) {
+          setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+          return null
+        }
+        const source = reference.binding.eventSource
+        const update = () => {
+          const value = source.getSnapshot()
+          setEntries(value.entries)
+          setHasMore(value.hasMore)
+        }
+        update()
+        const unsubscribe = source.subscribe(update)
+        const record = { sessionId, reference, unsubscribe }
+        chatRef.current = record
+        setChatBinding(record)
+        reference.ready.catch(error => {
+          if (chatRef.current === record) {
+            setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+          }
+        })
+        return reference
+      }, [releaseChat, t])
+
+      React.useEffect(() => {
+        if (!activeSessionId) {
+          releaseChat()
+          return
+        }
+        bindSession(activeSessionId)
+      }, [activeSessionId, bindSession, releaseChat])
+
+      React.useEffect(() => () => disposeChat(), [disposeChat])
+
+      const lastEntrySeq = entries.length > 0 ? entries[entries.length - 1]?.event?.seq ?? null : null
+
+      React.useEffect(() => {
+        const element = chatBodyRef.current
+        if (element) element.scrollTop = element.scrollHeight
+      }, [lastEntrySeq, sending, chatBinding, chatOpen])
+
+      const sessionSnapshot = React.useSyncExternalStore(
+        React.useCallback(callback => {
+          const reference = chatBinding?.reference
+          return reference ? reference.binding.session.subscribe(callback) : () => {}
+        }, [chatBinding]),
+        React.useCallback(() => chatBinding?.reference?.binding.session.getSnapshot() ?? null, [chatBinding]),
+      )
+      const running = Boolean(sessionSnapshot?.running)
+      const messages = React.useMemo(() => foldTranscript(entries).slice(-50), [entries])
+
+      const send = React.useCallback(async () => {
+        const text = draft.trim()
+        if (!text || sending || screen.kind !== 'book') return
+        if (!workspaceId) {
+          setChatError(t('chatDisabled'))
+          return
+        }
+        const book = screen.detail.book
+        setChatError('')
+        setSending(true)
+
+        const createSession = async () => {
+          let sessionId
+          if (typeof runtime.sessions.create === 'function') {
+            try {
+              sessionId = await runtime.sessions.create({ workspaceId })
+            } catch {
+              sessionId = undefined
+            }
+          }
+          if (!sessionId) {
+            sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
+            runtime.layout.selectPanel('dsh-reader')
+          }
+          await call('session', { bookId: book.id, sessionId })
+          rememberSession(book.id, sessionId)
+          const reference = bindSession(sessionId)
+          if (!reference) throw new Error(t('loadFailed'))
+          return reference
+        }
+
+        try {
+          let reference = chatRef.current?.reference
+          if (!reference) reference = await createSession()
+          try {
+            await reference.ready
+          } catch {
+            await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
+            releaseChat()
+            reference = await createSession()
+            await reference.ready
+          }
+          const result = await reference.binding.session.prompt([{ type: 'text', text }], 'queue')
+          if (result && result.ok === false) {
+            throw new Error(result.error?.message ?? t('sendFailed'))
+          }
+          setDraft('')
+        } catch (error) {
+          setChatError(`${t('sendFailed')}：${messageOf(error)}`)
+        } finally {
+          setSending(false)
+        }
+      }, [draft, sending, screen, workspaceId, rememberSession, bindSession, releaseChat, t])
+
+      const loadEarlier = React.useCallback(async () => {
+        const reference = chatRef.current?.reference
+        if (!reference || loadingEarlier) return
+        setLoadingEarlier(true)
+        setChatError('')
+        try {
+          await reference.binding.session.loadOlder()
+        } catch (error) {
+          setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+        } finally {
+          setLoadingEarlier(false)
+        }
+      }, [loadingEarlier, t])
+
       const headerTitle = screen.kind === 'book'
         ? screen.detail.book.title
         : screen.kind === 'unsupported'
@@ -558,6 +751,101 @@ window.__ModuleLoader__.load({
       const headerSubtitle = screen.kind === 'book'
         ? screen.content.title
         : snapshot?.settings.libraryDir ?? ''
+
+      const chatBody = h('div', { className: 'dsh-reader-chat-body', ref: chatBodyRef },
+        hasMore
+          ? h('button', {
+            type: 'button',
+            className: 'dsh-reader-chat-more',
+            disabled: loadingEarlier,
+            onClick: () => void loadEarlier(),
+          }, loadingEarlier ? t('loading') : t('loadEarlier'))
+          : null,
+        messages.length === 0
+          ? h('div', { className: 'dsh-reader-chat-empty' },
+            workspaceId ? t('chatEmpty') : t('chatDisabled'))
+          : messages.map(message => h('div', {
+            key: message.key,
+            className: 'dsh-reader-msg',
+            'data-role': message.role,
+          },
+          h('div', { className: 'dsh-reader-msg-role' },
+            message.role === 'user' ? t('you') : t('assistant')),
+          h('div', { className: 'dsh-reader-msg-text' }, message.text))),
+        sending || running
+          ? h('div', { className: 'dsh-reader-chat-thinking' },
+            sending ? t('sending') : t('thinking'))
+          : null)
+
+      const chatCompose = h('div', { className: 'dsh-reader-chat-compose' },
+        h('textarea', {
+          ref: chatInputRef,
+          value: draft,
+          rows: 3,
+          placeholder: workspaceId ? t('chatPlaceholder') : t('chatDisabled'),
+          disabled: !workspaceId,
+          onChange: event => setDraft(event.target.value),
+          onKeyDown: event => {
+            if (event.key === 'Enter' && !event.shiftKey && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              void send()
+            }
+          },
+        }),
+        h('div', { className: 'dsh-reader-chat-compose-row' },
+          h('span', { className: 'dsh-reader-chat-hint' }, workspaceId ? 'Enter / Shift+Enter' : ''),
+          h('button', {
+            type: 'button',
+            className: 'dsh-reader-chat-send',
+            disabled: !draft.trim() || sending || !workspaceId,
+            onClick: () => void send(),
+          }, sending ? t('sending') : t('send'))))
+
+      const chatPanel = chatOpen
+        ? h('aside', { className: 'dsh-reader-chat' },
+          h('div', { className: 'dsh-reader-chat-head' },
+            h('span', { className: 'dsh-reader-chat-title' }, t('companion')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-chat-close',
+              onClick: () => setChatOpen(false),
+            }, t('closeChat'))),
+          chatBody,
+          chatError ? h('div', { className: 'dsh-reader-chat-error' }, chatError) : null,
+          chatCompose)
+        : null
+
+      const bookView = screen.kind === 'book'
+        ? h('div', {
+          className: 'dsh-reader-book',
+          'data-toc': tocOpen ? 'true' : 'false',
+          'data-chat': chatOpen ? 'true' : 'false',
+        },
+        tocOpen ? h(Toc, {
+          t,
+          detail: screen.detail,
+          activeChapter: screen.content.chapterId,
+          onSelect: chapterId => void selectChapter(screen.detail.book.id, chapterId),
+        }) : null,
+        h('div', {
+          className: 'dsh-reader-reader',
+          ref: contentRef,
+          style: { fontSize },
+          onMouseUp: onContentMouseUp,
+        },
+        h('div', { className: 'dsh-reader-reader-inner' },
+          h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+          renderBlocks(screen.content.blocks, screen.content.chapterId))),
+        chatOpen
+          ? h('button', {
+            type: 'button',
+            className: 'dsh-reader-chat-backdrop',
+            'aria-label': t('closeChat'),
+            onClick: () => setChatOpen(false),
+          })
+          : null,
+        chatPanel)
+        : null
 
       return h('div', { className: 'dsh-reader-panel' },
         h('div', { className: 'dsh-reader-header' },
@@ -574,6 +862,14 @@ window.__ModuleLoader__.load({
               h('div', { className: 'dsh-reader-title' }, headerTitle),
               headerSubtitle ? h('div', { className: 'dsh-reader-subtitle' }, headerSubtitle) : null)),
           h('div', { className: 'dsh-reader-header-actions' },
+            screen.kind === 'book'
+              ? h('button', {
+                type: 'button',
+                className: 'dsh-reader-icon-btn',
+                title: t('companion'),
+                onClick: () => setChatOpen(previous => !previous),
+              }, t('companion'))
+              : null,
             screen.kind === 'book'
               ? h('button', {
                 type: 'button',
@@ -630,37 +926,23 @@ window.__ModuleLoader__.load({
                     className: 'dsh-reader-secondary',
                     onClick: backToLibrary,
                   }, t('back')))
-                : h('div', { className: 'dsh-reader-book', 'data-toc': tocOpen ? 'true' : 'false' },
-                  tocOpen ? h(Toc, {
-                    t,
-                    detail: screen.detail,
-                    activeChapter: screen.content.chapterId,
-                    onSelect: chapterId => void selectChapter(screen.detail.book.id, chapterId),
-                  }) : null,
-                  h('div', {
-                    className: 'dsh-reader-reader',
-                    ref: contentRef,
-                    style: { fontSize },
-                    onMouseUp: onContentMouseUp,
-                  },
-                  h('div', { className: 'dsh-reader-reader-inner' },
-                    h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
-                    renderBlocks(screen.content.blocks, screen.content.chapterId)))),
+                : bookView,
         selection
           ? h('div', {
             className: 'dsh-reader-selection',
             style: { left: selection.x, top: Math.max(8, selection.y - 48) },
             onMouseDown: event => event.preventDefault(),
           },
-          h('button', { type: 'button', onClick: () => void ask('explain') }, t('explain')),
-          h('button', { type: 'button', onClick: () => void ask('summarize') }, t('summarize')),
-          h('button', { type: 'button', onClick: () => void ask('translate') }, t('translate')))
+          h('button', { type: 'button', onClick: () => prefill('explain') }, t('explain')),
+          h('button', { type: 'button', onClick: () => prefill('summarize') }, t('summarize')),
+          h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')))
           : null)
     }
 
     return {
       name: 'dsh-reader-client',
       inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
+      foldTranscript,
       apply(ctx) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
