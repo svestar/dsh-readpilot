@@ -11,6 +11,50 @@ function metadataText(value) {
   return value.replace(/\s+/g, ' ').trim()
 }
 
+async function readOutline(pdf) {
+  let raw
+  try {
+    raw = await pdf.getOutline()
+  } catch {
+    return []
+  }
+  if (!Array.isArray(raw)) return []
+  const entries = []
+  const visit = async (items, level) => {
+    for (const item of items) {
+      if (entries.length >= 500) break
+      const title = metadataText(item?.title)
+      if (title) {
+        let page = null
+        try {
+          const destination = typeof item.dest === 'string'
+            ? await pdf.getDestination(item.dest)
+            : item.dest
+          if (Array.isArray(destination) && destination[0]) {
+            const index = await pdf.getPageIndex(destination[0])
+            if (Number.isInteger(index) && index >= 0) page = index + 1
+          }
+        } catch {
+          page = null
+        }
+        if (page) {
+          entries.push({
+            id: `o${String(entries.length + 1).padStart(3, '0')}`,
+            title,
+            level,
+            page,
+          })
+        }
+      }
+      if (Array.isArray(item?.items) && item.items.length > 0) {
+        await visit(item.items, level + 1)
+      }
+    }
+  }
+  await visit(raw, 0)
+  return entries
+}
+
 function collectItems(content) {
   const items = []
   for (const item of content.items) {
@@ -98,6 +142,7 @@ export async function parsePdf(buffer, filePath) {
     const info = metadata?.info ?? {}
     const title = metadataText(info.Title) || basename(filePath, extname(filePath))
     const author = metadataText(info.Author)
+    const outline = await readOutline(pdf)
     const chapters = []
 
     for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
@@ -118,6 +163,7 @@ export async function parsePdf(buffer, filePath) {
       title,
       author,
       chapters,
+      outline,
       chars: chapters.reduce((sum, chapter) => sum + chapter.chars, 0),
     }
   } finally {

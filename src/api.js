@@ -14,7 +14,7 @@ import {
   saveSettings,
 } from './store.js'
 
-const PARSER_VERSION = 3
+const PARSER_VERSION = 4
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -169,6 +169,16 @@ export function createReaderApi({ ctx, dataDir, config = {} }) {
         if (Number.isInteger(chapter.page)) item.page = chapter.page
         if (typeof chapter.href === 'string') item.href = chapter.href
         return item
+      }),
+      outline: (Array.isArray(parsed.outline) ? parsed.outline : []).map(item => {
+        const chapter = parsed.chapters.find(entry => entry.page === item.page)
+        return {
+          id: item.id,
+          title: item.title,
+          level: item.level,
+          page: item.page,
+          ...(chapter ? { chapterId: chapter.id } : {}),
+        }
       }),
       progress,
     }

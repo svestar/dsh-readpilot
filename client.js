@@ -198,6 +198,7 @@ window.__ModuleLoader__.load({
 .dsh-reader-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
 .dsh-reader-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-reader-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-reader-toc-item:disabled{opacity:.45;cursor:default}
 .dsh-reader-chat{position:relative;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-reader-chat-resizer{position:absolute;left:-3px;top:0;bottom:0;width:6px;z-index:3;cursor:col-resize;background:transparent;border:0;padding:0}
 .dsh-reader-chat-resizer:hover,.dsh-reader-chat-resizer:focus-visible{background:var(--dsw-alias-brand-primary);outline:none}
@@ -936,18 +937,34 @@ window.__ModuleLoader__.load({
     }
 
     function Toc({ t, detail, activeChapter, onSelect }) {
+      const outline = detail.book.format === 'pdf' && Array.isArray(detail.outline) && detail.outline.length > 0
+        ? detail.outline
+        : null
+      const items = outline ?? detail.toc
+      const activePage = detail.toc.find(item => item.id === activeChapter)?.page
       return h('aside', { className: 'dsh-reader-toc' },
         h('div', { className: 'dsh-reader-toc-title' }, t('toc')),
-        detail.toc.length === 0
+        items.length === 0
           ? h('div', { className: 'dsh-reader-muted' }, t('noToc'))
           : h('div', { className: 'dsh-reader-toc-list' },
-            detail.toc.map(item => h('button', {
-              key: item.id,
-              type: 'button',
-              className: 'dsh-reader-toc-item',
-              'data-active': item.id === activeChapter ? 'true' : 'false',
-              onClick: () => onSelect(item.id),
-            }, item.title))))
+            items.map(item => {
+              const chapterId = outline
+                ? item.chapterId ?? detail.toc.find(entry => entry.page === item.page)?.id
+                : item.id
+              const active = outline
+                ? item.chapterId === activeChapter || item.page === activePage
+                : item.id === activeChapter
+              return h('button', {
+                key: item.id,
+                type: 'button',
+                className: 'dsh-reader-toc-item',
+                'data-active': active ? 'true' : 'false',
+                'data-level': item.level ?? 0,
+                disabled: !chapterId,
+                style: outline ? { paddingLeft: `${10 + (item.level ?? 0) * 14}px` } : undefined,
+                onClick: () => chapterId && onSelect(chapterId),
+              }, item.title)
+            })))
     }
 
     function ReaderPanel(props) {
