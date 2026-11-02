@@ -951,6 +951,310 @@ var __dshReaderBundle = (() => {
     );
   }
 
+  // src/client/views/notes-search.js
+  function NotesBody({ t, notesError, notesLoading, notes, screen, openNote, noteDeletingId, deleteNote }) {
+    return h(
+      "div",
+      { className: "dsh-reader-notes" },
+      notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
+      notesLoading && notes.length === 0 ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : notes.length === 0 ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : notes.map((note) => {
+        const chapterTitle = screen.kind === "book" ? screen.detail.toc.find((item) => item.id === note.chapterId)?.title : "";
+        return h(
+          "div",
+          { key: note.id, className: "dsh-reader-note" },
+          h(
+            "button",
+            {
+              type: "button",
+              className: "dsh-reader-note-main",
+              onClick: () => openNote(note)
+            },
+            h("div", { className: "dsh-reader-note-chapter" }, chapterTitle || t("reading")),
+            note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
+            h("div", { className: "dsh-reader-note-body" }, note.note)
+          ),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            title: t("jump"),
+            onClick: () => openNote(note)
+          }, t("jump")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-delete",
+            disabled: noteDeletingId === note.id,
+            onClick: () => void deleteNote(note)
+          }, noteDeletingId === note.id ? t("loading") : t("delete"))
+        );
+      })
+    );
+  }
+  function SearchPanel({
+    t,
+    open,
+    screen,
+    searchInputRef,
+    searchQuery,
+    setSearchQuery,
+    runSearch,
+    searchBusy,
+    setSearchOpen,
+    searchError,
+    searchResults,
+    openSearchMatch
+  }) {
+    if (!open || screen.kind !== "book") return null;
+    return h(
+      "div",
+      { className: "dsh-reader-search" },
+      h(
+        "div",
+        { className: "dsh-reader-search-bar" },
+        h("input", {
+          ref: searchInputRef,
+          value: searchQuery,
+          placeholder: t("searchPlaceholder"),
+          spellCheck: false,
+          onChange: (event) => setSearchQuery(event.target.value),
+          onKeyDown: (event) => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              void runSearch();
+            }
+          }
+        }),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-primary",
+          disabled: searchBusy || !searchQuery.trim(),
+          onClick: () => void runSearch()
+        }, searchBusy ? t("searching") : t("search")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-icon-btn",
+          title: t("closeSearch"),
+          "aria-label": t("closeSearch"),
+          onClick: () => setSearchOpen(false)
+        }, "×")
+      ),
+      searchError ? h("div", { className: "dsh-reader-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-reader-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-reader-search-hint" }, t("searchEmpty")) : h(
+        "div",
+        { className: "dsh-reader-search-list" },
+        searchResults.matches.map((match, index) => h(
+          "button",
+          {
+            key: `${match.chapterId}:${match.offset}:${index}`,
+            type: "button",
+            className: "dsh-reader-search-result",
+            onClick: () => openSearchMatch(match)
+          },
+          h("div", { className: "dsh-reader-search-chapter" }, match.chapterTitle),
+          h("div", { className: "dsh-reader-search-snippet" }, match.snippet)
+        )),
+        searchResults.truncated ? h("div", { className: "dsh-reader-search-hint" }, t("searchTruncated")) : null
+      )
+    );
+  }
+
+  // src/client/views/visual-reader.js
+  function VisualReader({
+    t,
+    visual,
+    screen,
+    pageView,
+    pageInput,
+    setPageInput,
+    goPdfPage,
+    zoomPdf,
+    visualLoading,
+    visualError,
+    onPdfMouseUp,
+    noteLayerRef,
+    goEpubChapter,
+    onEpubLoad,
+    epubFrameRef
+  }) {
+    if (!visual) return null;
+    const pdfPageUrl = visual.kind === "pdf" && screen.kind === "book" ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}` : "";
+    const epubIndex = screen.kind === "book" ? screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId) : -1;
+    return visual?.kind === "pdf" ? h(
+      "div",
+      { className: "dsh-reader-visual" },
+      h(
+        "div",
+        { className: "dsh-reader-visual-bar" },
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary",
+          disabled: visual.page <= 1,
+          onClick: () => goPdfPage(visual.page - 1)
+        }, "‹"),
+        h("input", {
+          className: "dsh-reader-page-input",
+          type: "number",
+          min: 1,
+          max: pageView?.pageCount ?? 1,
+          value: pageInput,
+          onChange: (event) => setPageInput(event.target.value),
+          onKeyDown: (event) => {
+            if (event.key === "Enter") goPdfPage(Number(pageInput));
+          }
+        }),
+        h("span", { className: "dsh-reader-page-total" }, `/ ${pageView?.pageCount ?? "?"}`),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary",
+          disabled: Boolean(pageView && visual.page >= pageView.pageCount),
+          onClick: () => goPdfPage(visual.page + 1)
+        }, "›"),
+        h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(-0.25) }, "−"),
+        h("span", { className: "dsh-reader-page-total" }, `${Math.round(visual.scale * 100)}%`),
+        h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(0.25) }, "+")
+      ),
+      visualLoading ? h("div", { className: "dsh-reader-muted" }, t("loading")) : visualError ? h(
+        "div",
+        { className: "dsh-reader-visual-error" },
+        h("div", null, visualError),
+        h(
+          "div",
+          { className: "dsh-reader-reader-inner" },
+          renderBlocks(screen.content.blocks, screen.content.chapterId)
+        )
+      ) : pageView ? h(
+        "div",
+        {
+          className: "dsh-reader-pdf-page",
+          style: { width: pageView.width, height: pageView.height }
+        },
+        h("img", { src: pdfPageUrl, alt: screen.content.title, draggable: false }),
+        h(
+          "div",
+          { className: "dsh-reader-pdf-text", onMouseUp: onPdfMouseUp },
+          (pageView.textItems ?? []).map((item, index) => {
+            const offset = (pageView.textItems ?? []).slice(0, index).reduce((sum, entry) => sum + entry.text.length, 0);
+            return h("span", {
+              key: `pdf-text-${index}`,
+              className: "dsh-reader-pdf-text-item",
+              "data-offset": offset,
+              style: {
+                left: item.left,
+                top: item.top,
+                width: item.width,
+                height: item.height,
+                fontSize: item.fontSize
+              }
+            }, item.text);
+          })
+        ),
+        h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
+      ) : null
+    ) : visual?.kind === "epub" ? h(
+      "div",
+      { className: "dsh-reader-visual" },
+      h(
+        "div",
+        { className: "dsh-reader-visual-bar" },
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary",
+          disabled: epubIndex <= 0,
+          onClick: () => goEpubChapter(-1)
+        }, "‹"),
+        h("span", { className: "dsh-reader-page-total" }, screen.content.title),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary",
+          disabled: epubIndex < 0 || epubIndex >= screen.detail.toc.length - 1,
+          onClick: () => goEpubChapter(1)
+        }, "›")
+      ),
+      h("iframe", {
+        ref: epubFrameRef,
+        className: "dsh-reader-epub-frame",
+        sandbox: "allow-same-origin",
+        title: screen.content.title,
+        src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+        onLoad: onEpubLoad
+      })
+    ) : null;
+  }
+
+  // src/client/views/chat-panel.js
+  function ChatPanel({
+    t,
+    chatOpen,
+    chatTab,
+    setChatTab,
+    setChatOpen,
+    notesBody,
+    chatBody,
+    chatError,
+    chatCompose,
+    chatWidth,
+    minWidth,
+    maxWidth,
+    startResize,
+    moveResize,
+    endResize,
+    resetResize,
+    resizeKeyDown
+  }) {
+    if (!chatOpen) return null;
+    return h(
+      "aside",
+      { className: "dsh-reader-chat" },
+      h("div", {
+        key: "resizer",
+        className: "dsh-reader-chat-resizer",
+        role: "separator",
+        "aria-orientation": "vertical",
+        "aria-label": t("resizeChat"),
+        "aria-valuemin": minWidth,
+        "aria-valuemax": maxWidth,
+        "aria-valuenow": chatWidth,
+        tabIndex: 0,
+        onPointerDown: startResize,
+        onPointerMove: moveResize,
+        onPointerUp: endResize,
+        onPointerCancel: endResize,
+        onDoubleClick: resetResize,
+        onKeyDown: resizeKeyDown
+      }),
+      h(
+        "div",
+        { className: "dsh-reader-chat-head" },
+        h(
+          "div",
+          { className: "dsh-reader-chat-tabs", role: "tablist" },
+          h("button", {
+            type: "button",
+            role: "tab",
+            className: "dsh-reader-chat-tab",
+            "data-active": chatTab === "chat" ? "true" : "false",
+            "aria-selected": chatTab === "chat",
+            onClick: () => setChatTab("chat")
+          }, t("companion")),
+          h("button", {
+            type: "button",
+            role: "tab",
+            className: "dsh-reader-chat-tab",
+            "data-active": chatTab === "notes" ? "true" : "false",
+            "aria-selected": chatTab === "notes",
+            onClick: () => setChatTab("notes")
+          }, t("notes"))
+        ),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-chat-close",
+          onClick: () => setChatOpen(false)
+        }, t("closeChat"))
+      ),
+      chatTab === "notes" ? notesBody : chatBody,
+      chatTab === "chat" && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
+      chatTab === "chat" ? chatCompose : null
+    );
+  }
+
   // src/client/plugin.js
   function createPlugin(require2) {
     bindRuntime(require2);
@@ -1826,246 +2130,66 @@ ${question}`);
           }, sending ? t("sending") : t("send"))
         )
       );
-      const notesBody = h(
-        "div",
-        { className: "dsh-reader-notes" },
-        notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-        notesLoading && notes.length === 0 ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : notes.length === 0 ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : notes.map((note) => {
-          const chapterTitle = screen.kind === "book" ? screen.detail.toc.find((item) => item.id === note.chapterId)?.title : "";
-          return h(
-            "div",
-            { key: note.id, className: "dsh-reader-note" },
-            h(
-              "button",
-              {
-                type: "button",
-                className: "dsh-reader-note-main",
-                onClick: () => openNote(note)
-              },
-              h("div", { className: "dsh-reader-note-chapter" }, chapterTitle || t("reading")),
-              note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
-              h("div", { className: "dsh-reader-note-body" }, note.note)
-            ),
-            h("button", {
-              type: "button",
-              className: "dsh-reader-note-jump",
-              title: t("jump"),
-              onClick: () => openNote(note)
-            }, t("jump")),
-            h("button", {
-              type: "button",
-              className: "dsh-reader-note-delete",
-              disabled: noteDeletingId === note.id,
-              onClick: () => void deleteNote(note)
-            }, noteDeletingId === note.id ? t("loading") : t("delete"))
-          );
-        })
-      );
-      const searchPanel = searchOpen && screen.kind === "book" ? h(
-        "div",
-        { className: "dsh-reader-search" },
-        h(
-          "div",
-          { className: "dsh-reader-search-bar" },
-          h("input", {
-            ref: searchInputRef,
-            value: searchQuery,
-            placeholder: t("searchPlaceholder"),
-            spellCheck: false,
-            onChange: (event) => setSearchQuery(event.target.value),
-            onKeyDown: (event) => {
-              if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-                event.preventDefault();
-                void runSearch();
-              }
-            }
-          }),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-primary",
-            disabled: searchBusy || !searchQuery.trim(),
-            onClick: () => void runSearch()
-          }, searchBusy ? t("searching") : t("search")),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-icon-btn",
-            title: t("closeSearch"),
-            "aria-label": t("closeSearch"),
-            onClick: () => setSearchOpen(false)
-          }, "×")
-        ),
-        searchError ? h("div", { className: "dsh-reader-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-reader-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-reader-search-hint" }, t("searchEmpty")) : h(
-          "div",
-          { className: "dsh-reader-search-list" },
-          searchResults.matches.map((match, index) => h(
-            "button",
-            {
-              key: `${match.chapterId}:${match.offset}:${index}`,
-              type: "button",
-              className: "dsh-reader-search-result",
-              onClick: () => openSearchMatch(match)
-            },
-            h("div", { className: "dsh-reader-search-chapter" }, match.chapterTitle),
-            h("div", { className: "dsh-reader-search-snippet" }, match.snippet)
-          )),
-          searchResults.truncated ? h("div", { className: "dsh-reader-search-hint" }, t("searchTruncated")) : null
-        )
-      ) : null;
-      const chatPanel = chatOpen ? h(
-        "aside",
-        { className: "dsh-reader-chat" },
-        h("div", {
-          key: "resizer",
-          className: "dsh-reader-chat-resizer",
-          role: "separator",
-          "aria-orientation": "vertical",
-          "aria-label": t("resizeChat"),
-          "aria-valuemin": CHAT_WIDTH_MIN,
-          "aria-valuemax": CHAT_WIDTH_MAX,
-          "aria-valuenow": chatWidth,
-          tabIndex: 0,
-          onPointerDown: startResize,
-          onPointerMove: moveResize,
-          onPointerUp: endResize,
-          onPointerCancel: endResize,
-          onDoubleClick: resetResize,
-          onKeyDown: resizeKeyDown
-        }),
-        h(
-          "div",
-          { className: "dsh-reader-chat-head" },
-          h(
-            "div",
-            { className: "dsh-reader-chat-tabs", role: "tablist" },
-            h("button", {
-              type: "button",
-              role: "tab",
-              className: "dsh-reader-chat-tab",
-              "data-active": chatTab === "chat" ? "true" : "false",
-              "aria-selected": chatTab === "chat",
-              onClick: () => setChatTab("chat")
-            }, t("companion")),
-            h("button", {
-              type: "button",
-              role: "tab",
-              className: "dsh-reader-chat-tab",
-              "data-active": chatTab === "notes" ? "true" : "false",
-              "aria-selected": chatTab === "notes",
-              onClick: () => setChatTab("notes")
-            }, t("notes"))
-          ),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-chat-close",
-            onClick: () => setChatOpen(false)
-          }, t("closeChat"))
-        ),
-        chatTab === "notes" ? notesBody : chatBody,
-        chatTab === "chat" && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
-        chatTab === "chat" ? chatCompose : null
-      ) : null;
-      const pdfPageUrl = visual?.kind === "pdf" && screen.kind === "book" ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}` : "";
-      const epubIndex = screen.kind === "book" ? screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId) : -1;
-      const visualReader = visual?.kind === "pdf" ? h(
-        "div",
-        { className: "dsh-reader-visual" },
-        h(
-          "div",
-          { className: "dsh-reader-visual-bar" },
-          h("button", {
-            type: "button",
-            className: "dsh-reader-secondary",
-            disabled: visual.page <= 1,
-            onClick: () => goPdfPage(visual.page - 1)
-          }, "‹"),
-          h("input", {
-            className: "dsh-reader-page-input",
-            type: "number",
-            min: 1,
-            max: pageView?.pageCount ?? 1,
-            value: pageInput,
-            onChange: (event) => setPageInput(event.target.value),
-            onKeyDown: (event) => {
-              if (event.key === "Enter") goPdfPage(Number(pageInput));
-            }
-          }),
-          h("span", { className: "dsh-reader-page-total" }, `/ ${pageView?.pageCount ?? "?"}`),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-secondary",
-            disabled: Boolean(pageView && visual.page >= pageView.pageCount),
-            onClick: () => goPdfPage(visual.page + 1)
-          }, "›"),
-          h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(-0.25) }, "−"),
-          h("span", { className: "dsh-reader-page-total" }, `${Math.round(visual.scale * 100)}%`),
-          h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(0.25) }, "+")
-        ),
-        visualLoading ? h("div", { className: "dsh-reader-muted" }, t("loading")) : visualError ? h(
-          "div",
-          { className: "dsh-reader-visual-error" },
-          h("div", null, visualError),
-          h(
-            "div",
-            { className: "dsh-reader-reader-inner" },
-            renderBlocks(screen.content.blocks, screen.content.chapterId)
-          )
-        ) : pageView ? h(
-          "div",
-          {
-            className: "dsh-reader-pdf-page",
-            style: { width: pageView.width, height: pageView.height }
-          },
-          h("img", { src: pdfPageUrl, alt: screen.content.title, draggable: false }),
-          h(
-            "div",
-            { className: "dsh-reader-pdf-text", onMouseUp: onPdfMouseUp },
-            (pageView.textItems ?? []).map((item, index) => {
-              const offset = (pageView.textItems ?? []).slice(0, index).reduce((sum, entry) => sum + entry.text.length, 0);
-              return h("span", {
-                key: `pdf-text-${index}`,
-                className: "dsh-reader-pdf-text-item",
-                "data-offset": offset,
-                style: {
-                  left: item.left,
-                  top: item.top,
-                  width: item.width,
-                  height: item.height,
-                  fontSize: item.fontSize
-                }
-              }, item.text);
-            })
-          ),
-          h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
-        ) : null
-      ) : visual?.kind === "epub" ? h(
-        "div",
-        { className: "dsh-reader-visual" },
-        h(
-          "div",
-          { className: "dsh-reader-visual-bar" },
-          h("button", {
-            type: "button",
-            className: "dsh-reader-secondary",
-            disabled: epubIndex <= 0,
-            onClick: () => goEpubChapter(-1)
-          }, "‹"),
-          h("span", { className: "dsh-reader-page-total" }, screen.content.title),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-secondary",
-            disabled: epubIndex < 0 || epubIndex >= screen.detail.toc.length - 1,
-            onClick: () => goEpubChapter(1)
-          }, "›")
-        ),
-        h("iframe", {
-          ref: epubFrameRef,
-          className: "dsh-reader-epub-frame",
-          sandbox: "allow-same-origin",
-          title: screen.content.title,
-          src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
-          onLoad: onEpubLoad
-        })
-      ) : null;
+      const notesBody = h(NotesBody, {
+        t,
+        notesError,
+        notesLoading,
+        notes,
+        screen,
+        openNote,
+        noteDeletingId,
+        deleteNote
+      });
+      const searchPanel = h(SearchPanel, {
+        t,
+        open: searchOpen,
+        screen,
+        searchInputRef,
+        searchQuery,
+        setSearchQuery,
+        runSearch,
+        searchBusy,
+        setSearchOpen,
+        searchError,
+        searchResults,
+        openSearchMatch
+      });
+      const chatPanel = h(ChatPanel, {
+        t,
+        chatOpen,
+        chatTab,
+        setChatTab,
+        setChatOpen,
+        notesBody,
+        chatBody,
+        chatError,
+        chatCompose,
+        chatWidth,
+        minWidth: CHAT_WIDTH_MIN,
+        maxWidth: CHAT_WIDTH_MAX,
+        startResize,
+        moveResize,
+        endResize,
+        resetResize,
+        resizeKeyDown
+      });
+      const visualReader = h(VisualReader, {
+        t,
+        visual,
+        screen,
+        pageView,
+        pageInput,
+        setPageInput,
+        goPdfPage,
+        zoomPdf,
+        visualLoading,
+        visualError,
+        onPdfMouseUp,
+        noteLayerRef,
+        goEpubChapter,
+        onEpubLoad,
+        epubFrameRef
+      });
       const bookView = screen.kind === "book" ? h(
         "div",
         {
