@@ -2642,7 +2642,7 @@ ${question}`);
         resetResize,
         resizeKeyDown
       });
-      const visualReader = h(VisualReader, {
+      const visualReader = visual ? h(VisualReader, {
         t,
         visual,
         screen,
@@ -2658,7 +2658,7 @@ ${question}`);
         goEpubChapter,
         onEpubLoad,
         epubFrameRef
-      });
+      }) : null;
       const bookView = screen.kind === "book" ? h(
         "div",
         {

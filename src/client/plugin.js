@@ -482,7 +482,7 @@ export function createPlugin(require) {
       })
 
 
-      const visualReader = h(VisualReader, {
+      const visualReader = visual ? h(VisualReader, {
         t,
         visual,
         screen,
@@ -498,7 +498,7 @@ export function createPlugin(require) {
         goEpubChapter,
         onEpubLoad,
         epubFrameRef,
-      })
+      }) : null
 
 
       const bookView = screen.kind === 'book'
