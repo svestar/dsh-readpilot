@@ -184,7 +184,7 @@ var __dshReaderBundle = (() => {
     }
     return best ? { start: best.start, end: best.end } : null;
   }
-  function collectTextNodes2(root) {
+  function collectTextNodes(root) {
     if (!root) return { nodes: [], text: "" };
     const doc = root.ownerDocument ?? document;
     const view = doc.defaultView ?? window;
@@ -198,8 +198,8 @@ var __dshReaderBundle = (() => {
     }
     return { nodes, text: nodes.map((entry) => entry.nodeValue ?? "").join("") };
   }
-  function rangeForNote2(root, start, end) {
-    const { nodes } = collectTextNodes2(root);
+  function rangeForNote(root, start, end) {
+    const { nodes } = collectTextNodes(root);
     const doc = root.ownerDocument ?? document;
     const range = doc.createRange();
     let cursor = 0;
@@ -250,7 +250,7 @@ var __dshReaderBundle = (() => {
     for (const note of relevant) {
       const match = findNoteOccurrence(text, note.quote, note.offset);
       if (!match) continue;
-      const range = rangeForNote2(doc.body, match.start, match.end);
+      const range = rangeForNote(doc.body, match.start, match.end);
       if (!range) continue;
       const mark = doc.createElement("mark");
       mark.className = "dsh-reader-note-mark";
@@ -374,6 +374,14 @@ var __dshReaderBundle = (() => {
     }
     flushParagraph();
     return blocks;
+  }
+  function timestampOf(value) {
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value === "string") {
+      const parsed = Date.parse(value);
+      if (Number.isFinite(parsed)) return parsed;
+    }
+    return 0;
   }
   function blockIndexAtOffset(blocks, offset) {
     if (!Array.isArray(blocks) || blocks.length === 0) return 0;
@@ -1425,6 +1433,784 @@ var __dshReaderBundle = (() => {
     );
   }
 
+  // src/client/hooks/use-companion.js
+  function useCompanion({
+    runtime,
+    call,
+    t,
+    screen,
+    workspaceId,
+    activeSessionId,
+    rememberSession
+  }) {
+    const [chatOpen, setChatOpen] = React.useState(() => typeof window !== "undefined" ? window.innerWidth > 1100 : true);
+    const [chatWidth, setChatWidth] = React.useState(readChatWidth);
+    const [draft, setDraft] = React.useState("");
+    const [sending, setSending] = React.useState(false);
+    const [chatError, setChatError2] = React.useState("");
+    const [entries, setEntries] = React.useState([]);
+    const [hasMore, setHasMore] = React.useState(false);
+    const [loadingEarlier, setLoadingEarlier] = React.useState(false);
+    const [chatBinding, setChatBinding] = React.useState(null);
+    const [chatTab, setChatTab] = React.useState("chat");
+    const chatRef = React.useRef(null);
+    const chatBodyRef = React.useRef(null);
+    const chatInputRef = React.useRef(null);
+    const dragRef = React.useRef(null);
+    const chatWidthRef = React.useRef(chatWidth);
+    chatWidthRef.current = chatWidth;
+    const disposeChat = React.useCallback(() => {
+      const current = chatRef.current;
+      chatRef.current = null;
+      if (!current) return;
+      try {
+        current.unsubscribe();
+      } catch {
+      }
+      try {
+        current.reference.release();
+      } catch {
+      }
+    }, []);
+    const releaseChat = React.useCallback(() => {
+      disposeChat();
+      setChatBinding(null);
+      setEntries([]);
+      setHasMore(false);
+    }, [disposeChat]);
+    const bindSession = React.useCallback((sessionId) => {
+      if (!sessionId) {
+        releaseChat();
+        return null;
+      }
+      if (chatRef.current?.sessionId === sessionId) return chatRef.current.reference;
+      releaseChat();
+      setChatError2("");
+      let reference;
+      try {
+        reference = runtime.sessions.retain(sessionId, { source: "controllerOperation" });
+      } catch (error) {
+        setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+        return null;
+      }
+      const source = reference.binding.eventSource;
+      const update = () => {
+        const value = source.getSnapshot();
+        setEntries(value.entries);
+        setHasMore(value.hasMore);
+      };
+      update();
+      const unsubscribe = source.subscribe(update);
+      const record = { sessionId, reference, unsubscribe };
+      chatRef.current = record;
+      setChatBinding(record);
+      reference.ready.catch((error) => {
+        if (chatRef.current === record) {
+          setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+        }
+      });
+      return reference;
+    }, [releaseChat, runtime, t]);
+    React.useEffect(() => {
+      if (!activeSessionId) {
+        releaseChat();
+        return;
+      }
+      bindSession(activeSessionId);
+    }, [activeSessionId, bindSession, releaseChat]);
+    React.useEffect(() => () => disposeChat(), [disposeChat]);
+    const lastEntrySeq = entries.length > 0 ? entries[entries.length - 1]?.event?.seq ?? null : null;
+    React.useEffect(() => {
+      const element = chatBodyRef.current;
+      if (element) element.scrollTop = element.scrollHeight;
+    }, [lastEntrySeq, sending, chatBinding, chatOpen, chatTab]);
+    const sessionSnapshot = React.useSyncExternalStore(
+      React.useCallback((callback) => {
+        const reference = chatBinding?.reference;
+        return reference ? reference.binding.session.subscribe(callback) : () => {
+        };
+      }, [chatBinding]),
+      React.useCallback(() => chatBinding?.reference?.binding.session.getSnapshot() ?? null, [chatBinding])
+    );
+    const running = Boolean(sessionSnapshot?.running);
+    const messages = React.useMemo(() => foldTranscript(entries).slice(-50), [entries]);
+    const send = React.useCallback(async () => {
+      const text = draft.trim();
+      if (!text || sending || screen.kind !== "book") return;
+      if (!workspaceId) {
+        setChatError2(t("chatDisabled"));
+        return;
+      }
+      const book = screen.detail.book;
+      setChatError2("");
+      setSending(true);
+      const createSession = async () => {
+        let sessionId;
+        if (typeof runtime.sessions.create === "function") {
+          try {
+            sessionId = await runtime.sessions.create({ workspaceId });
+          } catch {
+            sessionId = void 0;
+          }
+        }
+        if (!sessionId) {
+          sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId);
+          runtime.layout.selectPanel("dsh-reader");
+        }
+        await call("session", { bookId: book.id, sessionId });
+        rememberSession(book.id, sessionId);
+        const reference = bindSession(sessionId);
+        if (!reference) throw new Error(t("loadFailed"));
+        return reference;
+      };
+      try {
+        let reference = chatRef.current?.reference;
+        if (!reference) reference = await createSession();
+        try {
+          await reference.ready;
+        } catch {
+          await call("session", { bookId: book.id, sessionId: null }).catch(() => {
+          });
+          releaseChat();
+          reference = await createSession();
+          await reference.ready;
+        }
+        const result = await reference.binding.session.prompt([{ type: "text", text }], "queue");
+        if (result && result.ok === false) {
+          throw new Error(result.error?.message ?? t("sendFailed"));
+        }
+        setDraft("");
+      } catch (error) {
+        setChatError2(`${t("sendFailed")}：${messageOf(error)}`);
+      } finally {
+        setSending(false);
+      }
+    }, [draft, sending, screen, workspaceId, rememberSession, bindSession, releaseChat, runtime, call, t]);
+    const loadEarlier = React.useCallback(async () => {
+      const reference = chatRef.current?.reference;
+      if (!reference || loadingEarlier) return;
+      setLoadingEarlier(true);
+      setChatError2("");
+      try {
+        await reference.binding.session.loadOlder();
+      } catch (error) {
+        setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+      } finally {
+        setLoadingEarlier(false);
+      }
+    }, [loadingEarlier, t]);
+    React.useEffect(() => {
+      const onResize = () => {
+        if (window.innerWidth > 1100) {
+          setChatWidth((current) => clampChatWidth(current, window.innerWidth));
+        }
+      };
+      window.addEventListener("resize", onResize);
+      return () => window.removeEventListener("resize", onResize);
+    }, []);
+    const startResize = React.useCallback((event) => {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      try {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      } catch {
+      }
+      dragRef.current = { startX: event.clientX, startWidth: chatWidth };
+    }, [chatWidth]);
+    const moveResize = React.useCallback((event) => {
+      const drag = dragRef.current;
+      if (!drag) return;
+      const next = clampChatWidth(drag.startWidth - (event.clientX - drag.startX), window.innerWidth);
+      setChatWidth(next);
+    }, []);
+    const endResize = React.useCallback((event) => {
+      if (!dragRef.current) return;
+      dragRef.current = null;
+      try {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      } catch {
+      }
+      saveChatWidth(chatWidthRef.current);
+    }, []);
+    const resetResize = React.useCallback(() => {
+      setChatWidth(CHAT_WIDTH_DEFAULT);
+      saveChatWidth(CHAT_WIDTH_DEFAULT);
+    }, []);
+    const resizeKeyDown = React.useCallback((event) => {
+      if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
+      event.preventDefault();
+      const delta = event.key === "ArrowLeft" ? 24 : -24;
+      const next = clampChatWidth(chatWidthRef.current + delta, window.innerWidth);
+      setChatWidth(next);
+      saveChatWidth(next);
+    }, []);
+    return {
+      chatOpen,
+      setChatOpen,
+      chatWidth,
+      draft,
+      setDraft,
+      sending,
+      chatError,
+      entries,
+      hasMore,
+      loadingEarlier,
+      chatBinding,
+      chatTab,
+      setChatTab,
+      chatBodyRef,
+      chatInputRef,
+      running,
+      messages,
+      send,
+      loadEarlier,
+      startResize,
+      moveResize,
+      endResize,
+      resetResize,
+      resizeKeyDown
+    };
+  }
+
+  // src/client/views/chat-content.js
+  function ChatBody({
+    t,
+    workspaceId,
+    hasMore,
+    loadingEarlier,
+    loadEarlier,
+    messages,
+    sending,
+    running,
+    chatBodyRef
+  }) {
+    return h(
+      "div",
+      { className: "dsh-reader-chat-body", ref: chatBodyRef },
+      hasMore ? h("button", {
+        type: "button",
+        className: "dsh-reader-chat-more",
+        disabled: loadingEarlier,
+        onClick: () => void loadEarlier()
+      }, loadingEarlier ? t("loading") : t("loadEarlier")) : null,
+      messages.length === 0 ? h(
+        "div",
+        { className: "dsh-reader-chat-empty" },
+        workspaceId ? t("chatEmpty") : t("chatDisabled")
+      ) : messages.map((message) => h(
+        "div",
+        {
+          key: message.key,
+          className: "dsh-reader-msg",
+          "data-role": message.role
+        },
+        h(
+          "div",
+          { className: "dsh-reader-msg-role" },
+          message.role === "user" ? t("you") : t("assistant")
+        ),
+        message.role === "assistant" ? h(MarkdownMessage, { text: message.text, prefix: message.key }) : h("div", { className: "dsh-reader-msg-text" }, message.text)
+      )),
+      sending || running ? h(
+        "div",
+        { className: "dsh-reader-chat-thinking" },
+        sending ? t("sending") : t("thinking")
+      ) : null
+    );
+  }
+  function ChatCompose({
+    t,
+    workspaceId,
+    draft,
+    setDraft,
+    sending,
+    send,
+    chatInputRef
+  }) {
+    return h(
+      "div",
+      { className: "dsh-reader-chat-compose" },
+      h("textarea", {
+        ref: chatInputRef,
+        value: draft,
+        rows: 3,
+        placeholder: workspaceId ? t("chatPlaceholder") : t("chatDisabled"),
+        disabled: !workspaceId,
+        onChange: (event) => setDraft(event.target.value),
+        onKeyDown: (event) => {
+          if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            void send();
+          }
+        }
+      }),
+      h(
+        "div",
+        { className: "dsh-reader-chat-compose-row" },
+        h("span", { className: "dsh-reader-chat-hint" }, workspaceId ? "Enter / Shift+Enter" : ""),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-chat-send",
+          disabled: !draft.trim() || sending || !workspaceId,
+          onClick: () => void send()
+        }, sending ? t("sending") : t("send"))
+      )
+    );
+  }
+
+  // src/client/hooks/use-search.js
+  function useSearch({ call, screen, t, selectChapter }) {
+    const [searchOpen, setSearchOpen] = React.useState(false);
+    const [searchQuery, setSearchQuery] = React.useState("");
+    const [searchBusy, setSearchBusy2] = React.useState(false);
+    const [searchResults, setSearchResults2] = React.useState(null);
+    const [searchError, setSearchError2] = React.useState("");
+    const searchInputRef = React.useRef(null);
+    const openSearchMatch = React.useCallback((match) => {
+      if (!match || screen.kind !== "book") return;
+      setSearchOpen(false);
+      void selectChapter(screen.detail.book.id, match.chapterId, { offset: match.offset });
+    }, [screen, selectChapter]);
+    const runSearch = React.useCallback(async () => {
+      if (screen.kind !== "book" || searchBusy) return;
+      const query = searchQuery.trim();
+      if (!query) return;
+      setSearchBusy2(true);
+      setSearchError2("");
+      setSearchResults2(null);
+      try {
+        const value = await call("search", {
+          bookId: screen.detail.book.id,
+          query,
+          limit: 30
+        });
+        setSearchResults2({
+          matches: Array.isArray(value?.matches) ? value.matches : [],
+          truncated: Boolean(value?.truncated)
+        });
+      } catch (cause) {
+        setSearchResults2({ matches: [], truncated: false });
+        setSearchError2(`${t("searchFailed")}：${messageOf(cause)}`);
+      } finally {
+        setSearchBusy2(false);
+      }
+    }, [call, screen, searchBusy, searchQuery, t]);
+    const toggleSearch = React.useCallback(() => {
+      setSearchOpen((previous) => !previous);
+      setSearchError2("");
+    }, []);
+    React.useEffect(() => {
+      if (!searchOpen) return;
+      const frame = requestAnimationFrame(() => searchInputRef.current?.focus());
+      return () => cancelAnimationFrame(frame);
+    }, [searchOpen]);
+    return {
+      searchOpen,
+      setSearchOpen,
+      searchQuery,
+      setSearchQuery,
+      searchBusy,
+      searchResults,
+      searchError,
+      searchInputRef,
+      openSearchMatch,
+      runSearch,
+      toggleSearch
+    };
+  }
+
+  // src/client/hooks/use-notes.js
+  function useNotes({
+    call,
+    t,
+    screen,
+    activeBookId,
+    activeChapterId,
+    visual,
+    pageView,
+    palette,
+    fontSize,
+    contentRef,
+    epubFrameRef,
+    epubReady,
+    selection,
+    setSelection,
+    selectChapter
+  }) {
+    const [notes, setNotes] = React.useState([]);
+    const [notesLoading, setNotesLoading] = React.useState(false);
+    const [notesError, setNotesError] = React.useState("");
+    const [noteDeletingId, setNoteDeletingId] = React.useState(null);
+    const [noteEditor, setNoteEditor] = React.useState(null);
+    const [noteDraft, setNoteDraft] = React.useState("");
+    const [noteSaving, setNoteSaving] = React.useState(false);
+    const [noteError, setNoteError] = React.useState("");
+    const [epubJumpToken, setEpubJumpToken] = React.useState(0);
+    const noteInputRef = React.useRef(null);
+    const noteLayerRef = React.useRef(null);
+    const pendingEpubNoteRef = React.useRef(null);
+    const notesRequestRef = React.useRef(0);
+    const loadNotes = React.useCallback(async () => {
+      const bookId = activeBookId;
+      if (!bookId) {
+        setNotes([]);
+        return;
+      }
+      const request = notesRequestRef.current + 1;
+      notesRequestRef.current = request;
+      setNotesLoading(true);
+      setNotesError("");
+      try {
+        const value = await call("notes", { action: "list", bookId });
+        if (notesRequestRef.current !== request) return;
+        const list = Array.isArray(value?.notes) ? value.notes.slice() : [];
+        list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt));
+        setNotes(list);
+      } catch (cause) {
+        if (notesRequestRef.current === request) {
+          setNotesError(`${t("notesFailed")}：${messageOf(cause)}`);
+        }
+      } finally {
+        if (notesRequestRef.current === request) setNotesLoading(false);
+      }
+    }, [activeBookId, call, t]);
+    React.useEffect(() => {
+      notesRequestRef.current += 1;
+      setNotes([]);
+      setNotesLoading(false);
+      setNotesError("");
+      setNoteDeletingId(null);
+      setNoteEditor(null);
+      setNoteDraft("");
+      setNoteError("");
+    }, [activeBookId]);
+    React.useEffect(() => {
+      if (screen.kind !== "book") return;
+      void loadNotes();
+    }, [screen.kind, activeBookId, loadNotes]);
+    const openNote = React.useCallback((note) => {
+      if (!note || screen.kind !== "book") return;
+      setNoteEditor(null);
+      if (screen.detail.book.format === "epub") {
+        pendingEpubNoteRef.current = note.id;
+        setEpubJumpToken((previous) => previous + 1);
+        if (screen.content.chapterId === note.chapterId) return;
+      }
+      void selectChapter(screen.detail.book.id, note.chapterId, {
+        blockIndex: note.blockIndex,
+        flash: true
+      });
+    }, [screen, selectChapter]);
+    const deleteNote = React.useCallback(async (note) => {
+      if (!note?.id || noteDeletingId) return;
+      setNoteDeletingId(note.id);
+      setNotesError("");
+      try {
+        await call("notes", {
+          action: "delete",
+          bookId: note.bookId ?? activeBookId,
+          noteId: note.id
+        });
+      } catch (cause) {
+        setNotesError(`${t("noteDeleteFailed")}：${messageOf(cause)}`);
+        setNoteDeletingId(null);
+        return;
+      }
+      setNoteDeletingId(null);
+      await loadNotes();
+    }, [activeBookId, call, loadNotes, noteDeletingId, t]);
+    const closeNoteEditor = React.useCallback(() => {
+      setNoteEditor(null);
+      setNoteDraft("");
+      setNoteError("");
+    }, []);
+    const openNoteEditor = React.useCallback((note) => {
+      if (note) {
+        setNoteEditor({
+          noteId: note.id,
+          chapterId: note.chapterId,
+          blockIndex: note.blockIndex,
+          offset: note.offset,
+          quote: note.quote
+        });
+        setNoteDraft(note.note ?? "");
+        setNoteError("");
+        setSelection(null);
+        requestAnimationFrame(() => noteInputRef.current?.focus());
+        return;
+      }
+      if (!selection || selection.blockIndex == null || screen.kind !== "book") return;
+      setNoteEditor({
+        chapterId: activeChapterId,
+        blockIndex: selection.blockIndex,
+        offset: selection.offset,
+        quote: selection.text
+      });
+      setNoteDraft("");
+      setNoteError("");
+      setSelection(null);
+      requestAnimationFrame(() => noteInputRef.current?.focus());
+    }, [activeChapterId, screen, selection, setSelection]);
+    const saveNote = React.useCallback(async () => {
+      const editor = noteEditor;
+      const text = noteDraft.trim();
+      if (!editor || !text || noteSaving || screen.kind !== "book") return;
+      setNoteSaving(true);
+      setNoteError("");
+      try {
+        if (editor.noteId) {
+          await call("notes", {
+            action: "update",
+            bookId: screen.detail.book.id,
+            noteId: editor.noteId,
+            note: text
+          });
+        } else {
+          await call("notes", {
+            action: "add",
+            bookId: screen.detail.book.id,
+            chapterId: editor.chapterId,
+            blockIndex: editor.blockIndex,
+            offset: editor.offset,
+            quote: editor.quote,
+            note: text
+          });
+        }
+      } catch (cause) {
+        setNoteError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
+        setNoteSaving(false);
+        return;
+      }
+      setNoteSaving(false);
+      setNoteEditor(null);
+      setNoteDraft("");
+      void loadNotes();
+    }, [call, loadNotes, noteDraft, noteEditor, noteSaving, screen, t]);
+    React.useEffect(() => {
+      const layer = noteLayerRef.current;
+      if (!layer) return;
+      const root = visual?.kind === "pdf" ? layer.parentElement : contentRef.current?.querySelector(".dsh-reader-reader-inner");
+      const currentChapter = activeChapterId;
+      const relevant = screen.kind === "book" ? notes.filter((note) => note.chapterId === currentChapter && typeof note.quote === "string" && note.quote) : [];
+      layer.textContent = "";
+      if (!root || relevant.length === 0) return;
+      let frame = 0;
+      const paint = () => {
+        frame = 0;
+        layer.textContent = "";
+        if (!root.isConnected) return;
+        const { text } = collectTextNodes(root);
+        const rootRect = root.getBoundingClientRect();
+        for (const note of relevant) {
+          const match = findNoteOccurrence(text, note.quote, note.offset);
+          if (!match) continue;
+          const range = rangeForNote(root, match.start, match.end);
+          if (!range) continue;
+          for (const rect of range.getClientRects()) {
+            if (!rect.width || !rect.height) continue;
+            const hit = document.createElement("div");
+            hit.className = "dsh-reader-note-hit";
+            hit.dataset.noteId = note.id;
+            hit.style.left = `${rect.left - rootRect.left}px`;
+            hit.style.top = `${rect.top - rootRect.top}px`;
+            hit.style.width = `${rect.width}px`;
+            hit.style.height = `${rect.height}px`;
+            layer.appendChild(hit);
+          }
+        }
+      };
+      const schedule = () => {
+        if (!frame) frame = requestAnimationFrame(paint);
+      };
+      const onClick = (event) => {
+        const hit = event.target.closest?.(".dsh-reader-note-hit");
+        if (!hit) return;
+        const note = notes.find((entry) => entry.id === hit.dataset.noteId);
+        if (note) openNoteEditor(note);
+      };
+      layer.addEventListener("click", onClick);
+      window.addEventListener("resize", schedule);
+      paint();
+      return () => {
+        if (frame) cancelAnimationFrame(frame);
+        layer.removeEventListener("click", onClick);
+        window.removeEventListener("resize", schedule);
+        layer.textContent = "";
+      };
+    }, [activeChapterId, contentRef, fontSize, notes, openNoteEditor, pageView, palette, screen, visual?.kind, visual?.page]);
+    React.useEffect(() => {
+      if (visual?.kind !== "epub" || screen.kind !== "book" || !epubFrameRef.current) return;
+      const result = applyEpubNoteMarks(
+        epubFrameRef.current,
+        notes,
+        screen.content.chapterId,
+        palette,
+        openNoteEditor,
+        pendingEpubNoteRef.current
+      );
+      if (result.jumped) pendingEpubNoteRef.current = null;
+      return result.cleanup;
+    }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.href, visual?.kind]);
+    return {
+      notes,
+      notesLoading,
+      notesError,
+      noteDeletingId,
+      noteEditor,
+      noteDraft,
+      setNoteDraft,
+      noteSaving,
+      noteError,
+      noteInputRef,
+      noteLayerRef,
+      loadNotes,
+      openNote,
+      deleteNote,
+      closeNoteEditor,
+      openNoteEditor,
+      saveNote
+    };
+  }
+
+  // src/client/hooks/use-visual.js
+  function useVisual({
+    call,
+    t,
+    screen,
+    palette,
+    setSelection,
+    selectChapter,
+    activeChapterId
+  }) {
+    const [visual, setVisual] = React.useState(null);
+    const [pageView, setPageView2] = React.useState(null);
+    const [pageInput, setPageInput] = React.useState("1");
+    const [visualLoading, setVisualLoading] = React.useState(false);
+    const [visualError, setVisualError2] = React.useState("");
+    const [epubReady, setEpubReady] = React.useState(0);
+    const epubFrameRef = React.useRef(null);
+    const epubCleanupRef = React.useRef(null);
+    React.useEffect(() => {
+      if (!visual || visual.kind !== "pdf" || screen.kind !== "book") {
+        setPageView2(null);
+        return;
+      }
+      let cancelled = false;
+      setVisualLoading(true);
+      setVisualError2("");
+      call("pageView", {
+        bookId: screen.detail.book.id,
+        page: visual.page,
+        scale: visual.scale
+      }).then((value) => {
+        if (cancelled) return;
+        setPageView2(value);
+        setPageInput(String(visual.page));
+      }).catch((cause) => {
+        if (cancelled) return;
+        setPageView2(null);
+        setVisualError2(`${t("loadFailed")}：${messageOf(cause)}`);
+      }).finally(() => {
+        if (!cancelled) setVisualLoading(false);
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, [call, screen, t, visual]);
+    React.useEffect(() => {
+      if (screen.kind !== "book" || visual?.kind !== "pdf" || !pageView) return;
+      if (!activeChapterId || activeChapterId === screen.content.chapterId) return;
+      void selectChapter(screen.detail.book.id, activeChapterId);
+    }, [activeChapterId, pageView, screen, selectChapter, visual?.kind]);
+    React.useEffect(() => () => {
+      epubCleanupRef.current?.();
+      epubCleanupRef.current = null;
+    }, [visual?.href]);
+    const goPdfPage = React.useCallback((next) => {
+      const pageCount = pageView?.pageCount ?? 1;
+      const page = Math.min(Math.max(1, next), pageCount);
+      setVisual((previous) => previous?.kind === "pdf" ? { ...previous, page } : previous);
+    }, [pageView]);
+    const zoomPdf = React.useCallback((delta) => {
+      setVisual((previous) => previous?.kind === "pdf" ? { ...previous, scale: Math.min(3, Math.max(1, previous.scale + delta)) } : previous);
+    }, []);
+    const onPdfMouseUp = React.useCallback(() => {
+      const active = window.getSelection();
+      if (!active || active.isCollapsed || active.rangeCount === 0) return;
+      const range = active.getRangeAt(0);
+      const node = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
+      const span = node?.closest?.("[data-offset]");
+      if (!span) return;
+      const text = active.toString().trim();
+      if (!text) return;
+      const base = Number(span.getAttribute("data-offset")) || 0;
+      const before = range.cloneRange();
+      before.selectNodeContents(span);
+      before.setEnd(range.startContainer, range.startOffset);
+      const rect = range.getBoundingClientRect();
+      setSelection({
+        text: text.slice(0, 2e3),
+        blockIndex: 0,
+        offset: base + before.toString().length,
+        x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+        y: rect.top
+      });
+    }, [setSelection]);
+    const onEpubLoad = React.useCallback((event) => {
+      const frame = event.currentTarget;
+      const doc = frame.contentDocument;
+      epubCleanupRef.current?.();
+      epubCleanupRef.current = null;
+      if (!doc) return;
+      applyPaletteToFrame(frame, palette);
+      setEpubReady((previous) => previous + 1);
+      const handler = () => {
+        const selected = doc.getSelection();
+        const text = selected?.toString().trim();
+        if (!text || !selected.rangeCount) return;
+        const range = selected.getRangeAt(0);
+        const rect = range.getBoundingClientRect();
+        const frameRect = frame.getBoundingClientRect();
+        setSelection({
+          text: text.slice(0, 2e3),
+          blockIndex: 0,
+          offset: 0,
+          x: Math.min(Math.max(frameRect.left + rect.left + rect.width / 2, 120), window.innerWidth - 120),
+          y: frameRect.top + rect.top
+        });
+      };
+      doc.addEventListener("mouseup", handler);
+      epubCleanupRef.current = () => doc.removeEventListener("mouseup", handler);
+    }, [palette, setSelection]);
+    React.useEffect(() => {
+      if (visual?.kind === "epub" && epubFrameRef.current) {
+        applyPaletteToFrame(epubFrameRef.current, palette);
+      }
+    }, [palette, visual?.href]);
+    const goEpubChapter = React.useCallback((delta) => {
+      if (screen.kind !== "book") return;
+      const index = screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId);
+      const next = screen.detail.toc[index + delta];
+      if (next) void selectChapter(screen.detail.book.id, next.id);
+    }, [screen, selectChapter]);
+    return {
+      visual,
+      setVisual,
+      pageView,
+      pageInput,
+      setPageInput,
+      visualLoading,
+      visualError,
+      epubReady,
+      epubFrameRef,
+      goPdfPage,
+      zoomPdf,
+      onPdfMouseUp,
+      onEpubLoad,
+      goEpubChapter
+    };
+  }
+
   // src/client/plugin.js
   function createPlugin(require2) {
     bindRuntime(require2);
@@ -1469,54 +2255,10 @@ var __dshReaderBundle = (() => {
       const [tocOpen, setTocOpen] = React.useState(true);
       const [fontSize, setFontSize] = React.useState(17);
       const [selection, setSelection] = React.useState(null);
-      const [chatOpen, setChatOpen] = React.useState(() => typeof window !== "undefined" ? window.innerWidth > 1100 : true);
-      const [chatWidth, setChatWidth] = React.useState(readChatWidth);
-      const [draft, setDraft] = React.useState("");
-      const [sending, setSending] = React.useState(false);
-      const [chatError, setChatError] = React.useState("");
-      const [entries, setEntries] = React.useState([]);
-      const [hasMore, setHasMore] = React.useState(false);
-      const [loadingEarlier, setLoadingEarlier] = React.useState(false);
-      const [chatBinding, setChatBinding] = React.useState(null);
-      const [chatTab, setChatTab] = React.useState("chat");
-      const [notes, setNotes] = React.useState([]);
-      const [notesLoading, setNotesLoading] = React.useState(false);
-      const [notesError, setNotesError] = React.useState("");
-      const [noteDeletingId, setNoteDeletingId] = React.useState(null);
-      const [noteEditor, setNoteEditor] = React.useState(null);
-      const [noteDraft, setNoteDraft] = React.useState("");
-      const [noteSaving, setNoteSaving] = React.useState(false);
-      const [noteError, setNoteError] = React.useState("");
-      const [searchOpen, setSearchOpen] = React.useState(false);
-      const [searchQuery, setSearchQuery] = React.useState("");
-      const [searchBusy, setSearchBusy] = React.useState(false);
-      const [searchResults, setSearchResults] = React.useState(null);
-      const [searchError, setSearchError] = React.useState("");
-      const [visual, setVisual] = React.useState(null);
-      const [pageView, setPageView] = React.useState(null);
-      const [pageInput, setPageInput] = React.useState("1");
-      const [visualLoading, setVisualLoading] = React.useState(false);
-      const [visualError, setVisualError] = React.useState("");
-      const [epubReady, setEpubReady] = React.useState(0);
-      const [epubJumpToken, setEpubJumpToken] = React.useState(0);
       const [paletteId, setPaletteId] = React.useState(readPaletteId);
       const palette = resolveReaderPalette(paletteId);
-      const chatRef = React.useRef(null);
-      const chatBodyRef = React.useRef(null);
-      const chatInputRef = React.useRef(null);
-      const noteInputRef = React.useRef(null);
-      const searchInputRef = React.useRef(null);
-      const dragRef = React.useRef(null);
-      const chatWidthRef = React.useRef(chatWidth);
-      chatWidthRef.current = chatWidth;
       const contentRef = React.useRef(null);
-      const noteLayerRef = React.useRef(null);
-      const epubNoteCleanupRef = React.useRef(null);
-      const pendingEpubNoteRef = React.useRef(null);
-      const epubFrameRef = React.useRef(null);
-      const epubCleanupRef = React.useRef(null);
       const pendingScrollRef = React.useRef(null);
-      const notesRequestRef = React.useRef(0);
       const refresh = React.useCallback(async () => {
         setBusy(true);
         setError("");
@@ -1550,6 +2292,30 @@ var __dshReaderBundle = (() => {
       const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
       const activeSessionId = activeBookId && snapshot ? snapshot.sessions?.[activeBookId]?.sessionId ?? null : null;
       const workspaceId = snapshot?.settings?.workspaceId ?? null;
+      const {
+        chatOpen,
+        setChatOpen,
+        chatWidth,
+        draft,
+        setDraft,
+        sending,
+        chatError,
+        chatTab,
+        setChatTab,
+        chatBodyRef,
+        chatInputRef,
+        running,
+        messages,
+        send,
+        loadEarlier,
+        startResize,
+        moveResize,
+        endResize,
+        resetResize,
+        resizeKeyDown,
+        hasMore,
+        loadingEarlier
+      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession });
       const visualFor = React.useCallback((detail, item) => {
         if (!detail || !item) return null;
         if (detail.book.format === "pdf") {
@@ -1560,49 +2326,13 @@ var __dshReaderBundle = (() => {
         }
         return null;
       }, []);
-      const loadNotes = React.useCallback(async () => {
-        const bookId = activeBookId;
-        if (!bookId) {
-          setNotes([]);
-          return;
-        }
-        const request = notesRequestRef.current + 1;
-        notesRequestRef.current = request;
-        setNotesLoading(true);
-        setNotesError("");
-        try {
-          const value = await call("notes", { action: "list", bookId });
-          if (notesRequestRef.current !== request) return;
-          const list = Array.isArray(value?.notes) ? value.notes.slice() : [];
-          list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt));
-          setNotes(list);
-        } catch (cause) {
-          if (notesRequestRef.current === request) {
-            setNotesError(`${t("notesFailed")}：${messageOf(cause)}`);
-          }
-        } finally {
-          if (notesRequestRef.current === request) setNotesLoading(false);
-        }
-      }, [activeBookId, t]);
       React.useEffect(() => {
-        notesRequestRef.current += 1;
-        setNotes([]);
-        setNotesLoading(false);
-        setNotesError("");
-        setNoteDeletingId(null);
-        setNoteEditor(null);
-        setNoteDraft("");
-        setNoteError("");
         setSearchOpen(false);
         setSearchQuery("");
         setSearchBusy(false);
         setSearchResults(null);
         setSearchError("");
       }, [activeBookId]);
-      React.useEffect(() => {
-        if (screen.kind !== "book") return;
-        void loadNotes();
-      }, [screen.kind, activeBookId, loadNotes]);
       const openBook = React.useCallback(async (book) => {
         setBusy(true);
         setError("");
@@ -1651,6 +2381,35 @@ var __dshReaderBundle = (() => {
           setBusy(false);
         }
       }, [screen, t, visualFor]);
+      const {
+        searchOpen,
+        setSearchOpen,
+        searchQuery,
+        setSearchQuery,
+        searchBusy,
+        searchResults,
+        searchError,
+        searchInputRef,
+        openSearchMatch,
+        runSearch,
+        toggleSearch
+      } = useSearch({ call, screen, t, selectChapter });
+      const {
+        visual,
+        setVisual,
+        pageView,
+        pageInput,
+        setPageInput,
+        visualLoading,
+        visualError,
+        epubReady,
+        epubFrameRef,
+        goPdfPage,
+        zoomPdf,
+        onPdfMouseUp,
+        onEpubLoad,
+        goEpubChapter
+      } = useVisual({ call, t, screen, palette, setSelection, selectChapter, activeChapterId });
       const scrollToBlock = React.useCallback((pending) => {
         const container = contentRef.current;
         if (!container || !Number.isInteger(pending.blockIndex)) return;
@@ -1670,310 +2429,40 @@ var __dshReaderBundle = (() => {
         const frame = requestAnimationFrame(() => scrollToBlock(pending));
         return () => cancelAnimationFrame(frame);
       }, [screen, scrollToBlock]);
-      React.useEffect(() => {
-        if (!visual || visual.kind !== "pdf" || screen.kind !== "book") {
-          setPageView(null);
-          return;
-        }
-        let cancelled = false;
-        setVisualLoading(true);
-        setVisualError("");
-        call("pageView", {
-          bookId: screen.detail.book.id,
-          page: visual.page,
-          scale: visual.scale
-        }).then((value) => {
-          if (cancelled) return;
-          setPageView(value);
-          setPageInput(String(visual.page));
-        }).catch((cause) => {
-          if (cancelled) return;
-          setPageView(null);
-          setVisualError(`${t("loadFailed")}：${messageOf(cause)}`);
-        }).finally(() => {
-          if (!cancelled) setVisualLoading(false);
-        });
-        return () => {
-          cancelled = true;
-        };
-      }, [visual, screen, t]);
-      React.useEffect(() => {
-        if (screen.kind !== "book" || visual?.kind !== "pdf" || !pageView) return;
-        if (!activeChapterId || activeChapterId === screen.content.chapterId) return;
-        void selectChapter(screen.detail.book.id, activeChapterId);
-      }, [activeChapterId, pageView, screen, selectChapter]);
-      React.useEffect(() => () => {
-        epubCleanupRef.current?.();
-        epubCleanupRef.current = null;
-      }, [visual?.href]);
-      const goPdfPage = React.useCallback((next) => {
-        const pageCount = pageView?.pageCount ?? 1;
-        const page = Math.min(Math.max(1, next), pageCount);
-        setVisual((previous) => previous?.kind === "pdf" ? { ...previous, page } : previous);
-      }, [pageView]);
-      const zoomPdf = React.useCallback((delta) => {
-        setVisual((previous) => previous?.kind === "pdf" ? { ...previous, scale: Math.min(3, Math.max(1, previous.scale + delta)) } : previous);
-      }, []);
-      const onPdfMouseUp = React.useCallback(() => {
-        const active = window.getSelection();
-        if (!active || active.isCollapsed || active.rangeCount === 0) return;
-        const range = active.getRangeAt(0);
-        const node = range.startContainer.nodeType === 1 ? range.startContainer : range.startContainer.parentElement;
-        const span = node?.closest?.("[data-offset]");
-        if (!span) return;
-        const text = active.toString().trim();
-        if (!text) return;
-        const base = Number(span.getAttribute("data-offset")) || 0;
-        const before = range.cloneRange();
-        before.selectNodeContents(span);
-        before.setEnd(range.startContainer, range.startOffset);
-        const rect = range.getBoundingClientRect();
-        setSelection({
-          text: text.slice(0, 2e3),
-          blockIndex: 0,
-          offset: base + before.toString().length,
-          x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
-          y: rect.top
-        });
-      }, []);
-      const onEpubLoad = React.useCallback((event) => {
-        const frame = event.currentTarget;
-        const doc = frame.contentDocument;
-        epubCleanupRef.current?.();
-        epubCleanupRef.current = null;
-        if (!doc) return;
-        applyPaletteToFrame(frame, palette);
-        setEpubReady((previous) => previous + 1);
-        const handler = () => {
-          const selected = doc.getSelection();
-          const text = selected?.toString().trim();
-          if (!text || !selected.rangeCount) return;
-          const range = selected.getRangeAt(0);
-          const rect = range.getBoundingClientRect();
-          const frameRect = frame.getBoundingClientRect();
-          setSelection({
-            text: text.slice(0, 2e3),
-            blockIndex: 0,
-            offset: 0,
-            x: Math.min(Math.max(frameRect.left + rect.left + rect.width / 2, 120), window.innerWidth - 120),
-            y: frameRect.top + rect.top
-          });
-        };
-        doc.addEventListener("mouseup", handler);
-        epubCleanupRef.current = () => doc.removeEventListener("mouseup", handler);
-      }, [palette]);
-      React.useEffect(() => {
-        if (visual?.kind === "epub" && epubFrameRef.current) {
-          applyPaletteToFrame(epubFrameRef.current, palette);
-        }
-      }, [palette, visual?.href]);
-      const goEpubChapter = React.useCallback((delta) => {
-        if (screen.kind !== "book") return;
-        const index = screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId);
-        const next = screen.detail.toc[index + delta];
-        if (next) void selectChapter(screen.detail.book.id, next.id);
-      }, [screen, selectChapter]);
-      const openSearchMatch = React.useCallback((match) => {
-        if (!match || screen.kind !== "book") return;
-        setSearchOpen(false);
-        void selectChapter(screen.detail.book.id, match.chapterId, { offset: match.offset });
-      }, [screen, selectChapter]);
-      const runSearch = React.useCallback(async () => {
-        if (screen.kind !== "book" || searchBusy) return;
-        const query = searchQuery.trim();
-        if (!query) return;
-        setSearchBusy(true);
-        setSearchError("");
-        setSearchResults(null);
-        try {
-          const value = await call("search", {
-            bookId: screen.detail.book.id,
-            query,
-            limit: 30
-          });
-          setSearchResults({
-            matches: Array.isArray(value?.matches) ? value.matches : [],
-            truncated: Boolean(value?.truncated)
-          });
-        } catch (cause) {
-          setSearchResults({ matches: [], truncated: false });
-          setSearchError(`${t("searchFailed")}：${messageOf(cause)}`);
-        } finally {
-          setSearchBusy(false);
-        }
-      }, [screen, searchBusy, searchQuery, t]);
-      const toggleSearch = React.useCallback(() => {
-        setSearchOpen((previous) => !previous);
-        setSearchError("");
-      }, []);
-      React.useEffect(() => {
-        if (!searchOpen) return;
-        const frame = requestAnimationFrame(() => searchInputRef.current?.focus());
-        return () => cancelAnimationFrame(frame);
-      }, [searchOpen]);
-      const openNote = React.useCallback((note) => {
-        if (!note || screen.kind !== "book") return;
-        setNoteEditor(null);
-        if (screen.detail.book.format === "epub") {
-          pendingEpubNoteRef.current = note.id;
-          setEpubJumpToken((previous) => previous + 1);
-          if (screen.content.chapterId === note.chapterId) return;
-        }
-        void selectChapter(screen.detail.book.id, note.chapterId, {
-          blockIndex: note.blockIndex,
-          flash: true
-        });
-      }, [screen, selectChapter]);
-      const deleteNote = React.useCallback(async (note) => {
-        if (!note?.id || noteDeletingId) return;
-        setNoteDeletingId(note.id);
-        setNotesError("");
-        try {
-          await call("notes", {
-            action: "delete",
-            bookId: note.bookId ?? activeBookId,
-            noteId: note.id
-          });
-        } catch (cause) {
-          setNotesError(`${t("noteDeleteFailed")}：${messageOf(cause)}`);
-          setNoteDeletingId(null);
-          return;
-        }
-        setNoteDeletingId(null);
-        await loadNotes();
-      }, [activeBookId, loadNotes, noteDeletingId, t]);
-      const closeNoteEditor = React.useCallback(() => {
-        setNoteEditor(null);
-        setNoteDraft("");
-        setNoteError("");
-      }, []);
-      const openNoteEditor = React.useCallback((note) => {
-        if (note) {
-          setNoteEditor({
-            noteId: note.id,
-            chapterId: note.chapterId,
-            blockIndex: note.blockIndex,
-            offset: note.offset,
-            quote: note.quote
-          });
-          setNoteDraft(note.note ?? "");
-          setNoteError("");
-          setSelection(null);
-          requestAnimationFrame(() => noteInputRef.current?.focus());
-          return;
-        }
-        if (!selection || selection.blockIndex == null || screen.kind !== "book") return;
-        setNoteEditor({
-          chapterId: activeChapterId,
-          blockIndex: selection.blockIndex,
-          offset: selection.offset,
-          quote: selection.text
-        });
-        setNoteDraft("");
-        setNoteError("");
-        setSelection(null);
-        requestAnimationFrame(() => noteInputRef.current?.focus());
-      }, [activeChapterId, selection, screen]);
-      const saveNote = React.useCallback(async () => {
-        const editor = noteEditor;
-        const text = noteDraft.trim();
-        if (!editor || !text || noteSaving || screen.kind !== "book") return;
-        setNoteSaving(true);
-        setNoteError("");
-        try {
-          if (editor.noteId) {
-            await call("notes", {
-              action: "update",
-              bookId: screen.detail.book.id,
-              noteId: editor.noteId,
-              note: text
-            });
-          } else {
-            await call("notes", {
-              action: "add",
-              bookId: screen.detail.book.id,
-              chapterId: editor.chapterId,
-              blockIndex: editor.blockIndex,
-              offset: editor.offset,
-              quote: editor.quote,
-              note: text
-            });
-          }
-        } catch (cause) {
-          setNoteError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
-          setNoteSaving(false);
-          return;
-        }
-        setNoteSaving(false);
-        setNoteEditor(null);
-        setNoteDraft("");
-        void loadNotes();
-      }, [noteEditor, noteDraft, noteSaving, screen, loadNotes, t]);
-      React.useEffect(() => {
-        const layer = noteLayerRef.current;
-        if (!layer) return;
-        const root = visual?.kind === "pdf" ? layer.parentElement : contentRef.current?.querySelector(".dsh-reader-reader-inner");
-        const currentChapter = activeChapterId;
-        const relevant = screen.kind === "book" ? notes.filter((note) => note.chapterId === currentChapter && typeof note.quote === "string" && note.quote) : [];
-        layer.textContent = "";
-        if (!root || relevant.length === 0) return;
-        let frame = 0;
-        const paint = () => {
-          frame = 0;
-          layer.textContent = "";
-          if (!root.isConnected) return;
-          const { text } = collectTextNodes(root);
-          const rootRect = root.getBoundingClientRect();
-          for (const note of relevant) {
-            const match = findNoteOccurrence(text, note.quote, note.offset);
-            if (!match) continue;
-            const range = rangeForNote(root, match.start, match.end);
-            if (!range) continue;
-            for (const rect of range.getClientRects()) {
-              if (!rect.width || !rect.height) continue;
-              const hit = document.createElement("div");
-              hit.className = "dsh-reader-note-hit";
-              hit.dataset.noteId = note.id;
-              hit.style.left = `${rect.left - rootRect.left}px`;
-              hit.style.top = `${rect.top - rootRect.top}px`;
-              hit.style.width = `${rect.width}px`;
-              hit.style.height = `${rect.height}px`;
-              layer.appendChild(hit);
-            }
-          }
-        };
-        const schedule = () => {
-          if (!frame) frame = requestAnimationFrame(paint);
-        };
-        const onClick = (event) => {
-          const hit = event.target.closest?.(".dsh-reader-note-hit");
-          if (!hit) return;
-          const note = notes.find((entry) => entry.id === hit.dataset.noteId);
-          if (note) openNoteEditor(note);
-        };
-        layer.addEventListener("click", onClick);
-        window.addEventListener("resize", schedule);
-        paint();
-        return () => {
-          if (frame) cancelAnimationFrame(frame);
-          layer.removeEventListener("click", onClick);
-          window.removeEventListener("resize", schedule);
-          layer.textContent = "";
-        };
-      }, [activeChapterId, screen, notes, visual?.kind, visual?.page, pageView, fontSize, palette, openNoteEditor]);
-      React.useEffect(() => {
-        if (visual?.kind !== "epub" || screen.kind !== "book" || !epubFrameRef.current) return;
-        const result = applyEpubNoteMarks(
-          epubFrameRef.current,
-          notes,
-          screen.content.chapterId,
-          palette,
-          openNoteEditor,
-          pendingEpubNoteRef.current
-        );
-        if (result.jumped) pendingEpubNoteRef.current = null;
-        return result.cleanup;
-      }, [visual?.kind, visual?.href, notes, palette, epubReady, epubJumpToken, openNoteEditor, screen]);
+      const {
+        notes,
+        notesLoading,
+        notesError,
+        noteDeletingId,
+        noteEditor,
+        noteDraft,
+        setNoteDraft,
+        noteSaving,
+        noteError,
+        noteInputRef,
+        noteLayerRef,
+        openNote,
+        deleteNote,
+        closeNoteEditor,
+        openNoteEditor,
+        saveNote
+      } = useNotes({
+        call,
+        t,
+        screen,
+        activeBookId,
+        activeChapterId,
+        visual,
+        pageView,
+        palette,
+        fontSize,
+        contentRef,
+        epubFrameRef,
+        epubReady,
+        selection,
+        setSelection,
+        selectChapter
+      });
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: "library" });
         setSelection(null);
@@ -2051,255 +2540,28 @@ ${question}`);
         });
       }, []);
       const openSetup = React.useCallback(() => setScreen({ kind: "setup" }), []);
-      const disposeChat = React.useCallback(() => {
-        const current = chatRef.current;
-        chatRef.current = null;
-        if (!current) return;
-        try {
-          current.unsubscribe();
-        } catch {
-        }
-        try {
-          current.reference.release();
-        } catch {
-        }
-      }, []);
-      const releaseChat = React.useCallback(() => {
-        disposeChat();
-        setChatBinding(null);
-        setEntries([]);
-        setHasMore(false);
-      }, [disposeChat]);
-      const bindSession = React.useCallback((sessionId) => {
-        if (!sessionId) {
-          releaseChat();
-          return null;
-        }
-        if (chatRef.current?.sessionId === sessionId) return chatRef.current.reference;
-        releaseChat();
-        setChatError("");
-        let reference;
-        try {
-          reference = runtime.sessions.retain(sessionId, { source: "controllerOperation" });
-        } catch (error2) {
-          setChatError(`${t("loadFailed")}：${messageOf(error2)}`);
-          return null;
-        }
-        const source = reference.binding.eventSource;
-        const update = () => {
-          const value = source.getSnapshot();
-          setEntries(value.entries);
-          setHasMore(value.hasMore);
-        };
-        update();
-        const unsubscribe = source.subscribe(update);
-        const record = { sessionId, reference, unsubscribe };
-        chatRef.current = record;
-        setChatBinding(record);
-        reference.ready.catch((error2) => {
-          if (chatRef.current === record) {
-            setChatError(`${t("loadFailed")}：${messageOf(error2)}`);
-          }
-        });
-        return reference;
-      }, [releaseChat, t]);
-      React.useEffect(() => {
-        if (!activeSessionId) {
-          releaseChat();
-          return;
-        }
-        bindSession(activeSessionId);
-      }, [activeSessionId, bindSession, releaseChat]);
-      React.useEffect(() => () => disposeChat(), [disposeChat]);
-      const lastEntrySeq = entries.length > 0 ? entries[entries.length - 1]?.event?.seq ?? null : null;
-      React.useEffect(() => {
-        const element = chatBodyRef.current;
-        if (element) element.scrollTop = element.scrollHeight;
-      }, [lastEntrySeq, sending, chatBinding, chatOpen, chatTab]);
-      const sessionSnapshot = React.useSyncExternalStore(
-        React.useCallback((callback) => {
-          const reference = chatBinding?.reference;
-          return reference ? reference.binding.session.subscribe(callback) : () => {
-          };
-        }, [chatBinding]),
-        React.useCallback(() => chatBinding?.reference?.binding.session.getSnapshot() ?? null, [chatBinding])
-      );
-      const running = Boolean(sessionSnapshot?.running);
-      const messages = React.useMemo(() => foldTranscript(entries).slice(-50), [entries]);
-      const send = React.useCallback(async () => {
-        const text = draft.trim();
-        if (!text || sending || screen.kind !== "book") return;
-        if (!workspaceId) {
-          setChatError(t("chatDisabled"));
-          return;
-        }
-        const book = screen.detail.book;
-        setChatError("");
-        setSending(true);
-        const createSession = async () => {
-          let sessionId;
-          if (typeof runtime.sessions.create === "function") {
-            try {
-              sessionId = await runtime.sessions.create({ workspaceId });
-            } catch {
-              sessionId = void 0;
-            }
-          }
-          if (!sessionId) {
-            sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId);
-            runtime.layout.selectPanel("dsh-reader");
-          }
-          await call("session", { bookId: book.id, sessionId });
-          rememberSession(book.id, sessionId);
-          const reference = bindSession(sessionId);
-          if (!reference) throw new Error(t("loadFailed"));
-          return reference;
-        };
-        try {
-          let reference = chatRef.current?.reference;
-          if (!reference) reference = await createSession();
-          try {
-            await reference.ready;
-          } catch {
-            await call("session", { bookId: book.id, sessionId: null }).catch(() => {
-            });
-            releaseChat();
-            reference = await createSession();
-            await reference.ready;
-          }
-          const result = await reference.binding.session.prompt([{ type: "text", text }], "queue");
-          if (result && result.ok === false) {
-            throw new Error(result.error?.message ?? t("sendFailed"));
-          }
-          setDraft("");
-        } catch (error2) {
-          setChatError(`${t("sendFailed")}：${messageOf(error2)}`);
-        } finally {
-          setSending(false);
-        }
-      }, [draft, sending, screen, workspaceId, rememberSession, bindSession, releaseChat, t]);
-      const loadEarlier = React.useCallback(async () => {
-        const reference = chatRef.current?.reference;
-        if (!reference || loadingEarlier) return;
-        setLoadingEarlier(true);
-        setChatError("");
-        try {
-          await reference.binding.session.loadOlder();
-        } catch (error2) {
-          setChatError(`${t("loadFailed")}：${messageOf(error2)}`);
-        } finally {
-          setLoadingEarlier(false);
-        }
-      }, [loadingEarlier, t]);
-      React.useEffect(() => {
-        const onResize = () => {
-          if (window.innerWidth > 1100) {
-            setChatWidth((current) => clampChatWidth(current, window.innerWidth));
-          }
-        };
-        window.addEventListener("resize", onResize);
-        return () => window.removeEventListener("resize", onResize);
-      }, []);
-      const startResize = React.useCallback((event) => {
-        if (event.button !== 0) return;
-        event.preventDefault();
-        try {
-          event.currentTarget.setPointerCapture(event.pointerId);
-        } catch {
-        }
-        dragRef.current = { startX: event.clientX, startWidth: chatWidth };
-      }, [chatWidth]);
-      const moveResize = React.useCallback((event) => {
-        const drag = dragRef.current;
-        if (!drag) return;
-        const next = clampChatWidth(drag.startWidth - (event.clientX - drag.startX), window.innerWidth);
-        setChatWidth(next);
-      }, []);
-      const endResize = React.useCallback((event) => {
-        if (!dragRef.current) return;
-        dragRef.current = null;
-        try {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        } catch {
-        }
-        saveChatWidth(chatWidthRef.current);
-      }, []);
-      const resetResize = React.useCallback(() => {
-        setChatWidth(CHAT_WIDTH_DEFAULT);
-        saveChatWidth(CHAT_WIDTH_DEFAULT);
-      }, []);
-      const resizeKeyDown = React.useCallback((event) => {
-        if (event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-        event.preventDefault();
-        const delta = event.key === "ArrowLeft" ? 24 : -24;
-        const next = clampChatWidth(chatWidthRef.current + delta, window.innerWidth);
-        setChatWidth(next);
-        saveChatWidth(next);
-      }, []);
       const headerTitle = screen.kind === "book" ? screen.detail.book.title : screen.kind === "unsupported" ? screen.book.title : screen.kind === "setup" ? t("setupTitle") : snapshot?.settings.libraryDir ? t("library") : t("setupTitle");
       const headerSubtitle = screen.kind === "book" ? screen.content.title : snapshot?.settings.libraryDir ?? "";
-      const chatBody = h(
-        "div",
-        { className: "dsh-reader-chat-body", ref: chatBodyRef },
-        hasMore ? h("button", {
-          type: "button",
-          className: "dsh-reader-chat-more",
-          disabled: loadingEarlier,
-          onClick: () => void loadEarlier()
-        }, loadingEarlier ? t("loading") : t("loadEarlier")) : null,
-        messages.length === 0 ? h(
-          "div",
-          { className: "dsh-reader-chat-empty" },
-          workspaceId ? t("chatEmpty") : t("chatDisabled")
-        ) : messages.map((message) => h(
-          "div",
-          {
-            key: message.key,
-            className: "dsh-reader-msg",
-            "data-role": message.role
-          },
-          h(
-            "div",
-            { className: "dsh-reader-msg-role" },
-            message.role === "user" ? t("you") : t("assistant")
-          ),
-          message.role === "assistant" ? h(MarkdownMessage, { text: message.text, prefix: message.key }) : h("div", { className: "dsh-reader-msg-text" }, message.text)
-        )),
-        sending || running ? h(
-          "div",
-          { className: "dsh-reader-chat-thinking" },
-          sending ? t("sending") : t("thinking")
-        ) : null
-      );
-      const chatCompose = h(
-        "div",
-        { className: "dsh-reader-chat-compose" },
-        h("textarea", {
-          ref: chatInputRef,
-          value: draft,
-          rows: 3,
-          placeholder: workspaceId ? t("chatPlaceholder") : t("chatDisabled"),
-          disabled: !workspaceId,
-          onChange: (event) => setDraft(event.target.value),
-          onKeyDown: (event) => {
-            if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              void send();
-            }
-          }
-        }),
-        h(
-          "div",
-          { className: "dsh-reader-chat-compose-row" },
-          h("span", { className: "dsh-reader-chat-hint" }, workspaceId ? "Enter / Shift+Enter" : ""),
-          h("button", {
-            type: "button",
-            className: "dsh-reader-chat-send",
-            disabled: !draft.trim() || sending || !workspaceId,
-            onClick: () => void send()
-          }, sending ? t("sending") : t("send"))
-        )
-      );
+      const chatBody = h(ChatBody, {
+        t,
+        workspaceId,
+        hasMore,
+        loadingEarlier,
+        loadEarlier,
+        messages,
+        sending,
+        running,
+        chatBodyRef
+      });
+      const chatCompose = h(ChatCompose, {
+        t,
+        workspaceId,
+        draft,
+        setDraft,
+        sending,
+        send,
+        chatInputRef
+      });
       const notesBody = h(NotesBody, {
         t,
         notesError,
