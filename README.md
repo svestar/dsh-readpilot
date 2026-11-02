@@ -11,7 +11,11 @@ DSH Web GUI 的电子书阅读插件。书库是一个用户指定的本机目�
 
 ## 安装与首次使用
 
-通过 Plugins 页面选择本地目录安装，或使用 `plugin_manager` 的 `install_bundle` 指向本目录。本地目录安装前先在本目录执行一次 `pnpm install`，确保 Host 解析依赖已就位。Host 端依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
+通过 Plugins 页面选择本地目录安装，或使用 `plugin_manager` 的 `install_bundle` 指向本目录。本地目录安装前先在本目录执行 `pnpm install`，再执行 `pnpm run build:client` 生成 `client.js`。Host 端依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
+
+## 开发
+
+Client 源码在 `src/client/`，`client.js` 由 esbuild 生成，不要手工修改。改动 Client 后运行 `pnpm run build:client`，再刷新页面。
 
 ## 数据
 
