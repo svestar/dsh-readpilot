@@ -1,9 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { bookIdFor, findBookByKey, scanLibrary } from '../src/library.ts'
+import { NOTES_MARKER } from '../src/note-files.ts'
 
 test('scan_lists_books', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-reader-library-'))
@@ -27,4 +28,20 @@ test('book_id_is_stable', () => {
   const second = bookIdFor('E:\\Books\\demo.txt')
   assert.equal(first, second)
   assert.notEqual(first, bookIdFor('E:\\Books\\other.txt'))
+})
+
+test('scan_skips_reader_notes_dir', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-library-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'a.txt'), 'hello', 'utf8')
+  await mkdir(join(root, 'notes'), { recursive: true })
+  await writeFile(join(root, 'notes', 'fake.md'), '# fake', 'utf8')
+
+  const before = await scanLibrary(root)
+  assert.ok(before.some(book => book.title === 'fake'))
+
+  await writeFile(join(root, 'notes', NOTES_MARKER), 'dsh-reader notes\n', 'utf8')
+  const after = await scanLibrary(root)
+  assert.equal(after.some(book => book.title === 'fake'), false)
+  assert.ok(after.some(book => book.title === 'a'))
 })

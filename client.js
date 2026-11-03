@@ -563,6 +563,18 @@ var __dshReaderBundle = (() => {
     noteDeleteFailed: "笔记删除失败",
     delete: "删除",
     jump: "跳转",
+    longNotes: "长笔记",
+    bookNote: "整书笔记",
+    newTopicNote: "新建主题笔记",
+    noteKindTopic: "主题",
+    longNoteTitle: "标题",
+    longNotePreview: "预览",
+    longNoteEmpty: "还没有长笔记。",
+    longNotesHint: "长笔记保存在书库的 notes/ 目录。",
+    longNoteConflict: "笔记已被修改，请重新加载。",
+    longNoteTitleRequired: "请填写标题。",
+    reload: "重新加载",
+    deleteLongNoteConfirm: "确定删除这篇长笔记？",
     pagePrev: "上一页",
     pageNext: "下一页",
     chapterPrev: "上一章",
@@ -679,6 +691,18 @@ var __dshReaderBundle = (() => {
     noteDeleteFailed: "Could not delete the note",
     delete: "Delete",
     jump: "Jump",
+    longNotes: "Long notes",
+    bookNote: "Book note",
+    newTopicNote: "New topic note",
+    noteKindTopic: "Topic",
+    longNoteTitle: "Title",
+    longNotePreview: "Preview",
+    longNoteEmpty: "No long notes yet.",
+    longNotesHint: "Long notes live in the library notes/ directory.",
+    longNoteConflict: "This note changed. Reload it.",
+    longNoteTitleRequired: "Enter a title.",
+    reload: "Reload",
+    deleteLongNoteConfirm: "Delete this long note?",
     pagePrev: "Previous page",
     pageNext: "Next page",
     chapterPrev: "Previous chapter",
@@ -836,6 +860,26 @@ var __dshReaderBundle = (() => {
 .dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
 .dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
 .dsh-reader-notes{flex:1;min-height:0;overflow:auto;padding:10px 12px 16px}
+.dsh-reader-long-notes{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-long-notes-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dsh-reader-long-notes-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
+.dsh-reader-long-notes-actions{display:flex;gap:4px}
+.dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
+.dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
+.dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-reader-long-kind{flex:none;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
+.dsh-reader-long-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.dsh-reader-long-meta{flex:none;color:var(--dsw-alias-label-secondary);font-size:10.5px}
+.dsh-reader-long-hint{padding-top:4px;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.6}
+.dsh-reader-long-editor{display:flex;flex-direction:column;gap:7px}
+.dsh-reader-long-editor-head{display:flex;align-items:center;gap:6px}
+.dsh-reader-long-editor-head input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-reader-long-editor textarea{display:block;width:100%;box-sizing:border-box;min-height:180px;max-height:46vh;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
+.dsh-reader-long-editor-head input:focus,.dsh-reader-long-editor textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px}
+.dsh-reader-long-conflict{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.5}
+.dsh-reader-long-preview summary{cursor:pointer;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.8}
+.dsh-reader-long-preview .dsh-reader-md{max-width:none;margin-top:6px;padding-left:0;border-left:0}
 .dsh-reader-note{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-reader-note:last-child{border-bottom:0}
 .dsh-reader-note-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
@@ -1520,6 +1564,133 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     };
   }
 
+  // src/client/views/long-notes.ts
+  function LongNotes({ t, state }) {
+    const editing = Boolean(state.active || state.creating);
+    const kind = state.active?.note.kind ?? state.createKind;
+    return h(
+      "section",
+      { className: "dsh-reader-long-notes" },
+      h(
+        "div",
+        { className: "dsh-reader-long-notes-head" },
+        h("h4", null, t("longNotes")),
+        editing ? null : h(
+          "div",
+          { className: "dsh-reader-long-notes-actions" },
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            onClick: () => state.start("book")
+          }, t("bookNote")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            onClick: () => state.start("topic")
+          }, t("newTopicNote"))
+        )
+      ),
+      state.error ? h("div", { className: "dsh-reader-chat-error" }, state.error) : null,
+      editing ? h(
+        "div",
+        { className: "dsh-reader-long-editor" },
+        h(
+          "div",
+          { className: "dsh-reader-long-editor-head" },
+          h("input", {
+            value: state.title,
+            placeholder: t("longNoteTitle"),
+            spellCheck: false,
+            onChange: (event) => state.setTitle(event.target.value)
+          }),
+          h(
+            "span",
+            { className: "dsh-reader-long-kind" },
+            kind === "book" ? t("bookNote") : t("noteKindTopic")
+          )
+        ),
+        h("textarea", {
+          value: state.draft,
+          placeholder: t("notePlaceholder"),
+          rows: 10,
+          spellCheck: false,
+          onChange: (event) => state.setDraft(event.target.value),
+          onKeyDown: (event) => {
+            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
+              event.preventDefault();
+              void state.save();
+            }
+          }
+        }),
+        state.conflict ? h(
+          "div",
+          { className: "dsh-reader-long-conflict" },
+          h("span", null, t("longNoteConflict")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            onClick: () => void state.reload()
+          }, t("reload"))
+        ) : null,
+        h(
+          "div",
+          { className: "dsh-reader-long-editor-actions" },
+          h("button", {
+            type: "button",
+            className: "dsh-reader-chat-send",
+            disabled: state.saving || !state.draft.trim(),
+            onClick: () => void state.save()
+          }, state.saving ? t("noteSaving") : t("save")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            onClick: state.cancel
+          }, t("cancel")),
+          state.active ? h("button", {
+            type: "button",
+            className: "dsh-reader-note-delete",
+            disabled: state.saving,
+            onClick: () => void state.remove()
+          }, t("delete")) : null
+        ),
+        h(
+          "details",
+          { className: "dsh-reader-long-preview" },
+          h("summary", null, t("longNotePreview")),
+          h(MarkdownMessage, { text: state.draft, prefix: "long-note" })
+        )
+      ) : state.loading ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : state.notes.length === 0 ? h(
+        "div",
+        { className: "dsh-reader-chat-empty" },
+        h("div", null, t("longNoteEmpty")),
+        h("div", { className: "dsh-reader-long-hint" }, t("longNotesHint"))
+      ) : h(
+        "div",
+        { className: "dsh-reader-long-list" },
+        state.notes.map((note) => h(
+          "button",
+          {
+            key: note.id,
+            type: "button",
+            className: "dsh-reader-long-note",
+            onClick: () => void state.open(note)
+          },
+          h(
+            "span",
+            { className: "dsh-reader-long-kind" },
+            note.kind === "book" ? t("bookNote") : t("noteKindTopic")
+          ),
+          h("span", { className: "dsh-reader-long-title" }, note.title),
+          h(
+            "span",
+            { className: "dsh-reader-long-meta" },
+            `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`
+          )
+        ))
+      )
+    );
+  }
+
   // src/client/views/notes-search.ts
   function chapterTitleOf(screen, chapterId) {
     return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
@@ -1542,13 +1713,15 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, noteDeletingId === item.id ? t("loading") : t("delete"))
     ];
   }
-  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
+  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes }) {
     const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
+    const hasLong = Boolean(longNotes);
     return h(
       "div",
       { className: "dsh-reader-notes" },
+      longNotes ? h(LongNotes, { t, state: longNotes }) : null,
       notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-      notesLoading && !hasMarks ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
+      notesLoading && !hasMarks && !hasLong ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks && !hasLong ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
         highlights.length > 0 ? h(
           "section",
           { key: "highlights", className: "dsh-reader-mark-section" },
@@ -2046,7 +2219,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             "data-active": chatTab === "notes" ? "true" : "false",
             "aria-selected": chatTab === "notes",
             onClick: () => setChatTab("notes")
-          }, t("marks"))
+          }, t("notes"))
         ),
         h("button", {
           type: "button",
@@ -3299,6 +3472,197 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
+  // src/client/hooks/use-long-notes.ts
+  function useLongNotes({ call, t, activeBookId }) {
+    const [notes, setNotes] = React.useState([]);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState("");
+    const [active, setActive] = React.useState(null);
+    const [draft, setDraft] = React.useState("");
+    const [title, setTitle] = React.useState("");
+    const [creating, setCreating] = React.useState(false);
+    const [createKind, setCreateKind] = React.useState("topic");
+    const [saving, setSaving] = React.useState(false);
+    const [conflict, setConflict] = React.useState(false);
+    const requestRef = React.useRef(0);
+    const readRef = React.useRef(0);
+    const bookRef = React.useRef(activeBookId);
+    bookRef.current = activeBookId;
+    const load = React.useCallback(async () => {
+      if (!activeBookId) {
+        setNotes([]);
+        return;
+      }
+      const request = requestRef.current + 1;
+      requestRef.current = request;
+      setLoading(true);
+      setError("");
+      try {
+        const value = await call("noteFiles", { action: "list", bookId: activeBookId });
+        if (requestRef.current !== request) return;
+        setNotes(value.notes.slice());
+      } catch (cause) {
+        if (requestRef.current === request) setError(`${t("notesFailed")}：${messageOf(cause)}`);
+      } finally {
+        if (requestRef.current === request) setLoading(false);
+      }
+    }, [activeBookId, call, t]);
+    React.useEffect(() => {
+      requestRef.current += 1;
+      readRef.current += 1;
+      setNotes([]);
+      setLoading(false);
+      setError("");
+      setActive(null);
+      setDraft("");
+      setTitle("");
+      setCreating(false);
+      setSaving(false);
+      setConflict(false);
+      void load();
+    }, [activeBookId, load]);
+    const open = React.useCallback(async (note) => {
+      if (!activeBookId) return;
+      const bookId = activeBookId;
+      const request = readRef.current + 1;
+      readRef.current = request;
+      setError("");
+      setConflict(false);
+      try {
+        const value = await call("noteFiles", { action: "read", bookId, id: note.id });
+        if (readRef.current !== request || bookRef.current !== bookId) return;
+        setActive({ note: value.note, body: value.body, hash: value.hash });
+        setDraft(value.body);
+        setTitle(value.note.title);
+        setCreating(false);
+      } catch (cause) {
+        if (readRef.current === request && bookRef.current === bookId) {
+          setError(`${t("notesFailed")}：${messageOf(cause)}`);
+        }
+      }
+    }, [activeBookId, call, t]);
+    const start = React.useCallback((kind) => {
+      if (kind === "book") {
+        const existing = notes.find((note) => note.kind === "book");
+        if (existing) {
+          void open(existing);
+          return;
+        }
+      }
+      readRef.current += 1;
+      setActive(null);
+      setCreating(true);
+      setCreateKind(kind);
+      setConflict(false);
+      setError("");
+      setTitle(kind === "book" ? t("bookNote") : "");
+      setDraft("");
+    }, [notes, open, t]);
+    const save = React.useCallback(async () => {
+      if (!activeBookId || saving) return;
+      const bookId = activeBookId;
+      const wantedTitle = title.trim();
+      if (!wantedTitle) {
+        setError(t("longNoteTitleRequired"));
+        return;
+      }
+      setSaving(true);
+      setError("");
+      setConflict(false);
+      try {
+        if (creating) {
+          const value = await call("noteFiles", {
+            action: "create",
+            bookId,
+            title: wantedTitle,
+            kind: createKind,
+            body: draft
+          });
+          if (bookRef.current !== bookId) return;
+          setActive({ note: value.note, body: value.body, hash: value.hash });
+          setDraft(value.body);
+          setTitle(value.note.title);
+          setCreating(false);
+        } else if (active) {
+          const value = await call("noteFiles", {
+            action: "write",
+            bookId,
+            id: active.note.id,
+            title: wantedTitle,
+            body: draft,
+            baseHash: active.hash
+          });
+          if (bookRef.current !== bookId) return;
+          setActive({ note: value.note, body: value.body, hash: value.hash });
+          setDraft(value.body);
+          setTitle(value.note.title);
+        }
+        await load();
+      } catch (cause) {
+        if (bookRef.current !== bookId) return;
+        if (cause?.code === "note-conflict") setConflict(true);
+        else setError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
+      } finally {
+        setSaving(false);
+      }
+    }, [active, activeBookId, call, createKind, creating, draft, load, saving, t, title]);
+    const cancel = React.useCallback(() => {
+      readRef.current += 1;
+      setActive(null);
+      setCreating(false);
+      setDraft("");
+      setTitle("");
+      setError("");
+      setConflict(false);
+    }, []);
+    const remove = React.useCallback(async () => {
+      if (!activeBookId || !active) return;
+      const bookId = activeBookId;
+      if (typeof window !== "undefined" && typeof window.confirm === "function" && !window.confirm(t("deleteLongNoteConfirm"))) return;
+      setSaving(true);
+      setError("");
+      try {
+        await call("noteFiles", { action: "remove", bookId, id: active.note.id });
+        if (bookRef.current !== bookId) return;
+        setActive(null);
+        setDraft("");
+        setTitle("");
+        setCreating(false);
+        await load();
+      } catch (cause) {
+        if (bookRef.current === bookId) {
+          setError(`${t("noteDeleteFailed")}：${messageOf(cause)}`);
+        }
+      } finally {
+        setSaving(false);
+      }
+    }, [active, activeBookId, call, load, t]);
+    const reload = React.useCallback(async () => {
+      if (!active) return;
+      await open(active.note);
+    }, [active, open]);
+    return {
+      notes,
+      loading,
+      error,
+      active,
+      draft,
+      title,
+      creating,
+      saving,
+      conflict,
+      createKind,
+      setDraft,
+      setTitle,
+      open,
+      start,
+      save,
+      cancel,
+      remove,
+      reload
+    };
+  }
+
   // src/client/hooks/use-text-pager.ts
   var WHEEL_THRESHOLD = 40;
   function useTextPager({ enabled, layout, screen, fontSize, selectChapter }) {
@@ -3953,7 +4317,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         throw new Error(`阅读器服务返回了无效响应（HTTP ${response.status}）`);
       }
       if (!result || result.ok !== true) {
-        throw new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`);
+        const error = new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`);
+        error.code = result?.error?.code;
+        throw error;
       }
       return result.value;
     });
@@ -4055,6 +4421,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }).catch(() => {
         });
       }, [activeSessionId, screen, call]);
+      const longNotes = useLongNotes({ call, t, activeBookId });
       const visualFor = React.useCallback((detail, item) => {
         if (!detail || !item) return null;
         if (detail.book.format === "pdf") {
@@ -4410,7 +4777,8 @@ ${question}`;
         screen,
         openNote,
         noteDeletingId,
-        deleteNote
+        deleteNote,
+        longNotes
       });
       const searchPanel = h(SearchPanel, {
         t,

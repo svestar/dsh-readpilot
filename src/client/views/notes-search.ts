@@ -1,6 +1,8 @@
 import { h } from '../runtime.ts'
 import { bookmarkContext } from '../bookmark-label.ts'
+import { LongNotes } from './long-notes.ts'
 import type { StateSetter } from '../runtime.ts'
+import type { LongNotesState } from '../hooks/use-long-notes.ts'
 import type {
   MutableRef,
   Note,
@@ -55,15 +57,18 @@ interface NotesBodyProps {
   openNote: (note: Note) => void
   noteDeletingId: string | null
   deleteNote: (note: NoteRef) => Promise<void> | void
+  longNotes?: LongNotesState
 }
 
-export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
+export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes }: NotesBodyProps) {
   const hasMarks = notes.length + highlights.length + bookmarks.length > 0
+  const hasLong = Boolean(longNotes)
   return h('div', { className: 'dsh-reader-notes' },
+    longNotes ? h(LongNotes, { t, state: longNotes }) : null,
     notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
-    notesLoading && !hasMarks
+    notesLoading && !hasMarks && !hasLong
       ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))
-      : !hasMarks
+      : !hasMarks && !hasLong
         ? notesError ? null : h('div', { className: 'dsh-reader-chat-empty' }, t('noteEmpty'))
         : [
           highlights.length > 0

@@ -10,6 +10,7 @@ import type {
   TocItem as ApiTocItem,
 } from '../api.ts'
 import type { NoteRecord } from '../notes.ts'
+import type { NoteFileRecord } from '../note-files.ts'
 
 export type { CallRpc } from '../rpc.ts'
 
@@ -57,6 +58,7 @@ export interface VisualEpub {
 export type Visual = VisualPdf | VisualEpub
 
 export type Note = NoteRecord
+export type LongNote = NoteFileRecord
 
 export interface NoteEditor {
   noteId?: string

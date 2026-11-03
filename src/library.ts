@@ -1,8 +1,9 @@
 import { createHash } from 'node:crypto'
-import { readdir, stat } from 'node:fs/promises'
+import { access, readdir, stat } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import type { BookFormat } from './formats.ts'
 import { formatOf, isSupportedFormat } from './formats.ts'
+import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
 
 export const MAX_LIBRARY_FILES = 2000
 
@@ -54,6 +55,14 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
       if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'AGENTS.md') continue
       const full = join(directory, entry.name)
       if (entry.isDirectory()) {
+        if (entry.name === NOTES_DIR_NAME) {
+          try {
+            await access(join(full, NOTES_MARKER))
+            continue
+          } catch {
+            // A plain directory named notes is still a possible book folder.
+          }
+        }
         if (depth < maxDepth) await walk(full, depth + 1)
         continue
       }

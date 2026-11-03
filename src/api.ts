@@ -8,6 +8,8 @@ import type { LibraryMeta, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
 import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
+import type { NoteFileStore } from './note-files.ts'
+import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
 import {
   loadBookCache,
@@ -172,6 +174,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const libraryMetaStore = createLibraryMetaStore(dataDir)
   const readOnlySessions = new Set<string>()
   const companionContexts = new Map<string, { text: string; updatedAt: number }>()
+  let noteFileStore: NoteFileStore | null = null
+  let noteFileRoot: string | null = null
   let pdfRendererPromise: Promise<PdfRenderer> | undefined
   let epubVisualPromise: Promise<EpubVisual> | undefined
 
@@ -687,6 +691,37 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
   }
 
+  async function handleNoteFiles(payload: any = {}): Promise<any> {
+    const book = await resolveBook(payload.bookId)
+    const settings = await currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const root = join(settings.libraryDir, NOTES_DIR_NAME)
+    if (!noteFileStore || noteFileRoot !== root) {
+      noteFileStore = createNoteFileStore(root)
+      noteFileRoot = root
+    }
+    const store = noteFileStore as NoteFileStore
+    try {
+      if (payload.action === 'list') return { notes: await store.list(book) }
+      if (payload.action === 'read') return await store.read(book, String(payload.id ?? ''))
+      if (payload.action === 'create') {
+        return await store.create(book, { title: payload.title, kind: payload.kind, body: payload.body })
+      }
+      if (payload.action === 'write') {
+        return await store.write(book, String(payload.id ?? ''), {
+          title: payload.title,
+          body: payload.body,
+          baseHash: payload.baseHash,
+        })
+      }
+      if (payload.action === 'remove') return { deleted: await store.remove(book, String(payload.id ?? '')) }
+      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
+    } catch (error) {
+      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
+      throw error
+    }
+  }
+
   async function pageView({ bookId, page, scale }: any = {}): Promise<PageViewResult> {
     const book = await resolveBook(bookId)
     if (book.format !== 'pdf') throw new ReaderError('not-pdf', '只有 PDF 支持页面渲染')
@@ -753,6 +788,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       companionContext: setCompanionContext,
       search,
       notes: handleNotes,
+      noteFiles: handleNoteFiles,
       pageView,
       libraryMeta,
       setBookTags,

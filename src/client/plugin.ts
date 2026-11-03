@@ -33,6 +33,7 @@ import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
+import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
@@ -80,14 +81,16 @@ export function createPlugin(require: (name: string) => any) {
       } catch (error) {
         throw new Error(`无法连接阅读器服务：${messageOf(error)}`)
       }
-      let result: { ok?: boolean; value?: unknown; error?: { message?: string } }
+      let result: { ok?: boolean; value?: unknown; error?: { code?: string; message?: string } }
       try {
         result = await response.json()
       } catch {
         throw new Error(`阅读器服务返回了无效响应（HTTP ${response.status}）`)
       }
       if (!result || result.ok !== true) {
-        throw new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`)
+        const error = new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`) as Error & { code?: string }
+        error.code = result?.error?.code
+        throw error
       }
       return result.value
     }) as CallRpc
@@ -205,6 +208,8 @@ export function createPlugin(require: (name: string) => any) {
           chapter: screen.content.title,
         }).catch(() => {})
       }, [activeSessionId, screen, call])
+
+      const longNotes = useLongNotes({ call, t, activeBookId })
 
       const visualFor = React.useCallback((detail: BookDetail, item: TocItem | undefined): Visual | null => {
         if (!detail || !item) return null
@@ -600,6 +605,7 @@ export function createPlugin(require: (name: string) => any) {
         openNote,
         noteDeletingId,
         deleteNote,
+        longNotes,
       })
 
       const searchPanel = h(SearchPanel, {

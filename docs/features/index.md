@@ -23,3 +23,4 @@
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.ts` | `tests/prompt.test.ts` | active |
 | `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
 | `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts` | active |
+| `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts` | active |

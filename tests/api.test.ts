@@ -164,6 +164,47 @@ test('companion_policy_sets_read_only_once', async t => {
   assert.equal(missing.mode, null)
 })
 
+test('note_files_rpc_roundtrip', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  const created = await api.handleRpc('noteFiles', { action: 'create', bookId, title: '权力', body: '# 权力' })
+  assert.equal(created.ok, true)
+  const id = created.value.note.id
+
+  const listed = await api.handleRpc('noteFiles', { action: 'list', bookId })
+  assert.equal(listed.value.notes.length, 1)
+
+  const read = await api.handleRpc('noteFiles', { action: 'read', bookId, id })
+  assert.match(read.value.body, /权力/)
+
+  const written = await api.handleRpc('noteFiles', {
+    action: 'write',
+    bookId,
+    id,
+    title: '权力结构',
+    body: '更新',
+    baseHash: read.value.hash,
+  })
+  assert.equal(written.ok, true)
+  assert.match(written.value.body, /更新/)
+
+  const conflict = await api.handleRpc('noteFiles', {
+    action: 'write',
+    bookId,
+    id,
+    body: '冲突',
+    baseHash: read.value.hash,
+  })
+  assert.equal(conflict.ok, false)
+  assert.equal(conflict.error?.code, 'note-conflict')
+
+  const removed = await api.handleRpc('noteFiles', { action: 'remove', bookId, id })
+  assert.equal(removed.value.deleted, true)
+})
+
 test('notes_rpc_roundtrip', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
