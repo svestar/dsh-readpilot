@@ -1,15 +1,16 @@
 import { h } from '../runtime.ts'
 import { formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
-import type { TextFn } from '../types.ts'
+import type { NoteContextToggle, TextFn } from '../types.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
 
 interface LongNotesProps {
   t: TextFn
   state: LongNotesState
+  noteContext?: NoteContextToggle
 }
 
-export function LongNotes({ t, state }: LongNotesProps) {
+export function LongNotes({ t, state, noteContext }: LongNotesProps) {
   const editing = Boolean(state.active || state.creating)
   const kind = state.active?.note.kind ?? state.createKind
   return h('section', { className: 'dsh-reader-long-notes' },
@@ -28,6 +29,27 @@ export function LongNotes({ t, state }: LongNotesProps) {
             className: 'dsh-reader-note-jump',
             onClick: () => state.start('topic'),
           }, t('newTopicNote')))),
+    noteContext
+      ? h('button', {
+        type: 'button',
+        className: 'dsh-reader-note-context',
+        'data-on': noteContext.enabled ? 'true' : 'false',
+        disabled: noteContext.busy,
+        title: t('noteContextHint'),
+        onClick: noteContext.toggle,
+      },
+      h('span', {
+        className: 'dsh-reader-note-context-switch',
+        'data-on': noteContext.enabled ? 'true' : 'false',
+      }),
+      h('span', { className: 'dsh-reader-note-context-label' }, t('noteContext')),
+      h('span', { className: 'dsh-reader-note-context-state' },
+        noteContext.enabled ? t('noteContextOn') : t('noteContextOff')),
+      noteContext.enabled && noteContext.characters > 0
+        ? h('span', { className: 'dsh-reader-note-context-chars' },
+          `${noteContext.characters} ${t('noteContextChars')}`)
+        : null)
+      : null,
     state.error ? h('div', { className: 'dsh-reader-chat-error' }, state.error) : null,
     editing
       ? h('div', { className: 'dsh-reader-long-editor' },

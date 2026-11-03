@@ -575,6 +575,12 @@ var __dshReaderBundle = (() => {
     longNoteTitleRequired: "请填写标题。",
     reload: "重新加载",
     deleteLongNoteConfirm: "确定删除这篇长笔记？",
+    noteContext: "让伴读知道本书笔记",
+    noteContextOn: "已开启",
+    noteContextOff: "未开启",
+    noteContextHint: "开启后，本书的长笔记与有批注的划线会进入伴读上下文。",
+    noteContextFailed: "笔记上下文切换失败",
+    noteContextChars: "字",
     pagePrev: "上一页",
     pageNext: "下一页",
     chapterPrev: "上一章",
@@ -703,6 +709,12 @@ var __dshReaderBundle = (() => {
     longNoteTitleRequired: "Enter a title.",
     reload: "Reload",
     deleteLongNoteConfirm: "Delete this long note?",
+    noteContext: "Let the companion read this book's notes",
+    noteContextOn: "On",
+    noteContextOff: "Off",
+    noteContextHint: "When on, this book's long notes and annotated highlights enter the companion context.",
+    noteContextFailed: "Could not change the notes context",
+    noteContextChars: "chars",
     pagePrev: "Previous page",
     pageNext: "Next page",
     chapterPrev: "Previous chapter",
@@ -864,6 +876,16 @@ var __dshReaderBundle = (() => {
 .dsh-reader-long-notes-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .dsh-reader-long-notes-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
 .dsh-reader-long-notes-actions{display:flex;gap:4px}
+.dsh-reader-note-context{display:flex;align-items:center;gap:7px;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.dsh-reader-note-context[data-on="true"]{border-color:var(--dsw-alias-brand-primary)}
+.dsh-reader-note-context:disabled{opacity:.6;cursor:default}
+.dsh-reader-note-context-switch{position:relative;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);transition:background .15s}
+.dsh-reader-note-context-switch::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-label-secondary);transition:transform .15s}
+.dsh-reader-note-context-switch[data-on="true"]{background:var(--dsw-alias-brand-primary)}
+.dsh-reader-note-context-switch[data-on="true"]::after{transform:translateX(11px);background:#fff}
+.dsh-reader-note-context-label{flex:1;min-width:0}
+.dsh-reader-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -1565,7 +1587,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }
 
   // src/client/views/long-notes.ts
-  function LongNotes({ t, state }) {
+  function LongNotes({ t, state, noteContext }) {
     const editing = Boolean(state.active || state.creating);
     const kind = state.active?.note.kind ?? state.createKind;
     return h(
@@ -1590,6 +1612,32 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           }, t("newTopicNote"))
         )
       ),
+      noteContext ? h(
+        "button",
+        {
+          type: "button",
+          className: "dsh-reader-note-context",
+          "data-on": noteContext.enabled ? "true" : "false",
+          disabled: noteContext.busy,
+          title: t("noteContextHint"),
+          onClick: noteContext.toggle
+        },
+        h("span", {
+          className: "dsh-reader-note-context-switch",
+          "data-on": noteContext.enabled ? "true" : "false"
+        }),
+        h("span", { className: "dsh-reader-note-context-label" }, t("noteContext")),
+        h(
+          "span",
+          { className: "dsh-reader-note-context-state" },
+          noteContext.enabled ? t("noteContextOn") : t("noteContextOff")
+        ),
+        noteContext.enabled && noteContext.characters > 0 ? h(
+          "span",
+          { className: "dsh-reader-note-context-chars" },
+          `${noteContext.characters} ${t("noteContextChars")}`
+        ) : null
+      ) : null,
       state.error ? h("div", { className: "dsh-reader-chat-error" }, state.error) : null,
       editing ? h(
         "div",
@@ -1713,13 +1761,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, noteDeletingId === item.id ? t("loading") : t("delete"))
     ];
   }
-  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes }) {
+  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext }) {
     const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
     const hasLong = Boolean(longNotes);
     return h(
       "div",
       { className: "dsh-reader-notes" },
-      longNotes ? h(LongNotes, { t, state: longNotes }) : null,
+      longNotes ? h(LongNotes, { t, state: longNotes, noteContext }) : null,
       notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
       notesLoading && !hasMarks && !hasLong ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks && !hasLong ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
         highlights.length > 0 ? h(
@@ -4422,6 +4470,39 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         });
       }, [activeSessionId, screen, call]);
       const longNotes = useLongNotes({ call, t, activeBookId });
+      const [noteContextBusy, setNoteContextBusy] = React.useState(false);
+      const [noteContextCharacters, setNoteContextCharacters] = React.useState(0);
+      const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId]);
+      const toggleNoteContext = React.useCallback(async () => {
+        if (!activeBookId) return;
+        const bookId = activeBookId;
+        setNoteContextBusy(true);
+        setError("");
+        try {
+          const result = await call("setNoteContext", { bookId, enabled: !noteContextEnabled });
+          setSnapshot((previous) => {
+            if (!previous) return previous;
+            const notes2 = { ...previous.companion?.notes ?? {} };
+            if (result.enabled) notes2[bookId] = true;
+            else delete notes2[bookId];
+            return { ...previous, companion: { notes: notes2 } };
+          });
+          setNoteContextCharacters(result.characters);
+        } catch (cause) {
+          setError(`${t("noteContextFailed")}：${messageOf(cause)}`);
+        } finally {
+          setNoteContextBusy(false);
+        }
+      }, [activeBookId, call, noteContextEnabled, t]);
+      React.useEffect(() => {
+        setNoteContextCharacters(0);
+      }, [activeBookId]);
+      const noteContext = {
+        enabled: noteContextEnabled,
+        busy: noteContextBusy,
+        characters: noteContextCharacters,
+        toggle: toggleNoteContext
+      };
       const visualFor = React.useCallback((detail, item) => {
         if (!detail || !item) return null;
         if (detail.book.format === "pdf") {
@@ -4778,7 +4859,8 @@ ${question}`;
         openNote,
         noteDeletingId,
         deleteNote,
-        longNotes
+        longNotes,
+        noteContext
       });
       const searchPanel = h(SearchPanel, {
         t,

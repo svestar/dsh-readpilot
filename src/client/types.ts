@@ -60,6 +60,13 @@ export type Visual = VisualPdf | VisualEpub
 export type Note = NoteRecord
 export type LongNote = NoteFileRecord
 
+export interface NoteContextToggle {
+  enabled: boolean
+  busy: boolean
+  characters: number
+  toggle: () => void
+}
+
 export interface NoteEditor {
   noteId?: string
   kind: string

@@ -6,6 +6,7 @@ import type { LongNotesState } from '../hooks/use-long-notes.ts'
 import type {
   MutableRef,
   Note,
+  NoteContextToggle,
   NoteRef,
   Screen,
   SearchMatch,
@@ -58,13 +59,14 @@ interface NotesBodyProps {
   noteDeletingId: string | null
   deleteNote: (note: NoteRef) => Promise<void> | void
   longNotes?: LongNotesState
+  noteContext?: NoteContextToggle
 }
 
-export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes }: NotesBodyProps) {
+export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext }: NotesBodyProps) {
   const hasMarks = notes.length + highlights.length + bookmarks.length > 0
   const hasLong = Boolean(longNotes)
   return h('div', { className: 'dsh-reader-notes' },
-    longNotes ? h(LongNotes, { t, state: longNotes }) : null,
+    longNotes ? h(LongNotes, { t, state: longNotes, noteContext }) : null,
     notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
     notesLoading && !hasMarks && !hasLong
       ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))

@@ -205,6 +205,36 @@ test('note_files_rpc_roundtrip', async t => {
   assert.equal(removed.value.deleted, true)
 })
 
+test('note_context_toggle_and_injection', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  const created = await api.handleRpc('noteFiles', {
+    action: 'create',
+    bookId,
+    title: '权力',
+    body: '黑暗森林',
+  })
+  assert.equal(created.ok, true)
+
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: '第一章' })
+  const enabled = await api.handleRpc('setNoteContext', { bookId, enabled: true })
+  assert.equal(enabled.ok, true)
+  assert.equal(enabled.value.enabled, true)
+  assert.ok(enabled.value.characters > 0)
+  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  assert.equal(api.notesContextFor('s2'), '')
+  assert.equal((await api.state()).companion.notes[bookId], true)
+
+  const disabled = await api.handleRpc('setNoteContext', { bookId, enabled: false })
+  assert.equal(disabled.ok, true)
+  assert.equal(disabled.value.characters, 0)
+  assert.equal(api.notesContextFor('s1'), '')
+  assert.equal((await api.state()).companion.notes[bookId], undefined)
+})
+
 test('notes_rpc_roundtrip', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

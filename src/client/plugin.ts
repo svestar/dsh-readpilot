@@ -211,6 +211,42 @@ export function createPlugin(require: (name: string) => any) {
 
       const longNotes = useLongNotes({ call, t, activeBookId })
 
+      const [noteContextBusy, setNoteContextBusy] = React.useState(false)
+      const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
+      const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId])
+      const toggleNoteContext = React.useCallback(async () => {
+        if (!activeBookId) return
+        const bookId = activeBookId
+        setNoteContextBusy(true)
+        setError('')
+        try {
+          const result = await call('setNoteContext', { bookId, enabled: !noteContextEnabled })
+          setSnapshot(previous => {
+            if (!previous) return previous
+            const notes = { ...(previous.companion?.notes ?? {}) }
+            if (result.enabled) notes[bookId] = true
+            else delete notes[bookId]
+            return { ...previous, companion: { notes } }
+          })
+          setNoteContextCharacters(result.characters)
+        } catch (cause) {
+          setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
+        } finally {
+          setNoteContextBusy(false)
+        }
+      }, [activeBookId, call, noteContextEnabled, t])
+
+      React.useEffect(() => {
+        setNoteContextCharacters(0)
+      }, [activeBookId])
+
+      const noteContext = {
+        enabled: noteContextEnabled,
+        busy: noteContextBusy,
+        characters: noteContextCharacters,
+        toggle: toggleNoteContext,
+      }
+
       const visualFor = React.useCallback((detail: BookDetail, item: TocItem | undefined): Visual | null => {
         if (!detail || !item) return null
         if (detail.book.format === 'pdf') {
@@ -606,6 +642,7 @@ export function createPlugin(require: (name: string) => any) {
         noteDeletingId,
         deleteNote,
         longNotes,
+        noteContext,
       })
 
       const searchPanel = h(SearchPanel, {

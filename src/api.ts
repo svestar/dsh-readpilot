@@ -10,6 +10,10 @@ import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
 import type { NoteFileStore } from './note-files.ts'
 import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
+import type { CompanionSettings } from './companion-settings.ts'
+import { loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
+import { buildReadingNotes } from './notes-context.ts'
+import type { ReadingHighlight, ReadingNote } from './notes-context.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
 import {
   loadBookCache,
@@ -71,6 +75,7 @@ export interface ReaderState {
   progress: ProgressMap
   sessions: SessionMap
   tags: TagMap
+  companion: CompanionSettings
 }
 
 export interface OpenBook extends Book {
@@ -138,6 +143,8 @@ export interface ReaderApi {
   setCompanionPolicy(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; mode: string | null; applied: boolean }>
   setCompanionContext(payload?: any): Promise<{ sessionId: string; characters: number }>
   companionContextOf(sessionId: unknown): string
+  setNoteContext(payload?: any): Promise<{ bookId: string; enabled: boolean; characters: number }>
+  notesContextFor(sessionId: unknown): string
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
   setBookTags(payload?: { bookId?: unknown; tags?: unknown }): Promise<{ bookId: string; tags: string[] }>
@@ -174,6 +181,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const libraryMetaStore = createLibraryMetaStore(dataDir)
   const readOnlySessions = new Set<string>()
   const companionContexts = new Map<string, { text: string; updatedAt: number }>()
+  const companionReadings = new Map<string, { bookId: string; title: string; chapter: string; updatedAt: number }>()
+  const notesContextCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
+  let companionSettings: CompanionSettings = { notes: {} }
   let noteFileStore: NoteFileStore | null = null
   let noteFileRoot: string | null = null
   let pdfRendererPromise: Promise<PdfRenderer> | undefined
@@ -225,18 +235,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   async function state(): Promise<ReaderState> {
     const settings = await currentSettings()
     await syncWorkspacePrompt(settings)
-    const [books, progress, sessions, meta] = await Promise.all([
+    const [books, progress, sessions, meta, companion] = await Promise.all([
       libraryBooks(),
       loadProgress(dataDir),
       loadSessions(dataDir),
       libraryMetaStore.list(),
+      loadCompanionSettings(dataDir),
     ])
+    companionSettings = companion
     return {
       settings,
       books: books.map(book => ({ ...book, progress: progress[book.id] ?? null })),
       progress,
       sessions,
       tags: meta.tags,
+      companion,
     }
   }
 
@@ -459,6 +472,20 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         .sort((left, right) => left[1].updatedAt - right[1].updatedAt)
       for (const [id] of oldest.slice(0, companionContexts.size - 200)) companionContexts.delete(id)
     }
+    if (book) {
+      companionReadings.set(sessionId, {
+        bookId: book,
+        title: bookTitle,
+        chapter: chapterTitle,
+        updatedAt: Date.now(),
+      })
+      if (companionReadings.size > 200) {
+        const oldest = [...companionReadings.entries()]
+          .sort((left, right) => left[1].updatedAt - right[1].updatedAt)
+        for (const [id] of oldest.slice(0, companionReadings.size - 200)) companionReadings.delete(id)
+      }
+      if (companionSettings.notes[book]) void rebuildNotesContext(book)
+    }
     return { sessionId, characters: text.length }
   }
 
@@ -658,6 +685,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   async function handleNotes(payload: any = {}): Promise<any> {
     const book = await resolveBook(payload.bookId)
+    const refresh = async () => {
+      if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+    }
     if (payload.action === 'list') {
       return { notes: await notesStore.list(book.id) }
     }
@@ -675,6 +705,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         quoteSuffix: payload.quoteSuffix,
         textHash: payload.textHash,
       })
+      await refresh()
       return { note: record }
     }
     if (payload.action === 'update') {
@@ -683,16 +714,19 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       if (typeof payload.quote === 'string') patch.quote = payload.quote
       if (typeof payload.annotation === 'string') patch.annotation = payload.annotation
       if (typeof payload.color === 'string') patch.color = payload.color
-      return { note: await notesStore.update(book.id, payload.noteId, patch) }
+      const record = await notesStore.update(book.id, payload.noteId, patch)
+      await refresh()
+      return { note: record }
     }
     if (payload.action === 'delete') {
-      return { deleted: await notesStore.remove(book.id, payload.noteId) }
+      const deleted = await notesStore.remove(book.id, payload.noteId)
+      await refresh()
+      return { deleted }
     }
     throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
   }
 
-  async function handleNoteFiles(payload: any = {}): Promise<any> {
-    const book = await resolveBook(payload.bookId)
+  async function ensureNoteFileStore(): Promise<NoteFileStore> {
     const settings = await currentSettings()
     if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
     const root = join(settings.libraryDir, NOTES_DIR_NAME)
@@ -700,21 +734,89 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       noteFileStore = createNoteFileStore(root)
       noteFileRoot = root
     }
-    const store = noteFileStore as NoteFileStore
+    return noteFileStore
+  }
+
+  async function rebuildNotesContext(bookId: string): Promise<number> {
+    try {
+      const book = await resolveBook(bookId)
+      const store = await ensureNoteFileStore()
+      const files = await store.list(book)
+      const notes: ReadingNote[] = []
+      for (const note of files) {
+        try {
+          const value = await store.read(book, note.id)
+          notes.push({ kind: note.kind, title: note.title, body: value.body, path: note.path })
+        } catch {
+          // A single unreadable note must not remove the rest of the context.
+        }
+      }
+      const highlights: ReadingHighlight[] = (await notesStore.list(book.id))
+        .filter(note => note.kind === 'highlight' && note.annotation.trim())
+        .map(note => ({ quote: note.quote, annotation: note.annotation }))
+      const text = buildReadingNotes({ bookTitle: book.title, notes, highlights })
+      notesContextCache.set(book.id, { text, characters: text.length, updatedAt: Date.now() })
+      if (notesContextCache.size > 50) {
+        const oldest = [...notesContextCache.entries()]
+          .sort((left, right) => left[1].updatedAt - right[1].updatedAt)
+        for (const [id] of oldest.slice(0, notesContextCache.size - 50)) notesContextCache.delete(id)
+      }
+      return text.length
+    } catch {
+      notesContextCache.set(bookId, { text: '', characters: 0, updatedAt: Date.now() })
+      return 0
+    }
+  }
+
+  async function setNoteContext({ bookId, enabled }: any = {}): Promise<{ bookId: string; enabled: boolean; characters: number }> {
+    const book = await resolveBook(bookId)
+    if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
+    companionSettings = await loadCompanionSettings(dataDir)
+    if (enabled) {
+      companionSettings = { notes: { ...companionSettings.notes, [book.id]: true } }
+    } else {
+      const notes = { ...companionSettings.notes }
+      delete notes[book.id]
+      companionSettings = { notes }
+      notesContextCache.delete(book.id)
+    }
+    await saveCompanionSettings(dataDir, companionSettings)
+    const characters = enabled ? await rebuildNotesContext(book.id) : 0
+    return { bookId: book.id, enabled, characters }
+  }
+
+  function notesContextFor(sessionId: unknown): string {
+    if (typeof sessionId !== 'string' || !sessionId) return ''
+    const reading = companionReadings.get(sessionId)
+    if (!reading || !companionSettings.notes[reading.bookId]) return ''
+    return notesContextCache.get(reading.bookId)?.text ?? ''
+  }
+
+  async function handleNoteFiles(payload: any = {}): Promise<any> {
+    const book = await resolveBook(payload.bookId)
+    const store = await ensureNoteFileStore()
     try {
       if (payload.action === 'list') return { notes: await store.list(book) }
       if (payload.action === 'read') return await store.read(book, String(payload.id ?? ''))
       if (payload.action === 'create') {
-        return await store.create(book, { title: payload.title, kind: payload.kind, body: payload.body })
+        const result = await store.create(book, { title: payload.title, kind: payload.kind, body: payload.body })
+        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+        return result
       }
       if (payload.action === 'write') {
-        return await store.write(book, String(payload.id ?? ''), {
+        const result = await store.write(book, String(payload.id ?? ''), {
           title: payload.title,
           body: payload.body,
           baseHash: payload.baseHash,
         })
+        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+        return result
       }
-      if (payload.action === 'remove') return { deleted: await store.remove(book, String(payload.id ?? '')) }
+      if (payload.action === 'remove') {
+        const result = { deleted: await store.remove(book, String(payload.id ?? '')) }
+        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+        return result
+      }
       throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
     } catch (error) {
       if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
@@ -786,6 +888,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       session: setCompanionSession,
       companionPolicy: setCompanionPolicy,
       companionContext: setCompanionContext,
+      setNoteContext,
       search,
       notes: handleNotes,
       noteFiles: handleNoteFiles,
@@ -817,6 +920,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     setCompanionPolicy,
     setCompanionContext,
     companionContextOf,
+    setNoteContext,
+    notesContextFor,
     search,
     libraryMeta,
     setBookTags,

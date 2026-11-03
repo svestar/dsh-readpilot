@@ -144,6 +144,16 @@ export const CSS = `
 .dsh-reader-long-notes-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .dsh-reader-long-notes-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
 .dsh-reader-long-notes-actions{display:flex;gap:4px}
+.dsh-reader-note-context{display:flex;align-items:center;gap:7px;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.dsh-reader-note-context[data-on="true"]{border-color:var(--dsw-alias-brand-primary)}
+.dsh-reader-note-context:disabled{opacity:.6;cursor:default}
+.dsh-reader-note-context-switch{position:relative;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);transition:background .15s}
+.dsh-reader-note-context-switch::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-label-secondary);transition:transform .15s}
+.dsh-reader-note-context-switch[data-on="true"]{background:var(--dsw-alias-brand-primary)}
+.dsh-reader-note-context-switch[data-on="true"]::after{transform:translateX(11px);background:#fff}
+.dsh-reader-note-context-label{flex:1;min-width:0}
+.dsh-reader-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-reader-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}

@@ -39,6 +39,7 @@ export interface NoteFileRecord {
   title: string
   bookId: string
   fileName: string
+  path: string
   size: number
   hash: string
   createdAt: number
@@ -146,7 +147,7 @@ function serializeNote(meta: Record<string, string | number>, body: string): str
   return lines.join('\n')
 }
 
-function parseNote(raw: string, fileName: string, book: NoteBookRef, mtime: number): { note: NoteFileRecord; body: string } {
+function parseNote(raw: string, fileName: string, book: NoteBookRef, mtime: number, path: string): { note: NoteFileRecord; body: string } {
   const parsed = parseFrontMatter(raw)
   const kind: NoteFileKind = fileName === BOOK_NOTE_FILE || parsed.meta.kind === 'book' ? 'book' : 'topic'
   const rawId = parsed.meta.id
@@ -161,6 +162,7 @@ function parseNote(raw: string, fileName: string, book: NoteBookRef, mtime: numb
     title: sanitizeTitle(parsed.meta.title, kind === 'book' ? '整书笔记' : basename(fileName, '.md')),
     bookId: book.id,
     fileName,
+    path,
     size: Buffer.byteLength(raw, 'utf8'),
     hash: hashOf(raw),
     createdAt: Number.isFinite(created) && created > 0 ? created : mtime,
@@ -272,7 +274,7 @@ async function recordOf(dir: string, fileName: string, book: NoteBookRef): Promi
   } catch {
     return null
   }
-  return parseNote(raw, fileName, book, info.mtimeMs)
+  return parseNote(raw, fileName, book, info.mtimeMs, `notes/${basename(dir)}/${fileName}`)
 }
 
 export interface NoteFileStore {

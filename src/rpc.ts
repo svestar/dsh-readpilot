@@ -77,6 +77,17 @@ export interface NoteFileContentResult {
   hash: string
 }
 
+export interface SetNoteContextPayload {
+  bookId: string
+  enabled: boolean
+}
+
+export interface SetNoteContextResult {
+  bookId: string
+  enabled: boolean
+  characters: number
+}
+
 export interface SearchPayload {
   bookId: string
   query: string
@@ -146,6 +157,7 @@ export interface CallRpc {
   (endpoint: 'noteFiles', payload: NoteFilesCreatePayload): Promise<NoteFileContentResult>
   (endpoint: 'noteFiles', payload: NoteFilesWritePayload): Promise<NoteFileContentResult>
   (endpoint: 'noteFiles', payload: NoteFilesRemovePayload): Promise<{ deleted: boolean }>
+  (endpoint: 'setNoteContext', payload: SetNoteContextPayload): Promise<SetNoteContextResult>
   (endpoint: 'pageView', payload: PageViewPayload): Promise<PageViewResult>
   (endpoint: 'libraryMeta'): Promise<LibraryMeta>
   (endpoint: 'setBookTags', payload: { bookId: string; tags: string[] }): Promise<{ bookId: string; tags: string[] }>
