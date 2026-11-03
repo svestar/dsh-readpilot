@@ -154,6 +154,15 @@ export const CSS = `
 .dsh-reader-note-context-label{flex:1;min-width:0}
 .dsh-reader-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
 .dsh-reader-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
+.dsh-reader-drafts{display:flex;flex-direction:column;gap:7px;padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-drafts-head{color:var(--dsw-alias-label-secondary);font-size:11.5px;font-weight:600}
+.dsh-reader-draft{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base)}
+.dsh-reader-draft-head{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-reader-diff{max-height:220px;overflow:auto;margin:0;padding:6px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-diff-line{padding:0 3px;border-radius:3px}
+.dsh-reader-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
+.dsh-reader-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
+.dsh-reader-diff-same{color:var(--dsw-alias-label-secondary)}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}

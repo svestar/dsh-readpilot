@@ -2,6 +2,7 @@ import type { ChapterContent, OpenResult, PageViewResult, ReaderState, SearchRes
 import type { LibraryMeta } from './library-meta.ts'
 import type { NoteKind, NoteRecord } from './notes.ts'
 import type { NoteFileKind, NoteFileRecord } from './note-files.ts'
+import type { NoteDraftRecord } from './note-drafts.ts'
 
 export interface ProgressPayload {
   bookId: string
@@ -88,6 +89,23 @@ export interface SetNoteContextResult {
   characters: number
 }
 
+export interface NoteDraftsListPayload {
+  action: 'list'
+  bookId: string
+}
+
+export interface NoteDraftsApplyPayload {
+  action: 'apply'
+  bookId: string
+  draftId: string
+}
+
+export interface NoteDraftsRejectPayload {
+  action: 'reject'
+  bookId: string
+  draftId: string
+}
+
 export interface SearchPayload {
   bookId: string
   query: string
@@ -158,6 +176,9 @@ export interface CallRpc {
   (endpoint: 'noteFiles', payload: NoteFilesWritePayload): Promise<NoteFileContentResult>
   (endpoint: 'noteFiles', payload: NoteFilesRemovePayload): Promise<{ deleted: boolean }>
   (endpoint: 'setNoteContext', payload: SetNoteContextPayload): Promise<SetNoteContextResult>
+  (endpoint: 'noteDrafts', payload: NoteDraftsListPayload): Promise<{ drafts: NoteDraftRecord[] }>
+  (endpoint: 'noteDrafts', payload: NoteDraftsApplyPayload): Promise<NoteFileContentResult>
+  (endpoint: 'noteDrafts', payload: NoteDraftsRejectPayload): Promise<{ rejected: boolean }>
   (endpoint: 'pageView', payload: PageViewPayload): Promise<PageViewResult>
   (endpoint: 'libraryMeta'): Promise<LibraryMeta>
   (endpoint: 'setBookTags', payload: { bookId: string; tags: string[] }): Promise<{ bookId: string; tags: string[] }>

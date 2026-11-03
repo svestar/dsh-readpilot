@@ -155,3 +155,13 @@ test('native_companion_falls_back_without_factory', () => {
   })
   assert.equal(element, 'fallback')
 })
+
+test('diff_lines_add_and_remove', () => {
+  const lines = plugin.diffLines('a\nb\nc', 'a\nx\nc')
+  assert.deepEqual(lines.map((line: any) => [line.type, line.text]), [
+    ['same', 'a'],
+    ['del', 'b'],
+    ['add', 'x'],
+    ['same', 'c'],
+  ])
+})

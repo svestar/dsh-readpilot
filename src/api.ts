@@ -12,6 +12,8 @@ import type { NoteFileStore } from './note-files.ts'
 import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
 import type { CompanionSettings } from './companion-settings.ts'
 import { loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
+import type { NoteDraftRecord, NoteDraftStore } from './note-drafts.ts'
+import { NoteDraftError, createNoteDraftStore } from './note-drafts.ts'
 import { buildReadingNotes } from './notes-context.ts'
 import type { ReadingHighlight, ReadingNote } from './notes-context.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
@@ -145,6 +147,9 @@ export interface ReaderApi {
   companionContextOf(sessionId: unknown): string
   setNoteContext(payload?: any): Promise<{ bookId: string; enabled: boolean; characters: number }>
   notesContextFor(sessionId: unknown): string
+  noteDrafts(payload?: any): Promise<any>
+  noteDraftCreate(payload?: any): Promise<{ draft: NoteDraftRecord }>
+  toolNoteFiles(payload?: any): Promise<any>
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
   setBookTags(payload?: { bookId?: unknown; tags?: unknown }): Promise<{ bookId: string; tags: string[] }>
@@ -792,6 +797,72 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return notesContextCache.get(reading.bookId)?.text ?? ''
   }
 
+  async function noteDrafts(payload: any = {}): Promise<any> {
+    const book = await resolveBook(payload.bookId)
+    const store = await ensureNoteDraftStore()
+    try {
+      if (payload.action === 'list') return { drafts: await store.list(book) }
+      if (payload.action === 'apply') {
+        const content = await store.apply(book, String(payload.draftId ?? ''))
+        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+        return content
+      }
+      if (payload.action === 'reject') {
+        return { rejected: await store.reject(book, String(payload.draftId ?? '')) }
+      }
+      throw new ReaderError('invalid-draft-action', `未知草稿操作：${String(payload.action)}`)
+    } catch (error) {
+      if (error instanceof NoteDraftError) throw new ReaderError(error.code, error.message)
+      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
+      throw error
+    }
+  }
+
+  async function noteDraftCreate(payload: any = {}): Promise<{ draft: NoteDraftRecord }> {
+    const books = await libraryBooks()
+    const found = findBookByKey(books, payload.book)
+    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(payload.book)}`)
+    const store = await ensureNoteDraftStore()
+    try {
+      const draft = await store.create(found, {
+        action: payload.action,
+        noteId: payload.noteId,
+        title: payload.title,
+        kind: payload.kind,
+        body: payload.body,
+        text: payload.text,
+      })
+      return { draft }
+    } catch (error) {
+      if (error instanceof NoteDraftError) throw new ReaderError(error.code, error.message)
+      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
+      throw error
+    }
+  }
+
+  async function toolNoteFiles(payload: any = {}): Promise<any> {
+    const books = await libraryBooks()
+    const found = findBookByKey(books, payload.book)
+    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(payload.book)}`)
+    const store = await ensureNoteFileStore()
+    try {
+      if (payload.action === 'index') {
+        return { bookId: found.id, bookTitle: found.title, notes: await store.list(found) }
+      }
+      if (payload.action === 'read') {
+        return await store.read(found, String(payload.id ?? ''))
+      }
+      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
+    } catch (error) {
+      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
+      throw error
+    }
+  }
+
+  async function ensureNoteDraftStore(): Promise<NoteDraftStore> {
+    return createNoteDraftStore(dataDir, await ensureNoteFileStore())
+  }
+
   async function handleNoteFiles(payload: any = {}): Promise<any> {
     const book = await resolveBook(payload.bookId)
     const store = await ensureNoteFileStore()
@@ -892,6 +963,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       search,
       notes: handleNotes,
       noteFiles: handleNoteFiles,
+      noteDrafts,
       pageView,
       libraryMeta,
       setBookTags,
@@ -922,6 +994,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     companionContextOf,
     setNoteContext,
     notesContextFor,
+    noteDrafts,
+    noteDraftCreate,
+    toolNoteFiles,
     search,
     libraryMeta,
     setBookTags,

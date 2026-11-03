@@ -136,11 +136,11 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_note',
       description:
-        'Create or list notes for one book. For add, pass the book, chapter, quoted passage, and note text; blockIndex/offset come from a reader_read locator when available. Notes are stored per book under the reader data directory.',
+        'Create or list SHORT, passage-anchored notes (a sentence or two attached to a quote) for one book. Use only when the user selects or quotes a passage and wants a brief note or annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter, quoted passage, and note text; blockIndex/offset come from a reader_read locator when available. Short notes are stored per book under the reader data directory.',
       parameters: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['add', 'list'], description: 'add a note or list existing notes.' },
+          action: { type: 'string', enum: ['add', 'list'], description: 'add a short note or list existing short notes.' },
           book: { type: 'string', description: 'Book id or title from reader_books.' },
           chapter: { type: 'string', description: 'Chapter id or title; required for add.' },
           blockIndex: { type: 'number', description: '0-based block index inside the chapter.' },
@@ -155,6 +155,52 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       async execute(args) {
         try {
           return await api.toolNote(args ?? {})
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
+    },
+    {
+      name: 'reader_notes',
+      description:
+        'Read LONG-FORM markdown notes (chapter, topic or whole-book documents) for one book, or create a pending draft. Use it when the user asks to organize, write, append, expand or rewrite a long note or document. index/read are read-only. create/write/append never save: they create a draft the user must review and apply in the Notes tab. Use write actions only when the user explicitly asks to write or edit a long note; never claim it was saved.',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['index', 'read', 'create', 'write', 'append'],
+            description: 'index/read read notes; create/write/append create a pending draft.',
+          },
+          book: { type: 'string', description: 'Book id or title from reader_books or reader_context.' },
+          id: { type: 'string', description: 'Note id for read, write or append.' },
+          title: { type: 'string', description: 'Note title for create or rename.' },
+          kind: { type: 'string', enum: ['book', 'topic'], description: 'create only; defaults to topic.' },
+          body: { type: 'string', description: 'Full markdown body for create or write.' },
+          text: { type: 'string', description: 'Text to append for append.' },
+        },
+        required: ['action', 'book'],
+        additionalProperties: false,
+      },
+      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      async execute(args) {
+        try {
+          const action = args?.action
+          if (action === 'index' || action === 'read') return await api.toolNoteFiles(args ?? {})
+          if (action === 'create' || action === 'write' || action === 'append') {
+            const result = await api.noteDraftCreate(args ?? {})
+            return {
+              draft: {
+                id: result.draft.id,
+                action: result.draft.action,
+                title: result.draft.title,
+                noteId: result.draft.noteId ?? null,
+                characters: result.draft.body.length,
+              },
+              message: '草稿已创建，等待用户在笔记面板确认。',
+            }
+          }
+          return { error: `未知操作：${String(action)}` }
         } catch (error) {
           return jsonError(error)
         }

@@ -1,5 +1,5 @@
 import { h } from '../runtime.ts'
-import { formatSize } from '../helpers.ts'
+import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
 import type { NoteContextToggle, TextFn } from '../types.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
@@ -49,6 +49,44 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
         ? h('span', { className: 'dsh-reader-note-context-chars' },
           `${noteContext.characters} ${t('noteContextChars')}`)
         : null)
+      : null,
+    state.drafts.length > 0
+      ? h('div', { className: 'dsh-reader-drafts' },
+        h('div', { className: 'dsh-reader-drafts-head' }, t('noteDrafts')),
+        state.drafts.map(draft => {
+          const lines = diffLines(draft.baseBody, draft.body)
+          const added = lines.filter(line => line.type === 'add').length
+          const removed = lines.filter(line => line.type === 'del').length
+          return h('div', { key: draft.id, className: 'dsh-reader-draft' },
+            h('div', { className: 'dsh-reader-draft-head' },
+              h('span', { className: 'dsh-reader-long-kind' },
+                draft.action === 'create'
+                  ? t('draftCreate')
+                  : draft.action === 'append' ? t('draftAppend') : t('draftEdit')),
+              h('span', { className: 'dsh-reader-long-title' }, draft.title),
+              h('span', { className: 'dsh-reader-long-meta' }, `+${added} −${removed}`)),
+            h('pre', { className: 'dsh-reader-diff' },
+              lines.slice(0, 80).map((line, index) => h('div', {
+                key: `${draft.id}-${index}`,
+                className: `dsh-reader-diff-line dsh-reader-diff-${line.type}`,
+              }, `${line.type === 'add' ? '+ ' : line.type === 'del' ? '- ' : '  '}${line.text}`))),
+            lines.length > 80
+              ? h('div', { className: 'dsh-reader-long-hint' }, t('draftDiffTruncated'))
+              : null,
+            h('div', { className: 'dsh-reader-long-editor-actions' },
+              h('button', {
+                type: 'button',
+                className: 'dsh-reader-chat-send',
+                disabled: state.draftBusyId === draft.id,
+                onClick: () => void state.applyDraft(draft),
+              }, t('applyDraft')),
+              h('button', {
+                type: 'button',
+                className: 'dsh-reader-note-jump',
+                disabled: state.draftBusyId === draft.id,
+                onClick: () => void state.rejectDraft(draft),
+              }, t('rejectDraft'))))
+        }))
       : null,
     state.error ? h('div', { className: 'dsh-reader-chat-error' }, state.error) : null,
     editing

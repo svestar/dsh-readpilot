@@ -93,7 +93,7 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
             : null,
           notes.length > 0
             ? h('section', { key: 'notes', className: 'dsh-reader-mark-section' },
-              h('h4', null, `${t('notes')} · ${notes.length}`),
+              h('h4', null, `${t('shortNotes')} · ${notes.length}`),
               notes.map(note => h('div', { key: note.id, className: 'dsh-reader-note' },
                 h('button', {
                   type: 'button',

@@ -5,6 +5,7 @@ import {
   READER_PALETTES,
   blockIndexAtOffset,
   clampChatWidth,
+  diffLines,
   findNoteOccurrence,
   foldTranscript,
   messageOf,
@@ -209,7 +210,7 @@ export function createPlugin(require: (name: string) => any) {
         }).catch(() => {})
       }, [activeSessionId, screen, call])
 
-      const longNotes = useLongNotes({ call, t, activeBookId })
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'notes' })
 
       const [noteContextBusy, setNoteContextBusy] = React.useState(false)
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
@@ -937,6 +938,7 @@ export function createPlugin(require: (name: string) => any) {
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
+      diffLines,
       NativeCompanion,
       READER_PALETTE_IDS,
       READER_PALETTES,

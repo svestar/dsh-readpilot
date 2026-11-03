@@ -458,6 +458,20 @@ var __dshReaderBundle = (() => {
     }
     return fallback;
   }
+  function diffLines(base, next) {
+    const before = String(base ?? "").replace(/\r\n?/g, "\n").split("\n");
+    const after = String(next ?? "").replace(/\r\n?/g, "\n").split("\n");
+    let prefix = 0;
+    while (prefix < before.length && prefix < after.length && before[prefix] === after[prefix]) prefix += 1;
+    let suffix = 0;
+    while (suffix < before.length - prefix && suffix < after.length - prefix && before[before.length - 1 - suffix] === after[after.length - 1 - suffix]) suffix += 1;
+    const lines = [];
+    for (let index = 0; index < prefix; index += 1) lines.push({ type: "same", text: before[index] });
+    for (let index = prefix; index < before.length - suffix; index += 1) lines.push({ type: "del", text: before[index] });
+    for (let index = prefix; index < after.length - suffix; index += 1) lines.push({ type: "add", text: after[index] });
+    for (let index = before.length - suffix; index < before.length; index += 1) lines.push({ type: "same", text: before[index] });
+    return lines;
+  }
 
   // src/client/locale.ts
   var zh = {
@@ -539,6 +553,7 @@ var __dshReaderBundle = (() => {
     searchTruncated: "结果过多，仅显示前 30 条。",
     closeSearch: "关闭搜索",
     notes: "笔记",
+    shortNotes: "短笔记",
     noteAction: "笔记",
     marks: "标记",
     highlights: "划线",
@@ -581,6 +596,14 @@ var __dshReaderBundle = (() => {
     noteContextHint: "开启后，本书的长笔记与有批注的划线会进入伴读上下文。",
     noteContextFailed: "笔记上下文切换失败",
     noteContextChars: "字",
+    noteDrafts: "待确认的笔记草稿",
+    draftCreate: "新建",
+    draftAppend: "追加",
+    draftEdit: "修改",
+    applyDraft: "应用",
+    rejectDraft: "拒绝",
+    draftActionFailed: "草稿操作失败",
+    draftDiffTruncated: "差异过长，仅显示前 80 行",
     pagePrev: "上一页",
     pageNext: "下一页",
     chapterPrev: "上一章",
@@ -673,6 +696,7 @@ var __dshReaderBundle = (() => {
     searchTruncated: "Too many matches; showing the first 30.",
     closeSearch: "Close search",
     notes: "Notes",
+    shortNotes: "Short notes",
     noteAction: "Note",
     marks: "Marks",
     highlights: "Highlights",
@@ -715,6 +739,14 @@ var __dshReaderBundle = (() => {
     noteContextHint: "When on, this book's long notes and annotated highlights enter the companion context.",
     noteContextFailed: "Could not change the notes context",
     noteContextChars: "chars",
+    noteDrafts: "Pending drafts",
+    draftCreate: "Create",
+    draftAppend: "Append",
+    draftEdit: "Edit",
+    applyDraft: "Apply",
+    rejectDraft: "Reject",
+    draftActionFailed: "Draft action failed",
+    draftDiffTruncated: "Diff is long; showing the first 80 lines",
     pagePrev: "Previous page",
     pageNext: "Next page",
     chapterPrev: "Previous chapter",
@@ -886,6 +918,15 @@ var __dshReaderBundle = (() => {
 .dsh-reader-note-context-label{flex:1;min-width:0}
 .dsh-reader-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
 .dsh-reader-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
+.dsh-reader-drafts{display:flex;flex-direction:column;gap:7px;padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-drafts-head{color:var(--dsw-alias-label-secondary);font-size:11.5px;font-weight:600}
+.dsh-reader-draft{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base)}
+.dsh-reader-draft-head{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-reader-diff{max-height:220px;overflow:auto;margin:0;padding:6px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.dsh-reader-diff-line{padding:0 3px;border-radius:3px}
+.dsh-reader-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
+.dsh-reader-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
+.dsh-reader-diff-same{color:var(--dsw-alias-label-secondary)}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -1638,6 +1679,56 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           `${noteContext.characters} ${t("noteContextChars")}`
         ) : null
       ) : null,
+      state.drafts.length > 0 ? h(
+        "div",
+        { className: "dsh-reader-drafts" },
+        h("div", { className: "dsh-reader-drafts-head" }, t("noteDrafts")),
+        state.drafts.map((draft) => {
+          const lines = diffLines(draft.baseBody, draft.body);
+          const added = lines.filter((line) => line.type === "add").length;
+          const removed = lines.filter((line) => line.type === "del").length;
+          return h(
+            "div",
+            { key: draft.id, className: "dsh-reader-draft" },
+            h(
+              "div",
+              { className: "dsh-reader-draft-head" },
+              h(
+                "span",
+                { className: "dsh-reader-long-kind" },
+                draft.action === "create" ? t("draftCreate") : draft.action === "append" ? t("draftAppend") : t("draftEdit")
+              ),
+              h("span", { className: "dsh-reader-long-title" }, draft.title),
+              h("span", { className: "dsh-reader-long-meta" }, `+${added} −${removed}`)
+            ),
+            h(
+              "pre",
+              { className: "dsh-reader-diff" },
+              lines.slice(0, 80).map((line, index) => h("div", {
+                key: `${draft.id}-${index}`,
+                className: `dsh-reader-diff-line dsh-reader-diff-${line.type}`
+              }, `${line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}${line.text}`))
+            ),
+            lines.length > 80 ? h("div", { className: "dsh-reader-long-hint" }, t("draftDiffTruncated")) : null,
+            h(
+              "div",
+              { className: "dsh-reader-long-editor-actions" },
+              h("button", {
+                type: "button",
+                className: "dsh-reader-chat-send",
+                disabled: state.draftBusyId === draft.id,
+                onClick: () => void state.applyDraft(draft)
+              }, t("applyDraft")),
+              h("button", {
+                type: "button",
+                className: "dsh-reader-note-jump",
+                disabled: state.draftBusyId === draft.id,
+                onClick: () => void state.rejectDraft(draft)
+              }, t("rejectDraft"))
+            )
+          );
+        })
+      ) : null,
       state.error ? h("div", { className: "dsh-reader-chat-error" }, state.error) : null,
       editing ? h(
         "div",
@@ -1799,7 +1890,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         notes.length > 0 ? h(
           "section",
           { key: "notes", className: "dsh-reader-mark-section" },
-          h("h4", null, `${t("notes")} · ${notes.length}`),
+          h("h4", null, `${t("shortNotes")} · ${notes.length}`),
           notes.map((note) => h(
             "div",
             { key: note.id, className: "dsh-reader-note" },
@@ -3521,7 +3612,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   }
 
   // src/client/hooks/use-long-notes.ts
-  function useLongNotes({ call, t, activeBookId }) {
+  function useLongNotes({ call, t, activeBookId, notesTabActive }) {
     const [notes, setNotes] = React.useState([]);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
@@ -3532,7 +3623,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [createKind, setCreateKind] = React.useState("topic");
     const [saving, setSaving] = React.useState(false);
     const [conflict, setConflict] = React.useState(false);
+    const [drafts, setDrafts] = React.useState([]);
+    const [draftBusyId, setDraftBusyId] = React.useState(null);
     const requestRef = React.useRef(0);
+    const draftRequestRef = React.useRef(0);
     const readRef = React.useRef(0);
     const bookRef = React.useRef(activeBookId);
     bookRef.current = activeBookId;
@@ -3555,8 +3649,27 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (requestRef.current === request) setLoading(false);
       }
     }, [activeBookId, call, t]);
+    const loadDrafts = React.useCallback(async () => {
+      const bookId = activeBookId;
+      if (!bookId) {
+        setDrafts([]);
+        return;
+      }
+      const request = draftRequestRef.current + 1;
+      draftRequestRef.current = request;
+      try {
+        const value = await call("noteDrafts", { action: "list", bookId });
+        if (draftRequestRef.current !== request || bookRef.current !== bookId) return;
+        setDrafts(value.drafts.slice());
+      } catch (cause) {
+        if (draftRequestRef.current === request && bookRef.current === bookId) {
+          setError(`${t("notesFailed")}：${messageOf(cause)}`);
+        }
+      }
+    }, [activeBookId, call, t]);
     React.useEffect(() => {
       requestRef.current += 1;
+      draftRequestRef.current += 1;
       readRef.current += 1;
       setNotes([]);
       setLoading(false);
@@ -3567,8 +3680,26 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setCreating(false);
       setSaving(false);
       setConflict(false);
+      setDrafts([]);
+      setDraftBusyId(null);
       void load();
     }, [activeBookId, load]);
+    React.useEffect(() => {
+      if (!activeBookId || !notesTabActive) {
+        setDrafts([]);
+        return;
+      }
+      let cancelled = false;
+      const tick = () => {
+        if (!cancelled) void loadDrafts();
+      };
+      tick();
+      const timer = window.setInterval(tick, 4e3);
+      return () => {
+        cancelled = true;
+        window.clearInterval(timer);
+      };
+    }, [activeBookId, notesTabActive, loadDrafts]);
     const open = React.useCallback(async (note) => {
       if (!activeBookId) return;
       const bookId = activeBookId;
@@ -3689,6 +3820,36 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       if (!active) return;
       await open(active.note);
     }, [active, open]);
+    const applyDraft = React.useCallback(async (item) => {
+      if (!activeBookId || draftBusyId) return;
+      const bookId = activeBookId;
+      setDraftBusyId(item.id);
+      setError("");
+      try {
+        await call("noteDrafts", { action: "apply", bookId, draftId: item.id });
+        if (bookRef.current !== bookId) return;
+        await loadDrafts();
+        await load();
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("draftActionFailed")}：${messageOf(cause)}`);
+      } finally {
+        setDraftBusyId(null);
+      }
+    }, [activeBookId, call, draftBusyId, load, loadDrafts, t]);
+    const rejectDraft = React.useCallback(async (item) => {
+      if (!activeBookId || draftBusyId) return;
+      const bookId = activeBookId;
+      setDraftBusyId(item.id);
+      setError("");
+      try {
+        await call("noteDrafts", { action: "reject", bookId, draftId: item.id });
+        if (bookRef.current === bookId) await loadDrafts();
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("draftActionFailed")}：${messageOf(cause)}`);
+      } finally {
+        setDraftBusyId(null);
+      }
+    }, [activeBookId, call, draftBusyId, loadDrafts, t]);
     return {
       notes,
       loading,
@@ -3700,6 +3861,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       saving,
       conflict,
       createKind,
+      drafts,
+      draftBusyId,
       setDraft,
       setTitle,
       open,
@@ -3707,7 +3870,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       save,
       cancel,
       remove,
-      reload
+      reload,
+      applyDraft,
+      rejectDraft
     };
   }
 
@@ -4469,7 +4634,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }).catch(() => {
         });
       }, [activeSessionId, screen, call]);
-      const longNotes = useLongNotes({ call, t, activeBookId });
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === "notes" });
       const [noteContextBusy, setNoteContextBusy] = React.useState(false);
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0);
       const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId]);
@@ -5137,6 +5302,7 @@ ${question}`;
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
+      diffLines,
       NativeCompanion,
       READER_PALETTE_IDS,
       READER_PALETTES,

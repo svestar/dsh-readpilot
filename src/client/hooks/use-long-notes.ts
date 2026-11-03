@@ -1,11 +1,12 @@
 import { React } from '../runtime.ts'
 import { messageOf } from '../helpers.ts'
-import type { CallRpc, LongNote, TextFn } from '../types.ts'
+import type { CallRpc, LongNote, NoteDraft, TextFn } from '../types.ts'
 
 interface LongNotesOptions {
   call: CallRpc
   t: TextFn
   activeBookId: string | null
+  notesTabActive: boolean
 }
 
 export interface LongNoteDraft {
@@ -25,6 +26,8 @@ export interface LongNotesState {
   saving: boolean
   conflict: boolean
   createKind: 'book' | 'topic'
+  drafts: NoteDraft[]
+  draftBusyId: string | null
   setDraft: (value: string) => void
   setTitle: (value: string) => void
   open: (note: LongNote) => Promise<void>
@@ -33,9 +36,11 @@ export interface LongNotesState {
   cancel: () => void
   remove: () => Promise<void>
   reload: () => Promise<void>
+  applyDraft: (draft: NoteDraft) => Promise<void>
+  rejectDraft: (draft: NoteDraft) => Promise<void>
 }
 
-export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongNotesState {
+export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNotesOptions): LongNotesState {
   const [notes, setNotes] = React.useState<LongNote[]>([])
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -46,7 +51,10 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
   const [createKind, setCreateKind] = React.useState<'book' | 'topic'>('topic')
   const [saving, setSaving] = React.useState(false)
   const [conflict, setConflict] = React.useState(false)
+  const [drafts, setDrafts] = React.useState<NoteDraft[]>([])
+  const [draftBusyId, setDraftBusyId] = React.useState<string | null>(null)
   const requestRef = React.useRef(0)
+  const draftRequestRef = React.useRef(0)
   const readRef = React.useRef(0)
   const bookRef = React.useRef<string | null>(activeBookId)
   bookRef.current = activeBookId
@@ -71,8 +79,28 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
     }
   }, [activeBookId, call, t])
 
+  const loadDrafts = React.useCallback(async () => {
+    const bookId = activeBookId
+    if (!bookId) {
+      setDrafts([])
+      return
+    }
+    const request = draftRequestRef.current + 1
+    draftRequestRef.current = request
+    try {
+      const value = await call('noteDrafts', { action: 'list', bookId })
+      if (draftRequestRef.current !== request || bookRef.current !== bookId) return
+      setDrafts(value.drafts.slice())
+    } catch (cause) {
+      if (draftRequestRef.current === request && bookRef.current === bookId) {
+        setError(`${t('notesFailed')}：${messageOf(cause)}`)
+      }
+    }
+  }, [activeBookId, call, t])
+
   React.useEffect(() => {
     requestRef.current += 1
+    draftRequestRef.current += 1
     readRef.current += 1
     setNotes([])
     setLoading(false)
@@ -83,8 +111,27 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
     setCreating(false)
     setSaving(false)
     setConflict(false)
+    setDrafts([])
+    setDraftBusyId(null)
     void load()
   }, [activeBookId, load])
+
+  React.useEffect(() => {
+    if (!activeBookId || !notesTabActive) {
+      setDrafts([])
+      return
+    }
+    let cancelled = false
+    const tick = () => {
+      if (!cancelled) void loadDrafts()
+    }
+    tick()
+    const timer = window.setInterval(tick, 4000)
+    return () => {
+      cancelled = true
+      window.clearInterval(timer)
+    }
+  }, [activeBookId, notesTabActive, loadDrafts])
 
   const open = React.useCallback(async (note: LongNote) => {
     if (!activeBookId) return
@@ -213,6 +260,38 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
     await open(active.note)
   }, [active, open])
 
+  const applyDraft = React.useCallback(async (item: NoteDraft) => {
+    if (!activeBookId || draftBusyId) return
+    const bookId = activeBookId
+    setDraftBusyId(item.id)
+    setError('')
+    try {
+      await call('noteDrafts', { action: 'apply', bookId, draftId: item.id })
+      if (bookRef.current !== bookId) return
+      await loadDrafts()
+      await load()
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause)}`)
+    } finally {
+      setDraftBusyId(null)
+    }
+  }, [activeBookId, call, draftBusyId, load, loadDrafts, t])
+
+  const rejectDraft = React.useCallback(async (item: NoteDraft) => {
+    if (!activeBookId || draftBusyId) return
+    const bookId = activeBookId
+    setDraftBusyId(item.id)
+    setError('')
+    try {
+      await call('noteDrafts', { action: 'reject', bookId, draftId: item.id })
+      if (bookRef.current === bookId) await loadDrafts()
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause)}`)
+    } finally {
+      setDraftBusyId(null)
+    }
+  }, [activeBookId, call, draftBusyId, loadDrafts, t])
+
   return {
     notes,
     loading,
@@ -224,6 +303,8 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
     saving,
     conflict,
     createKind,
+    drafts,
+    draftBusyId,
     setDraft,
     setTitle,
     open,
@@ -232,5 +313,7 @@ export function useLongNotes({ call, t, activeBookId }: LongNotesOptions): LongN
     cancel,
     remove,
     reload,
+    applyDraft,
+    rejectDraft,
   }
 }

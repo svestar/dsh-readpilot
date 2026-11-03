@@ -235,6 +235,47 @@ test('note_context_toggle_and_injection', async t => {
   assert.equal((await api.state()).companion.notes[bookId], undefined)
 })
 
+test('note_drafts_rpc_and_tool', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  const created = await api.handleRpc('noteFiles', {
+    action: 'create',
+    bookId,
+    title: '人物',
+    body: '罗辑',
+  })
+  const noteId = created.value.note.id
+
+  const draft = await api.noteDraftCreate({
+    book: bookId,
+    action: 'append',
+    noteId,
+    text: '章北海',
+  })
+  assert.match(draft.draft.body, /章北海/)
+
+  const listed = await api.handleRpc('noteDrafts', { action: 'list', bookId })
+  assert.equal(listed.ok, true)
+  assert.equal(listed.value.drafts.length, 1)
+
+  const index = await api.toolNoteFiles({ book: bookId, action: 'index' })
+  assert.equal(index.notes.length, 1)
+  const read = await api.toolNoteFiles({ book: bookId, action: 'read', id: noteId })
+  assert.match(read.body, /罗辑/)
+
+  const applied = await api.handleRpc('noteDrafts', { action: 'apply', bookId, draftId: draft.draft.id })
+  assert.equal(applied.ok, true)
+  assert.match(applied.value.body, /章北海/)
+  assert.equal((await api.handleRpc('noteDrafts', { action: 'list', bookId })).value.drafts.length, 0)
+
+  const second = await api.noteDraftCreate({ book: bookId, action: 'append', noteId, text: '不要了' })
+  const rejected = await api.handleRpc('noteDrafts', { action: 'reject', bookId, draftId: second.draft.id })
+  assert.equal(rejected.value.rejected, true)
+})
+
 test('notes_rpc_roundtrip', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

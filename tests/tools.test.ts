@@ -46,7 +46,9 @@ test('tools_read_bounded', async t => {
   const state = await api.configureLibrary({ path: library })
   const dispose = registerTools(ctx, api)
 
-  assert.deepEqual([...registered.keys()].sort(), ['reader_books', 'reader_context', 'reader_note', 'reader_open', 'reader_read', 'reader_search'])
+  assert.deepEqual([...registered.keys()].sort(), ['reader_books', 'reader_context', 'reader_note', 'reader_notes', 'reader_open', 'reader_read', 'reader_search'])
+  const notes = await registered.get('reader_notes')!.execute({ action: 'index', book: state.books[0].title })
+  assert.deepEqual(notes.notes, [])
   const context = await registered.get('reader_context')!.execute({ book: state.books[0].title })
   assert.equal(context.title, 'long')
   assert.equal(context.format, 'txt')
