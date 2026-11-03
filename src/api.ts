@@ -1,12 +1,12 @@
 import { mkdir, readFile, realpath, stat } from 'node:fs/promises'
 import { basename, isAbsolute, join, resolve } from 'node:path'
-import type { Chapter, OutlineEntry, TextBlock } from './formats.ts'
+import type { Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
 import type { LibraryMeta, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
-import type { NoteRecord, NotesStore } from './notes.ts'
+import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
 import {
@@ -20,7 +20,7 @@ import {
   saveSettings,
 } from './store.ts'
 import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/epub.ts'
-import type { PdfPageResult, PdfRenderer, PdfTextItem } from './visual/pdf.ts'
+import type { PdfRenderer, PdfTextItem } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
 
 const PARSER_VERSION = 6
@@ -146,7 +146,7 @@ export interface ReaderApi {
   pdfPage(payload?: any): Promise<{ png: Buffer; contentType: string }>
   epubDocument(payload?: any): Promise<EpubDocumentResult>
   epubAsset(payload?: any): Promise<EpubAssetResult>
-  handleRpc(endpoint: string, payload?: any): Promise<RpcResult>
+  handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult>
 }
 
 export class ReaderError extends Error {
@@ -686,7 +686,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return visual.readAsset({ bookId: book.id, filePath: book.path, path })
   }
 
-  async function handleRpc(endpoint: string, payload?: any): Promise<RpcResult> {
+  async function handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult> {
     const handlers: Record<string, (payload?: any) => Promise<any>> = {
       state,
       rescan: state,

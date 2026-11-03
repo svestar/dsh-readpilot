@@ -47,7 +47,7 @@ export function useVisual({
       bookId: screen.detail.book.id,
       page: visual.page,
       scale: visual.scale,
-    }).then((value: any) => {
+    }).then((value) => {
       if (cancelled) return
       setPageView(value)
       setPageInput(String(visual.page))

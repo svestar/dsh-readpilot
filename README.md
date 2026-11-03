@@ -15,7 +15,7 @@ DSH Web GUI 的电子书阅读插件。书库是一个用户指定的本机目�
 
 ## 开发
 
-Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`）。`pnpm run build` 用 tsc 生成 `dist/`，再用 esbuild 生成 `client.js`；两者都是产物，不要手工修改。只改 Client 可运行 `pnpm run build:client`。类型检查用 `pnpm run typecheck`，测试用 `pnpm test`。
+Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`）。需要 Node 22.18+。`pnpm run build` 清理 `dist/` 后用 tsc 生成 Host、esbuild 生成 `client.js`；两者是产物，不要手工修改。只改 Client 可运行 `pnpm run build:client`。类型检查用 `pnpm run typecheck`，测试用 `pnpm test`（先重建 `client.js`）。
 
 ## 数据
 

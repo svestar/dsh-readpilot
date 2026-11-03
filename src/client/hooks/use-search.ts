@@ -37,8 +37,8 @@ export function useSearch({ call, screen, t, selectChapter }: SearchOptions) {
         limit: 30,
       })
       setSearchResults({
-        matches: Array.isArray(value?.matches) ? value.matches as SearchMatch[] : [],
-        truncated: Boolean(value?.truncated),
+        matches: value.matches,
+        truncated: value.truncated,
       })
     } catch (cause) {
       setSearchResults({ matches: [], truncated: false })

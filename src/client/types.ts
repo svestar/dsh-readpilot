@@ -1,7 +1,17 @@
-import type { BookFormat, TextBlock } from '../formats.ts'
+import type {
+  BookWithProgress,
+  ChapterContent,
+  OpenBook as ApiOpenBook,
+  OpenResult,
+  OutlineItem as ApiOutlineItem,
+  PageViewResult,
+  ReaderState,
+  SearchMatch as ApiSearchMatch,
+  TocItem as ApiTocItem,
+} from '../api.ts'
 import type { NoteRecord } from '../notes.ts'
-import type { ReadingProgress, SessionRecord, Settings } from '../store.ts'
-import type { PdfTextItem } from '../visual/pdf.ts'
+
+export type { CallRpc } from '../rpc.ts'
 
 export type TextFn = (key: string) => string
 
@@ -9,65 +19,15 @@ export interface MutableRef<T> {
   current: T | null
 }
 
-export interface ClientBook {
-  id: string
-  title: string
-  path: string
-  format: BookFormat
-  supported: boolean
-  size: number
-  mtimeMs: number
-  progress: ReadingProgress | null
-}
-
-export interface Snapshot {
-  settings: Settings
-  books: ClientBook[]
-  tags: Record<string, string[]>
-  sessions: Record<string, SessionRecord>
-}
-
-export interface TocItem {
-  id: string
-  title: string
-  chars: number
-  page?: number
-  href?: string
-}
-
-export interface OutlineItem {
-  id: string
-  title: string
-  level: number
-  page: number
-  chapterId?: string
-}
-
-export interface OpenBook {
-  id: string
-  title: string
-  path: string
-  format: BookFormat
-  supported: boolean
-  size: number
-  mtimeMs: number
-  author?: string
-}
-
-export interface BookDetail {
-  book: OpenBook
-  supported: boolean
-  toc: TocItem[]
-  outline?: OutlineItem[]
-  progress: ReadingProgress | null
-}
-
-export interface BookContent {
-  chapterId: string
-  title: string
-  blocks: TextBlock[]
-  locator: string
-}
+export type ClientBook = BookWithProgress
+export type Snapshot = ReaderState
+export type TocItem = ApiTocItem
+export type OutlineItem = ApiOutlineItem
+export type OpenBook = ApiOpenBook
+export type BookDetail = OpenResult
+export type BookContent = ChapterContent
+export type PageView = PageViewResult
+export type SearchMatch = ApiSearchMatch
 
 export type Screen =
   | { kind: 'library' }
@@ -96,13 +56,6 @@ export interface VisualEpub {
 
 export type Visual = VisualPdf | VisualEpub
 
-export interface PageView {
-  width: number
-  height: number
-  pageCount: number
-  textItems: PdfTextItem[]
-}
-
 export type Note = NoteRecord
 
 export interface NoteEditor {
@@ -120,16 +73,6 @@ export interface NoteEditor {
 export interface NoteRef {
   id: string
   bookId?: string | null
-}
-
-export interface SearchMatch {
-  bookId?: string
-  bookTitle?: string
-  chapterId: string
-  chapterTitle: string
-  offset: number
-  snippet: string
-  locator?: string
 }
 
 export interface SearchResults {
@@ -150,8 +93,6 @@ export interface SelectTarget {
 }
 
 export type SelectChapter = (bookId: string, chapterId: string, target?: SelectTarget) => Promise<void>
-
-export type CallRpc = (endpoint: string, payload?: unknown) => Promise<any>
 
 export interface PendingScroll {
   chapterId: string

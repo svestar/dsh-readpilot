@@ -89,7 +89,7 @@ export function useNotes({
     try {
       const value = await call('notes', { action: 'list', bookId })
       if (notesRequestRef.current !== request) return
-      const list = Array.isArray(value?.notes) ? (value.notes as Note[]).slice() : []
+      const list = value.notes.slice()
       list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt))
       setNotes(list)
     } catch (cause) {
@@ -133,12 +133,14 @@ export function useNotes({
 
   const deleteNote = React.useCallback(async (note: NoteRef) => {
     if (!note?.id || noteDeletingId) return
+    const bookId = note.bookId ?? activeBookId
+    if (!bookId) return
     setNoteDeletingId(note.id)
     setNotesError('')
     try {
       await call('notes', {
         action: 'delete',
-        bookId: note.bookId ?? activeBookId,
+        bookId,
         noteId: note.id,
       })
     } catch (cause) {
@@ -267,22 +269,25 @@ export function useNotes({
     const editor = noteEditor
     const text = noteDraft.trim()
     if (!editor || (!text && editor.kind !== 'highlight') || noteSaving || screen.kind !== 'book') return
+    const noteId = editor.noteId
+    const highlightNoteId = editor.kind === 'highlight' ? noteId : null
+    if (editor.kind === 'highlight' && !highlightNoteId) return
     setNoteSaving(true)
     setNoteError('')
     try {
-      if (editor.kind === 'highlight') {
+      if (highlightNoteId) {
         await call('notes', {
           action: 'update',
           bookId: screen.detail.book.id,
-          noteId: editor.noteId,
+          noteId: highlightNoteId,
           annotation: text,
           color: noteColor,
         })
-      } else if (editor.noteId) {
+      } else if (noteId) {
         await call('notes', {
           action: 'update',
           bookId: screen.detail.book.id,
-          noteId: editor.noteId,
+          noteId,
           note: text,
         })
       } else {

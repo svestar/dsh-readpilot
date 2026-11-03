@@ -2443,8 +2443,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           limit: 30
         });
         setSearchResults({
-          matches: Array.isArray(value?.matches) ? value.matches : [],
-          truncated: Boolean(value?.truncated)
+          matches: value.matches,
+          truncated: value.truncated
         });
       } catch (cause) {
         setSearchResults({ matches: [], truncated: false });
@@ -2559,7 +2559,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       try {
         const value = await call("notes", { action: "list", bookId });
         if (notesRequestRef.current !== request) return;
-        const list = Array.isArray(value?.notes) ? value.notes.slice() : [];
+        const list = value.notes.slice();
         list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt));
         setNotes(list);
       } catch (cause) {
@@ -2599,12 +2599,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     }, [screen, selectChapter]);
     const deleteNote = React.useCallback(async (note) => {
       if (!note?.id || noteDeletingId) return;
+      const bookId = note.bookId ?? activeBookId;
+      if (!bookId) return;
       setNoteDeletingId(note.id);
       setNotesError("");
       try {
         await call("notes", {
           action: "delete",
-          bookId: note.bookId ?? activeBookId,
+          bookId,
           noteId: note.id
         });
       } catch (cause) {
@@ -2727,22 +2729,25 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const editor = noteEditor;
       const text = noteDraft.trim();
       if (!editor || !text && editor.kind !== "highlight" || noteSaving || screen.kind !== "book") return;
+      const noteId = editor.noteId;
+      const highlightNoteId = editor.kind === "highlight" ? noteId : null;
+      if (editor.kind === "highlight" && !highlightNoteId) return;
       setNoteSaving(true);
       setNoteError("");
       try {
-        if (editor.kind === "highlight") {
+        if (highlightNoteId) {
           await call("notes", {
             action: "update",
             bookId: screen.detail.book.id,
-            noteId: editor.noteId,
+            noteId: highlightNoteId,
             annotation: text,
             color: noteColor
           });
-        } else if (editor.noteId) {
+        } else if (noteId) {
           await call("notes", {
             action: "update",
             bookId: screen.detail.book.id,
-            noteId: editor.noteId,
+            noteId,
             note: text
           });
         } else {
@@ -3032,7 +3037,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     document.head.appendChild(style);
     let runtime;
     let boundText = (key) => key;
-    async function call(endpoint, payload) {
+    const call = (async (endpoint, payload) => {
       if (!runtime || !runtime.connection) throw new Error("连接服务不可用");
       let response;
       try {
@@ -3055,7 +3060,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         throw new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`);
       }
       return result.value;
-    }
+    });
     function ReaderPanel(props) {
       const t = props.t ?? boundText;
       const [snapshot, setSnapshot] = React.useState(null);

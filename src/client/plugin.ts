@@ -43,6 +43,7 @@ import type {
   TocItem,
   Visual,
 } from './types.ts'
+import type { CallRpc } from '../rpc.ts'
 
 export function createPlugin(require: (name: string) => any) {
     bindRuntime(require)
@@ -59,7 +60,7 @@ export function createPlugin(require: (name: string) => any) {
     let runtime: any
     let boundText: TextFn = key => key
 
-    async function call(endpoint: string, payload?: unknown): Promise<any> {
+    const call = (async (endpoint: string, payload?: unknown): Promise<any> => {
       if (!runtime || !runtime.connection) throw new Error('连接服务不可用')
       let response: Response
       try {
@@ -72,7 +73,7 @@ export function createPlugin(require: (name: string) => any) {
       } catch (error) {
         throw new Error(`无法连接阅读器服务：${messageOf(error)}`)
       }
-      let result: any
+      let result: { ok?: boolean; value?: unknown; error?: { message?: string } }
       try {
         result = await response.json()
       } catch {
@@ -82,7 +83,7 @@ export function createPlugin(require: (name: string) => any) {
         throw new Error(result?.error?.message ?? `请求失败（HTTP ${response.status}）`)
       }
       return result.value
-    }
+    }) as CallRpc
 
 
 

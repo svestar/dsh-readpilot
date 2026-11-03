@@ -47,7 +47,6 @@ const MAX_ENTRIES = 10000
 const MAX_ENTRY_BYTES = 50 * MEGABYTE
 const MAX_TOTAL_BYTES = 200 * MEGABYTE
 const CONTAINER_PATH = 'META-INF/container.xml'
-const NCX_MEDIA_TYPE = 'application/x-dtbncx+xml'
 const ASSET_ROOT = 'files'
 const CONTENT_TYPES = new Map<string, string>([
   ['.css', 'text/css; charset=utf-8'],
