@@ -1740,6 +1740,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     if (h2 <= 0 || available <= 0 || r <= 0) return 0;
     return Math.min(available, h2 * r);
   }
+  function pageSpanWidth(pageWidth, layout, gap = PAGE_GAP) {
+    const width = finiteOrZero(pageWidth);
+    if (width <= 0) return 0;
+    if (layout !== "double") return width;
+    if (!Number.isFinite(gap) || gap < 0) return 0;
+    return width * 2 + gap;
+  }
 
   // src/client/views/visual-reader.ts
   var PDF_WHEEL_THRESHOLD = 40;
@@ -1791,7 +1798,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const [pdfFit, setPdfFit] = React.useState(1);
     const [epubWidth, setEpubWidth] = React.useState(null);
     const pdfPaged = visual?.kind === "pdf" && screen.kind === "book";
-    const epubShaped = visual?.kind === "epub" && screen.kind === "book" && (readingMode === "scroll" || layout === "single");
+    const epubShaped = visual?.kind === "epub" && screen.kind === "book";
     React.useEffect(() => {
       const container = containerRef.current;
       if (!pdfPaged || !container) return;
@@ -1864,6 +1871,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }
       const container = containerRef.current;
       if (!container) return;
+      const spanLayout = readingMode === "paged" ? layout : "single";
       let lastKey = "";
       const measure = () => {
         const box = contentBox(container);
@@ -1871,7 +1879,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         const key = `${box.width}x${box.height}`;
         if (key === lastKey) return;
         lastKey = key;
-        const width = pageWidthForHeight(box.height, box.width);
+        const width = pageSpanWidth(pageWidthForHeight(box.height, box.width), spanLayout);
         setEpubWidth(width > 0 ? width : null);
       };
       measure();
@@ -1885,7 +1893,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         observer?.disconnect();
         window.removeEventListener("resize", measure);
       };
-    }, [epubShaped]);
+    }, [epubShaped, layout, readingMode]);
     if (!visual) return null;
     if (screen.kind !== "book") return null;
     if (visual.kind === "pdf") {
@@ -1967,7 +1975,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         title: screen.content.title,
         src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
         onLoad: onEpubLoad,
-        style: epubWidth === null ? void 0 : { width: epubWidth, margin: "0 auto" }
+        style: epubWidth === null ? void 0 : { width: epubWidth, maxWidth: "100%", margin: "0 auto" }
       })
     );
   }
@@ -4074,7 +4082,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         layout: pageLayout
       });
       const textPageWidth = usePageWidth({
-        enabled: isTextFormat && (effectiveMode === "scroll" || effectiveMode === "paged" && pageLayout === "single"),
+        enabled: isTextFormat,
         containerRef: contentRef
       });
       const textPager = useTextPager({
@@ -4383,7 +4391,8 @@ ${question}`);
         onEpubLoad,
         epubFrameRef
       }) : null;
-      const pageFrameStyle = textPageWidth > 0 ? { width: `${textPageWidth}px`, margin: "0 auto" } : void 0;
+      const pageSpan = pageSpanWidth(textPageWidth, pageLayout);
+      const pageFrameStyle = pageSpan > 0 ? { width: `${pageSpan}px`, maxWidth: "100%", margin: "0 auto" } : void 0;
       const textColumnStyle = textPageWidth > 0 ? { width: `${textPageWidth}px`, maxWidth: "100%", margin: "0 auto" } : void 0;
       const textReader = screen.kind === "book" ? effectiveMode === "paged" ? h(
         "div",

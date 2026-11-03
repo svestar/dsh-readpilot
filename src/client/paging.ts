@@ -68,3 +68,11 @@ export function pageWidthForHeight(height: number, availableWidth: number, ratio
   if (h <= 0 || available <= 0 || r <= 0) return 0
   return Math.min(available, h * r)
 }
+
+export function pageSpanWidth(pageWidth: number, layout: PageLayout, gap = PAGE_GAP): number {
+  const width = finiteOrZero(pageWidth)
+  if (width <= 0) return 0
+  if (layout !== 'double') return width
+  if (!Number.isFinite(gap) || gap < 0) return 0
+  return width * 2 + gap
+}

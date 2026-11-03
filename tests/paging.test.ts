@@ -7,6 +7,7 @@ import {
   columnsFor,
   measurePageMetrics,
   pageBounds,
+  pageSpanWidth,
   pageStep,
   pageWidthForHeight,
 } from '../src/client/paging.ts'
@@ -175,4 +176,34 @@ test('page_width_custom_ratio', () => {
   assert.equal(pageWidthForHeight(1000, 2000, -1), 0)
   assert.equal(pageWidthForHeight(1000, 2000, NaN), 0)
   assert.equal(pageWidthForHeight(1000, 2000, Infinity), 0)
+})
+
+test('page_span_single', () => {
+  assert.equal(pageSpanWidth(800, 'single'), 800)
+  assert.equal(pageSpanWidth(800.5, 'single'), 800.5)
+  assert.equal(pageSpanWidth(800, 'single', 20), 800)
+  assert.equal(pageSpanWidth(800, 'single', 0), 800)
+})
+
+test('page_span_double', () => {
+  assert.equal(pageSpanWidth(800, 'double'), 800 * 2 + PAGE_GAP)
+  assert.equal(pageSpanWidth(800, 'double'), 1640)
+  assert.equal(pageSpanWidth(840.5, 'double'), 840.5 * 2 + PAGE_GAP)
+})
+
+test('page_span_double_custom_gap', () => {
+  assert.equal(pageSpanWidth(800, 'double', 0), 1600)
+  assert.equal(pageSpanWidth(800, 'double', 20), 1620)
+  assert.equal(pageSpanWidth(800, 'double', PAGE_GAP), 1640)
+})
+
+test('page_span_invalid_inputs', () => {
+  assert.equal(pageSpanWidth(0, 'single'), 0)
+  assert.equal(pageSpanWidth(-100, 'single'), 0)
+  assert.equal(pageSpanWidth(NaN, 'double'), 0)
+  assert.equal(pageSpanWidth(Infinity, 'double'), 0)
+  assert.equal(pageSpanWidth(800, 'double', -10), 0)
+  assert.equal(pageSpanWidth(800, 'double', NaN), 0)
+  assert.equal(pageSpanWidth(800, 'double', Infinity), 0)
+  assert.equal(pageSpanWidth(0, 'double', 20), 0)
 })

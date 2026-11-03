@@ -1,6 +1,6 @@
 import { React, h } from '../runtime.ts'
 import { renderBlocks } from './markdown.ts'
-import { pageWidthForHeight } from '../paging.ts'
+import { pageSpanWidth, pageWidthForHeight } from '../paging.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { MutableRef, PageView, Screen, TextFn, Visual } from '../types.ts'
 
@@ -73,7 +73,6 @@ export function VisualReader({
   const [epubWidth, setEpubWidth] = React.useState<number | null>(null)
   const pdfPaged = visual?.kind === 'pdf' && screen.kind === 'book'
   const epubShaped = visual?.kind === 'epub' && screen.kind === 'book'
-    && (readingMode === 'scroll' || layout === 'single')
 
   React.useEffect(() => {
     const container = containerRef.current
@@ -151,6 +150,7 @@ export function VisualReader({
     }
     const container = containerRef.current
     if (!container) return
+    const spanLayout: PageLayout = readingMode === 'paged' ? layout : 'single'
     let lastKey = ''
     const measure = () => {
       const box = contentBox(container)
@@ -158,7 +158,7 @@ export function VisualReader({
       const key = `${box.width}x${box.height}`
       if (key === lastKey) return
       lastKey = key
-      const width = pageWidthForHeight(box.height, box.width)
+      const width = pageSpanWidth(pageWidthForHeight(box.height, box.width), spanLayout)
       setEpubWidth(width > 0 ? width : null)
     }
     measure()
@@ -172,7 +172,7 @@ export function VisualReader({
       observer?.disconnect()
       window.removeEventListener('resize', measure)
     }
-  }, [epubShaped])
+  }, [epubShaped, layout, readingMode])
 
   if (!visual) return null
   if (screen.kind !== 'book') return null
@@ -241,6 +241,6 @@ export function VisualReader({
     title: screen.content.title,
     src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
     onLoad: onEpubLoad,
-    style: epubWidth === null ? undefined : { width: epubWidth, margin: '0 auto' },
+    style: epubWidth === null ? undefined : { width: epubWidth, maxWidth: '100%', margin: '0 auto' },
   }))
 }

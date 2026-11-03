@@ -35,7 +35,7 @@ import { useNotes } from './hooks/use-notes.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
-import { columnsFor } from './paging.ts'
+import { columnsFor, pageSpanWidth } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 import type {
   BookDetail,
@@ -314,7 +314,7 @@ export function createPlugin(require: (name: string) => any) {
       })
 
       const textPageWidth = usePageWidth({
-        enabled: isTextFormat && (effectiveMode === 'scroll' || (effectiveMode === 'paged' && pageLayout === 'single')),
+        enabled: isTextFormat,
         containerRef: contentRef,
       })
 
@@ -672,8 +672,9 @@ export function createPlugin(require: (name: string) => any) {
         epubFrameRef,
       }) : null
 
-      const pageFrameStyle = textPageWidth > 0
-        ? { width: `${textPageWidth}px`, margin: '0 auto' }
+      const pageSpan = pageSpanWidth(textPageWidth, pageLayout)
+      const pageFrameStyle = pageSpan > 0
+        ? { width: `${pageSpan}px`, maxWidth: '100%', margin: '0 auto' }
         : undefined
       const textColumnStyle = textPageWidth > 0
         ? { width: `${textPageWidth}px`, maxWidth: '100%', margin: '0 auto' }
