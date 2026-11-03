@@ -10,7 +10,7 @@
 
 记忆设置存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `memory`：全局模式 `off | ask | on`，默认 `ask`；单书状态 `inherit | on | off`，默认 `inherit`。全局 `off` 暂停所有书；单书 `off`/`on` 优先；`inherit` 跟随全局。每本书一张卡 `memory/<bookId>.md`，跨书读者卡 `memory/reader.md`；书卡上限 4000 字符、读者卡 2000 字符，写入前把旧内容存入 `.history/`，最多 10 份，可撤销与清空。
 
-右栏“记忆”标签显示记忆页：全局模式、本书状态、生效状态、书卡/读者卡编辑、撤销、清空，以及待确认的记忆提议。记忆开启时，Host 的 systemPrompt.context 记忆条目按会话注入 `<reading_memory>`，只在当前书生效状态为 `on` 时注入；读者卡只随当前书一起注入。`reader_memory` 工具提供 `read`、`update`、`forget`：`read` 返回两张卡；`update` 在 `ask` 模式下生成提议、在 `on` 模式下直接写入、在 `off` 模式下报错；`forget` 清空对应卡。提议在记忆页“同意并保存”后把本书设为 `on` 并写入，选择“不用”则把本书设为 `off`。
+右栏“记忆”标签显示记忆页：全局模式、本书状态、生效状态、书卡/读者卡编辑、撤销、清空，以及待确认的记忆提议。记忆开启时，Host 的 systemPrompt.context 记忆条目按会话注入 `<reading_memory>`，只在当前书生效状态为 `on` 时注入；读者卡只随当前书一起注入。`reader_memory` 工具提供 `read`、`update`、`forget`：`read` 返回两张卡；`update` 在 `ask` 模式下生成提议、在 `on` 模式下直接写入、在 `off` 模式下报错；`forget` 只在 `on` 模式下清空对应卡，`off`/`ask` 模式拒绝。提议在记忆页“同意并保存”后把本书设为 `on` 并写入，选择“不用”则把本书设为 `off`。
 
 ## 接口与代码映射
 
@@ -27,7 +27,7 @@
 
 ## 约束与失败行为
 
-`settings` 文件损坏或缺少 `memory` 时按默认值读取；旧 `notes` 配置保留。`bookId` 只允许 `[A-Za-z0-9_-]{1,64}`，`reader` 作为保留名不能作为书 id。超长写入返回 `memory-too-large`，非法历史 id 返回 `invalid-history`，没有历史时撤销返回 `history-empty`；提议过多返回 `too-many-proposals`。工具在 `off` 模式下拒绝更新；`ask` 模式只创建提议，不直接写入；只有 `on` 模式自动更新。记忆只记录读者偏好、观点、疑问与讨论结论，不记录书里的情节设定。上下文是持久快照，开启/修改后在下一轮生效；关闭只停止自动注入，不阻止用工具读取。草稿与导出不进入记忆。
+`settings` 文件损坏或缺少 `memory` 时按默认值读取；旧 `notes` 配置保留。`bookId` 只允许 `[A-Za-z0-9_-]{1,64}`，`reader` 作为保留名不能作为书 id。超长写入返回 `memory-too-large`，非法历史 id 返回 `invalid-history`，没有历史时撤销返回 `history-empty`；提议过多返回 `too-many-proposals`。工具在 `off` 模式下拒绝更新；`ask` 模式只创建提议，不直接写入；只有 `on` 模式自动更新，`forget` 也只在 `on` 模式可用。记忆只记录读者偏好、观点、疑问与讨论结论，不记录书里的情节设定。上下文是持久快照，开启/修改后在下一轮生效；关闭只停止自动注入，不阻止用工具读取。草稿与导出不进入记忆。
 
 ## 验收与测试
 

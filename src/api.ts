@@ -1117,7 +1117,11 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const settings = await currentSettings()
     if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
     const target = noteFilePath(settings.libraryDir, content.note.path)
-    await stat(target)
+    try {
+      await stat(target)
+    } catch {
+      throw new ReaderError('open-failed', '笔记文件不存在或无法读取')
+    }
     try {
       await openWithExternalEditor(target)
     } catch (error) {

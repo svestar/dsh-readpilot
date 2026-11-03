@@ -5,9 +5,9 @@ DSH Web GUI 的 AI 辅助阅读插件。书库是用户指定的本机目录；�
 ## 当前能力
 
 - 书库：扫描 `.txt`、`.md`、`.epub`、`.pdf`；EPUB 按 spine 解析，PDF 抽取文本层并渲染页面。支持最近阅读、标签、书名/标签搜索与排序。
-- 阅读：四种格式都支持分页；PDF 恒为分页，其余可切滚动/分页；支持单/双页、翻页、目录、进度、搜索与笔记；五色划线、批注与书签，引文可高亮跳转；配色跟随 DSH 或选五种主题。
-- 长笔记：右栏“长笔记”可写整书/主题笔记，存于书库 `notes/`；短笔记仍走 JSON。
-- 笔记上下文：按书开启“让伴读知道本书笔记”，注入笔记。
+- 阅读：四种格式都支持分页；PDF 恒为分页，其余可切滚动/分页；支持单/双页、翻页、目录、进度、搜索、笔记；五色划线、批注与书签，引文可高亮跳转；配色跟随 DSH 或五种主题。
+- 长笔记：右栏“长笔记”可写整书/主题，存于 `notes/`；短笔记仍走 JSON。
+- 笔记上下文：按书开启“让伴读知道本书笔记”，注入笔记与批注。
 - 笔记草稿：伴读写笔记只生成草稿，应用前看 diff。
 - 记忆与导出：按书记忆（关/询问/开），笔记可导出 markdown、恢复历史。
 - 伴读：右侧栏嵌入原生会话，与 Chat 共享会话，使用原生 Composer、工具卡、推理与审批；不支持 Factory 或渲染失败时退回折叠。宽度可拖动，窄屏为抽屉；选段“解释/总结/翻译”只预填输入框，不自动发送。会话就绪后切到只读沙箱。
@@ -15,7 +15,7 @@ DSH Web GUI 的 AI 辅助阅读插件。书库是用户指定的本机目录；�
 
 ## 安装与首次使用
 
-通过 Plugins 页面或 `plugin_manager` 安装本目录。安装前执行 `pnpm install && pnpm run build`，生成 `dist/` 与 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`。安装后刷新页面，在左侧栏点“阅读”，选择书库目录，点“创建书库”。
+通过 Plugins 或 `plugin_manager` 安装本目录；先执行 `pnpm install && pnpm run build`，生成 `dist/` 与 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`、`htmlparser2`。安装后刷新，在左侧栏点“阅读”，选择书库目录并点“创建书库”。
 
 ## 开发
 
@@ -23,7 +23,7 @@ Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`），需要
 
 ## 数据
 
-书库原文件不复制。设置、进度、会话映射与解析缓存位于 `$DSH_HOME/dsh-readpilot/`；EPUB 解压资源在 `assets/`，PDF 页面图片在 `cache/pages/`；解析缓存按路径 id 与文件修改时间失效。
+书库原文件不复制。设置、进度、会话与解析缓存位于 `$DSH_HOME/dsh-readpilot/`；EPUB 解压资源在 `assets/`，PDF 图片在 `cache/pages/`；解析缓存按路径 id 与修改时间失效。
 
 ## 限制
 
