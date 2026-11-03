@@ -3,8 +3,8 @@
 - **ID：** FTR-013
 - **名称：** 书库整理
 - **状态：** active
-- **代码：** `src/library-meta.js`（`createLibraryMetaStore`、`normalizeTags`）；`src/api.js`（`state`、`libraryMeta`、`setBookTags`）；`src/client/library-utils.js`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/views/library-view.js`（`Library`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/library-organization.test.js`
+- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeTags`）；`src/api.ts`（`state`、`libraryMeta`、`setBookTags`）；`src/client/library-utils.ts`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/views/library-view.ts`（`Library`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/library-organization.test.ts`
 
 ## 行为
 
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createLibraryMetaStore` | `src/library-meta.js:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-reader/library-meta.json`，按书保存标签 |
-| `normalizeTags` | `src/library-meta.js:normalizeTags` | 去重、去空白、校验 1–24 字与最多 20 个 |
-| `state` / `libraryMeta` | `src/api.js:state` | 返回书籍、进度、会话与标签快照 |
-| `setBookTags` | `src/api.js:setBookTags` | 校验书籍与标签并持久化 |
-| `filterBooks` / `recentBooks` / `tagCatalogue` | `src/client/library-utils.js:filterBooks` | 分类、搜索、排序、最近阅读与标签计数 |
-| `Library` | `src/client/views/library-view.js:Library` | 分类栏、最近阅读、网格、搜索排序与标签弹窗 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 保存标签后刷新书库快照 |
+| `createLibraryMetaStore` | `src/library-meta.ts:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-reader/library-meta.json`，按书保存标签 |
+| `normalizeTags` | `src/library-meta.ts:normalizeTags` | 去重、去空白、校验 1–24 字与最多 20 个 |
+| `state` / `libraryMeta` | `src/api.ts:state` | 返回书籍、进度、会话与标签快照 |
+| `setBookTags` | `src/api.ts:setBookTags` | 校验书籍与标签并持久化 |
+| `filterBooks` / `recentBooks` / `tagCatalogue` | `src/client/library-utils.ts:filterBooks` | 分类、搜索、排序、最近阅读与标签计数 |
+| `Library` | `src/client/views/library-view.ts:Library` | 分类栏、最近阅读、网格、搜索排序与标签弹窗 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 保存标签后刷新书库快照 |
 
 ## 约束与失败行为
 

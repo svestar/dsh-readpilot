@@ -12,10 +12,10 @@
 
 1. 源码放在 `src/client/`，按职责拆分为入口、运行时绑定、locale、样式、纯函数、视图与 hooks 模块。
 2. 状态逻辑按领域拆为 `useCompanion`、`useSearch`、`useNotes`、`useVisual`；`ReaderPanel` 负责打开书籍/章节、阅读布局与这些 hooks 的编排。
-3. 使用 esbuild 把 `src/client/index.js` 打包为单文件 `client.js`；React 由 loader 注入，不打包 React。
+3. 使用 esbuild 把 `src/client/index.ts` 打包为单文件 `client.js`；React 由 loader 注入，不打包 React。
 4. 生成产物末尾注册 DSH 工厂：
    `window.__ModuleLoader__.load({ id: 'dsh-reader', factory: require => __dshReaderBundle.create(require) })`。
-5. `client.js` 是生成物，不再手工修改；开发与安装前运行 `pnpm run build:client`。
+5. `client.js` 是生成物，不再手工修改；安装前运行 `pnpm run build`，只改 Client 时运行 `pnpm run build:client`。
 6. 测试继续导入生成的 `client.js`，纯函数也可直接测试源码模块。
 
 ## 备选方案
@@ -30,4 +30,4 @@
 
 代价：增加 esbuild devDependency 和构建步骤；`client.js` 不能手改；源码与产物必须同步，安装前忘记构建会运行旧 UI。`pnpm install` 需要允许 esbuild 的安装脚本（见 `pnpm-workspace.yaml` 的 `allowBuilds`）。
 
-验证：`pnpm run build:client` 成功；`tests/client-chat.test.js`、`palette`、`highlight` 等继续通过；安装后刷新页面确认阅读器 UI 正常。
+验证：`pnpm run build:client` 成功；`tests/client-chat.test.ts`、`palette`、`highlight` 等继续通过；安装后刷新页面确认阅读器 UI 正常。

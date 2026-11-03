@@ -3,8 +3,8 @@
 - **ID：** FTR-012
 - **名称：** 笔记高亮
 - **状态：** active
-- **代码：** `src/client/helpers.js`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.js`（`useNotes`）；`src/client/views/selection-note.js`（`NoteDialog`）；`src/client/views/notes-search.js`（`NotesBody`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/highlight.test.js`
+- **代码：** `src/client/helpers.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/views/selection-note.ts`（`NoteDialog`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/highlight.test.ts`
 
 ## 行为
 
@@ -14,11 +14,11 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `findNoteOccurrence` | `src/client/helpers.js:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
-| `useNotes` | `src/client/hooks/use-notes.js:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
-| `NoteDialog` / `NotesBody` | `src/client/views/selection-note.js:NoteDialog`；`src/client/views/notes-search.js:NotesBody` | 编辑对话框与右栏笔记列表 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合阅读器、笔记层与弹层 |
-| `handleNotes` | `src/api.js:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
+| `findNoteOccurrence` | `src/client/helpers.ts:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
+| `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
+| `NoteDialog` / `NotesBody` | `src/client/views/selection-note.ts:NoteDialog`；`src/client/views/notes-search.ts:NotesBody` | 编辑对话框与右栏笔记列表 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
+| `handleNotes` | `src/api.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
 
 ## 约束与失败行为
 

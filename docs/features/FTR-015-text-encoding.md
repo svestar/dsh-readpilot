@@ -3,8 +3,8 @@
 - **ID：** FTR-015
 - **名称：** 文本编码
 - **状态：** active
-- **代码：** `src/formats.js`（`decodeText`、`decodeStrict`、`assertReadableText`）
-- **测试：** `tests/formats.test.js`
+- **代码：** `src/formats.ts`（`decodeText`、`decodeStrict`、`assertReadableText`）
+- **测试：** `tests/formats.test.ts`
 
 ## 行为
 
@@ -14,9 +14,9 @@ TXT/MD 读取原始字节后按 BOM 和严格解码器判定编码：UTF-8 BOM�
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `decodeText` | `src/formats.js:decodeText` | 按 BOM/严格候选解码文本 |
-| `decodeStrict` | `src/formats.js:decodeStrict` | 使用 `TextDecoder(..., { fatal: true })` |
-| `assertReadableText` | `src/formats.js:assertReadableText` | 拒绝替换符与异常控制字符 |
+| `decodeText` | `src/formats.ts:decodeText` | 按 BOM/严格候选解码文本 |
+| `decodeStrict` | `src/formats.ts:decodeStrict` | 使用 `TextDecoder(..., { fatal: true })` |
+| `assertReadableText` | `src/formats.ts:assertReadableText` | 拒绝替换符与异常控制字符 |
 
 ## 约束与失败行为
 

@@ -1,0 +1,43 @@
+import test from 'node:test'
+import assert from 'node:assert/strict'
+
+const globalAny = globalThis as any
+
+globalAny.window = {
+  __ModuleLoader__: {
+    load(registration: any) {
+      globalAny.__readerRegistration = registration
+    },
+  },
+}
+globalAny.document = {
+  createElement() {
+    return { dataset: {}, style: {}, textContent: '' }
+  },
+  head: { appendChild() {} },
+}
+
+// @ts-expect-error client.js is a build artifact without type declarations.
+await import('../client.js')
+
+const plugin = globalAny.__readerRegistration.factory(() => ({ createElement: () => null }))
+
+test('find_note_occurrence_prefers_offset', () => {
+  const text = 'alpha beta alpha gamma'
+  const first = plugin.findNoteOccurrence(text, 'alpha', 0)
+  const second = plugin.findNoteOccurrence(text, 'alpha', 15)
+  assert.deepEqual(first, { start: 0, end: 5 })
+  assert.deepEqual(second, { start: 11, end: 16 })
+})
+
+test('find_note_occurrence_missing', () => {
+  assert.equal(plugin.findNoteOccurrence('hello', 'missing', 0), null)
+  assert.equal(plugin.findNoteOccurrence('hello', '', 0), null)
+  assert.equal(plugin.findNoteOccurrence('', 'hello', 0), null)
+})
+
+test('find_note_occurrence_uses_context', () => {
+  const text = '开头 target 结尾；另一段 target 后续'
+  const match = plugin.findNoteOccurrence(text, 'target', 0, '另一段 ', ' 后续')
+  assert.deepEqual(match, { start: text.lastIndexOf('target'), end: text.lastIndexOf('target') + 6 })
+})

@@ -4,3 +4,4 @@ node_modules/
 .tmp/
 .uv-cache/
 .acl-repair/
+dist/

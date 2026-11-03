@@ -3,8 +3,8 @@
 - **ID：** FTR-003
 - **名称：** 伴读与检索
 - **状态：** active
-- **代码：** `src/api.js`（`setCompanionSession`、`search`）
-- **测试：** `tests/api.test.js`
+- **代码：** `src/api.ts`（`setCompanionSession`、`search`）
+- **测试：** `tests/api.test.ts`
 
 ## 行为
 
@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `setCompanionSession` | `src/api.js:setCompanionSession` | 持久化或清除书籍与会话的映射 |
-| `search` | `src/api.js:search` | 返回带稳定定位符的检索结果 |
+| `setCompanionSession` | `src/api.ts:setCompanionSession` | 持久化或清除书籍与会话的映射 |
+| `search` | `src/api.ts:search` | 返回带稳定定位符的检索结果 |
 
 ## 约束与失败行为
 

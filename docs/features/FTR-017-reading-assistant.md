@@ -3,8 +3,8 @@
 - **ID：** FTR-017
 - **名称：** 阅读助手
 - **状态：** active
-- **代码：** `src/workspace-prompt.js`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/api.js`（`state`、`toolContext`）；`src/library.js`（扫描跳过 `AGENTS.md`）；`src/tools.js`（`reader_context`）
-- **测试：** `tests/prompt.test.js`
+- **代码：** `src/workspace-prompt.ts`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/api.ts`（`state`、`toolContext`）；`src/library.ts`（扫描跳过 `AGENTS.md`）；`src/tools.ts`（`reader_context`）
+- **测试：** `tests/prompt.test.ts`
 
 ## 行为
 
@@ -16,11 +16,11 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `READING_PROMPT` | `src/workspace-prompt.js:READING_PROMPT` | 阅读助手纪律文本 |
-| `ensureWorkspacePrompt` | `src/workspace-prompt.js:ensureWorkspacePrompt` | 创建/更新书库 `AGENTS.md` 管理块 |
-| `state` | `src/api.js:state` | 首次加载书库时同步提示词文件 |
-| `toolContext` | `src/api.js:toolContext` | 当前书、进度、目录与最近笔记 |
-| `reader_context` | `src/tools.js:reader_context` | Agent 只读入口 |
+| `READING_PROMPT` | `src/workspace-prompt.ts:READING_PROMPT` | 阅读助手纪律文本 |
+| `ensureWorkspacePrompt` | `src/workspace-prompt.ts:ensureWorkspacePrompt` | 创建/更新书库 `AGENTS.md` 管理块 |
+| `state` | `src/api.ts:state` | 首次加载书库时同步提示词文件 |
+| `toolContext` | `src/api.ts:toolContext` | 当前书、进度、目录与最近笔记 |
+| `reader_context` | `src/tools.ts:reader_context` | Agent 只读入口 |
 
 ## 约束与失败行为
 

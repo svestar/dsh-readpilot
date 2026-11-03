@@ -3,8 +3,8 @@
 - **ID：** FTR-016
 - **名称：** 阅读锚点
 - **状态：** active
-- **代码：** `src/client/anchor.js`（`blocksText`、`offsetInChapter`、`contextAround`、`hashText`）；`src/client/hooks/use-notes.js`（`useNotes`）；`src/client/helpers.js`（`findNoteOccurrence`）；`src/api.js`（`saveReadingProgress`）；`src/notes.js`（`validateNewNote`）
-- **测试：** `tests/reading-anchor.test.js`
+- **代码：** `src/client/anchor.ts`（`blocksText`、`offsetInChapter`、`contextAround`、`hashText`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/helpers.ts`（`findNoteOccurrence`）；`src/api.ts`（`saveReadingProgress`）；`src/notes.ts`（`validateNewNote`）
+- **测试：** `tests/reading-anchor.test.ts`
 
 ## 行为
 
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `blocksText` | `src/client/anchor.js:blocksText` | 与 Host 一致的块拼接文本 |
-| `offsetInChapter` | `src/client/anchor.js:offsetInChapter` | 把块内偏移换算成章节全局偏移 |
-| `contextAround` | `src/client/anchor.js:contextAround` | 截取引用前后文 |
-| `hashText` | `src/client/anchor.js:hashText` | 生成章节文本指纹 |
-| `findNoteOccurrence` | `src/client/helpers.js:findNoteOccurrence` | 按 quote、偏移与前后文定位 |
-| `saveReadingProgress` | `src/api.js:saveReadingProgress` | 保存章节进度与百分比 |
-| `validateNewNote` | `src/notes.js:validateNewNote` | 接受并校验可选锚点字段 |
+| `blocksText` | `src/client/anchor.ts:blocksText` | 与 Host 一致的块拼接文本 |
+| `offsetInChapter` | `src/client/anchor.ts:offsetInChapter` | 把块内偏移换算成章节全局偏移 |
+| `contextAround` | `src/client/anchor.ts:contextAround` | 截取引用前后文 |
+| `hashText` | `src/client/anchor.ts:hashText` | 生成章节文本指纹 |
+| `findNoteOccurrence` | `src/client/helpers.ts:findNoteOccurrence` | 按 quote、偏移与前后文定位 |
+| `saveReadingProgress` | `src/api.ts:saveReadingProgress` | 保存章节进度与百分比 |
+| `validateNewNote` | `src/notes.ts:validateNewNote` | 接受并校验可选锚点字段 |
 
 ## 约束与失败行为
 

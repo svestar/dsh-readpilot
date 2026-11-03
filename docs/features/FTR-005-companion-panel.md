@@ -3,8 +3,8 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/helpers.js`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/hooks/use-companion.js`（`useCompanion`）；`src/client/views/chat-panel.js`（`ChatPanel`）；`src/client/views/chat-content.js`（`ChatBody`、`ChatCompose`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/client-chat.test.js`
+- **代码：** `src/client/helpers.ts`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/views/chat-panel.ts`（`ChatPanel`）；`src/client/views/chat-content.ts`（`ChatBody`、`ChatCompose`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/client-chat.test.ts`
 
 ## 行为
 
@@ -14,12 +14,12 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `foldTranscript` | `src/client/helpers.js:foldTranscript` | 从会话事件窗口折叠出用户/助手文本消息 |
-| `clampChatWidth` | `src/client/helpers.js:clampChatWidth` | 把拖动宽度夹取到 280–560px 与窗口可用宽度 |
-| `parseMarkdownBlocks` | `src/client/helpers.js:parseMarkdownBlocks` | 把助手文本切成基础 Markdown 块 |
-| `useCompanion` | `src/client/hooks/use-companion.js:useCompanion` | 会话引用、事件订阅、发送、加载更早与拖动调宽 |
-| `ChatPanel` / `ChatBody` / `ChatCompose` | `src/client/views/chat-panel.js:ChatPanel`；`src/client/views/chat-content.js:ChatBody` | 渲染伴读栏外壳、消息列表与输入区 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合伴读与阅读器状态 |
+| `foldTranscript` | `src/client/helpers.ts:foldTranscript` | 从会话事件窗口折叠出用户/助手文本消息 |
+| `clampChatWidth` | `src/client/helpers.ts:clampChatWidth` | 把拖动宽度夹取到 280–560px 与窗口可用宽度 |
+| `parseMarkdownBlocks` | `src/client/helpers.ts:parseMarkdownBlocks` | 把助手文本切成基础 Markdown 块 |
+| `useCompanion` | `src/client/hooks/use-companion.ts:useCompanion` | 会话引用、事件订阅、发送、加载更早与拖动调宽 |
+| `ChatPanel` / `ChatBody` / `ChatCompose` | `src/client/views/chat-panel.ts:ChatPanel`；`src/client/views/chat-content.ts:ChatBody` | 渲染伴读栏外壳、消息列表与输入区 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合伴读与阅读器状态 |
 
 ## 约束与失败行为
 

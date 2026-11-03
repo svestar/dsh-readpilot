@@ -3,8 +3,8 @@
 - **ID：** FTR-007
 - **名称：** PDF 文本
 - **状态：** active
-- **代码：** `src/formats/pdf.js`（`parsePdf`）
-- **测试：** `tests/pdf.test.js`
+- **代码：** `src/formats/pdf.ts`（`parsePdf`）
+- **测试：** `tests/pdf.test.ts`
 
 ## 行为
 
@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parsePdf` | `src/formats/pdf.js:parsePdf` | 读取 PDF 文本层并生成页章节 |
-| `parseBookAsync` | `src/formats.js:parseBookAsync` | 按格式分派到 PDF 解析器 |
+| `parsePdf` | `src/formats/pdf.ts:parsePdf` | 读取 PDF 文本层并生成页章节 |
+| `parseBookAsync` | `src/formats.ts:parseBookAsync` | 按格式分派到 PDF 解析器 |
 
 ## 约束与失败行为
 

@@ -3,8 +3,8 @@
 - **ID：** FTR-009
 - **名称：** PDF 视觉
 - **状态：** active
-- **代码：** `src/visual/pdf.js`（`createPdfPageRenderer`）；`src/api.js`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.js`（`useVisual`）；`src/client/views/visual-reader.js`（`VisualReader`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/pdf-visual.test.js`
+- **代码：** `src/visual/pdf.ts`（`createPdfPageRenderer`）；`src/api.ts`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/pdf-visual.test.ts`
 
 ## 行为
 
@@ -14,12 +14,12 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createPdfPageRenderer` | `src/visual/pdf.js:createPdfPageRenderer` | 渲染页面 PNG、生成文本项并维护磁盘缓存 |
-| `pageView` | `src/api.js:pageView` | 返回页面尺寸、页数与文本项 |
-| `pdfPage` | `src/api.js:pdfPage` | 返回页面 PNG 给 `/api/dsh-reader/pdf-page` |
-| `useVisual` | `src/client/hooks/use-visual.js:useVisual` | PDF 页状态、翻页、缩放、选段与页章节同步 |
-| `VisualReader` | `src/client/views/visual-reader.js:VisualReader` | 页面图片、文本层与页工具栏 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
+| `createPdfPageRenderer` | `src/visual/pdf.ts:createPdfPageRenderer` | 渲染页面 PNG、生成文本项并维护磁盘缓存 |
+| `pageView` | `src/api.ts:pageView` | 返回页面尺寸、页数与文本项 |
+| `pdfPage` | `src/api.ts:pdfPage` | 返回页面 PNG 给 `/api/dsh-reader/pdf-page` |
+| `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | PDF 页状态、翻页、缩放、选段与页章节同步 |
+| `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | 页面图片、文本层与页工具栏 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为
 

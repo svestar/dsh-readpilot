@@ -3,8 +3,8 @@
 - **ID：** FTR-001
 - **名称：** 书库配置
 - **状态：** active
-- **代码：** `src/api.js`（`configureLibrary`、`state`）；`src/library.js`（`scanLibrary`、`bookIdFor`）
-- **测试：** `tests/api.test.js`；`tests/library.test.js`
+- **代码：** `src/api.ts`（`configureLibrary`、`state`）；`src/library.ts`（`scanLibrary`、`bookIdFor`）
+- **测试：** `tests/api.test.ts`；`tests/library.test.ts`
 
 ## 行为
 
@@ -14,10 +14,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `configureLibrary` | `src/api.js:configureLibrary` | 校验路径、创建工作区、保存设置 |
-| `state` | `src/api.js:state` | 汇总设置、书籍、进度与会话映射 |
-| `scanLibrary` | `src/library.js:scanLibrary` | 递归扫描目录并过滤电子书 |
-| `bookIdFor` | `src/library.js:bookIdFor` | 由路径生成稳定书籍 id |
+| `configureLibrary` | `src/api.ts:configureLibrary` | 校验路径、创建工作区、保存设置 |
+| `state` | `src/api.ts:state` | 汇总设置、书籍、进度与会话映射 |
+| `scanLibrary` | `src/library.ts:scanLibrary` | 递归扫描目录并过滤电子书 |
+| `bookIdFor` | `src/library.ts:bookIdFor` | 由路径生成稳定书籍 id |
 
 ## 约束与失败行为
 

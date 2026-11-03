@@ -1,3 +1,4 @@
+"use strict";
 var __dshReaderBundle = (() => {
   var __defProp = Object.defineProperty;
   var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
@@ -17,21 +18,22 @@ var __dshReaderBundle = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // src/client/index.js
+  // src/client/index.ts
   var index_exports = {};
   __export(index_exports, {
     create: () => create
   });
 
-  // src/client/helpers.js
+  // src/client/helpers.ts
   function messageOf(error) {
     return error instanceof Error ? error.message : String(error);
   }
   function formatSize(bytes) {
     if (!Number.isFinite(bytes)) return "";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / 1024 / 1024).toFixed(1)} MB`;
+    const value = bytes;
+    if (value < 1024) return `${value} B`;
+    if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+    return `${(value / 1024 / 1024).toFixed(1)} MB`;
   }
   function textOfContent(content) {
     if (typeof content === "string") return content.trim();
@@ -123,7 +125,7 @@ var __dshReaderBundle = (() => {
   function readPaletteId() {
     try {
       const value = window.localStorage.getItem(READER_PALETTE_KEY);
-      return READER_PALETTES[value] ? value : "auto";
+      return typeof value === "string" && READER_PALETTES[value] ? value : "auto";
     } catch {
       return "auto";
     }
@@ -259,7 +261,7 @@ var __dshReaderBundle = (() => {
       const tolerance = Math.max(2, (previous?.fontSize ?? rect.fontSize) * 0.5);
       const sameLine = previous && Math.abs(previous.top - rect.top) <= Math.max(2, rect.fontSize * 0.35);
       const gap = previous ? rect.left - (previous.left + previous.width) : Number.POSITIVE_INFINITY;
-      if (sameLine && gap <= tolerance) {
+      if (previous && sameLine && gap <= tolerance) {
         const right = Math.max(previous.left + previous.width, rect.left + rect.width);
         const bottom = Math.max(previous.top + previous.height, rect.top + rect.height);
         previous.top = Math.min(previous.top, rect.top);
@@ -298,7 +300,8 @@ var __dshReaderBundle = (() => {
     };
     style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-reader-highlight-green{background:${highlightColors.green}!important}mark.dsh-reader-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-reader-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-reader-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`;
     const onClick = (event) => {
-      const mark = event.target.closest?.("mark[data-note-id]");
+      const target = event.target;
+      const mark = target?.closest?.("mark[data-note-id]");
       if (!mark) return;
       const note = notes.find((entry) => entry.id === mark.dataset.noteId);
       if (note) onOpen(note);
@@ -456,7 +459,7 @@ var __dshReaderBundle = (() => {
     return fallback;
   }
 
-  // src/client/locale.js
+  // src/client/locale.ts
   var zh = {
     panel: "阅读",
     library: "书库",
@@ -666,7 +669,7 @@ var __dshReaderBundle = (() => {
     jump: "Jump"
   };
 
-  // src/client/styles.js
+  // src/client/styles.ts
   var CSS = `
 .dsh-reader-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:14px}
 .dsh-reader-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
@@ -907,7 +910,7 @@ var __dshReaderBundle = (() => {
 @media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
 `;
 
-  // src/client/runtime.js
+  // src/client/runtime.ts
   var React;
   var h;
   function bindRuntime(require2) {
@@ -915,7 +918,7 @@ var __dshReaderBundle = (() => {
     h = React.createElement;
   }
 
-  // src/client/views/toc.js
+  // src/client/views/toc.ts
   function Toc({ t, detail, activeChapter, onSelect }) {
     const outline = detail.book.format === "pdf" && Array.isArray(detail.outline) && detail.outline.length > 0 ? detail.outline : null;
     const items = outline ?? detail.toc;
@@ -945,7 +948,7 @@ var __dshReaderBundle = (() => {
     );
   }
 
-  // src/client/views/markdown.js
+  // src/client/views/markdown.ts
   function inline(text, prefix) {
     const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g;
     const nodes = [];
@@ -993,13 +996,13 @@ var __dshReaderBundle = (() => {
       const key = `${prefix}-${index}`;
       if (block.type === "h") {
         const level = Math.min(6, Math.max(3, block.level ?? 3));
-        return h(`h${level}`, { key, "data-block-index": index }, inline(block.text, key));
+        return h(`h${level}`, { key, "data-block-index": index }, inline(block.text ?? "", key));
       }
       if (block.type === "code") {
         return h("pre", { key, "data-block-index": index }, h("code", null, block.text));
       }
       if (block.type === "quote") {
-        return h("blockquote", { key, "data-block-index": index }, inline(block.text, key));
+        return h("blockquote", { key, "data-block-index": index }, inline(block.text ?? "", key));
       }
       if (block.type === "hr") {
         return h("hr", { key, "data-block-index": index, className: "dsh-reader-md-hr" });
@@ -1009,17 +1012,17 @@ var __dshReaderBundle = (() => {
           "div",
           { key, "data-block-index": index, className: "dsh-reader-li" },
           h("span", { className: "dsh-reader-li-marker" }, block.ordered ? `${block.index}.` : "•"),
-          h("span", null, inline(block.text, key))
+          h("span", null, inline(block.text ?? "", key))
         );
       }
-      return h("p", { key, "data-block-index": index }, inline(block.text, key));
+      return h("p", { key, "data-block-index": index }, inline(block.text ?? "", key));
     });
   }
   function MarkdownMessage({ text, prefix }) {
     return h("div", { className: "dsh-reader-md" }, renderBlocks(parseMarkdownBlocks(text), prefix));
   }
 
-  // src/client/views/panels.js
+  // src/client/views/panels.ts
   function PanelIcon({ size = 20, active }) {
     return h(
       "svg",
@@ -1094,7 +1097,7 @@ var __dshReaderBundle = (() => {
     );
   }
 
-  // src/client/library-utils.js
+  // src/client/library-utils.ts
   var SORTS = ["recent", "title", "size", "added"];
   function bookTags(bookId, tags) {
     const list = tags?.[bookId];
@@ -1112,7 +1115,7 @@ var __dshReaderBundle = (() => {
   function filterBooks(books, tags, options = {}) {
     const category = options.category ?? "all";
     const query = String(options.query ?? "").trim().toLowerCase();
-    const sort = SORTS.includes(options.sort) ? options.sort : "recent";
+    const sort = typeof options.sort === "string" && SORTS.includes(options.sort) ? options.sort : "recent";
     const filtered = books.filter((book) => {
       if (category === "recent" && !book.progress) return false;
       if (category === "unread" && book.progress) return false;
@@ -1152,7 +1155,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     };
   }
 
-  // src/client/views/library-view.js
+  // src/client/views/library-view.ts
   var FORMATS = ["txt", "md", "epub", "pdf"];
   function TagDialog({ t, book, initialTags, allTags, onClose, onSave }) {
     const [draft, setDraft] = React.useState("");
@@ -1182,7 +1185,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         await onSave(tags);
         onClose();
       } catch (cause) {
-        setError(cause.message ?? String(cause));
+        setError(cause instanceof Error ? cause.message : String(cause));
       } finally {
         setSaving(false);
       }
@@ -1453,7 +1456,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
-  // src/client/bookmark-label.js
+  // src/client/bookmark-label.ts
   function bookmarkContext(screen, chapterId) {
     if (!screen || screen.kind !== "book") return { chapterTitle: "", pageLabel: "" };
     const item = screen.detail.toc.find((entry) => entry.id === chapterId);
@@ -1463,7 +1466,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     }
     const page = item?.page;
     const outline = Array.isArray(screen.detail.outline) ? screen.detail.outline : [];
-    const candidates = outline.filter((entry) => Number.isInteger(entry.page) && (!Number.isInteger(page) || entry.page <= page)).sort((left, right) => left.page - right.page);
+    const candidates = outline.filter((entry) => Number.isInteger(entry.page) && (!Number.isInteger(page) || entry.page <= (page ?? 0))).sort((left, right) => left.page - right.page);
     const chapterTitle = candidates.at(-1)?.title || fallback;
     return {
       chapterTitle,
@@ -1471,7 +1474,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     };
   }
 
-  // src/client/views/notes-search.js
+  // src/client/views/notes-search.ts
   function chapterTitleOf(screen, chapterId) {
     return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
   }
@@ -1642,7 +1645,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
-  // src/client/views/visual-reader.js
+  // src/client/views/visual-reader.ts
   function VisualReader({
     t,
     visual,
@@ -1661,6 +1664,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     epubFrameRef
   }) {
     if (!visual) return null;
+    if (screen.kind !== "book") return null;
     const pdfPageUrl = visual.kind === "pdf" && screen.kind === "book" ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}` : "";
     const epubIndex = screen.kind === "book" ? screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId) : -1;
     return visual?.kind === "pdf" ? h(
@@ -1768,7 +1772,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     ) : null;
   }
 
-  // src/client/views/chat-panel.js
+  // src/client/views/chat-panel.ts
   function ChatPanel({
     t,
     chatOpen,
@@ -1844,7 +1848,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
-  // src/client/views/header.js
+  // src/client/views/header.ts
   function Header({
     t,
     screen,
@@ -1935,7 +1939,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
-  // src/client/views/selection-note.js
+  // src/client/views/selection-note.ts
   var COLORS = ["yellow", "green", "blue", "pink", "purple"];
   function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }) {
     if (!selection) return null;
@@ -2053,14 +2057,15 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
-  // src/client/views/error-boundary.js
+  // src/client/views/error-boundary.ts
   function createReaderErrorBoundary() {
     if (typeof React.Component !== "function") {
       return function ReaderErrorBoundaryPassthrough({ children }) {
         return children;
       };
     }
-    return class ReaderErrorBoundary extends React.Component {
+    const Base = React.Component;
+    return class ReaderErrorBoundary extends Base {
       constructor(props) {
         super(props);
         this.state = { error: null };
@@ -2084,7 +2089,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/hooks/use-companion.js
+  // src/client/hooks/use-companion.ts
   function useCompanion({
     runtime,
     call,
@@ -2098,7 +2103,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [chatWidth, setChatWidth] = React.useState(readChatWidth);
     const [draft, setDraft] = React.useState("");
     const [sending, setSending] = React.useState(false);
-    const [chatError, setChatError2] = React.useState("");
+    const [chatError, setChatError] = React.useState("");
     const [entries, setEntries] = React.useState([]);
     const [hasMore, setHasMore] = React.useState(false);
     const [loadingEarlier, setLoadingEarlier] = React.useState(false);
@@ -2136,12 +2141,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
       if (chatRef.current?.sessionId === sessionId) return chatRef.current.reference;
       releaseChat();
-      setChatError2("");
+      setChatError("");
       let reference;
       try {
         reference = runtime.sessions.retain(sessionId, { source: "controllerOperation" });
       } catch (error) {
-        setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+        setChatError(`${t("loadFailed")}：${messageOf(error)}`);
         return null;
       }
       const source = reference.binding.eventSource;
@@ -2157,7 +2162,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setChatBinding(record);
       reference.ready.catch((error) => {
         if (chatRef.current === record) {
-          setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+          setChatError(`${t("loadFailed")}：${messageOf(error)}`);
         }
       });
       return reference;
@@ -2189,11 +2194,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const text = draft.trim();
       if (!text || sending || screen.kind !== "book") return;
       if (!workspaceId) {
-        setChatError2(t("chatDisabled"));
+        setChatError(t("chatDisabled"));
         return;
       }
       const book = screen.detail.book;
-      setChatError2("");
+      setChatError("");
       setSending(true);
       const createSession = async () => {
         let sessionId;
@@ -2208,9 +2213,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId);
           runtime.layout.selectPanel("dsh-reader");
         }
-        await call("session", { bookId: book.id, sessionId });
-        rememberSession(book.id, sessionId);
-        const reference = bindSession(sessionId);
+        const session = sessionId;
+        await call("session", { bookId: book.id, sessionId: session });
+        rememberSession(book.id, session);
+        const reference = bindSession(session);
         if (!reference) throw new Error(t("loadFailed"));
         return reference;
       };
@@ -2232,7 +2238,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }
         setDraft("");
       } catch (error) {
-        setChatError2(`${t("sendFailed")}：${messageOf(error)}`);
+        setChatError(`${t("sendFailed")}：${messageOf(error)}`);
       } finally {
         setSending(false);
       }
@@ -2241,11 +2247,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const reference = chatRef.current?.reference;
       if (!reference || loadingEarlier) return;
       setLoadingEarlier(true);
-      setChatError2("");
+      setChatError("");
       try {
         await reference.binding.session.loadOlder();
       } catch (error) {
-        setChatError2(`${t("loadFailed")}：${messageOf(error)}`);
+        setChatError(`${t("loadFailed")}：${messageOf(error)}`);
       } finally {
         setLoadingEarlier(false);
       }
@@ -2303,6 +2309,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setDraft,
       sending,
       chatError,
+      setChatError,
       entries,
       hasMore,
       loadingEarlier,
@@ -2323,7 +2330,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/views/chat-content.js
+  // src/client/views/chat-content.ts
   function ChatBody({
     t,
     workspaceId,
@@ -2409,7 +2416,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     );
   }
 
-  // src/client/hooks/use-search.js
+  // src/client/hooks/use-search.ts
   function useSearch({ call, screen, t, selectChapter }) {
     const [searchOpen, setSearchOpen] = React.useState(false);
     const [searchQuery, setSearchQuery] = React.useState("");
@@ -2478,14 +2485,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/anchor.js
+  // src/client/anchor.ts
   function blocksText(blocks) {
     return (Array.isArray(blocks) ? blocks : []).map((block) => block?.text ?? "").join("\n\n");
   }
   function offsetInChapter(blocks, blockIndex, offset) {
     let start = 0;
     for (let index = 0; index < blockIndex; index += 1) {
-      start += (blocks[index]?.text ?? "").length + 2;
+      start += (blocks?.[index]?.text ?? "").length + 2;
     }
     return start + Math.max(0, Number.isInteger(offset) ? offset : 0);
   }
@@ -2501,13 +2508,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   function hashText(text) {
     let hash = 2166136261;
     for (const character of String(text ?? "")) {
-      hash ^= character.codePointAt(0);
+      hash ^= character.codePointAt(0) ?? 0;
       hash = Math.imul(hash, 16777619);
     }
     return (hash >>> 0).toString(16).padStart(8, "0");
   }
 
-  // src/client/hooks/use-notes.js
+  // src/client/hooks/use-notes.ts
   function useNotes({
     call,
     t,
@@ -2809,7 +2816,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (!frame) frame = requestAnimationFrame(paint);
       };
       const onClick = (event) => {
-        const hit = event.target.closest?.(".dsh-reader-note-hit");
+        const target = event.target;
+        const hit = target?.closest?.(".dsh-reader-note-hit");
         if (!hit) return;
         const note = notes.find((entry) => entry.id === hit.dataset.noteId);
         if (note) openNoteEditor(note);
@@ -2823,11 +2831,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         window.removeEventListener("resize", schedule);
         layer.textContent = "";
       };
-    }, [activeChapterId, contentRef, fontSize, notes, openNoteEditor, pageView, palette, screen, visual?.kind, visual?.page]);
+    }, [activeChapterId, contentRef, fontSize, notes, openNoteEditor, pageView, palette, screen, visual?.kind, visual?.kind === "pdf" ? visual.page : null]);
     React.useEffect(() => {
-      if (visual?.kind !== "epub" || screen.kind !== "book" || !epubFrameRef.current) return;
+      const frame = epubFrameRef.current;
+      if (visual?.kind !== "epub" || screen.kind !== "book" || !frame) return;
       const result = applyEpubNoteMarks(
-        epubFrameRef.current,
+        frame,
         notes,
         screen.content.chapterId,
         palette,
@@ -2836,7 +2845,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       );
       if (result.jumped) pendingEpubNoteRef.current = null;
       return result.cleanup;
-    }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.href, visual?.kind]);
+    }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.kind, visual?.kind === "epub" ? visual.href : null]);
     const noteItems = notes.filter((note) => note.kind !== "highlight" && note.kind !== "bookmark");
     const highlights = notes.filter((note) => note.kind === "highlight");
     const bookmarks = notes.filter((note) => note.kind === "bookmark");
@@ -2867,7 +2876,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/hooks/use-visual.js
+  // src/client/hooks/use-visual.ts
   function useVisual({
     call,
     t,
@@ -2877,34 +2886,34 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     selectChapter
   }) {
     const [visual, setVisual] = React.useState(null);
-    const [pageView, setPageView2] = React.useState(null);
+    const [pageView, setPageView] = React.useState(null);
     const [pageInput, setPageInput] = React.useState("1");
     const [visualLoading, setVisualLoading] = React.useState(false);
-    const [visualError, setVisualError2] = React.useState("");
+    const [visualError, setVisualError] = React.useState("");
     const [epubReady, setEpubReady] = React.useState(0);
     const epubFrameRef = React.useRef(null);
     const epubCleanupRef = React.useRef(null);
     const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
     React.useEffect(() => {
       if (!visual || visual.kind !== "pdf" || screen.kind !== "book") {
-        setPageView2(null);
+        setPageView(null);
         return;
       }
       let cancelled = false;
       setVisualLoading(true);
-      setVisualError2("");
+      setVisualError("");
       call("pageView", {
         bookId: screen.detail.book.id,
         page: visual.page,
         scale: visual.scale
       }).then((value) => {
         if (cancelled) return;
-        setPageView2(value);
+        setPageView(value);
         setPageInput(String(visual.page));
       }).catch((cause) => {
         if (cancelled) return;
-        setPageView2(null);
-        setVisualError2(`${t("loadFailed")}：${messageOf(cause)}`);
+        setPageView(null);
+        setVisualError(`${t("loadFailed")}：${messageOf(cause)}`);
       }).finally(() => {
         if (!cancelled) setVisualLoading(false);
       });
@@ -2920,7 +2929,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     React.useEffect(() => () => {
       epubCleanupRef.current?.();
       epubCleanupRef.current = null;
-    }, [visual?.href]);
+    }, [visual?.kind === "epub" ? visual.href : null]);
     const goPdfPage = React.useCallback((next) => {
       const pageCount = pageView?.pageCount ?? 1;
       const page = Math.min(Math.max(1, next), pageCount);
@@ -2963,7 +2972,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setEpubReady((previous) => previous + 1);
       const handler = () => {
         const selected = doc.getSelection();
-        const text = selected?.toString().trim();
+        if (!selected) return;
+        const text = selected.toString().trim();
         if (!text || !selected.rangeCount) return;
         const range = selected.getRangeAt(0);
         const rect = range.getBoundingClientRect();
@@ -2983,7 +2993,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       if (visual?.kind === "epub" && epubFrameRef.current) {
         applyPaletteToFrame(epubFrameRef.current, palette);
       }
-    }, [palette, visual?.href]);
+    }, [palette, visual?.kind === "epub" ? visual.href : null]);
     const goEpubChapter = React.useCallback((delta) => {
       if (screen.kind !== "book") return;
       const index = screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId);
@@ -2994,10 +3004,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       visual,
       setVisual,
       pageView,
+      setPageView,
       pageInput,
       setPageInput,
       visualLoading,
       visualError,
+      setVisualError,
       epubReady,
       epubFrameRef,
       goPdfPage,
@@ -3008,7 +3020,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/plugin.js
+  // src/client/plugin.ts
   function createPlugin(require2) {
     bindRuntime(require2);
     const ReaderErrorBoundary = createReaderErrorBoundary();
@@ -3102,6 +3114,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setDraft,
         sending,
         chatError,
+        setChatError,
         chatTab,
         setChatTab,
         chatBodyRef,
@@ -3160,7 +3173,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           const content = await call("chapter", { bookId, chapterId });
           pendingScrollRef.current = target ? {
             chapterId: content.chapterId,
-            blockIndex: Number.isInteger(target.blockIndex) ? target.blockIndex : blockIndexAtOffset(content.blocks, target.offset),
+            blockIndex: Number.isInteger(target.blockIndex) ? target.blockIndex : blockIndexAtOffset(content.blocks, target.offset ?? 0),
             flash: Boolean(target.flash)
           } : null;
           setScreen((previous) => previous.kind === "book" ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content } : previous);
@@ -3200,10 +3213,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         visual,
         setVisual,
         pageView,
+        setPageView,
         pageInput,
         setPageInput,
         visualLoading,
         visualError,
+        setVisualError,
         epubReady,
         epubFrameRef,
         goPdfPage,
@@ -3593,12 +3608,12 @@ ${question}`);
     };
   }
 
-  // src/client/index.js
+  // src/client/index.ts
   function create(require2) {
     return createPlugin(require2);
   }
   return __toCommonJS(index_exports);
 })();
-/* Generated by scripts/build-client.mjs; source in src/client/. */
+/* Generated by scripts/build-client.ts; source in src/client/. */
 window.__ModuleLoader__.load({ id: 'dsh-reader', factory(require) { return __dshReaderBundle.create(require) } })
 

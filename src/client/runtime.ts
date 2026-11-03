@@ -1,0 +1,20 @@
+export type StateSetter<T> = (value: T | ((previous: T) => T)) => void
+
+export interface ReactRuntime {
+  createElement: (...args: any[]) => any
+  useState: <T>(initial: T | (() => T)) => [T, StateSetter<T>]
+  useRef: <T>(initial: T) => { current: T }
+  useCallback: <T extends (...args: any[]) => any>(callback: T, deps?: readonly unknown[]) => T
+  useMemo: <T>(factory: () => T, deps?: readonly unknown[]) => T
+  useEffect: (effect: () => void | (() => void), deps?: readonly unknown[]) => void
+  useSyncExternalStore: <T>(subscribe: (onStoreChange: () => void) => () => void, getSnapshot: () => T) => T
+  Component: any
+}
+
+export let React!: ReactRuntime
+export let h!: (...args: any[]) => any
+
+export function bindRuntime(require: (name: string) => any): void {
+  React = require('react')
+  h = React.createElement
+}

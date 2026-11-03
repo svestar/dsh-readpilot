@@ -3,8 +3,8 @@
 - **ID：** FTR-014
 - **名称：** EPUB 章节合并
 - **状态：** active
-- **代码：** `src/formats/epub.js`（`parseEpub`、`isTitleOnly`）；`src/api.js`（`open` 过滤 `skip`）
-- **测试：** `tests/epub.test.js`
+- **代码：** `src/formats/epub.ts`（`parseEpub`、`isTitleOnly`）；`src/api.ts`（`open` 过滤 `skip`）
+- **测试：** `tests/epub.test.ts`
 
 ## 行为
 
@@ -21,9 +21,9 @@ EPUB 的 spine 是文件清单，不总是逻辑章节：封面、书名页或�
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseEpub` | `src/formats/epub.js:parseEpub` | 解析 spine，识别标题页并把块合并到下一章 |
-| `isTitleOnly` | `src/formats/epub.js:isTitleOnly` | 按字数与长段落判断标题页 |
-| `open` | `src/api.js:open` | 过滤 `skip` 章节，返回可见目录 |
+| `parseEpub` | `src/formats/epub.ts:parseEpub` | 解析 spine，识别标题页并把块合并到下一章 |
+| `isTitleOnly` | `src/formats/epub.ts:isTitleOnly` | 按字数与长段落判断标题页 |
+| `open` | `src/api.ts:open` | 过滤 `skip` 章节，返回可见目录 |
 
 ## 约束与失败行为
 

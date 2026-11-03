@@ -3,8 +3,8 @@
 - **ID：** FTR-004
 - **名称：** Agent 工具
 - **状态：** active
-- **代码：** `src/tools.js`（`registerTools`）；`src/api.js`（`toolBooks`、`toolOpen`、`toolContext`、`toolRead`、`toolSearch`、`toolNote`）
-- **测试：** `tests/tools.test.js`
+- **代码：** `src/tools.ts`（`registerTools`）；`src/api.ts`（`toolBooks`、`toolOpen`、`toolContext`、`toolRead`、`toolSearch`、`toolNote`）
+- **测试：** `tests/tools.test.ts`
 
 ## 行为
 
@@ -14,11 +14,11 @@ Host 插件向 `ctx.tools` 注册六个全局工具：`reader_books` 列出书�
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `registerTools` | `src/tools.js:registerTools` | 注册六个工具并返回统一卸载函数 |
-| `toolContext` | `src/api.js:toolContext` | 最近阅读/指定书的进度、目录与笔记摘要 |
-| `toolRead` | `src/api.js:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
-| `toolSearch` | `src/api.js:toolSearch` | 把书名解析为书 id 后调用检索 |
-| `toolNote` | `src/api.js:toolNote` | 解析书名/章节并读写该书的笔记 |
+| `registerTools` | `src/tools.ts:registerTools` | 注册六个工具并返回统一卸载函数 |
+| `toolContext` | `src/api.ts:toolContext` | 最近阅读/指定书的进度、目录与笔记摘要 |
+| `toolRead` | `src/api.ts:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
+| `toolSearch` | `src/api.ts:toolSearch` | 把书名解析为书 id 后调用检索 |
+| `toolNote` | `src/api.ts:toolNote` | 解析书名/章节并读写该书的笔记 |
 
 ## 约束与失败行为
 

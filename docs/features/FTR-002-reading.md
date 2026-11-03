@@ -3,8 +3,8 @@
 - **ID：** FTR-002
 - **名称：** 文本阅读
 - **状态：** active
-- **代码：** `src/formats.js`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）
-- **测试：** `tests/formats.test.js`
+- **代码：** `src/formats.ts`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）
+- **测试：** `tests/formats.test.ts`
 
 ## 行为
 
@@ -14,10 +14,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseBook` | `src/formats.js:parseBook` | 同步解析 txt/md，生成块与字数 |
-| `parseBookAsync` | `src/formats.js:parseBookAsync` | 按格式分派 txt/md/epub/pdf |
-| `splitChapters` | `src/formats.js:splitChapters` | 按标题或长度切分章节 |
-| `decodeText` | `src/formats.js:decodeText` | BOM 与多编码解码 |
+| `parseBook` | `src/formats.ts:parseBook` | 同步解析 txt/md，生成块与字数 |
+| `parseBookAsync` | `src/formats.ts:parseBookAsync` | 按格式分派 txt/md/epub/pdf |
+| `splitChapters` | `src/formats.ts:splitChapters` | 按标题或长度切分章节 |
+| `decodeText` | `src/formats.ts:decodeText` | BOM 与多编码解码 |
 
 ## 约束与失败行为
 

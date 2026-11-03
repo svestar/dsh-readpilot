@@ -3,8 +3,8 @@
 - **ID：** FTR-010
 - **名称：** EPUB 视觉
 - **状态：** active
-- **代码：** `src/visual/epub.js`（`createEpubVisual`）；`src/formats/epub.js`（`parseEpub` 的 `href`）；`src/api.js`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.js`（`useVisual`）；`src/client/views/visual-reader.js`（`VisualReader`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/epub-visual.test.js`
+- **代码：** `src/visual/epub.ts`（`createEpubVisual`）；`src/formats/epub.ts`（`parseEpub` 的 `href`）；`src/api.ts`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/epub-visual.test.ts`
 
 ## 行为
 
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createEpubVisual` | `src/visual/epub.js:createEpubVisual` | 解压、清洗 XHTML、改写资源 URL、返回资源字节 |
-| `parseEpub` | `src/formats/epub.js:parseEpub` | 在章节上写入相对 OPF 的 `href` |
-| `epubDocument` | `src/api.js:epubDocument` | 返回清洗后的章节 HTML |
-| `epubAsset` | `src/api.js:epubAsset` | 返回 CSS/图片/字体字节 |
-| `useVisual` | `src/client/hooks/use-visual.js:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
-| `VisualReader` | `src/client/views/visual-reader.js:VisualReader` | iframe 与章节工具栏 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
+| `createEpubVisual` | `src/visual/epub.ts:createEpubVisual` | 解压、清洗 XHTML、改写资源 URL、返回资源字节 |
+| `parseEpub` | `src/formats/epub.ts:parseEpub` | 在章节上写入相对 OPF 的 `href` |
+| `epubDocument` | `src/api.ts:epubDocument` | 返回清洗后的章节 HTML |
+| `epubAsset` | `src/api.ts:epubAsset` | 返回 CSS/图片/字体字节 |
+| `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
+| `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | iframe 与章节工具栏 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为
 

@@ -3,8 +3,8 @@
 - **ID：** FTR-006
 - **名称：** EPUB 文本
 - **状态：** active
-- **代码：** `src/formats/epub.js`（`parseEpub`）
-- **测试：** `tests/epub.test.js`
+- **代码：** `src/formats/epub.ts`（`parseEpub`）
+- **测试：** `tests/epub.test.ts`
 
 ## 行为
 
@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseEpub` | `src/formats/epub.js:parseEpub` | 解压 EPUB、解析 OPF/spine/目录并生成章节 |
-| `parseBookAsync` | `src/formats.js:parseBookAsync` | 按格式分派到 EPUB 解析器 |
+| `parseEpub` | `src/formats/epub.ts:parseEpub` | 解压 EPUB、解析 OPF/spine/目录并生成章节 |
+| `parseBookAsync` | `src/formats.ts:parseBookAsync` | 按格式分派到 EPUB 解析器 |
 
 ## 约束与失败行为
 

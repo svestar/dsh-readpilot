@@ -3,8 +3,8 @@
 - **ID：** FTR-008
 - **名称：** 检索与笔记
 - **状态：** active
-- **代码：** `src/notes.js`（`createNotesStore`）；`src/api.js`（`search`、`handleNotes`）；`src/tools.js`（`registerTools`）；`src/client/hooks/use-search.js`（`useSearch`）；`src/client/views/notes-search.js`（`SearchPanel`、`NotesBody`）；`src/client/plugin.js`（`ReaderPanel`）
-- **测试：** `tests/notes.test.js`
+- **代码：** `src/notes.ts`（`createNotesStore`）；`src/api.ts`（`search`、`handleNotes`）；`src/tools.ts`（`registerTools`）；`src/client/hooks/use-search.ts`（`useSearch`）；`src/client/views/notes-search.ts`（`SearchPanel`、`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/notes.test.ts`
 
 ## 行为
 
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createNotesStore` | `src/notes.js:createNotesStore` | 按书读写笔记文件，校验字段与 bookId |
-| `handleNotes` | `src/api.js:handleNotes` | 处理 list/add/update/delete 的 RPC 请求 |
-| `search` | `src/api.js:search` | 返回带章节与字符偏移的命中 |
-| `registerTools` | `src/tools.js:registerTools` | 注册 `reader_search` 与 `reader_note` |
-| `useSearch` | `src/client/hooks/use-search.js:useSearch` | 搜索状态、提交、关闭与重置 |
-| `SearchPanel` / `NotesBody` | `src/client/views/notes-search.js:SearchPanel`；`src/client/views/notes-search.js:NotesBody` | 搜索结果列表与笔记列表 |
-| `ReaderPanel` | `src/client/plugin.js:ReaderPanel` | 组合搜索、笔记与阅读布局 |
+| `createNotesStore` | `src/notes.ts:createNotesStore` | 按书读写笔记文件，校验字段与 bookId |
+| `handleNotes` | `src/api.ts:handleNotes` | 处理 list/add/update/delete 的 RPC 请求 |
+| `search` | `src/api.ts:search` | 返回带章节与字符偏移的命中 |
+| `registerTools` | `src/tools.ts:registerTools` | 注册 `reader_search` 与 `reader_note` |
+| `useSearch` | `src/client/hooks/use-search.ts:useSearch` | 搜索状态、提交、关闭与重置 |
+| `SearchPanel` / `NotesBody` | `src/client/views/notes-search.ts:SearchPanel`；`src/client/views/notes-search.ts:NotesBody` | 搜索结果列表与笔记列表 |
+| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合搜索、笔记与阅读布局 |
 
 ## 约束与失败行为
 
