@@ -62,11 +62,11 @@ export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): 
       return h('blockquote', { key, 'data-block-index': index }, inline(block.text ?? '', key))
     }
     if (block.type === 'hr') {
-      return h('hr', { key, 'data-block-index': index, className: 'dsh-reader-md-hr' })
+      return h('hr', { key, 'data-block-index': index, className: 'dsh-readpilot-md-hr' })
     }
     if (block.type === 'li') {
-      return h('div', { key, 'data-block-index': index, className: 'dsh-reader-li' },
-        h('span', { className: 'dsh-reader-li-marker' }, block.ordered ? `${block.index}.` : '•'),
+      return h('div', { key, 'data-block-index': index, className: 'dsh-readpilot-li' },
+        h('span', { className: 'dsh-readpilot-li-marker' }, block.ordered ? `${block.index}.` : '•'),
         h('span', null, inline(block.text ?? '', key)))
     }
     return h('p', { key, 'data-block-index': index }, inline(block.text ?? '', key))
@@ -74,5 +74,5 @@ export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): 
 }
 
 export function MarkdownMessage({ text, prefix }: { text: string; prefix: string }) {
-  return h('div', { className: 'dsh-reader-md' }, renderBlocks(parseMarkdownBlocks(text), prefix))
+  return h('div', { className: 'dsh-readpilot-md' }, renderBlocks(parseMarkdownBlocks(text), prefix))
 }

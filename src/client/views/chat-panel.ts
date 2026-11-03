@@ -48,10 +48,10 @@ export function ChatPanel({
   resizeKeyDown,
 }: ChatPanelProps) {
   if (!chatOpen) return null
-  return h('aside', { className: 'dsh-reader-chat' },
+  return h('aside', { className: 'dsh-readpilot-chat' },
     h('div', {
       key: 'resizer',
-      className: 'dsh-reader-chat-resizer',
+      className: 'dsh-readpilot-chat-resizer',
       role: 'separator',
       'aria-orientation': 'vertical',
       'aria-label': t('resizeChat'),
@@ -66,12 +66,12 @@ export function ChatPanel({
       onDoubleClick: resetResize,
       onKeyDown: resizeKeyDown,
     }),
-    h('div', { className: 'dsh-reader-chat-head' },
-      h('div', { className: 'dsh-reader-chat-tabs', role: 'tablist' },
+    h('div', { className: 'dsh-readpilot-chat-head' },
+      h('div', { className: 'dsh-readpilot-chat-tabs', role: 'tablist' },
         h('button', {
           type: 'button',
           role: 'tab',
-          className: 'dsh-reader-chat-tab',
+          className: 'dsh-readpilot-chat-tab',
           'data-active': chatTab === 'chat' ? 'true' : 'false',
           'aria-selected': chatTab === 'chat',
           onClick: () => setChatTab('chat'),
@@ -79,7 +79,7 @@ export function ChatPanel({
         h('button', {
           type: 'button',
           role: 'tab',
-          className: 'dsh-reader-chat-tab',
+          className: 'dsh-readpilot-chat-tab',
           'data-active': chatTab === 'notes' ? 'true' : 'false',
           'aria-selected': chatTab === 'notes',
           onClick: () => setChatTab('notes'),
@@ -87,7 +87,7 @@ export function ChatPanel({
         h('button', {
           type: 'button',
           role: 'tab',
-          className: 'dsh-reader-chat-tab',
+          className: 'dsh-readpilot-chat-tab',
           'data-active': chatTab === 'long' ? 'true' : 'false',
           'aria-selected': chatTab === 'long',
           onClick: () => setChatTab('long'),
@@ -95,14 +95,14 @@ export function ChatPanel({
         h('button', {
           type: 'button',
           role: 'tab',
-          className: 'dsh-reader-chat-tab',
+          className: 'dsh-readpilot-chat-tab',
           'data-active': chatTab === 'memory' ? 'true' : 'false',
           'aria-selected': chatTab === 'memory',
           onClick: () => setChatTab('memory'),
         }, t('memory'))),
       h('button', {
         type: 'button',
-        className: 'dsh-reader-chat-close',
+        className: 'dsh-readpilot-chat-close',
         onClick: () => setChatOpen(false),
       }, t('closeChat'))),
     chatTab === 'notes'
@@ -112,10 +112,10 @@ export function ChatPanel({
         : chatTab === 'memory'
           ? memoryBody
           : nativeChat
-            ? h('div', { className: 'dsh-reader-native-chat' }, nativeChat)
+            ? h('div', { className: 'dsh-readpilot-native-chat' }, nativeChat)
             : chatBody,
     chatTab === 'chat' && !nativeChat && chatError
-      ? h('div', { className: 'dsh-reader-chat-error' }, chatError)
+      ? h('div', { className: 'dsh-readpilot-chat-error' }, chatError)
       : null,
     chatTab === 'chat' && !nativeChat ? chatCompose : null)
 }

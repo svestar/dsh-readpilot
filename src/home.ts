@@ -7,5 +7,5 @@ export function resolveDshHome(env: Record<string, string | undefined> = process
 }
 
 export function pluginDataDir(dshHome: string): string {
-  return join(dshHome, 'dsh-reader')
+  return join(dshHome, 'dsh-readpilot')
 }

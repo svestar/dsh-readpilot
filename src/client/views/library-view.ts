@@ -61,31 +61,31 @@ function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialog
   }
 
   return h('div', {
-    className: 'dsh-reader-note-overlay',
+    className: 'dsh-readpilot-note-overlay',
     onMouseDown: (event: any) => {
       if (event.target === event.currentTarget) onClose()
     },
   },
   h('div', {
-    className: 'dsh-reader-note-dialog dsh-reader-tag-dialog',
+    className: 'dsh-readpilot-note-dialog dsh-readpilot-tag-dialog',
     role: 'dialog',
     'aria-modal': 'true',
     'aria-label': t('editTags'),
   },
   h('h3', null, t('editTags')),
-  h('div', { className: 'dsh-reader-tag-book' }, book.title),
-  h('div', { className: 'dsh-reader-tag-list' },
+  h('div', { className: 'dsh-readpilot-tag-book' }, book.title),
+  h('div', { className: 'dsh-readpilot-tag-list' },
     tags.length === 0
-      ? h('span', { className: 'dsh-reader-muted' }, t('noTags'))
-      : tags.map(tag => h('span', { key: tag, className: 'dsh-reader-tag-chip' },
+      ? h('span', { className: 'dsh-readpilot-muted' }, t('noTags'))
+      : tags.map(tag => h('span', { key: tag, className: 'dsh-readpilot-tag-chip' },
         tag,
         h('button', {
           type: 'button',
-          className: 'dsh-reader-tag-remove',
+          className: 'dsh-readpilot-tag-remove',
           'aria-label': `${t('removeTag')} ${tag}`,
           onClick: () => setTags(previous => previous.filter(item => item !== tag)),
         }, '×')))),
-  h('div', { className: 'dsh-reader-tag-input-row' },
+  h('div', { className: 'dsh-readpilot-tag-input-row' },
     h('input', {
       ref: inputRef,
       value: draft,
@@ -101,33 +101,33 @@ function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialog
     }),
     h('button', {
       type: 'button',
-      className: 'dsh-reader-secondary',
+      className: 'dsh-readpilot-secondary',
       disabled: !draft.trim() || tags.length >= 20,
       onClick: () => add(draft),
     }, t('addTag'))),
   allTags.length > 0
-    ? h('div', { className: 'dsh-reader-tag-suggestions' },
+    ? h('div', { className: 'dsh-readpilot-tag-suggestions' },
       allTags
         .filter(tag => !tags.includes(tag))
         .slice(0, 12)
         .map(tag => h('button', {
           key: tag,
           type: 'button',
-          className: 'dsh-reader-tag-suggestion',
+          className: 'dsh-readpilot-tag-suggestion',
           onClick: () => add(tag),
         }, `+ ${tag}`)))
     : null,
-  error ? h('div', { className: 'dsh-reader-note-dialog-error' }, error) : null,
-  h('div', { className: 'dsh-reader-note-dialog-actions' },
+  error ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, error) : null,
+  h('div', { className: 'dsh-readpilot-note-dialog-actions' },
     h('button', {
       type: 'button',
-      className: 'dsh-reader-secondary',
+      className: 'dsh-readpilot-secondary',
       disabled: saving,
       onClick: onClose,
     }, t('cancel')),
     h('button', {
       type: 'button',
-      className: 'dsh-reader-primary',
+      className: 'dsh-readpilot-primary',
       disabled: saving,
       onClick: () => void save(),
     }, saving ? t('loading') : t('save')))))
@@ -143,30 +143,30 @@ interface BookCardProps {
 
 function BookCard({ t, book, tags, onOpen, onEditTags }: BookCardProps) {
   return h('div', {
-    className: 'dsh-reader-book-card',
+    className: 'dsh-readpilot-book-card',
     'data-format': book.format,
   },
   h('button', {
     type: 'button',
-    className: 'dsh-reader-book-open',
+    className: 'dsh-readpilot-book-open',
     onClick: () => onOpen(book),
   },
-  h('div', { className: 'dsh-reader-book-cover' },
-    h('span', { className: 'dsh-reader-book-format' }, book.format.toUpperCase()),
-    h('span', { className: 'dsh-reader-book-cover-title' }, book.title)),
-  h('div', { className: 'dsh-reader-book-info' },
-    h('div', { className: 'dsh-reader-book-title' }, book.title),
-    h('div', { className: 'dsh-reader-book-meta' },
+  h('div', { className: 'dsh-readpilot-book-cover' },
+    h('span', { className: 'dsh-readpilot-book-format' }, book.format.toUpperCase()),
+    h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title)),
+  h('div', { className: 'dsh-readpilot-book-info' },
+    h('div', { className: 'dsh-readpilot-book-title' }, book.title),
+    h('div', { className: 'dsh-readpilot-book-meta' },
       h('span', null, formatSize(book.size)),
       h('span', null, book.progress ? book.progress.chapterTitle || t('reading') : t('unread'))),
     tags.length > 0
-      ? h('div', { className: 'dsh-reader-book-tags' },
-        tags.slice(0, 3).map(tag => h('span', { key: tag, className: 'dsh-reader-book-tag' }, tag)),
-        tags.length > 3 ? h('span', { className: 'dsh-reader-book-tag' }, `+${tags.length - 3}`) : null)
+      ? h('div', { className: 'dsh-readpilot-book-tags' },
+        tags.slice(0, 3).map(tag => h('span', { key: tag, className: 'dsh-readpilot-book-tag' }, tag)),
+        tags.length > 3 ? h('span', { className: 'dsh-readpilot-book-tag' }, `+${tags.length - 3}`) : null)
       : null)),
   h('button', {
     type: 'button',
-    className: 'dsh-reader-book-tag-edit',
+    className: 'dsh-readpilot-book-tag-edit',
     title: t('editTags'),
     onClick: () => onEditTags(book),
   }, t('tags')))
@@ -210,44 +210,44 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
   const categoryButton = (key: string, label: string, count?: number) => h('button', {
     key,
     type: 'button',
-    className: 'dsh-reader-library-category',
+    className: 'dsh-readpilot-library-category',
     'data-active': category === key ? 'true' : 'false',
     onClick: () => setCategory(key),
   },
   h('span', null, label),
-  typeof count === 'number' ? h('span', { className: 'dsh-reader-library-count' }, count) : null)
+  typeof count === 'number' ? h('span', { className: 'dsh-readpilot-library-count' }, count) : null)
 
-  return h('div', { className: 'dsh-reader-library' },
-    h('aside', { className: 'dsh-reader-library-side' },
-      h('div', { className: 'dsh-reader-library-side-title' }, t('categories')),
+  return h('div', { className: 'dsh-readpilot-library' },
+    h('aside', { className: 'dsh-readpilot-library-side' },
+      h('div', { className: 'dsh-readpilot-library-side-title' }, t('categories')),
       categoryButton('all', t('allBooks'), counts.all),
       categoryButton('recent', t('recentReading'), counts.recent),
       categoryButton('reading', t('inProgress'), counts.reading),
       categoryButton('unread', t('unread'), counts.unread),
-      h('div', { className: 'dsh-reader-library-side-title' }, t('formats')),
+      h('div', { className: 'dsh-readpilot-library-side-title' }, t('formats')),
       FORMATS.map(format => categoryButton(`format:${format}`, format.toUpperCase(), counts.formats[format])),
       tagStats.length > 0
-        ? h('div', { className: 'dsh-reader-library-side-title' }, t('tags'))
+        ? h('div', { className: 'dsh-readpilot-library-side-title' }, t('tags'))
         : null,
       tagStats.map(({ tag, count }) => categoryButton(`tag:${tag}`, `# ${tag}`, count))),
-    h('div', { className: 'dsh-reader-library-main' },
-      h('div', { className: 'dsh-reader-library-head' },
+    h('div', { className: 'dsh-readpilot-library-main' },
+      h('div', { className: 'dsh-readpilot-library-head' },
         h('div', null,
           h('h2', null, `${t('library')} · ${books.length}`),
-          h('div', { className: 'dsh-reader-library-subtitle' }, t('librarySubtitle'))),
-        h('div', { className: 'dsh-reader-header-actions' },
-          h('button', { type: 'button', className: 'dsh-reader-secondary', onClick: onSettings }, t('settings')),
-          h('button', { type: 'button', className: 'dsh-reader-secondary', disabled: busy, onClick: onRefresh }, t('rescan')))),
-      h('div', { className: 'dsh-reader-library-toolbar' },
+          h('div', { className: 'dsh-readpilot-library-subtitle' }, t('librarySubtitle'))),
+        h('div', { className: 'dsh-readpilot-header-actions' },
+          h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: onSettings }, t('settings')),
+          h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: onRefresh }, t('rescan')))),
+      h('div', { className: 'dsh-readpilot-library-toolbar' },
         h('input', {
-          className: 'dsh-reader-library-search',
+          className: 'dsh-readpilot-library-search',
           value: query,
           placeholder: t('searchLibrary'),
           spellCheck: false,
           onChange: (event: any) => setQuery(event.target.value),
         }),
         h('select', {
-          className: 'dsh-reader-palette-select',
+          className: 'dsh-readpilot-palette-select',
           value: sort,
           onChange: (event: any) => setSort(event.target.value),
           'aria-label': t('sortBy'),
@@ -257,17 +257,17 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
         h('option', { value: 'size' }, t('sortSize')),
         h('option', { value: 'added' }, t('sortAdded')))),
       books.length === 0
-        ? h('div', { className: 'dsh-reader-empty' },
+        ? h('div', { className: 'dsh-readpilot-empty' },
           h('h2', null, t('empty')),
           h('p', null, t('emptyHint')))
-        : h('div', { className: 'dsh-reader-library-scroll' },
-          h('section', { className: 'dsh-reader-all-section' },
-            h('div', { className: 'dsh-reader-section-head' },
+        : h('div', { className: 'dsh-readpilot-library-scroll' },
+          h('section', { className: 'dsh-readpilot-all-section' },
+            h('div', { className: 'dsh-readpilot-section-head' },
               h('h3', null, categoryTitle),
               h('span', null, `${visible.length}`)),
             visible.length === 0
-              ? h('div', { className: 'dsh-reader-library-empty' }, t('noMatches'))
-              : h('div', { className: 'dsh-reader-grid' },
+              ? h('div', { className: 'dsh-readpilot-library-empty' }, t('noMatches'))
+              : h('div', { className: 'dsh-readpilot-grid' },
                 visible.map(book => h(BookCard, {
                   key: book.id,
                   t,

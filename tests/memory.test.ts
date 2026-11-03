@@ -10,7 +10,7 @@ import { createMemoryStore } from '../src/memory-store.ts'
 import { buildReadingMemory } from '../src/memory-context.ts'
 
 async function makeDataDir(t: TestContext): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'dsh-reader-memory-'))
+  const dir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-memory-'))
   t.after(() => rm(dir, { recursive: true, force: true }))
   return dir
 }

@@ -30,14 +30,14 @@ function markActions({ t, item, noteDeletingId, deleteNote, openNote }: MarkActi
     h('button', {
       key: 'jump',
       type: 'button',
-      className: 'dsh-reader-note-jump',
+      className: 'dsh-readpilot-note-jump',
       title: t('jump'),
       onClick: () => openNote(item),
     }, t('jump')),
     h('button', {
       key: 'delete',
       type: 'button',
-      className: 'dsh-reader-note-delete',
+      className: 'dsh-readpilot-note-delete',
       disabled: noteDeletingId === item.id,
       onClick: () => void deleteNote(item),
     }, noteDeletingId === item.id ? t('loading') : t('delete')),
@@ -59,61 +59,61 @@ interface NotesBodyProps {
 
 export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
   const hasMarks = notes.length + highlights.length + bookmarks.length > 0
-  return h('div', { className: 'dsh-reader-notes' },
-    notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
+  return h('div', { className: 'dsh-readpilot-notes' },
+    notesError ? h('div', { className: 'dsh-readpilot-chat-error' }, notesError) : null,
     notesLoading && !hasMarks
-      ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))
+      ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('loading'))
       : !hasMarks
-        ? notesError ? null : h('div', { className: 'dsh-reader-chat-empty' }, t('noteEmpty'))
+        ? notesError ? null : h('div', { className: 'dsh-readpilot-chat-empty' }, t('noteEmpty'))
         : [
           highlights.length > 0
-            ? h('section', { key: 'highlights', className: 'dsh-reader-mark-section' },
+            ? h('section', { key: 'highlights', className: 'dsh-readpilot-mark-section' },
               h('h4', null, `${t('highlights')} · ${highlights.length}`),
-              highlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-reader-note dsh-reader-mark-highlight' },
+              highlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-readpilot-note dsh-readpilot-mark-highlight' },
                 h('button', {
                   type: 'button',
-                  className: 'dsh-reader-note-main',
+                  className: 'dsh-readpilot-note-main',
                   onClick: () => openNote(highlight),
                 },
-                h('div', { className: 'dsh-reader-note-chapter' },
-                  h('span', { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? 'yellow'}` }),
+                h('div', { className: 'dsh-readpilot-note-chapter' },
+                  h('span', { className: `dsh-readpilot-color-dot dsh-readpilot-color-${highlight.color ?? 'yellow'}` }),
                   chapterTitleOf(screen, highlight.chapterId) || t('reading')),
-                h('div', { className: 'dsh-reader-note-quote' }, highlight.quote),
+                h('div', { className: 'dsh-readpilot-note-quote' }, highlight.quote),
                 highlight.annotation
-                  ? h('div', { className: 'dsh-reader-note-body' }, highlight.annotation)
+                  ? h('div', { className: 'dsh-readpilot-note-body' }, highlight.annotation)
                   : null),
                 ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote }))))
             : null,
           notes.length > 0
-            ? h('section', { key: 'notes', className: 'dsh-reader-mark-section' },
+            ? h('section', { key: 'notes', className: 'dsh-readpilot-mark-section' },
               h('h4', null, `${t('shortNotes')} · ${notes.length}`),
-              notes.map(note => h('div', { key: note.id, className: 'dsh-reader-note' },
+              notes.map(note => h('div', { key: note.id, className: 'dsh-readpilot-note' },
                 h('button', {
                   type: 'button',
-                  className: 'dsh-reader-note-main',
+                  className: 'dsh-readpilot-note-main',
                   onClick: () => openNote(note),
                 },
-                h('div', { className: 'dsh-reader-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
-                note.quote ? h('div', { className: 'dsh-reader-note-quote' }, note.quote) : null,
-                h('div', { className: 'dsh-reader-note-body' }, note.note)),
+                h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
+                note.quote ? h('div', { className: 'dsh-readpilot-note-quote' }, note.quote) : null,
+                h('div', { className: 'dsh-readpilot-note-body' }, note.note)),
                 ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))
             : null,
           bookmarks.length > 0
-            ? h('section', { key: 'bookmarks', className: 'dsh-reader-mark-section' },
+            ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-mark-section' },
               h('h4', null, `${t('bookmarks')} · ${bookmarks.length}`),
               bookmarks.map(bookmark => {
                 const context = bookmarkContext(screen, bookmark.chapterId)
                 const title = context.chapterTitle || bookmark.note || t('bookmark')
                 const detail = bookmark.annotation
                   || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
-                return h('div', { key: bookmark.id, className: 'dsh-reader-note dsh-reader-mark-bookmark' },
+                return h('div', { key: bookmark.id, className: 'dsh-readpilot-note dsh-readpilot-mark-bookmark' },
                   h('button', {
                     type: 'button',
-                    className: 'dsh-reader-note-main',
+                    className: 'dsh-readpilot-note-main',
                     onClick: () => openNote(bookmark),
                   },
-                  h('div', { className: 'dsh-reader-note-chapter' }, title),
-                  detail ? h('div', { className: 'dsh-reader-note-body' }, detail) : null),
+                  h('div', { className: 'dsh-readpilot-note-chapter' }, title),
+                  detail ? h('div', { className: 'dsh-readpilot-note-body' }, detail) : null),
                   ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))
               }))
             : null,
@@ -150,8 +150,8 @@ export function SearchPanel({
   openSearchMatch,
 }: SearchPanelProps) {
   if (!open || screen.kind !== 'book') return null
-  return h('div', { className: 'dsh-reader-search' },
-    h('div', { className: 'dsh-reader-search-bar' },
+  return h('div', { className: 'dsh-readpilot-search' },
+    h('div', { className: 'dsh-readpilot-search-bar' },
       h('input', {
         ref: searchInputRef,
         value: searchQuery,
@@ -167,35 +167,35 @@ export function SearchPanel({
       }),
       h('button', {
         type: 'button',
-        className: 'dsh-reader-primary',
+        className: 'dsh-readpilot-primary',
         disabled: searchBusy || !searchQuery.trim(),
         onClick: () => void runSearch(),
       }, searchBusy ? t('searching') : t('search')),
       h('button', {
         type: 'button',
-        className: 'dsh-reader-icon-btn',
+        className: 'dsh-readpilot-icon-btn',
         title: t('closeSearch'),
         'aria-label': t('closeSearch'),
         onClick: () => setSearchOpen(false),
       }, '×')),
     searchError
-      ? h('div', { className: 'dsh-reader-search-hint', 'data-error': 'true' }, searchError)
+      ? h('div', { className: 'dsh-readpilot-search-hint', 'data-error': 'true' }, searchError)
       : searchBusy
-        ? h('div', { className: 'dsh-reader-search-hint' }, t('searching'))
+        ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searching'))
         : searchResults === null
           ? null
           : searchResults.matches.length === 0
-            ? h('div', { className: 'dsh-reader-search-hint' }, t('searchEmpty'))
-            : h('div', { className: 'dsh-reader-search-list' },
+            ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchEmpty'))
+            : h('div', { className: 'dsh-readpilot-search-list' },
               searchResults.matches.map((match, index) => h('button', {
                 key: `${match.chapterId}:${match.offset}:${index}`,
                 type: 'button',
-                className: 'dsh-reader-search-result',
+                className: 'dsh-readpilot-search-result',
                 onClick: () => openSearchMatch(match),
               },
-              h('div', { className: 'dsh-reader-search-chapter' }, match.chapterTitle),
-              h('div', { className: 'dsh-reader-search-snippet' }, match.snippet))),
+              h('div', { className: 'dsh-readpilot-search-chapter' }, match.chapterTitle),
+              h('div', { className: 'dsh-readpilot-search-snippet' }, match.snippet))),
               searchResults.truncated
-                ? h('div', { className: 'dsh-reader-search-hint' }, t('searchTruncated'))
+                ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchTruncated'))
                 : null))
 }

@@ -21,13 +21,13 @@ export function createReaderErrorBoundary(): any {
     }
 
     componentDidCatch(error: any, info: any) {
-      console.error('dsh-reader: render failed', error, info)
+      console.error('dsh-readpilot: render failed', error, info)
     }
 
     render() {
       if (this.state.error) {
         return h('div', {
-          className: 'dsh-reader-error',
+          className: 'dsh-readpilot-error',
           style: { padding: 20, whiteSpace: 'pre-wrap', fontFamily: 'monospace' },
         }, `阅读器渲染失败\n${String(this.state.error?.stack ?? this.state.error)}`)
       }

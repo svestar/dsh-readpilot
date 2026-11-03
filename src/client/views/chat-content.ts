@@ -26,30 +26,30 @@ export function ChatBody({
   running,
   chatBodyRef,
 }: ChatBodyProps) {
-  return h('div', { className: 'dsh-reader-chat-body', ref: chatBodyRef },
+  return h('div', { className: 'dsh-readpilot-chat-body', ref: chatBodyRef },
     hasMore
       ? h('button', {
         type: 'button',
-        className: 'dsh-reader-chat-more',
+        className: 'dsh-readpilot-chat-more',
         disabled: loadingEarlier,
         onClick: () => void loadEarlier(),
       }, loadingEarlier ? t('loading') : t('loadEarlier'))
       : null,
     messages.length === 0
-      ? h('div', { className: 'dsh-reader-chat-empty' },
+      ? h('div', { className: 'dsh-readpilot-chat-empty' },
         workspaceId ? t('chatEmpty') : t('chatDisabled'))
       : messages.map(message => h('div', {
         key: message.key,
-        className: 'dsh-reader-msg',
+        className: 'dsh-readpilot-msg',
         'data-role': message.role,
       },
-      h('div', { className: 'dsh-reader-msg-role' },
+      h('div', { className: 'dsh-readpilot-msg-role' },
         message.role === 'user' ? t('you') : t('assistant')),
       message.role === 'assistant'
         ? h(MarkdownMessage, { text: message.text, prefix: message.key })
-        : h('div', { className: 'dsh-reader-msg-text' }, message.text))),
+        : h('div', { className: 'dsh-readpilot-msg-text' }, message.text))),
     sending || running
-      ? h('div', { className: 'dsh-reader-chat-thinking' },
+      ? h('div', { className: 'dsh-readpilot-chat-thinking' },
         sending ? t('sending') : t('thinking'))
       : null)
 }
@@ -73,7 +73,7 @@ export function ChatCompose({
   send,
   chatInputRef,
 }: ChatComposeProps) {
-  return h('div', { className: 'dsh-reader-chat-compose' },
+  return h('div', { className: 'dsh-readpilot-chat-compose' },
     h('textarea', {
       ref: chatInputRef,
       value: draft,
@@ -88,11 +88,11 @@ export function ChatCompose({
         }
       },
     }),
-    h('div', { className: 'dsh-reader-chat-compose-row' },
-      h('span', { className: 'dsh-reader-chat-hint' }, workspaceId ? 'Enter / Shift+Enter' : ''),
+    h('div', { className: 'dsh-readpilot-chat-compose-row' },
+      h('span', { className: 'dsh-readpilot-chat-hint' }, workspaceId ? 'Enter / Shift+Enter' : ''),
       h('button', {
         type: 'button',
-        className: 'dsh-reader-chat-send',
+        className: 'dsh-readpilot-chat-send',
         disabled: !draft.trim() || sending || !workspaceId,
         onClick: () => void send(),
       }, sending ? t('sending') : t('send'))))

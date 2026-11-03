@@ -14,7 +14,7 @@
 2. 状态逻辑按领域拆为 `useCompanion`、`useSearch`、`useNotes`、`useVisual`；`ReaderPanel` 负责打开书籍/章节、阅读布局与这些 hooks 的编排。
 3. 使用 esbuild 把 `src/client/index.ts` 打包为单文件 `client.js`；React 由 loader 注入，不打包 React。
 4. 生成产物末尾注册 DSH 工厂：
-   `window.__ModuleLoader__.load({ id: 'dsh-reader', factory: require => __dshReaderBundle.create(require) })`。
+   `window.__ModuleLoader__.load({ id: 'dsh-readpilot', factory: require => __dshReaderBundle.create(require) })`。
 5. `client.js` 是生成物，不再手工修改；安装前运行 `pnpm run build`，只改 Client 时运行 `pnpm run build:client`。
 6. 测试继续导入生成的 `client.js`，纯函数也可直接测试源码模块。
 

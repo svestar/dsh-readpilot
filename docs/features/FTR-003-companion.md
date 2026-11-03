@@ -8,7 +8,7 @@
 
 ## 行为
 
-每本书在 `$DSH_HOME/dsh-reader/sessions.json` 中保存一个伴读会话 id。阅读面板首次向某本书提问时，在该书库工作区创建会话并保存映射；已有映射时直接复用。会话被删除或失效时清除映射并重建一次。会话就绪后客户端调用 `companionPolicy`：Host 在 live Session 上检查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`，同一会话只应用一次。`search` 在指定书或全库中做字面量检索，返回书名、章节名、片段和 `bookId:chapterId:offset` 定位符。
+每本书在 `$DSH_HOME/dsh-readpilot/sessions.json` 中保存一个伴读会话 id。阅读面板首次向某本书提问时，在该书库工作区创建会话并保存映射；已有映射时直接复用。会话被删除或失效时清除映射并重建一次。会话就绪后客户端调用 `companionPolicy`：Host 在 live Session 上检查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`，同一会话只应用一次。`search` 在指定书或全库中做字面量检索，返回书名、章节名、片段和 `bookId:chapterId:offset` 定位符。
 
 ## 接口与代码映射
 

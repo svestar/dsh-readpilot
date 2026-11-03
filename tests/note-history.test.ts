@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { createNoteFileStore } from '../src/note-files.ts'
 
 async function makeRoot(t: any) {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-note-history-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-note-history-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   return root
 }

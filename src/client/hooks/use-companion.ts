@@ -160,7 +160,7 @@ export function useCompanion({
       }
       if (!sessionId) {
         sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
-        runtime.layout.selectPanel('dsh-reader')
+        runtime.layout.selectPanel('dsh-readpilot')
       }
       const session = sessionId as string
       await call('session', { bookId: book.id, sessionId: session })

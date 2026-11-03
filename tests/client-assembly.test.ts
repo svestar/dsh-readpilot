@@ -63,7 +63,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
           main = component
           mainSpec = spec
         }
-        if (spec.name === 'dsh-reader.companion') companion = component
+        if (spec.name === 'dsh-readpilot.companion') companion = component
         return () => {}
       },
     },
@@ -97,7 +97,7 @@ test('client_assembly_registers_main_panel', async () => {
   const harness = createHarness()
   const { main, disposers } = await loadClient(harness)
   const classes = collectClasses(main({ t: (key: string) => key }))
-  assert.ok(classes.includes('dsh-reader-panel'))
+  assert.ok(classes.includes('dsh-readpilot-panel'))
   for (const dispose of disposers.reverse()) dispose()
 })
 
@@ -113,8 +113,8 @@ test('client_assembly_renders_library_and_text_reader', async () => {
   const { main } = await loadClient(harness)
   harness.reset()
   const libraryClasses = collectClasses(main({ t: (key: string) => key }))
-  assert.ok(libraryClasses.includes('dsh-reader-library'))
-  assert.ok(libraryClasses.includes('dsh-reader-library-side'))
+  assert.ok(libraryClasses.includes('dsh-readpilot-library'))
+  assert.ok(libraryClasses.includes('dsh-readpilot-library-side'))
 
   harness.state.screen = {
     kind: 'book',
@@ -127,8 +127,8 @@ test('client_assembly_renders_library_and_text_reader', async () => {
   }
   harness.reset()
   const readerClasses = collectClasses(main({ t: (key: string) => key }))
-  assert.ok(readerClasses.includes('dsh-reader-reader'), readerClasses.join(','))
-  assert.ok(readerClasses.includes('dsh-reader-reader-inner'))
+  assert.ok(readerClasses.includes('dsh-readpilot-reader'), readerClasses.join(','))
+  assert.ok(readerClasses.includes('dsh-readpilot-reader-inner'))
 })
 
 test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
@@ -151,17 +151,17 @@ test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
   const { main } = await loadClient(harness)
   harness.reset()
   const classes = collectClasses(main({ t: (key: string) => key }))
-  assert.ok(classes.includes('dsh-reader-main'), classes.join(','))
-  assert.ok(classes.includes('dsh-reader-bar'), classes.join(','))
-  assert.ok(classes.includes('dsh-reader-reader'), classes.join(','))
-  assert.ok(classes.includes('dsh-reader-reader-inner'), classes.join(','))
+  assert.ok(classes.includes('dsh-readpilot-main'), classes.join(','))
+  assert.ok(classes.includes('dsh-readpilot-bar'), classes.join(','))
+  assert.ok(classes.includes('dsh-readpilot-reader'), classes.join(','))
+  assert.ok(classes.includes('dsh-readpilot-reader-inner'), classes.join(','))
 })
 
 test('client_assembly_declares_session_companion_slot', async () => {
   const harness = createHarness()
   const { mainSpec, companion, disposers } = await loadClient(harness)
   assert.deepEqual(mainSpec.children, {
-    'dsh-reader.companion': { kind: 'single', scope: 'session' },
+    'dsh-readpilot.companion': { kind: 'single', scope: 'session' },
   })
   assert.equal(typeof companion, 'function')
   for (const dispose of disposers.reverse()) dispose()

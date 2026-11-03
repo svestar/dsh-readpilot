@@ -327,7 +327,7 @@ export function useNotes({
     if (!layer) return
     const root = visual?.kind === 'pdf'
       ? layer.parentElement
-      : contentRef.current?.querySelector('.dsh-reader-reader-inner')
+      : contentRef.current?.querySelector('.dsh-readpilot-reader-inner')
     const currentChapter = activeChapterId
     const relevant = screen.kind === 'book'
       ? notes.filter(note => note.chapterId === currentChapter && typeof note.quote === 'string' && note.quote)
@@ -359,8 +359,8 @@ export function useNotes({
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')
           hit.className = note.kind === 'highlight'
-            ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? 'yellow'}`
-            : 'dsh-reader-note-hit'
+            ? `dsh-readpilot-note-hit dsh-readpilot-highlight-${note.color ?? 'yellow'}`
+            : 'dsh-readpilot-note-hit'
           hit.dataset.noteId = note.id
           hit.style.left = `${isPdf ? rect.left : rect.left - layerRect.left}px`
           hit.style.top = `${isPdf ? rect.top : rect.top - layerRect.top}px`
@@ -375,7 +375,7 @@ export function useNotes({
     }
     const onClick = (event: MouseEvent) => {
       const target = event.target as Element | null
-      const hit = target?.closest?.('.dsh-reader-note-hit') as HTMLElement | null
+      const hit = target?.closest?.('.dsh-readpilot-note-hit') as HTMLElement | null
       if (!hit) return
       const note = notes.find(entry => entry.id === hit.dataset.noteId)
       if (note) openNoteEditor(note)

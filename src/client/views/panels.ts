@@ -38,7 +38,7 @@ interface SetupProps {
 
 export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }: SetupProps) {
   const [path, setPath] = React.useState(initialPath ?? '')
-  const row = h('div', { className: 'dsh-reader-path-row' },
+  const row = h('div', { className: 'dsh-readpilot-path-row' },
     h('input', {
       value: path,
       placeholder: t('pathPlaceholder'),
@@ -47,25 +47,25 @@ export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }: S
     }),
     h('button', {
       type: 'button',
-      className: 'dsh-reader-secondary',
+      className: 'dsh-readpilot-secondary',
       onClick: () => onPick(setPath),
     }, t('chooseDir')))
-  const actions = h('div', { className: 'dsh-reader-setup-actions' },
+  const actions = h('div', { className: 'dsh-readpilot-setup-actions' },
     h('button', {
       type: 'button',
-      className: 'dsh-reader-primary',
+      className: 'dsh-readpilot-primary',
       disabled: busy || !path.trim(),
       onClick: () => onConfigure(path.trim()),
     }, busy ? t('loading') : t('create')),
     onCancel
       ? h('button', {
         type: 'button',
-        className: 'dsh-reader-secondary',
+        className: 'dsh-readpilot-secondary',
         onClick: onCancel,
       }, t('cancel'))
       : null)
-  return h('div', { className: 'dsh-reader-setup' },
-    h('div', { className: 'dsh-reader-setup-card' },
+  return h('div', { className: 'dsh-readpilot-setup' },
+    h('div', { className: 'dsh-readpilot-setup-card' },
       h('h2', null, t('setupTitle')),
       h('p', null, t('setupHint')),
       row,

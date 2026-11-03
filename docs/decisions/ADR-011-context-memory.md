@@ -11,10 +11,10 @@
 ## 决策
 
 1. Host 在 `ctx.inject(['systemPrompt'])` 中注册 `systemPrompt.context`，`text` 回调按 `agent?.session?.id` 查会话到书的映射，只对本书伴读会话返回内容；不写 `AGENTS.md`，不向对话插入可见消息。
-2. 两个独立 context：笔记（`dsh-reader:notes`）与记忆（`dsh-reader:memory`），排在阅读纪律之后，`interpolate:false`。
+2. 两个独立 context：笔记（`dsh-readpilot:notes`）与记忆（`dsh-readpilot:memory`），排在阅读纪律之后，`interpolate:false`。
 3. 笔记开关按书、默认关；开启时注入全部长笔记与有批注的划线，总量上限约 24k 字符、单篇 4k，超出截断并给文件路径；关闭只停止自动注入，不禁止伴读读取文件。
 4. 记忆三态全局模式：关闭、询问、全部开启，默认询问；单书状态为跟随、始终开启、始终关闭。全局关闭暂停所有书；询问模式在首次有内容可记时弹提议卡片，同意后本书开启并自动更新；更新留 changelog 与撤销。
-5. 记忆存 `$DSH_HOME/dsh-reader/memory/`：每书一张卡与一张跨书读者卡；读者卡只在当前书生效状态为开时注入；只记读者与阅读关系，不记书内情节设定。
+5. 记忆存 `$DSH_HOME/dsh-readpilot/memory/`：每书一张卡与一张跨书读者卡；读者卡只在当前书生效状态为开时注入；只记读者与阅读关系，不记书内情节设定。
 6. 注入内容用 `<reading_notes>` 与 `<reading_memory>` 包裹并声明为资料而非指令，降低笔记中的指令注入风险。
 
 ## 备选方案

@@ -40,7 +40,7 @@ async function makeEpub(filePath: string) {
 }
 
 test('epub_visual_prepare_spine', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-epub-visual-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const filePath = join(root, 'book.epub')
   await makeEpub(filePath)
@@ -54,7 +54,7 @@ test('epub_visual_prepare_spine', async t => {
 })
 
 test('epub_visual_sanitizes_document', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-epub-visual-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const filePath = join(root, 'book.epub')
   await makeEpub(filePath)
@@ -77,7 +77,7 @@ test('epub_visual_sanitizes_document', async t => {
 })
 
 test('epub_visual_asset_urls_and_path_guard', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-epub-visual-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const filePath = join(root, 'book.epub')
   await makeEpub(filePath)
@@ -86,7 +86,7 @@ test('epub_visual_asset_urls_and_path_guard', async t => {
   const css = await visual.readAsset({ bookId: 'book1', filePath, path: 'OEBPS/style.css' })
   assert.equal(css.contentType, 'text/css; charset=utf-8')
   const cssText = css.bytes.toString('utf8')
-  assert.ok(cssText.includes('/api/dsh-reader/epub-asset?bookId=book1'))
+  assert.ok(cssText.includes('/api/dsh-readpilot/epub-asset?bookId=book1'))
   assert.ok(cssText.includes('path=OEBPS%2Fpic.png'))
   assert.ok(cssText.includes('url("")'))
 

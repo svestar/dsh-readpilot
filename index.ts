@@ -2,7 +2,7 @@ import { createReaderApi } from './src/api.ts'
 import { pluginDataDir, resolveDshHome } from './src/home.ts'
 import { registerTools } from './src/tools.ts'
 
-export const name = 'dsh-reader'
+export const name = 'dsh-readpilot'
 export const inject = ['tools']
 
 function jsonResponse(value: unknown, status = 200): Response {
@@ -20,27 +20,27 @@ export function apply(ctx: any, config: any = {}): void {
   })
   void api.syncPrompt().catch(() => {})
 
-  ctx.effect(() => registerTools(ctx, api), 'dsh-reader: tools')
+  ctx.effect(() => registerTools(ctx, api), 'dsh-readpilot: tools')
 
   ctx.inject(['systemPrompt'], (scope: any) => {
     scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-reader:reading',
+      name: 'dsh-readpilot:reading',
       order: 9500,
       interpolate: false,
       text: ({ agent }: any) => api.companionContextOf(agent?.session?.id),
-    }), 'dsh-reader: reading context')
+    }), 'dsh-readpilot: reading context')
     scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-reader:notes',
+      name: 'dsh-readpilot:notes',
       order: 9510,
       interpolate: false,
       text: ({ agent }: any) => api.notesContextFor(agent?.session?.id),
-    }), 'dsh-reader: notes context')
+    }), 'dsh-readpilot: notes context')
     scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-reader:memory',
+      name: 'dsh-readpilot:memory',
       order: 9520,
       interpolate: false,
       text: ({ agent }: any) => api.memoryContextFor(agent?.session?.id),
-    }), 'dsh-reader: memory context')
+    }), 'dsh-readpilot: memory context')
   })
 
   ctx.inject(['connection'], (connectionCtx: any) => {
@@ -48,7 +48,7 @@ export function apply(ctx: any, config: any = {}): void {
       const register = connectionCtx.connection.fetch.register
       const disposers = [
         register({
-          path: '/api/dsh-reader',
+          path: '/api/dsh-readpilot',
           methods: ['POST'],
           requestBody: 'buffered',
           fetch: async (request: Request) => {
@@ -67,7 +67,7 @@ export function apply(ctx: any, config: any = {}): void {
           },
         }),
         register({
-          path: '/api/dsh-reader/pdf-page',
+          path: '/api/dsh-readpilot/pdf-page',
           methods: ['GET'],
           requestBody: 'buffered',
           fetch: async (request: Request) => {
@@ -90,7 +90,7 @@ export function apply(ctx: any, config: any = {}): void {
           },
         }),
         register({
-          path: '/api/dsh-reader/epub-doc',
+          path: '/api/dsh-readpilot/epub-doc',
           methods: ['GET'],
           requestBody: 'buffered',
           fetch: async (request: Request) => {
@@ -112,7 +112,7 @@ export function apply(ctx: any, config: any = {}): void {
           },
         }),
         register({
-          path: '/api/dsh-reader/epub-asset',
+          path: '/api/dsh-readpilot/epub-asset',
           methods: ['GET'],
           requestBody: 'buffered',
           fetch: async (request: Request) => {
@@ -137,6 +137,6 @@ export function apply(ctx: any, config: any = {}): void {
       return () => {
         for (const dispose of disposers) dispose()
       }
-    }, 'dsh-reader: http api')
+    }, 'dsh-readpilot: http api')
   })
 }

@@ -1,6 +1,6 @@
-# dsh-reader
+# ReadPilot
 
-DSH Web GUI 的电子书阅读插件。书库是一个用户指定的本机目录；配置后该目录会注册为独立的 DSH 工作区，每本书的伴读会话都保留在这个工作区里。
+DSH Web GUI 的 AI 辅助阅读插件。书库是用户指定的本机目录；配置后该目录会注册为独立的 DSH 工作区，每本书的伴读会话都保留在该工作区。
 
 ## 当前能力
 
@@ -23,7 +23,7 @@ Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`），需要
 
 ## 数据
 
-书库原文件不复制。设置、进度、会话映射与解析缓存位于 `$DSH_HOME/dsh-reader/`；EPUB 解压资源在 `assets/`，PDF 页面图片在 `cache/pages/`；解析缓存按路径 id 与文件修改时间失效。
+书库原文件不复制。设置、进度、会话映射与解析缓存位于 `$DSH_HOME/dsh-readpilot/`；EPUB 解压资源在 `assets/`，PDF 页面图片在 `cache/pages/`；解析缓存按路径 id 与文件修改时间失效。
 
 ## 限制
 

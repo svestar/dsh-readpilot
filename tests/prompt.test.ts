@@ -7,13 +7,13 @@ import { ensureWorkspacePrompt, READING_PROMPT } from '../src/workspace-prompt.t
 import { createReaderApi } from '../src/api.ts'
 
 test('workspace_prompt_created_and_managed', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-prompt-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))
   t.after(() => rm(root, { recursive: true, force: true }))
 
   assert.equal(await ensureWorkspacePrompt(root), true)
   const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
-  assert.match(created, /dsh-reader:prompt:begin/)
-  assert.match(created, /dsh-reader:prompt:end/)
+  assert.match(created, /dsh-readpilot:prompt:begin/)
+  assert.match(created, /dsh-readpilot:prompt:end/)
   assert.ok(created.includes(READING_PROMPT))
   assert.match(created, /reader_context/)
 
@@ -22,14 +22,14 @@ test('workspace_prompt_created_and_managed', async t => {
   assert.equal(await ensureWorkspacePrompt(root), false)
   const preserved = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.match(preserved, /保留我/)
-  assert.equal((preserved.match(/dsh-reader:prompt:begin/g) ?? []).length, 1)
-  assert.equal((preserved.match(/dsh-reader:prompt:end/g) ?? []).length, 1)
+  assert.equal((preserved.match(/dsh-readpilot:prompt:begin/g) ?? []).length, 1)
+  assert.equal((preserved.match(/dsh-readpilot:prompt:end/g) ?? []).length, 1)
 })
 
 test('workspace_prompt_replaces_managed_block', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-prompt-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))
   t.after(() => rm(root, { recursive: true, force: true }))
-  await writeFile(join(root, 'AGENTS.md'), '<!-- dsh-reader:prompt:begin -->\n旧内容\n<!-- dsh-reader:prompt:end -->\n', 'utf8')
+  await writeFile(join(root, 'AGENTS.md'), '<!-- dsh-readpilot:prompt:begin -->\n旧内容\n<!-- dsh-readpilot:prompt:end -->\n', 'utf8')
   assert.equal(await ensureWorkspacePrompt(root), true)
   const content = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.doesNotMatch(content, /旧内容/)
@@ -37,7 +37,7 @@ test('workspace_prompt_replaces_managed_block', async t => {
 })
 
 test('companion_context_is_scoped_to_session', async t => {
-  const data = await mkdtemp(join(tmpdir(), 'dsh-reader-context-'))
+  const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-context-'))
   t.after(() => rm(data, { recursive: true, force: true }))
   const api = createReaderApi({ ctx: { get: () => undefined }, dataDir: data })
 

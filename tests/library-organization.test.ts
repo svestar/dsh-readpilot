@@ -18,7 +18,7 @@ test('normalize_tags_deduplicates_and_trims', () => {
 })
 
 test('library_meta_set_list_remove', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-meta-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-meta-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const store = createLibraryMetaStore(root)
   await store.setTags('book1', ['技术', '技术', '待读'])
@@ -30,7 +30,7 @@ test('library_meta_set_list_remove', async t => {
 })
 
 test('library_meta_corrupt_file_falls_back', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-meta-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-meta-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   await writeFile(join(root, 'library-meta.json'), '{not-json', 'utf8')
   const store = createLibraryMetaStore(root)

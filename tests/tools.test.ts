@@ -27,7 +27,7 @@ function fakeContext(tools: any) {
 }
 
 test('tools_read_bounded', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-tools-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-tools-'))
   const library = join(root, 'books')
   const data = join(root, 'data')
   await mkdir(library, { recursive: true })

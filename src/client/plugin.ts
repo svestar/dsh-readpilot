@@ -64,8 +64,8 @@ export function createPlugin(require: (name: string) => any) {
 
 
     const style = document.createElement('style')
-    style.dataset.plugin = 'dsh-reader'
-    style.dataset.pluginCss = 'dsh-reader/reader.css'
+    style.dataset.plugin = 'dsh-readpilot'
+    style.dataset.pluginCss = 'dsh-readpilot/reader.css'
     style.textContent = CSS
     document.head.appendChild(style)
 
@@ -76,7 +76,7 @@ export function createPlugin(require: (name: string) => any) {
       if (!runtime || !runtime.connection) throw new Error('连接服务不可用')
       let response: Response
       try {
-        response = await fetch('/api/dsh-reader', {
+        response = await fetch('/api/dsh-readpilot', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'content-type': 'application/json' },
@@ -421,8 +421,8 @@ export function createPlugin(require: (name: string) => any) {
         if (!target) return
         target.scrollIntoView({ block: 'center', behavior: 'smooth' })
         if (pending.flash) {
-          target.classList.add('dsh-reader-flash')
-          window.setTimeout(() => target.classList.remove('dsh-reader-flash'), 1500)
+          target.classList.add('dsh-readpilot-flash')
+          window.setTimeout(() => target.classList.remove('dsh-readpilot-flash'), 1500)
         }
       }, [])
 
@@ -485,7 +485,7 @@ export function createPlugin(require: (name: string) => any) {
         if (!selection) return
         const dismiss = (event: Event) => {
           const target = event.target as Element | null
-          if (target && typeof target.closest === 'function' && target.closest('.dsh-reader-selection')) return
+          if (target && typeof target.closest === 'function' && target.closest('.dsh-readpilot-selection')) return
           setSelection(null)
         }
         const frameDoc = epubFrameRef.current?.contentDocument ?? null
@@ -624,16 +624,16 @@ export function createPlugin(require: (name: string) => any) {
         chatInputRef,
       })
 
-      const fallbackChat = h('div', { className: 'dsh-reader-chat-fallback' },
+      const fallbackChat = h('div', { className: 'dsh-readpilot-chat-fallback' },
         chatBody,
-        chatError ? h('div', { className: 'dsh-reader-chat-error' }, chatError) : null,
+        chatError ? h('div', { className: 'dsh-readpilot-chat-error' }, chatError) : null,
         chatCompose)
 
       const companionReference = chatBinding?.reference
       const nativeChat = companionReference && props.SessionProvider && props.renderSlot
         ? h(NativeChatBoundary, { fallback: fallbackChat },
           h(props.SessionProvider, { session: companionReference },
-            props.renderSlot('dsh-reader.companion', { onReady: handleNativeReady, fallback: fallbackChat })))
+            props.renderSlot('dsh-readpilot.companion', { onReady: handleNativeReady, fallback: fallbackChat })))
         : null
 
       const notesBody = h(NotesBody, {
@@ -810,39 +810,39 @@ export function createPlugin(require: (name: string) => any) {
       const textReader = screen.kind === 'book'
         ? effectiveMode === 'paged'
           ? h('div', {
-            className: 'dsh-reader-reader',
+            className: 'dsh-readpilot-reader',
             'data-paged': 'true',
             ref: contentRef,
             style: { fontSize },
             onMouseUp: onContentMouseUp,
           },
-          h('div', { className: 'dsh-reader-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
+          h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
             h('div', {
-              className: 'dsh-reader-reader-inner dsh-reader-paged-inner',
+              className: 'dsh-readpilot-reader-inner dsh-readpilot-paged-inner',
               ref: textPager.innerRef,
               style: textPager.innerStyle,
             },
-            h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+            h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),
-            h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))))
+            h('div', { className: 'dsh-readpilot-note-layer', ref: noteLayerRef }))))
           : h('div', {
-            className: 'dsh-reader-reader',
+            className: 'dsh-readpilot-reader',
             ref: contentRef,
             style: { fontSize },
             onMouseUp: onContentMouseUp,
           },
-          h('div', { className: 'dsh-reader-reader-inner', style: textColumnStyle },
-            h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+          h('div', { className: 'dsh-readpilot-reader-inner', style: textColumnStyle },
+            h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),
-            h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef })))
+            h('div', { className: 'dsh-readpilot-note-layer', ref: noteLayerRef })))
         : null
 
       const bookView = screen.kind === 'book'
         ? h('div', {
-          className: 'dsh-reader-book',
+          className: 'dsh-readpilot-book',
           'data-toc': tocOpen ? 'true' : 'false',
           'data-chat': chatOpen ? 'true' : 'false',
-          style: { '--dsh-reader-chat-width': `${chatWidth}px` },
+          style: { '--dsh-readpilot-chat-width': `${chatWidth}px` },
         },
         tocOpen ? h(Toc, {
           t,
@@ -850,13 +850,13 @@ export function createPlugin(require: (name: string) => any) {
           activeChapter: screen.content.chapterId,
           onSelect: (chapterId: string) => void selectChapter(screen.detail.book.id, chapterId),
         }) : null,
-        h('div', { className: 'dsh-reader-main' },
+        h('div', { className: 'dsh-readpilot-main' },
           readerBar,
           visualReader ?? textReader),
         chatOpen
           ? h('button', {
             type: 'button',
-            className: 'dsh-reader-chat-backdrop',
+            className: 'dsh-readpilot-chat-backdrop',
             'aria-label': t('closeChat'),
             onClick: () => setChatOpen(false),
           })
@@ -865,7 +865,7 @@ export function createPlugin(require: (name: string) => any) {
         : null
 
       return h('div', {
-        className: 'dsh-reader-panel',
+        className: 'dsh-readpilot-panel',
         style: {
           '--reader-bg': palette.bg,
           '--reader-fg': palette.fg,
@@ -891,10 +891,10 @@ export function createPlugin(require: (name: string) => any) {
           onFontDecrease: () => setFontSize(previous => Math.max(14, previous - 1)),
           onFontIncrease: () => setFontSize(previous => Math.min(24, previous + 1)),
         }),
-        error ? h('div', { className: 'dsh-reader-error' }, error) : null,
+        error ? h('div', { className: 'dsh-readpilot-error' }, error) : null,
         searchPanel,
         !snapshot
-          ? h('div', { className: 'dsh-reader-muted' }, busy ? t('loading') : t('loadFailed'))
+          ? h('div', { className: 'dsh-readpilot-muted' }, busy ? t('loading') : t('loadFailed'))
           : screen.kind === 'setup' || !snapshot.settings.libraryDir
             ? h(Setup, {
               t,
@@ -917,12 +917,12 @@ export function createPlugin(require: (name: string) => any) {
                 onSetTags: setBookTags,
               })
               : screen.kind === 'unsupported'
-                ? h('div', { className: 'dsh-reader-empty' },
+                ? h('div', { className: 'dsh-readpilot-empty' },
                   h('h2', null, screen.book.title),
                   h('p', null, t('unsupportedHint')),
                   h('button', {
                     type: 'button',
-                    className: 'dsh-reader-secondary',
+                    className: 'dsh-readpilot-secondary',
                     onClick: backToLibrary,
                   }, t('back')))
                 : bookView,
@@ -955,7 +955,7 @@ export function createPlugin(require: (name: string) => any) {
     }
 
     return {
-      name: 'dsh-reader-client',
+      name: 'dsh-readpilot-client',
       inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
       foldTranscript,
       clampChatWidth,
@@ -969,34 +969,34 @@ export function createPlugin(require: (name: string) => any) {
       apply(ctx: any) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
-        ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-reader: dictionaries')
+        ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-readpilot: dictionaries')
         ctx.effect(
           () => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
             name: 'sidebar.panellist',
-            id: 'dsh-reader',
+            id: 'dsh-readpilot',
             order: 20,
             label: () => boundText('panel'),
             locale: NS,
           }, PanelIcon)),
-          'dsh-reader: sidebar entry',
+          'dsh-readpilot: sidebar entry',
         )
         ctx.effect(
           () => ctx.slots.inject('main', () => ctx.slots.register({
             name: 'main',
-            key: 'dsh-reader',
+            key: 'dsh-readpilot',
             locale: NS,
             children: {
-              'dsh-reader.companion': { kind: 'single', scope: 'session' },
+              'dsh-readpilot.companion': { kind: 'single', scope: 'session' },
             },
           }, ReaderPanelWithBoundary)),
-          'dsh-reader: main panel',
+          'dsh-readpilot: main panel',
         )
         ctx.effect(
-          () => ctx.slots.inject('dsh-reader.companion', () => ctx.slots.register({
-            name: 'dsh-reader.companion',
+          () => ctx.slots.inject('dsh-readpilot.companion', () => ctx.slots.register({
+            name: 'dsh-readpilot.companion',
             locale: NS,
           }, NativeCompanion)),
-          'dsh-reader: native companion',
+          'dsh-readpilot: native companion',
         )
       },
     }

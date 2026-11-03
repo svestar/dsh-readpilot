@@ -22,7 +22,7 @@ export function createNativeChatBoundary(): any {
     }
 
     componentDidCatch(error: any, info: any) {
-      console.error('dsh-reader: native companion failed', error, info)
+      console.error('dsh-readpilot: native companion failed', error, info)
     }
 
     render() {

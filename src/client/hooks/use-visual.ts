@@ -24,7 +24,7 @@ interface VisualOptions {
   layout?: PageLayout
 }
 
-const EPUB_PAGING_STYLE_ID = 'dsh-reader-paging'
+const EPUB_PAGING_STYLE_ID = 'dsh-readpilot-paging'
 const EPUB_WHEEL_THRESHOLD = 40
 
 function applyEpubPagingStyle(doc: Document, layout: PageLayout): void {

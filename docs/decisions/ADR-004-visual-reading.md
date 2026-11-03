@@ -11,7 +11,7 @@
 ## 决策
 
 1. **PDF 采用 Host 端 PDF.js 光栅化 + Client 透明文本层**。Host 用 `pdfjs-dist` 和 `@napi-rs/canvas` 把页面渲染为 PNG，同时从 `getTextContent()` 返回文本项坐标；Client 在图片上绝对定位透明 `<span>`，实现原生选择、搜索高亮与笔记高亮。页面 PNG 与文本项按 `bookId/page/scale` 缓存。
-2. **EPUB 采用 Host 资源服务 + Client iframe**。Host 解压 EPUB 资源、清洗 XHTML（去脚本/事件属性）、把 CSS/图片/字体 URL 改写为 `/api/dsh-reader/epub-asset`，Client 用 `sandbox="allow-same-origin"` 的 iframe 渲染原书样式；父页面读取 iframe selection，搜索/笔记用章节 + quote 高亮。
+2. **EPUB 采用 Host 资源服务 + Client iframe**。Host 解压 EPUB 资源、清洗 XHTML（去脚本/事件属性）、把 CSS/图片/字体 URL 改写为 `/api/dsh-readpilot/epub-asset`，Client 用 `sandbox="allow-same-origin"` 的 iframe 渲染原书样式；父页面读取 iframe selection，搜索/笔记用章节 + quote 高亮。
 3. **不设用户可见的“视觉/文本”切换**。PDF/EPUB 直接进入视觉阅读；txt/md 继续文本块渲染。Host 抽取文本仍供 `reader_*` 工具、检索索引与笔记定位使用。
 4. **不引入 MuPDF WASM 或原生 SumatraPDF 调用**。只有后续确认必须达到 MuPDF 像素级/复杂 EPUB 重排时，再单独评估 AGPL 与包体成本。
 

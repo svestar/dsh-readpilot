@@ -8,7 +8,7 @@
 
 ## 行为
 
-长笔记保存在书库工作区的可见目录 `<library>/notes/`。首次创建时写入 `.dsh-reader-notes` 标记；`scanLibrary` 只在标记存在时跳过名为 `notes` 的目录，避免把普通书目录误当成笔记。每本书一个子目录 `<书名 slug>-<bookId 前 8 位>`，目录内的 `.book.json` 记录 `bookId`；`book.md` 固定为整书笔记，其余 `.md` 都是主题笔记。笔记使用 front-matter 记录 `id/kind/title/bookId/created/updated`，不生成 `index.md`，索引由 Host 扫描目录与 front-matter 在内存构建。
+长笔记保存在书库工作区的可见目录 `<library>/notes/`。首次创建时写入 `.dsh-readpilot-notes` 标记；`scanLibrary` 只在标记存在时跳过名为 `notes` 的目录，避免把普通书目录误当成笔记。每本书一个子目录 `<书名 slug>-<bookId 前 8 位>`，目录内的 `.book.json` 记录 `bookId`；`book.md` 固定为整书笔记，其余 `.md` 都是主题笔记。笔记使用 front-matter 记录 `id/kind/title/bookId/created/updated`，不生成 `index.md`，索引由 Host 扫描目录与 front-matter 在内存构建。
 
 右栏“长笔记”标签显示整书笔记按钮、新建主题笔记按钮、笔记列表；点开后在面板内编辑标题与 markdown 正文，可展开预览、保存、取消或删除。保存时同时提交标题和 `baseHash`；标题变化会重命名主题笔记文件。冲突时显示提示和“重新加载”。编辑器还提供“历史”和“外部编辑器”：外部编辑器调用 Host 的 `openNoteFile`，用系统默认应用打开当前笔记文件。划线、批注、书签与短笔记仍走 FTR-008/FTR-018 的 JSON 存储，显示在“笔记”标签。
 

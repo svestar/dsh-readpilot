@@ -7,7 +7,7 @@ import { createNoteFileStore } from '../src/note-files.ts'
 import { createNoteDraftStore } from '../src/note-drafts.ts'
 
 async function makeStores(t: any) {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-drafts-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-drafts-'))
   const data = join(root, 'data')
   const books = join(root, 'books')
   t.after(() => rm(root, { recursive: true, force: true }))

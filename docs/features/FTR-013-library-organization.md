@@ -14,7 +14,7 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createLibraryMetaStore` | `src/library-meta.ts:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-reader/library-meta.json`，按书保存标签 |
+| `createLibraryMetaStore` | `src/library-meta.ts:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-readpilot/library-meta.json`，按书保存标签 |
 | `normalizeTags` | `src/library-meta.ts:normalizeTags` | 去重、去空白、校验 1–24 字与最多 20 个 |
 | `state` / `libraryMeta` | `src/api.ts:state` | 返回书籍、进度、会话与标签快照 |
 | `setBookTags` | `src/api.ts:setBookTags` | 校验书籍与标签并持久化 |
@@ -24,7 +24,7 @@
 
 ## 约束与失败行为
 
-标签只存 `$DSH_HOME/dsh-reader/library-meta.json`，不改书籍文件；标签文件损坏或条目非法时回退空标签，不影响书库和其它书。每本书最多 20 个标签，每个 1–24 字，重复标签去重；空列表删除该书标签。书库路径或文件移动、改名会改变 `bookId`，旧标签不会自动跟随。最近阅读只依据已有阅读进度；没有“已读”标记，也不提供清除进度入口。搜索为书名、格式和标签的字面量包含匹配；标签筛选与格式筛选是互斥分类。没有匹配书籍时显示空状态。
+标签只存 `$DSH_HOME/dsh-readpilot/library-meta.json`，不改书籍文件；标签文件损坏或条目非法时回退空标签，不影响书库和其它书。每本书最多 20 个标签，每个 1–24 字，重复标签去重；空列表删除该书标签。书库路径或文件移动、改名会改变 `bookId`，旧标签不会自动跟随。最近阅读只依据已有阅读进度；没有“已读”标记，也不提供清除进度入口。搜索为书名、格式和标签的字面量包含匹配；标签筛选与格式筛选是互斥分类。没有匹配书籍时显示空状态。
 
 ## 验收与测试
 

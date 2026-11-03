@@ -320,8 +320,8 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
     const head: any = document.head ?? document.querySelector('head')
     if (head) {
       const style: any = document.createElement('style')
-      style.setAttribute('data-dsh-reader', '')
-      style.textContent = 'html,body{margin:0;padding:0}*{user-select:text}img{max-width:100%;height:auto}mark.dsh-reader-highlight{background:var(--dsw-alias-state-warn-primary,#f5c542);color:inherit}'
+      style.setAttribute('data-dsh-readpilot', '')
+      style.textContent = 'html,body{margin:0;padding:0}*{user-select:text}img{max-width:100%;height:auto}mark.dsh-readpilot-highlight{background:var(--dsw-alias-state-warn-primary,#f5c542);color:inherit}'
       head.appendChild(style)
     }
     return {
@@ -352,7 +352,7 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
         if (/^(?:https?:)?\/\//i.test(value) || /^javascript:/i.test(value)) return 'url("")'
         const targetPath = resolveZipPath(safePath, value)
         if (!targetPath) return match
-        const rewritten = assetUrl(id, targetPath, '/api/dsh-reader/epub-asset')
+        const rewritten = assetUrl(id, targetPath, '/api/dsh-readpilot/epub-asset')
         return `url("${rewritten}")`
       })
       bytes = Buffer.from(text, 'utf8')

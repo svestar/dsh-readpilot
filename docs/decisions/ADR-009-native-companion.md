@@ -10,7 +10,7 @@
 
 ## 决策
 
-1. 阅读器仍是 `main[key=dsh-reader]`。注册时声明一个 `session` 子槽；面板用 `SessionProvider` 绑定该书会话，子槽组件调用 `renderFactorySlot('conversation.content', { variant: 'embedded', phase, hero }, { slots: { views: FixedChatView } })`，`FixedChatView` 固定渲染 `conversation.session` 的 `chat` 视图。
+1. 阅读器仍是 `main[key=dsh-readpilot]`。注册时声明一个 `session` 子槽；面板用 `SessionProvider` 绑定该书会话，子槽组件调用 `renderFactorySlot('conversation.content', { variant: 'embedded', phase, hero }, { slots: { views: FixedChatView } })`，`FixedChatView` 固定渲染 `conversation.session` 的 `chat` 视图。
 2. 每书一个会话，懒创建，与 Chat 面板共享同一会话；不渲染原生会话 Header，由阅读器提供书名/章节标题栏，历史与标题操作在 Chat 面板完成。
 3. Factory 缺失、注册失败或抛错时退回现有折叠（`foldTranscript` 与 `ChatBody`/`ChatCompose`），错误边界不白屏。
 4. 伴读会话使用 `read-only` 沙箱：通用 `write`/`edit`/shell 不能改工作区，笔记与记忆只能由阅读器宿主工具落盘（见 ADR-012）。

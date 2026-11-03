@@ -22,7 +22,7 @@
 
 ## 约束与失败行为
 
-`main` 面板注册声明 `dsh-reader.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 退回现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度 360–640px，默认 420px，按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。
+`main` 面板注册声明 `dsh-readpilot.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 退回现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度 360–640px，默认 420px，按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。
 
 ## 验收与测试
 

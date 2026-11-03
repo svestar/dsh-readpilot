@@ -73,8 +73,8 @@ var __dshReaderBundle = (() => {
     }
     return messages;
   }
-  var CHAT_WIDTH_KEY = "dsh-reader.chat-width";
-  var READER_PALETTE_KEY = "dsh-reader.palette";
+  var CHAT_WIDTH_KEY = "dsh-readpilot.chat-width";
+  var READER_PALETTE_KEY = "dsh-readpilot.palette";
   var READER_PALETTE_IDS = ["auto", "light", "dark", "sepia", "green", "night"];
   var READER_PALETTES = {
     auto: {
@@ -213,7 +213,7 @@ var __dshReaderBundle = (() => {
     let node = walker.nextNode();
     while (node) {
       const parent = node.parentElement;
-      if (!parent?.closest(".dsh-reader-note-layer")) nodes.push(node);
+      if (!parent?.closest(".dsh-readpilot-note-layer")) nodes.push(node);
       node = walker.nextNode();
     }
     return { nodes, text: nodes.map((entry) => entry.nodeValue ?? "").join("") };
@@ -311,7 +311,7 @@ var __dshReaderBundle = (() => {
       pink: "rgba(244,114,182,.30)",
       purple: "rgba(192,132,252,.30)"
     };
-    style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-reader-highlight-green{background:${highlightColors.green}!important}mark.dsh-reader-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-reader-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-reader-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`;
+    style.textContent = `mark.dsh-readpilot-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-readpilot-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-readpilot-highlight-green{background:${highlightColors.green}!important}mark.dsh-readpilot-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-readpilot-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-readpilot-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-readpilot-note-mark.dsh-readpilot-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`;
     const onClick = (event) => {
       const target = event.target;
       const mark = target?.closest?.("mark[data-note-id]");
@@ -327,7 +327,7 @@ var __dshReaderBundle = (() => {
       const range = rangeForNote(doc.body, match.start, match.end);
       if (!range) continue;
       const mark = doc.createElement("mark");
-      mark.className = note.kind === "highlight" ? `dsh-reader-note-mark dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-mark";
+      mark.className = note.kind === "highlight" ? `dsh-readpilot-note-mark dsh-readpilot-highlight-${note.color ?? "yellow"}` : "dsh-readpilot-note-mark";
       mark.dataset.noteId = note.id;
       mark.appendChild(range.extractContents());
       range.insertNode(mark);
@@ -337,8 +337,8 @@ var __dshReaderBundle = (() => {
       const target = doc.querySelector(`mark[data-note-id="${jumpNoteId}"]`);
       if (target) {
         target.scrollIntoView({ block: "center", behavior: "auto" });
-        target.classList.add("dsh-reader-note-flash");
-        setTimeout(() => target.classList.remove("dsh-reader-note-flash"), 1600);
+        target.classList.add("dsh-readpilot-note-flash");
+        setTimeout(() => target.classList.remove("dsh-readpilot-note-flash"), 1600);
         jumped = true;
       }
     }
@@ -860,318 +860,318 @@ var __dshReaderBundle = (() => {
 
   // src/client/styles.ts
   var CSS = `
-.dsh-reader-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:14px}
-.dsh-reader-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-header-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
-.dsh-reader-header-actions{display:flex;align-items:center;gap:6px;flex:none}
-.dsh-reader-icon-btn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;cursor:pointer}
-.dsh-reader-icon-btn:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
-.dsh-reader-icon-btn:disabled{opacity:.45;cursor:default}
-.dsh-reader-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--dsw-alias-label-primary)}
-.dsh-reader-subtitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;margin-top:1px}
-.dsh-reader-body{flex:1;min-height:0;overflow:auto;padding:20px 24px 40px}
-.dsh-reader-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
-.dsh-reader-library-head h2{margin:0;font-size:15px;font-weight:600}
-.dsh-reader-primary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid transparent;border-radius:8px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-weight:600;cursor:pointer}
-.dsh-reader-primary:disabled{opacity:.5;cursor:default}
-.dsh-reader-setup-actions{display:flex;gap:8px}
-.dsh-reader-secondary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;cursor:pointer}
-.dsh-reader-secondary:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-secondary:disabled{opacity:.45;cursor:default}
-.dsh-reader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
-.dsh-reader-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:14px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer}
-.dsh-reader-card:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-cover{height:64px;border-radius:8px;background:linear-gradient(135deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-2));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-secondary);font-size:12px;letter-spacing:.08em}
-.dsh-reader-card-title{font-weight:600;line-height:1.35;word-break:break-word}
-.dsh-reader-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--dsw-alias-label-secondary);font-size:12px}
-.dsh-reader-progress{height:3px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);overflow:hidden}
-.dsh-reader-progress span{display:block;height:100%;background:var(--dsw-alias-brand-primary)}
-.dsh-reader-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:11px}
-.dsh-reader-empty{max-width:460px;margin:60px auto;text-align:center;color:var(--dsw-alias-label-secondary);line-height:1.7}
-.dsh-reader-empty h2{margin:0 0 8px;font-size:16px;color:var(--dsw-alias-label-primary)}
-.dsh-reader-library{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}
-.dsh-reader-library-side{min-height:0;overflow:auto;padding:16px 10px 28px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-library-side-title{padding:10px 8px 5px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;letter-spacing:.04em}
-.dsh-reader-library-category{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
-.dsh-reader-library-category:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
-.dsh-reader-library-category[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
-.dsh-reader-library-count{color:var(--dsw-alias-label-secondary);font-size:10px;font-weight:400}
-.dsh-reader-library-main{min-height:0;display:flex;flex-direction:column;padding:16px 22px 30px;overflow:hidden}
-.dsh-reader-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
-.dsh-reader-library-head h2{margin:0;font-size:16px;font-weight:650}
-.dsh-reader-library-subtitle{margin-top:3px;color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-library-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
-.dsh-reader-library-search{flex:1;min-width:120px;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
-.dsh-reader-library-search:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-library-scroll{flex:1;min-height:0;overflow:auto;padding-right:4px}
-.dsh-reader-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
-.dsh-reader-section-head h3{margin:0;font-size:13px;font-weight:650}
-.dsh-reader-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
-.dsh-reader-book-card{position:relative;min-width:0}
-.dsh-reader-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
-.dsh-reader-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
-.dsh-reader-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff}
-.dsh-reader-book-card[data-format="md"] .dsh-reader-book-cover{background:linear-gradient(135deg,#5b7a73,#344d47)}
-.dsh-reader-book-card[data-format="epub"] .dsh-reader-book-cover{background:linear-gradient(135deg,#6b6a86,#42415a)}
-.dsh-reader-book-card[data-format="pdf"] .dsh-reader-book-cover{background:linear-gradient(135deg,#8a735c,#4d3f33)}
-.dsh-reader-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
-.dsh-reader-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
-.dsh-reader-book-info{padding:9px 10px 10px}
-.dsh-reader-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
-.dsh-reader-book-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px}
-.dsh-reader-book-meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
-.dsh-reader-book-reading{margin-top:6px;color:var(--dsw-alias-brand-primary);font-size:10px;font-weight:600}
-.dsh-reader-book-tags{display:flex;gap:4px;margin-top:6px;overflow:hidden}
-.dsh-reader-book-tag{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px}
-.dsh-reader-book-tag-edit{position:absolute;top:7px;right:7px;padding:2px 6px;border:0;border-radius:5px;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:9px;cursor:pointer;opacity:0;transition:opacity .14s ease}
-.dsh-reader-book-card:hover .dsh-reader-book-tag-edit,.dsh-reader-book-tag-edit:focus{opacity:1}
-.dsh-reader-library-empty{padding:36px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;text-align:center}
-.dsh-reader-tag-dialog{width:min(480px,94vw)}
-.dsh-reader-tag-book{margin-bottom:10px;color:var(--dsw-alias-label-secondary);font-size:12px}
-.dsh-reader-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
-.dsh-reader-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
-.dsh-reader-tag-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer}
-.dsh-reader-tag-remove:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-error-primary)}
-.dsh-reader-tag-input-row{display:flex;gap:8px}
-.dsh-reader-tag-input-row input{flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
-.dsh-reader-tag-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;max-height:92px;overflow:auto}
-.dsh-reader-tag-suggestion{padding:3px 7px;border:1px dashed var(--dsw-alias-border-l2);border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:10px;cursor:pointer}
-.dsh-reader-tag-suggestion:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary)}
-@media (max-width:760px){.dsh-reader-library{grid-template-columns:1fr;overflow:auto}.dsh-reader-library-side{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l2)}.dsh-reader-library-side-title{display:none}.dsh-reader-library-category{width:auto;flex:none;white-space:nowrap}.dsh-reader-library-main{overflow:visible;padding:14px 14px 30px}.dsh-reader-library-scroll{overflow:visible}.dsh-reader-book-tag-edit{opacity:1}}
-.dsh-reader-setup{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
-.dsh-reader-setup-card{width:min(520px,100%);padding:26px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1);box-shadow:0 12px 40px rgba(0,0,0,.10)}
-.dsh-reader-setup-card h2{margin:0 0 8px;font-size:18px}
-.dsh-reader-setup-card p{margin:0 0 18px;color:var(--dsw-alias-label-secondary);line-height:1.65}
-.dsh-reader-path-row{display:flex;gap:8px;margin-bottom:14px}
-.dsh-reader-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
-.dsh-reader-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) var(--dsh-reader-chat-width,420px)}
-.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) var(--dsh-reader-chat-width,420px)}
-.dsh-reader-book[data-chat="false"]{grid-template-columns:230px minmax(0,1fr)}
-.dsh-reader-book[data-toc="false"][data-chat="false"]{grid-template-columns:minmax(0,1fr)}
-.dsh-reader-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-toc-title{padding:4px 8px 8px;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.04em}
-.dsh-reader-toc-list{display:flex;flex-direction:column;gap:2px}
-.dsh-reader-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
-.dsh-reader-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
-.dsh-reader-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
-.dsh-reader-toc-item:disabled{opacity:.45;cursor:default}
-.dsh-reader-chat{position:relative;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-chat-resizer{position:absolute;left:-3px;top:0;bottom:0;width:6px;z-index:3;cursor:col-resize;background:transparent;border:0;padding:0}
-.dsh-reader-chat-resizer:hover,.dsh-reader-chat-resizer:focus-visible{background:var(--dsw-alias-brand-primary);outline:none}
-.dsh-reader-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-chat-tabs{display:flex;align-items:center;gap:2px;padding:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-chat-tab{height:24px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
-.dsh-reader-chat-tab:hover{color:var(--dsw-alias-label-primary)}
-.dsh-reader-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600}
-.dsh-reader-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
-.dsh-reader-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
-.dsh-reader-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
-.dsh-reader-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
-.dsh-reader-native-chat>[data-conversation-content]{flex:1;min-height:0;min-width:0}
-.dsh-reader-chat-fallback{flex:1;min-height:0;display:flex;flex-direction:column}
-.dsh-reader-chat-empty{padding:18px 6px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.7}
-.dsh-reader-chat-more{display:block;width:100%;margin-bottom:10px;padding:5px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
-.dsh-reader-chat-more:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-msg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-width:100%}
-.dsh-reader-msg[data-role="user"]{align-items:flex-end;margin-left:28px}
-.dsh-reader-msg[data-role="assistant"]{align-items:flex-start;margin-right:28px}
-.dsh-reader-msg-role{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
-.dsh-reader-msg[data-role="user"] .dsh-reader-msg-role{color:var(--dsw-alias-brand-primary)}
-.dsh-reader-msg[data-role="assistant"] .dsh-reader-msg-role::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
-.dsh-reader-msg-text{max-width:92%;white-space:pre-wrap;word-break:break-word;line-height:1.7;font-size:13px}
-.dsh-reader-msg[data-role="user"] .dsh-reader-msg-text{padding:8px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;border-top-right-radius:3px;background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-msg[data-role="assistant"] .dsh-reader-md{max-width:92%;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-brand-primary)}
-.dsh-reader-md{max-width:92%;min-width:0;font-size:13px;line-height:1.7;word-break:break-word;color:var(--dsw-alias-label-primary)}
-.dsh-reader-md p{margin:0 0 .7em;white-space:pre-wrap}
-.dsh-reader-md p:last-child{margin-bottom:0}
-.dsh-reader-md h3,.dsh-reader-md h4,.dsh-reader-md h5,.dsh-reader-md h6{margin:.9em 0 .35em;line-height:1.4;font-weight:650}
-.dsh-reader-md h3:first-child,.dsh-reader-md h4:first-child,.dsh-reader-md h5:first-child,.dsh-reader-md h6:first-child{margin-top:0}
-.dsh-reader-md h3{font-size:1.2em}
-.dsh-reader-md h4{font-size:1.1em}
-.dsh-reader-md h5,.dsh-reader-md h6{font-size:1em}
-.dsh-reader-md pre{margin:.6em 0;padding:10px 12px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12px;line-height:1.6}
-.dsh-reader-md code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
-.dsh-reader-md pre code{padding:0;background:transparent}
-.dsh-reader-md blockquote{margin:.6em 0;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
-.dsh-reader-md a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
-.dsh-reader-md hr.dsh-reader-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}
-.dsh-reader-md .dsh-reader-li{margin:0 0 .45em}
-.dsh-reader-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
-.dsh-reader-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
-.dsh-reader-notes{flex:1;min-height:0;overflow:auto;padding:10px 12px 16px}
-.dsh-reader-long-notes{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-long-notes-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.dsh-reader-long-notes-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
-.dsh-reader-long-notes-actions{display:flex;gap:4px}
-.dsh-reader-note-context{display:flex;align-items:center;gap:7px;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
-.dsh-reader-note-context[data-on="true"]{border-color:var(--dsw-alias-brand-primary)}
-.dsh-reader-note-context:disabled{opacity:.6;cursor:default}
-.dsh-reader-note-context-switch{position:relative;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);transition:background .15s}
-.dsh-reader-note-context-switch::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-label-secondary);transition:transform .15s}
-.dsh-reader-note-context-switch[data-on="true"]{background:var(--dsw-alias-brand-primary)}
-.dsh-reader-note-context-switch[data-on="true"]::after{transform:translateX(11px);background:#fff}
-.dsh-reader-note-context-label{flex:1;min-width:0}
-.dsh-reader-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
-.dsh-reader-drafts{display:flex;flex-direction:column;gap:7px;padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-drafts-head{color:var(--dsw-alias-label-secondary);font-size:11.5px;font-weight:600}
-.dsh-reader-draft{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base)}
-.dsh-reader-draft-head{display:flex;align-items:center;gap:6px;min-width:0}
-.dsh-reader-diff{max-height:220px;overflow:auto;margin:0;padding:6px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-diff-line{padding:0 3px;border-radius:3px}
-.dsh-reader-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
-.dsh-reader-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
-.dsh-reader-diff-same{color:var(--dsw-alias-label-secondary)}
-.dsh-reader-memory{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.dsh-reader-memory-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
-.dsh-reader-memory-modes{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
-.dsh-reader-memory-card{display:flex;flex-direction:column;gap:6px}
-.dsh-reader-memory-card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
-.dsh-reader-memory-card textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;line-height:1.6;resize:vertical}
-.dsh-reader-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-memory-history{font-size:11px}
-.dsh-reader-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
-.dsh-reader-memory-proposals{display:flex;flex-direction:column;gap:7px}
-.dsh-reader-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-history-row:last-child{border-bottom:0}
-.dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
-.dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
-.dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-long-kind{flex:none;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
-.dsh-reader-long-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
-.dsh-reader-long-meta{flex:none;color:var(--dsw-alias-label-secondary);font-size:10.5px}
-.dsh-reader-long-hint{padding-top:4px;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.6}
-.dsh-reader-long-editor{display:flex;flex-direction:column;gap:7px}
-.dsh-reader-long-editor-head{display:flex;align-items:center;gap:6px}
-.dsh-reader-long-editor-head input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
-.dsh-reader-long-editor textarea{display:block;width:100%;box-sizing:border-box;min-height:180px;max-height:46vh;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
-.dsh-reader-long-editor-head input:focus,.dsh-reader-long-editor textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.dsh-reader-long-conflict{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.5}
-.dsh-reader-long-preview summary{cursor:pointer;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.8}
-.dsh-reader-long-preview .dsh-reader-md{max-width:none;margin-top:6px;padding-left:0;border-left:0}
-.dsh-reader-note{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-note:last-child{border-bottom:0}
-.dsh-reader-note-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
-.dsh-reader-note-main:hover .dsh-reader-note-body{color:var(--dsw-alias-brand-primary)}
-.dsh-reader-note-chapter{color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.5}
-.dsh-reader-note-quote{padding-left:8px;border-left:2px solid var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-note-body{color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-note-delete{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
-.dsh-reader-note-jump{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-brand-primary);font:inherit;font-size:11px;cursor:pointer}
-.dsh-reader-note-jump:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-note-delete:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary)}
-.dsh-reader-note-delete:disabled{opacity:.45;cursor:default}
-.dsh-reader-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-chat-compose textarea{display:block;width:100%;box-sizing:border-box;min-height:58px;max-height:140px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.55;resize:vertical}
-.dsh-reader-chat-compose textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-chat-compose-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
-.dsh-reader-chat-hint{color:var(--dsw-alias-label-secondary);font-size:11px}
-.dsh-reader-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-size:12px;font-weight:600;cursor:pointer}
-.dsh-reader-chat-send:disabled{opacity:.5;cursor:default}
-.dsh-reader-chat-backdrop{display:none}
-.dsh-reader-search{flex:none;max-height:46vh;overflow:auto;padding:10px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
-.dsh-reader-search-bar{display:flex;align-items:center;gap:8px}
-.dsh-reader-search-bar input{flex:1;min-width:0;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
-.dsh-reader-search-bar input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-search-list{display:flex;flex-direction:column;gap:2px;margin-top:8px}
-.dsh-reader-search-result{display:flex;flex-direction:column;gap:3px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
-.dsh-reader-search-result:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-search-chapter{color:var(--dsw-alias-label-primary);font-size:12px;font-weight:600}
-.dsh-reader-search-snippet{color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
-.dsh-reader-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
-.dsh-reader-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
-.dsh-reader-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
-.dsh-reader-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
-.dsh-reader-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
-.dsh-reader-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
-.dsh-reader-epub-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
-.dsh-reader-epub-title{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
-.dsh-reader-palette-select{height:28px;max-width:112px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
-.dsh-reader-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
-.dsh-reader-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
-.dsh-reader-pdf-text{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1}
-.dsh-reader-pdf-text-item{position:absolute;color:transparent;white-space:pre;transform-origin:0 0;user-select:text;cursor:text}
-.dsh-reader-pdf-text-item::selection{background:var(--reader-selection,rgba(64,128,255,.35));color:transparent}
-.dsh-reader-reader ::selection{background:var(--reader-selection,rgba(64,128,255,.30))}
-.dsh-reader-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
-.dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
-.dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
-.dsh-reader-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
-.dsh-reader-main{display:flex;flex-direction:column;min-width:0;min-height:0}
-.dsh-reader-main>.dsh-reader-reader{flex:1;min-height:0}
-.dsh-reader-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
-.dsh-reader-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
-.dsh-reader-bar-title{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}
-.dsh-reader-bar-position{flex:none;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;font-variant-numeric:tabular-nums}
-.dsh-reader-bar .dsh-reader-secondary{height:28px;padding:0 9px;border-radius:7px;font-size:12px}
-.dsh-reader-bar .dsh-reader-bar-btn{min-width:28px;padding:0 7px}
-.dsh-reader-bar .dsh-reader-page-input{width:52px}
-.dsh-reader-bar-toggle[data-active="true"],.dsh-reader-bar-toggle[aria-pressed="true"]{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
-.dsh-reader-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
-.dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;width:100%;max-width:100%;margin:0 auto;padding:28px 40px;overflow:hidden}
-.dsh-reader-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
-.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:16px;max-width:100%;margin-block:auto}
-.dsh-reader-pdf-spread .dsh-reader-pdf-page{margin:0}
-.dsh-reader-visual[data-paged="true"]{overflow:auto}
+.dsh-readpilot-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:14px}
+.dsh-readpilot-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-header-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
+.dsh-readpilot-header-actions{display:flex;align-items:center;gap:6px;flex:none}
+.dsh-readpilot-icon-btn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;cursor:pointer}
+.dsh-readpilot-icon-btn:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-icon-btn:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600;color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-subtitle{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;margin-top:1px}
+.dsh-readpilot-body{flex:1;min-height:0;overflow:auto;padding:20px 24px 40px}
+.dsh-readpilot-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.dsh-readpilot-library-head h2{margin:0;font-size:15px;font-weight:600}
+.dsh-readpilot-primary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 14px;border:1px solid transparent;border-radius:8px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-weight:600;cursor:pointer}
+.dsh-readpilot-primary:disabled{opacity:.5;cursor:default}
+.dsh-readpilot-setup-actions{display:flex;gap:8px}
+.dsh-readpilot-secondary{display:inline-flex;align-items:center;justify-content:center;height:32px;padding:0 12px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;cursor:pointer}
+.dsh-readpilot-secondary:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-secondary:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:12px}
+.dsh-readpilot-card{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:14px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-readpilot-card:hover{border-color:var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-cover{height:64px;border-radius:8px;background:linear-gradient(135deg,var(--dsw-alias-bg-layer-2),var(--dsw-alias-bg-layer-2));display:flex;align-items:center;justify-content:center;color:var(--dsw-alias-label-secondary);font-size:12px;letter-spacing:.08em}
+.dsh-readpilot-card-title{font-weight:600;line-height:1.35;word-break:break-word}
+.dsh-readpilot-card-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-readpilot-progress{height:3px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);overflow:hidden}
+.dsh-readpilot-progress span{display:block;height:100%;background:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:11px}
+.dsh-readpilot-empty{max-width:460px;margin:60px auto;text-align:center;color:var(--dsw-alias-label-secondary);line-height:1.7}
+.dsh-readpilot-empty h2{margin:0 0 8px;font-size:16px;color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-library{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}
+.dsh-readpilot-library-side{min-height:0;overflow:auto;padding:16px 10px 28px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-library-side-title{padding:10px 8px 5px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;letter-spacing:.04em}
+.dsh-readpilot-library-category{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.dsh-readpilot-library-category:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-library-category[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-readpilot-library-count{color:var(--dsw-alias-label-secondary);font-size:10px;font-weight:400}
+.dsh-readpilot-library-main{min-height:0;display:flex;flex-direction:column;padding:16px 22px 30px;overflow:hidden}
+.dsh-readpilot-library-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:12px}
+.dsh-readpilot-library-head h2{margin:0;font-size:16px;font-weight:650}
+.dsh-readpilot-library-subtitle{margin-top:3px;color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-library-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.dsh-readpilot-library-search{flex:1;min-width:120px;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
+.dsh-readpilot-library-search:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-library-scroll{flex:1;min-height:0;overflow:auto;padding-right:4px}
+.dsh-readpilot-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
+.dsh-readpilot-section-head h3{margin:0;font-size:13px;font-weight:650}
+.dsh-readpilot-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
+.dsh-readpilot-book-card{position:relative;min-width:0}
+.dsh-readpilot-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+.dsh-readpilot-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.dsh-readpilot-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff}
+.dsh-readpilot-book-card[data-format="md"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#5b7a73,#344d47)}
+.dsh-readpilot-book-card[data-format="epub"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#6b6a86,#42415a)}
+.dsh-readpilot-book-card[data-format="pdf"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#8a735c,#4d3f33)}
+.dsh-readpilot-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
+.dsh-readpilot-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.dsh-readpilot-book-info{padding:9px 10px 10px}
+.dsh-readpilot-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
+.dsh-readpilot-book-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px}
+.dsh-readpilot-book-meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+.dsh-readpilot-book-reading{margin-top:6px;color:var(--dsw-alias-brand-primary);font-size:10px;font-weight:600}
+.dsh-readpilot-book-tags{display:flex;gap:4px;margin-top:6px;overflow:hidden}
+.dsh-readpilot-book-tag{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px}
+.dsh-readpilot-book-tag-edit{position:absolute;top:7px;right:7px;padding:2px 6px;border:0;border-radius:5px;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:9px;cursor:pointer;opacity:0;transition:opacity .14s ease}
+.dsh-readpilot-book-card:hover .dsh-readpilot-book-tag-edit,.dsh-readpilot-book-tag-edit:focus{opacity:1}
+.dsh-readpilot-library-empty{padding:36px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;text-align:center}
+.dsh-readpilot-tag-dialog{width:min(480px,94vw)}
+.dsh-readpilot-tag-book{margin-bottom:10px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-readpilot-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
+.dsh-readpilot-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
+.dsh-readpilot-tag-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer}
+.dsh-readpilot-tag-remove:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-error-primary)}
+.dsh-readpilot-tag-input-row{display:flex;gap:8px}
+.dsh-readpilot-tag-input-row input{flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
+.dsh-readpilot-tag-suggestions{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px;max-height:92px;overflow:auto}
+.dsh-readpilot-tag-suggestion{padding:3px 7px;border:1px dashed var(--dsw-alias-border-l2);border-radius:5px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:10px;cursor:pointer}
+.dsh-readpilot-tag-suggestion:hover{border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary)}
+@media (max-width:760px){.dsh-readpilot-library{grid-template-columns:1fr;overflow:auto}.dsh-readpilot-library-side{display:flex;gap:4px;overflow-x:auto;padding:8px 10px;border-right:0;border-bottom:1px solid var(--dsw-alias-border-l2)}.dsh-readpilot-library-side-title{display:none}.dsh-readpilot-library-category{width:auto;flex:none;white-space:nowrap}.dsh-readpilot-library-main{overflow:visible;padding:14px 14px 30px}.dsh-readpilot-library-scroll{overflow:visible}.dsh-readpilot-book-tag-edit{opacity:1}}
+.dsh-readpilot-setup{flex:1;display:flex;align-items:center;justify-content:center;padding:24px}
+.dsh-readpilot-setup-card{width:min(520px,100%);padding:26px;border:1px solid var(--dsw-alias-border-l2);border-radius:14px;background:var(--dsw-alias-bg-layer-1);box-shadow:0 12px 40px rgba(0,0,0,.10)}
+.dsh-readpilot-setup-card h2{margin:0 0 8px;font-size:18px}
+.dsh-readpilot-setup-card p{margin:0 0 18px;color:var(--dsw-alias-label-secondary);line-height:1.65}
+.dsh-readpilot-path-row{display:flex;gap:8px;margin-bottom:14px}
+.dsh-readpilot-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
+.dsh-readpilot-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) var(--dsh-readpilot-chat-width,420px)}
+.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) var(--dsh-readpilot-chat-width,420px)}
+.dsh-readpilot-book[data-chat="false"]{grid-template-columns:230px minmax(0,1fr)}
+.dsh-readpilot-book[data-toc="false"][data-chat="false"]{grid-template-columns:minmax(0,1fr)}
+.dsh-readpilot-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-toc-title{padding:4px 8px 8px;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.04em}
+.dsh-readpilot-toc-list{display:flex;flex-direction:column;gap:2px}
+.dsh-readpilot-toc-item{display:block;width:100%;padding:7px 8px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;line-height:1.45;cursor:pointer}
+.dsh-readpilot-toc-item:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-toc-item[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-readpilot-toc-item:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-chat{position:relative;min-height:0;display:flex;flex-direction:column;border-left:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-chat-resizer{position:absolute;left:-3px;top:0;bottom:0;width:6px;z-index:3;cursor:col-resize;background:transparent;border:0;padding:0}
+.dsh-readpilot-chat-resizer:hover,.dsh-readpilot-chat-resizer:focus-visible{background:var(--dsw-alias-brand-primary);outline:none}
+.dsh-readpilot-chat-head{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:10px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-chat-tabs{display:flex;align-items:center;gap:2px;padding:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-chat-tab{height:24px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-chat-tab:hover{color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-readpilot-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
+.dsh-readpilot-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.dsh-readpilot-native-chat>[data-conversation-content]{flex:1;min-height:0;min-width:0}
+.dsh-readpilot-chat-fallback{flex:1;min-height:0;display:flex;flex-direction:column}
+.dsh-readpilot-chat-empty{padding:18px 6px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.7}
+.dsh-readpilot-chat-more{display:block;width:100%;margin-bottom:10px;padding:5px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-chat-more:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-msg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;max-width:100%}
+.dsh-readpilot-msg[data-role="user"]{align-items:flex-end;margin-left:28px}
+.dsh-readpilot-msg[data-role="assistant"]{align-items:flex-start;margin-right:28px}
+.dsh-readpilot-msg-role{display:inline-flex;align-items:center;gap:5px;padding:1px 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
+.dsh-readpilot-msg[data-role="user"] .dsh-readpilot-msg-role{color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-msg[data-role="assistant"] .dsh-readpilot-msg-role::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-msg-text{max-width:92%;white-space:pre-wrap;word-break:break-word;line-height:1.7;font-size:13px}
+.dsh-readpilot-msg[data-role="user"] .dsh-readpilot-msg-text{padding:8px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;border-top-right-radius:3px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-msg[data-role="assistant"] .dsh-readpilot-md{max-width:92%;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-brand-primary)}
+.dsh-readpilot-md{max-width:92%;min-width:0;font-size:13px;line-height:1.7;word-break:break-word;color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-md p{margin:0 0 .7em;white-space:pre-wrap}
+.dsh-readpilot-md p:last-child{margin-bottom:0}
+.dsh-readpilot-md h3,.dsh-readpilot-md h4,.dsh-readpilot-md h5,.dsh-readpilot-md h6{margin:.9em 0 .35em;line-height:1.4;font-weight:650}
+.dsh-readpilot-md h3:first-child,.dsh-readpilot-md h4:first-child,.dsh-readpilot-md h5:first-child,.dsh-readpilot-md h6:first-child{margin-top:0}
+.dsh-readpilot-md h3{font-size:1.2em}
+.dsh-readpilot-md h4{font-size:1.1em}
+.dsh-readpilot-md h5,.dsh-readpilot-md h6{font-size:1em}
+.dsh-readpilot-md pre{margin:.6em 0;padding:10px 12px;border-radius:8px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12px;line-height:1.6}
+.dsh-readpilot-md code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
+.dsh-readpilot-md pre code{padding:0;background:transparent}
+.dsh-readpilot-md blockquote{margin:.6em 0;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
+.dsh-readpilot-md a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
+.dsh-readpilot-md hr.dsh-readpilot-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}
+.dsh-readpilot-md .dsh-readpilot-li{margin:0 0 .45em}
+.dsh-readpilot-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
+.dsh-readpilot-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
+.dsh-readpilot-notes{flex:1;min-height:0;overflow:auto;padding:10px 12px 16px}
+.dsh-readpilot-long-notes{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-long-notes-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dsh-readpilot-long-notes-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
+.dsh-readpilot-long-notes-actions{display:flex;gap:4px}
+.dsh-readpilot-note-context{display:flex;align-items:center;gap:7px;width:100%;padding:6px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
+.dsh-readpilot-note-context[data-on="true"]{border-color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-note-context:disabled{opacity:.6;cursor:default}
+.dsh-readpilot-note-context-switch{position:relative;flex:none;width:26px;height:15px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);transition:background .15s}
+.dsh-readpilot-note-context-switch::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:var(--dsw-alias-label-secondary);transition:transform .15s}
+.dsh-readpilot-note-context-switch[data-on="true"]{background:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-note-context-switch[data-on="true"]::after{transform:translateX(11px);background:#fff}
+.dsh-readpilot-note-context-label{flex:1;min-width:0}
+.dsh-readpilot-note-context-state{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-note-context-chars{color:var(--dsw-alias-label-secondary);font-size:10.5px}
+.dsh-readpilot-drafts{display:flex;flex-direction:column;gap:7px;padding:2px 0 10px;margin-bottom:8px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-drafts-head{color:var(--dsw-alias-label-secondary);font-size:11.5px;font-weight:600}
+.dsh-readpilot-draft{display:flex;flex-direction:column;gap:6px;padding:8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base)}
+.dsh-readpilot-draft-head{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-readpilot-diff{max-height:220px;overflow:auto;margin:0;padding:6px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11.5px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-diff-line{padding:0 3px;border-radius:3px}
+.dsh-readpilot-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
+.dsh-readpilot-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
+.dsh-readpilot-diff-same{color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-memory{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dsh-readpilot-memory-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
+.dsh-readpilot-memory-modes{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.dsh-readpilot-memory-card{display:flex;flex-direction:column;gap:6px}
+.dsh-readpilot-memory-card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dsh-readpilot-memory-card textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;line-height:1.6;resize:vertical}
+.dsh-readpilot-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-memory-history{font-size:11px}
+.dsh-readpilot-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-memory-proposals{display:flex;flex-direction:column;gap:7px}
+.dsh-readpilot-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-history-row:last-child{border-bottom:0}
+.dsh-readpilot-long-list{display:flex;flex-direction:column;gap:4px}
+.dsh-readpilot-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
+.dsh-readpilot-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-long-kind{flex:none;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;line-height:1.6}
+.dsh-readpilot-long-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}
+.dsh-readpilot-long-meta{flex:none;color:var(--dsw-alias-label-secondary);font-size:10.5px}
+.dsh-readpilot-long-hint{padding-top:4px;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.6}
+.dsh-readpilot-long-editor{display:flex;flex-direction:column;gap:7px}
+.dsh-readpilot-long-editor-head{display:flex;align-items:center;gap:6px}
+.dsh-readpilot-long-editor-head input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-readpilot-long-editor textarea{display:block;width:100%;box-sizing:border-box;min-height:180px;max-height:46vh;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
+.dsh-readpilot-long-editor-head input:focus,.dsh-readpilot-long-editor textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-long-editor-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.dsh-readpilot-long-conflict{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.5}
+.dsh-readpilot-long-preview summary{cursor:pointer;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.8}
+.dsh-readpilot-long-preview .dsh-readpilot-md{max-width:none;margin-top:6px;padding-left:0;border-left:0}
+.dsh-readpilot-note{display:flex;align-items:flex-start;gap:8px;padding:10px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-note:last-child{border-bottom:0}
+.dsh-readpilot-note-main{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-readpilot-note-main:hover .dsh-readpilot-note-body{color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-note-chapter{color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.5}
+.dsh-readpilot-note-quote{padding-left:8px;border-left:2px solid var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.55;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-note-body{color:var(--dsw-alias-label-primary);font-size:13px;line-height:1.65;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-note-delete{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-readpilot-note-jump{flex:none;height:24px;padding:0 7px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-brand-primary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-readpilot-note-jump:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-note-delete:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary)}
+.dsh-readpilot-note-delete:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-chat-compose{flex:none;padding:10px 12px 12px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-chat-compose textarea{display:block;width:100%;box-sizing:border-box;min-height:58px;max-height:140px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.55;resize:vertical}
+.dsh-readpilot-chat-compose textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-chat-compose-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px}
+.dsh-readpilot-chat-hint{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-chat-send{height:28px;padding:0 12px;border:0;border-radius:7px;background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--reader-bg,var(--dsw-alias-bg-base));font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.dsh-readpilot-chat-send:disabled{opacity:.5;cursor:default}
+.dsh-readpilot-chat-backdrop{display:none}
+.dsh-readpilot-search{flex:none;max-height:46vh;overflow:auto;padding:10px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-search-bar{display:flex;align-items:center;gap:8px}
+.dsh-readpilot-search-bar input{flex:1;min-width:0;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-readpilot-search-bar input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-search-list{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.dsh-readpilot-search-result{display:flex;flex-direction:column;gap:3px;width:100%;padding:8px 10px;border:0;border-radius:8px;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-readpilot-search-result:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-search-chapter{color:var(--dsw-alias-label-primary);font-size:12px;font-weight:600}
+.dsh-readpilot-search-snippet{color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
+.dsh-readpilot-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
+.dsh-readpilot-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-readpilot-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
+.dsh-readpilot-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
+.dsh-readpilot-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
+.dsh-readpilot-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-readpilot-epub-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
+.dsh-readpilot-epub-title{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.dsh-readpilot-palette-select{height:28px;max-width:112px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
+.dsh-readpilot-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
+.dsh-readpilot-pdf-text{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1}
+.dsh-readpilot-pdf-text-item{position:absolute;color:transparent;white-space:pre;transform-origin:0 0;user-select:text;cursor:text}
+.dsh-readpilot-pdf-text-item::selection{background:var(--reader-selection,rgba(64,128,255,.35));color:transparent}
+.dsh-readpilot-reader ::selection{background:var(--reader-selection,rgba(64,128,255,.30))}
+.dsh-readpilot-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
+.dsh-readpilot-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
+.dsh-readpilot-visual-error .dsh-readpilot-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
+.dsh-readpilot-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-readpilot-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.dsh-readpilot-main>.dsh-readpilot-reader{flex:1;min-height:0}
+.dsh-readpilot-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
+.dsh-readpilot-bar-title{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}
+.dsh-readpilot-bar-position{flex:none;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;font-variant-numeric:tabular-nums}
+.dsh-readpilot-bar .dsh-readpilot-secondary{height:28px;padding:0 9px;border-radius:7px;font-size:12px}
+.dsh-readpilot-bar .dsh-readpilot-bar-btn{min-width:28px;padding:0 7px}
+.dsh-readpilot-bar .dsh-readpilot-page-input{width:52px}
+.dsh-readpilot-bar-toggle[data-active="true"],.dsh-readpilot-bar-toggle[aria-pressed="true"]{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-readpilot-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.dsh-readpilot-page-frame{flex:1;min-height:0;box-sizing:border-box;width:100%;max-width:100%;margin:0 auto;padding:28px 40px;overflow:hidden}
+.dsh-readpilot-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
+.dsh-readpilot-pdf-spread{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:16px;max-width:100%;margin-block:auto}
+.dsh-readpilot-pdf-spread .dsh-readpilot-pdf-page{margin:0}
+.dsh-readpilot-visual[data-paged="true"]{overflow:auto}
 /* keep the 62px total block padding but split it evenly so paged PDF pages sit at the visual center */
-.dsh-reader-visual[data-paged="true"]:has(>.dsh-reader-pdf-spread){padding-block:31px}
-.dsh-reader-epub-frame[data-paged="true"]{height:100%;min-height:0}
-.dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
-.dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
-.dsh-reader-note-hit:hover{opacity:1}
-.dsh-reader-highlight-yellow{background:rgba(250,204,21,.38)!important}
-.dsh-reader-highlight-green{background:rgba(74,222,128,.32)!important}
-.dsh-reader-highlight-blue{background:rgba(96,165,250,.32)!important}
-.dsh-reader-highlight-pink{background:rgba(244,114,182,.30)!important}
-.dsh-reader-highlight-purple{background:rgba(192,132,252,.30)!important}
-.dsh-reader-selection-colors{display:flex;align-items:center;gap:4px;padding-right:5px;margin-right:1px;border-right:1px solid var(--dsw-alias-border-l2)}
-.dsh-reader-color-btn{width:18px;height:18px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;cursor:pointer;box-sizing:border-box}
-.dsh-reader-color-btn[data-color="yellow"],.dsh-reader-color-dot.dsh-reader-color-yellow{background:#facc15}
-.dsh-reader-color-btn[data-color="green"],.dsh-reader-color-dot.dsh-reader-color-green{background:#4ade80}
-.dsh-reader-color-btn[data-color="blue"],.dsh-reader-color-dot.dsh-reader-color-blue{background:#60a5fa}
-.dsh-reader-color-btn[data-color="pink"],.dsh-reader-color-dot.dsh-reader-color-pink{background:#f472b6}
-.dsh-reader-color-btn[data-color="purple"],.dsh-reader-color-dot.dsh-reader-color-purple{background:#c084fc}
-.dsh-reader-color-btn[data-active="true"]{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
-.dsh-reader-note-colors{display:flex;gap:8px;margin:0 0 10px}
-.dsh-reader-mark-section{margin-bottom:14px}
-.dsh-reader-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
-.dsh-reader-mark-bookmark .dsh-reader-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
-.dsh-reader-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
-.dsh-reader-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
-.dsh-reader-reader blockquote{margin:1em 0;padding:2px 0 2px 14px;border-left:3px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
-.dsh-reader-reader pre{margin:1em 0;padding:12px 14px;border-radius:9px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12.5px;line-height:1.6}
-.dsh-reader-reader code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
-.dsh-reader-reader pre code{padding:0;background:transparent}
-.dsh-reader-reader a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
-.dsh-reader-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
-.dsh-reader-li-marker{color:var(--dsw-alias-label-secondary);flex:none;min-width:1.1em}
-.dsh-reader-flash{background:var(--dsw-alias-bg-layer-2);border-radius:4px;transition:background .2s ease}
-.dsh-reader-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
-.dsh-reader-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
-.dsh-reader-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
-.dsh-reader-selection .dsh-reader-color-btn{width:18px;height:18px;padding:0;border-radius:50%}
-.dsh-reader-note-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.24)}
-.dsh-reader-note-dialog{width:min(520px,100%);max-height:min(82vh,620px);display:flex;flex-direction:column;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-overlay);box-shadow:0 18px 50px rgba(0,0,0,.28)}
-.dsh-reader-note-dialog h3{margin:0 0 10px;font-size:14px;font-weight:650}
-.dsh-reader-note-dialog-quote{flex:none;max-height:140px;overflow:auto;margin-bottom:10px;padding:8px 10px;border-left:3px solid var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
-.dsh-reader-note-dialog textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
-.dsh-reader-note-dialog textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-note-dialog-error{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
-.dsh-reader-note-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
-.dsh-reader-banner{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:12.5px;line-height:1.5}
-.dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
-.dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
-.dsh-reader-spacer{flex:1}
-@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-resizer{display:none}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
-@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}.dsh-reader-bar{padding:6px 10px;gap:6px}.dsh-reader-bar-title{order:3;flex:1 0 100%}.dsh-reader-bar-controls{margin-left:auto}.dsh-reader-page-frame{padding:18px 16px}.dsh-reader-pdf-spread{gap:8px}}
+.dsh-readpilot-visual[data-paged="true"]:has(>.dsh-readpilot-pdf-spread){padding-block:31px}
+.dsh-readpilot-epub-frame[data-paged="true"]{height:100%;min-height:0}
+.dsh-readpilot-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
+.dsh-readpilot-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
+.dsh-readpilot-note-hit:hover{opacity:1}
+.dsh-readpilot-highlight-yellow{background:rgba(250,204,21,.38)!important}
+.dsh-readpilot-highlight-green{background:rgba(74,222,128,.32)!important}
+.dsh-readpilot-highlight-blue{background:rgba(96,165,250,.32)!important}
+.dsh-readpilot-highlight-pink{background:rgba(244,114,182,.30)!important}
+.dsh-readpilot-highlight-purple{background:rgba(192,132,252,.30)!important}
+.dsh-readpilot-selection-colors{display:flex;align-items:center;gap:4px;padding-right:5px;margin-right:1px;border-right:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-color-btn{width:18px;height:18px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;cursor:pointer;box-sizing:border-box}
+.dsh-readpilot-color-btn[data-color="yellow"],.dsh-readpilot-color-dot.dsh-readpilot-color-yellow{background:#facc15}
+.dsh-readpilot-color-btn[data-color="green"],.dsh-readpilot-color-dot.dsh-readpilot-color-green{background:#4ade80}
+.dsh-readpilot-color-btn[data-color="blue"],.dsh-readpilot-color-dot.dsh-readpilot-color-blue{background:#60a5fa}
+.dsh-readpilot-color-btn[data-color="pink"],.dsh-readpilot-color-dot.dsh-readpilot-color-pink{background:#f472b6}
+.dsh-readpilot-color-btn[data-color="purple"],.dsh-readpilot-color-dot.dsh-readpilot-color-purple{background:#c084fc}
+.dsh-readpilot-color-btn[data-active="true"]{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
+.dsh-readpilot-note-colors{display:flex;gap:8px;margin:0 0 10px}
+.dsh-readpilot-mark-section{margin-bottom:14px}
+.dsh-readpilot-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.dsh-readpilot-mark-bookmark .dsh-readpilot-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
+.dsh-readpilot-reader p{margin:0 0 1.1em;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-reader h3{margin:1.6em 0 .6em;font-size:1.08em;line-height:1.4}
+.dsh-readpilot-reader blockquote{margin:1em 0;padding:2px 0 2px 14px;border-left:3px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-reader pre{margin:1em 0;padding:12px 14px;border-radius:9px;background:var(--dsw-alias-bg-layer-2);overflow:auto;font-size:12.5px;line-height:1.6}
+.dsh-readpilot-reader code{padding:1px 4px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:.92em}
+.dsh-readpilot-reader pre code{padding:0;background:transparent}
+.dsh-readpilot-reader a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
+.dsh-readpilot-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
+.dsh-readpilot-li-marker{color:var(--dsw-alias-label-secondary);flex:none;min-width:1.1em}
+.dsh-readpilot-flash{background:var(--dsw-alias-bg-layer-2);border-radius:4px;transition:background .2s ease}
+.dsh-readpilot-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
+.dsh-readpilot-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-selection .dsh-readpilot-color-btn{width:18px;height:18px;padding:0;border-radius:50%}
+.dsh-readpilot-note-overlay{position:fixed;inset:0;z-index:60;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.24)}
+.dsh-readpilot-note-dialog{width:min(520px,100%);max-height:min(82vh,620px);display:flex;flex-direction:column;padding:18px;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-overlay);box-shadow:0 18px 50px rgba(0,0,0,.28)}
+.dsh-readpilot-note-dialog h3{margin:0 0 10px;font-size:14px;font-weight:650}
+.dsh-readpilot-note-dialog-quote{flex:none;max-height:140px;overflow:auto;margin-bottom:10px;padding:8px 10px;border-left:3px solid var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
+.dsh-readpilot-note-dialog textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
+.dsh-readpilot-note-dialog textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-note-dialog-error{margin-top:8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}
+.dsh-readpilot-note-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
+.dsh-readpilot-banner{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:12.5px;line-height:1.5}
+.dsh-readpilot-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
+.dsh-readpilot-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-spacer{flex:1}
+@media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
+@media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
 `;
 
   // src/client/runtime.ts
@@ -1189,18 +1189,18 @@ var __dshReaderBundle = (() => {
     const activePage = detail.toc.find((item) => item.id === activeChapter)?.page;
     return h(
       "aside",
-      { className: "dsh-reader-toc" },
-      h("div", { className: "dsh-reader-toc-title" }, t("toc")),
-      items.length === 0 ? h("div", { className: "dsh-reader-muted" }, t("noToc")) : h(
+      { className: "dsh-readpilot-toc" },
+      h("div", { className: "dsh-readpilot-toc-title" }, t("toc")),
+      items.length === 0 ? h("div", { className: "dsh-readpilot-muted" }, t("noToc")) : h(
         "div",
-        { className: "dsh-reader-toc-list" },
+        { className: "dsh-readpilot-toc-list" },
         items.map((item) => {
           const chapterId = outline ? item.chapterId ?? detail.toc.find((entry) => entry.page === item.page)?.id : item.id;
           const active = outline ? item.chapterId === activeChapter || item.page === activePage : item.id === activeChapter;
           return h("button", {
             key: item.id,
             type: "button",
-            className: "dsh-reader-toc-item",
+            className: "dsh-readpilot-toc-item",
             "data-active": active ? "true" : "false",
             "data-level": item.level ?? 0,
             disabled: !chapterId,
@@ -1269,13 +1269,13 @@ var __dshReaderBundle = (() => {
         return h("blockquote", { key, "data-block-index": index }, inline(block.text ?? "", key));
       }
       if (block.type === "hr") {
-        return h("hr", { key, "data-block-index": index, className: "dsh-reader-md-hr" });
+        return h("hr", { key, "data-block-index": index, className: "dsh-readpilot-md-hr" });
       }
       if (block.type === "li") {
         return h(
           "div",
-          { key, "data-block-index": index, className: "dsh-reader-li" },
-          h("span", { className: "dsh-reader-li-marker" }, block.ordered ? `${block.index}.` : "•"),
+          { key, "data-block-index": index, className: "dsh-readpilot-li" },
+          h("span", { className: "dsh-readpilot-li-marker" }, block.ordered ? `${block.index}.` : "•"),
           h("span", null, inline(block.text ?? "", key))
         );
       }
@@ -1283,7 +1283,7 @@ var __dshReaderBundle = (() => {
     });
   }
   function MarkdownMessage({ text, prefix }) {
-    return h("div", { className: "dsh-reader-md" }, renderBlocks(parseMarkdownBlocks(text), prefix));
+    return h("div", { className: "dsh-readpilot-md" }, renderBlocks(parseMarkdownBlocks(text), prefix));
   }
 
   // src/client/views/panels.ts
@@ -1319,7 +1319,7 @@ var __dshReaderBundle = (() => {
     const [path, setPath] = React.useState(initialPath ?? "");
     const row = h(
       "div",
-      { className: "dsh-reader-path-row" },
+      { className: "dsh-readpilot-path-row" },
       h("input", {
         value: path,
         placeholder: t("pathPlaceholder"),
@@ -1328,31 +1328,31 @@ var __dshReaderBundle = (() => {
       }),
       h("button", {
         type: "button",
-        className: "dsh-reader-secondary",
+        className: "dsh-readpilot-secondary",
         onClick: () => onPick(setPath)
       }, t("chooseDir"))
     );
     const actions = h(
       "div",
-      { className: "dsh-reader-setup-actions" },
+      { className: "dsh-readpilot-setup-actions" },
       h("button", {
         type: "button",
-        className: "dsh-reader-primary",
+        className: "dsh-readpilot-primary",
         disabled: busy || !path.trim(),
         onClick: () => onConfigure(path.trim())
       }, busy ? t("loading") : t("create")),
       onCancel ? h("button", {
         type: "button",
-        className: "dsh-reader-secondary",
+        className: "dsh-readpilot-secondary",
         onClick: onCancel
       }, t("cancel")) : null
     );
     return h(
       "div",
-      { className: "dsh-reader-setup" },
+      { className: "dsh-readpilot-setup" },
       h(
         "div",
-        { className: "dsh-reader-setup-card" },
+        { className: "dsh-readpilot-setup-card" },
         h("h2", null, t("setupTitle")),
         h("p", null, t("setupHint")),
         row,
@@ -1457,7 +1457,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-reader-note-overlay",
+        className: "dsh-readpilot-note-overlay",
         onMouseDown: (event) => {
           if (event.target === event.currentTarget) onClose();
         }
@@ -1465,23 +1465,23 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h(
         "div",
         {
-          className: "dsh-reader-note-dialog dsh-reader-tag-dialog",
+          className: "dsh-readpilot-note-dialog dsh-readpilot-tag-dialog",
           role: "dialog",
           "aria-modal": "true",
           "aria-label": t("editTags")
         },
         h("h3", null, t("editTags")),
-        h("div", { className: "dsh-reader-tag-book" }, book.title),
+        h("div", { className: "dsh-readpilot-tag-book" }, book.title),
         h(
           "div",
-          { className: "dsh-reader-tag-list" },
-          tags.length === 0 ? h("span", { className: "dsh-reader-muted" }, t("noTags")) : tags.map((tag) => h(
+          { className: "dsh-readpilot-tag-list" },
+          tags.length === 0 ? h("span", { className: "dsh-readpilot-muted" }, t("noTags")) : tags.map((tag) => h(
             "span",
-            { key: tag, className: "dsh-reader-tag-chip" },
+            { key: tag, className: "dsh-readpilot-tag-chip" },
             tag,
             h("button", {
               type: "button",
-              className: "dsh-reader-tag-remove",
+              className: "dsh-readpilot-tag-remove",
               "aria-label": `${t("removeTag")} ${tag}`,
               onClick: () => setTags((previous) => previous.filter((item) => item !== tag))
             }, "×")
@@ -1489,7 +1489,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ),
         h(
           "div",
-          { className: "dsh-reader-tag-input-row" },
+          { className: "dsh-readpilot-tag-input-row" },
           h("input", {
             ref: inputRef,
             value: draft,
@@ -1505,34 +1505,34 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           }),
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary",
+            className: "dsh-readpilot-secondary",
             disabled: !draft.trim() || tags.length >= 20,
             onClick: () => add(draft)
           }, t("addTag"))
         ),
         allTags.length > 0 ? h(
           "div",
-          { className: "dsh-reader-tag-suggestions" },
+          { className: "dsh-readpilot-tag-suggestions" },
           allTags.filter((tag) => !tags.includes(tag)).slice(0, 12).map((tag) => h("button", {
             key: tag,
             type: "button",
-            className: "dsh-reader-tag-suggestion",
+            className: "dsh-readpilot-tag-suggestion",
             onClick: () => add(tag)
           }, `+ ${tag}`))
         ) : null,
-        error ? h("div", { className: "dsh-reader-note-dialog-error" }, error) : null,
+        error ? h("div", { className: "dsh-readpilot-note-dialog-error" }, error) : null,
         h(
           "div",
-          { className: "dsh-reader-note-dialog-actions" },
+          { className: "dsh-readpilot-note-dialog-actions" },
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary",
+            className: "dsh-readpilot-secondary",
             disabled: saving,
             onClick: onClose
           }, t("cancel")),
           h("button", {
             type: "button",
-            className: "dsh-reader-primary",
+            className: "dsh-readpilot-primary",
             disabled: saving,
             onClick: () => void save()
           }, saving ? t("loading") : t("save"))
@@ -1544,43 +1544,43 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-reader-book-card",
+        className: "dsh-readpilot-book-card",
         "data-format": book.format
       },
       h(
         "button",
         {
           type: "button",
-          className: "dsh-reader-book-open",
+          className: "dsh-readpilot-book-open",
           onClick: () => onOpen(book)
         },
         h(
           "div",
-          { className: "dsh-reader-book-cover" },
-          h("span", { className: "dsh-reader-book-format" }, book.format.toUpperCase()),
-          h("span", { className: "dsh-reader-book-cover-title" }, book.title)
+          { className: "dsh-readpilot-book-cover" },
+          h("span", { className: "dsh-readpilot-book-format" }, book.format.toUpperCase()),
+          h("span", { className: "dsh-readpilot-book-cover-title" }, book.title)
         ),
         h(
           "div",
-          { className: "dsh-reader-book-info" },
-          h("div", { className: "dsh-reader-book-title" }, book.title),
+          { className: "dsh-readpilot-book-info" },
+          h("div", { className: "dsh-readpilot-book-title" }, book.title),
           h(
             "div",
-            { className: "dsh-reader-book-meta" },
+            { className: "dsh-readpilot-book-meta" },
             h("span", null, formatSize(book.size)),
             h("span", null, book.progress ? book.progress.chapterTitle || t("reading") : t("unread"))
           ),
           tags.length > 0 ? h(
             "div",
-            { className: "dsh-reader-book-tags" },
-            tags.slice(0, 3).map((tag) => h("span", { key: tag, className: "dsh-reader-book-tag" }, tag)),
-            tags.length > 3 ? h("span", { className: "dsh-reader-book-tag" }, `+${tags.length - 3}`) : null
+            { className: "dsh-readpilot-book-tags" },
+            tags.slice(0, 3).map((tag) => h("span", { key: tag, className: "dsh-readpilot-book-tag" }, tag)),
+            tags.length > 3 ? h("span", { className: "dsh-readpilot-book-tag" }, `+${tags.length - 3}`) : null
           ) : null
         )
       ),
       h("button", {
         type: "button",
-        className: "dsh-reader-book-tag-edit",
+        className: "dsh-readpilot-book-tag-edit",
         title: t("editTags"),
         onClick: () => onEditTags(book)
       }, t("tags"))
@@ -1605,53 +1605,53 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       {
         key,
         type: "button",
-        className: "dsh-reader-library-category",
+        className: "dsh-readpilot-library-category",
         "data-active": category === key ? "true" : "false",
         onClick: () => setCategory(key)
       },
       h("span", null, label),
-      typeof count === "number" ? h("span", { className: "dsh-reader-library-count" }, count) : null
+      typeof count === "number" ? h("span", { className: "dsh-readpilot-library-count" }, count) : null
     );
     return h(
       "div",
-      { className: "dsh-reader-library" },
+      { className: "dsh-readpilot-library" },
       h(
         "aside",
-        { className: "dsh-reader-library-side" },
-        h("div", { className: "dsh-reader-library-side-title" }, t("categories")),
+        { className: "dsh-readpilot-library-side" },
+        h("div", { className: "dsh-readpilot-library-side-title" }, t("categories")),
         categoryButton("all", t("allBooks"), counts.all),
         categoryButton("recent", t("recentReading"), counts.recent),
         categoryButton("reading", t("inProgress"), counts.reading),
         categoryButton("unread", t("unread"), counts.unread),
-        h("div", { className: "dsh-reader-library-side-title" }, t("formats")),
+        h("div", { className: "dsh-readpilot-library-side-title" }, t("formats")),
         FORMATS.map((format) => categoryButton(`format:${format}`, format.toUpperCase(), counts.formats[format])),
-        tagStats.length > 0 ? h("div", { className: "dsh-reader-library-side-title" }, t("tags")) : null,
+        tagStats.length > 0 ? h("div", { className: "dsh-readpilot-library-side-title" }, t("tags")) : null,
         tagStats.map(({ tag, count }) => categoryButton(`tag:${tag}`, `# ${tag}`, count))
       ),
       h(
         "div",
-        { className: "dsh-reader-library-main" },
+        { className: "dsh-readpilot-library-main" },
         h(
           "div",
-          { className: "dsh-reader-library-head" },
+          { className: "dsh-readpilot-library-head" },
           h(
             "div",
             null,
             h("h2", null, `${t("library")} · ${books.length}`),
-            h("div", { className: "dsh-reader-library-subtitle" }, t("librarySubtitle"))
+            h("div", { className: "dsh-readpilot-library-subtitle" }, t("librarySubtitle"))
           ),
           h(
             "div",
-            { className: "dsh-reader-header-actions" },
-            h("button", { type: "button", className: "dsh-reader-secondary", onClick: onSettings }, t("settings")),
-            h("button", { type: "button", className: "dsh-reader-secondary", disabled: busy, onClick: onRefresh }, t("rescan"))
+            { className: "dsh-readpilot-header-actions" },
+            h("button", { type: "button", className: "dsh-readpilot-secondary", onClick: onSettings }, t("settings")),
+            h("button", { type: "button", className: "dsh-readpilot-secondary", disabled: busy, onClick: onRefresh }, t("rescan"))
           )
         ),
         h(
           "div",
-          { className: "dsh-reader-library-toolbar" },
+          { className: "dsh-readpilot-library-toolbar" },
           h("input", {
-            className: "dsh-reader-library-search",
+            className: "dsh-readpilot-library-search",
             value: query,
             placeholder: t("searchLibrary"),
             spellCheck: false,
@@ -1660,7 +1660,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h(
             "select",
             {
-              className: "dsh-reader-palette-select",
+              className: "dsh-readpilot-palette-select",
               value: sort,
               onChange: (event) => setSort(event.target.value),
               "aria-label": t("sortBy")
@@ -1673,24 +1673,24 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ),
         books.length === 0 ? h(
           "div",
-          { className: "dsh-reader-empty" },
+          { className: "dsh-readpilot-empty" },
           h("h2", null, t("empty")),
           h("p", null, t("emptyHint"))
         ) : h(
           "div",
-          { className: "dsh-reader-library-scroll" },
+          { className: "dsh-readpilot-library-scroll" },
           h(
             "section",
-            { className: "dsh-reader-all-section" },
+            { className: "dsh-readpilot-all-section" },
             h(
               "div",
-              { className: "dsh-reader-section-head" },
+              { className: "dsh-readpilot-section-head" },
               h("h3", null, categoryTitle),
               h("span", null, `${visible.length}`)
             ),
-            visible.length === 0 ? h("div", { className: "dsh-reader-library-empty" }, t("noMatches")) : h(
+            visible.length === 0 ? h("div", { className: "dsh-readpilot-library-empty" }, t("noMatches")) : h(
               "div",
-              { className: "dsh-reader-grid" },
+              { className: "dsh-readpilot-grid" },
               visible.map((book) => h(BookCard, {
                 key: book.id,
                 t,
@@ -1747,14 +1747,14 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h("button", {
         key: "jump",
         type: "button",
-        className: "dsh-reader-note-jump",
+        className: "dsh-readpilot-note-jump",
         title: t("jump"),
         onClick: () => openNote(item)
       }, t("jump")),
       h("button", {
         key: "delete",
         type: "button",
-        className: "dsh-reader-note-delete",
+        className: "dsh-readpilot-note-delete",
         disabled: noteDeletingId === item.id,
         onClick: () => void deleteNote(item)
       }, noteDeletingId === item.id ? t("loading") : t("delete"))
@@ -1764,59 +1764,59 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
     return h(
       "div",
-      { className: "dsh-reader-notes" },
-      notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-      notesLoading && !hasMarks ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
+      { className: "dsh-readpilot-notes" },
+      notesError ? h("div", { className: "dsh-readpilot-chat-error" }, notesError) : null,
+      notesLoading && !hasMarks ? h("div", { className: "dsh-readpilot-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-readpilot-chat-empty" }, t("noteEmpty")) : [
         highlights.length > 0 ? h(
           "section",
-          { key: "highlights", className: "dsh-reader-mark-section" },
+          { key: "highlights", className: "dsh-readpilot-mark-section" },
           h("h4", null, `${t("highlights")} · ${highlights.length}`),
           highlights.map((highlight) => h(
             "div",
-            { key: highlight.id, className: "dsh-reader-note dsh-reader-mark-highlight" },
+            { key: highlight.id, className: "dsh-readpilot-note dsh-readpilot-mark-highlight" },
             h(
               "button",
               {
                 type: "button",
-                className: "dsh-reader-note-main",
+                className: "dsh-readpilot-note-main",
                 onClick: () => openNote(highlight)
               },
               h(
                 "div",
-                { className: "dsh-reader-note-chapter" },
-                h("span", { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? "yellow"}` }),
+                { className: "dsh-readpilot-note-chapter" },
+                h("span", { className: `dsh-readpilot-color-dot dsh-readpilot-color-${highlight.color ?? "yellow"}` }),
                 chapterTitleOf(screen, highlight.chapterId) || t("reading")
               ),
-              h("div", { className: "dsh-reader-note-quote" }, highlight.quote),
-              highlight.annotation ? h("div", { className: "dsh-reader-note-body" }, highlight.annotation) : null
+              h("div", { className: "dsh-readpilot-note-quote" }, highlight.quote),
+              highlight.annotation ? h("div", { className: "dsh-readpilot-note-body" }, highlight.annotation) : null
             ),
             ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote })
           ))
         ) : null,
         notes.length > 0 ? h(
           "section",
-          { key: "notes", className: "dsh-reader-mark-section" },
+          { key: "notes", className: "dsh-readpilot-mark-section" },
           h("h4", null, `${t("shortNotes")} · ${notes.length}`),
           notes.map((note) => h(
             "div",
-            { key: note.id, className: "dsh-reader-note" },
+            { key: note.id, className: "dsh-readpilot-note" },
             h(
               "button",
               {
                 type: "button",
-                className: "dsh-reader-note-main",
+                className: "dsh-readpilot-note-main",
                 onClick: () => openNote(note)
               },
-              h("div", { className: "dsh-reader-note-chapter" }, chapterTitleOf(screen, note.chapterId) || t("reading")),
-              note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
-              h("div", { className: "dsh-reader-note-body" }, note.note)
+              h("div", { className: "dsh-readpilot-note-chapter" }, chapterTitleOf(screen, note.chapterId) || t("reading")),
+              note.quote ? h("div", { className: "dsh-readpilot-note-quote" }, note.quote) : null,
+              h("div", { className: "dsh-readpilot-note-body" }, note.note)
             ),
             ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote })
           ))
         ) : null,
         bookmarks.length > 0 ? h(
           "section",
-          { key: "bookmarks", className: "dsh-reader-mark-section" },
+          { key: "bookmarks", className: "dsh-readpilot-mark-section" },
           h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
           bookmarks.map((bookmark) => {
             const context = bookmarkContext(screen, bookmark.chapterId);
@@ -1824,16 +1824,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             const detail = bookmark.annotation || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : "");
             return h(
               "div",
-              { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
+              { key: bookmark.id, className: "dsh-readpilot-note dsh-readpilot-mark-bookmark" },
               h(
                 "button",
                 {
                   type: "button",
-                  className: "dsh-reader-note-main",
+                  className: "dsh-readpilot-note-main",
                   onClick: () => openNote(bookmark)
                 },
-                h("div", { className: "dsh-reader-note-chapter" }, title),
-                detail ? h("div", { className: "dsh-reader-note-body" }, detail) : null
+                h("div", { className: "dsh-readpilot-note-chapter" }, title),
+                detail ? h("div", { className: "dsh-readpilot-note-body" }, detail) : null
               ),
               ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
             );
@@ -1859,10 +1859,10 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     if (!open || screen.kind !== "book") return null;
     return h(
       "div",
-      { className: "dsh-reader-search" },
+      { className: "dsh-readpilot-search" },
       h(
         "div",
-        { className: "dsh-reader-search-bar" },
+        { className: "dsh-readpilot-search-bar" },
         h("input", {
           ref: searchInputRef,
           value: searchQuery,
@@ -1878,33 +1878,33 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         }),
         h("button", {
           type: "button",
-          className: "dsh-reader-primary",
+          className: "dsh-readpilot-primary",
           disabled: searchBusy || !searchQuery.trim(),
           onClick: () => void runSearch()
         }, searchBusy ? t("searching") : t("search")),
         h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("closeSearch"),
           "aria-label": t("closeSearch"),
           onClick: () => setSearchOpen(false)
         }, "×")
       ),
-      searchError ? h("div", { className: "dsh-reader-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-reader-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-reader-search-hint" }, t("searchEmpty")) : h(
+      searchError ? h("div", { className: "dsh-readpilot-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-readpilot-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-readpilot-search-hint" }, t("searchEmpty")) : h(
         "div",
-        { className: "dsh-reader-search-list" },
+        { className: "dsh-readpilot-search-list" },
         searchResults.matches.map((match, index) => h(
           "button",
           {
             key: `${match.chapterId}:${match.offset}:${index}`,
             type: "button",
-            className: "dsh-reader-search-result",
+            className: "dsh-readpilot-search-result",
             onClick: () => openSearchMatch(match)
           },
-          h("div", { className: "dsh-reader-search-chapter" }, match.chapterTitle),
-          h("div", { className: "dsh-reader-search-snippet" }, match.snippet)
+          h("div", { className: "dsh-readpilot-search-chapter" }, match.chapterTitle),
+          h("div", { className: "dsh-readpilot-search-snippet" }, match.snippet)
         )),
-        searchResults.truncated ? h("div", { className: "dsh-reader-search-hint" }, t("searchTruncated")) : null
+        searchResults.truncated ? h("div", { className: "dsh-readpilot-search-hint" }, t("searchTruncated")) : null
       )
     );
   }
@@ -1915,22 +1915,22 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const kind = state.active?.note.kind ?? state.createKind;
     return h(
       "section",
-      { className: "dsh-reader-long-notes" },
+      { className: "dsh-readpilot-long-notes" },
       h(
         "div",
-        { className: "dsh-reader-long-notes-head" },
+        { className: "dsh-readpilot-long-notes-head" },
         h("h4", null, t("longNotes")),
         editing ? null : h(
           "div",
-          { className: "dsh-reader-long-notes-actions" },
+          { className: "dsh-readpilot-long-notes-actions" },
           h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             onClick: () => state.start("book")
           }, t("bookNote")),
           h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             onClick: () => state.start("topic")
           }, t("newTopicNote"))
         )
@@ -1939,71 +1939,71 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         "button",
         {
           type: "button",
-          className: "dsh-reader-note-context",
+          className: "dsh-readpilot-note-context",
           "data-on": noteContext.enabled ? "true" : "false",
           disabled: noteContext.busy,
           title: t("noteContextHint"),
           onClick: noteContext.toggle
         },
         h("span", {
-          className: "dsh-reader-note-context-switch",
+          className: "dsh-readpilot-note-context-switch",
           "data-on": noteContext.enabled ? "true" : "false"
         }),
-        h("span", { className: "dsh-reader-note-context-label" }, t("noteContext")),
+        h("span", { className: "dsh-readpilot-note-context-label" }, t("noteContext")),
         h(
           "span",
-          { className: "dsh-reader-note-context-state" },
+          { className: "dsh-readpilot-note-context-state" },
           noteContext.enabled ? t("noteContextOn") : t("noteContextOff")
         ),
         noteContext.enabled && noteContext.characters > 0 ? h(
           "span",
-          { className: "dsh-reader-note-context-chars" },
+          { className: "dsh-readpilot-note-context-chars" },
           `${noteContext.characters} ${t("noteContextChars")}`
         ) : null
       ) : null,
       state.drafts.length > 0 ? h(
         "div",
-        { className: "dsh-reader-drafts" },
-        h("div", { className: "dsh-reader-drafts-head" }, t("noteDrafts")),
+        { className: "dsh-readpilot-drafts" },
+        h("div", { className: "dsh-readpilot-drafts-head" }, t("noteDrafts")),
         state.drafts.map((draft) => {
           const lines = diffLines(draft.baseBody, draft.body);
           const added = lines.filter((line) => line.type === "add").length;
           const removed = lines.filter((line) => line.type === "del").length;
           return h(
             "div",
-            { key: draft.id, className: "dsh-reader-draft" },
+            { key: draft.id, className: "dsh-readpilot-draft" },
             h(
               "div",
-              { className: "dsh-reader-draft-head" },
+              { className: "dsh-readpilot-draft-head" },
               h(
                 "span",
-                { className: "dsh-reader-long-kind" },
+                { className: "dsh-readpilot-long-kind" },
                 draft.action === "create" ? t("draftCreate") : draft.action === "append" ? t("draftAppend") : t("draftEdit")
               ),
-              h("span", { className: "dsh-reader-long-title" }, draft.title),
-              h("span", { className: "dsh-reader-long-meta" }, `+${added} −${removed}`)
+              h("span", { className: "dsh-readpilot-long-title" }, draft.title),
+              h("span", { className: "dsh-readpilot-long-meta" }, `+${added} −${removed}`)
             ),
             h(
               "pre",
-              { className: "dsh-reader-diff" },
+              { className: "dsh-readpilot-diff" },
               lines.slice(0, 80).map((line, index) => h("div", {
                 key: `${draft.id}-${index}`,
-                className: `dsh-reader-diff-line dsh-reader-diff-${line.type}`
+                className: `dsh-readpilot-diff-line dsh-readpilot-diff-${line.type}`
               }, `${line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}${line.text}`))
             ),
-            lines.length > 80 ? h("div", { className: "dsh-reader-long-hint" }, t("draftDiffTruncated")) : null,
+            lines.length > 80 ? h("div", { className: "dsh-readpilot-long-hint" }, t("draftDiffTruncated")) : null,
             h(
               "div",
-              { className: "dsh-reader-long-editor-actions" },
+              { className: "dsh-readpilot-long-editor-actions" },
               h("button", {
                 type: "button",
-                className: "dsh-reader-chat-send",
+                className: "dsh-readpilot-chat-send",
                 disabled: state.draftBusyId === draft.id,
                 onClick: () => void state.applyDraft(draft)
               }, t("applyDraft")),
               h("button", {
                 type: "button",
-                className: "dsh-reader-note-jump",
+                className: "dsh-readpilot-note-jump",
                 disabled: state.draftBusyId === draft.id,
                 onClick: () => void state.rejectDraft(draft)
               }, t("rejectDraft"))
@@ -2013,28 +2013,28 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       ) : null,
       h(
         "div",
-        { className: "dsh-reader-long-notes-actions" },
+        { className: "dsh-readpilot-long-notes-actions" },
         h("button", {
           type: "button",
-          className: "dsh-reader-note-jump",
+          className: "dsh-readpilot-note-jump",
           disabled: state.exporting,
           onClick: () => void state.exportNotes(false)
         }, t("exportNotes")),
         h("button", {
           type: "button",
-          className: "dsh-reader-note-jump",
+          className: "dsh-readpilot-note-jump",
           disabled: state.exporting,
           onClick: () => void state.exportNotes(true)
         }, t("exportSave")),
-        state.exportStatus ? h("span", { className: "dsh-reader-long-hint" }, state.exportStatus) : null
+        state.exportStatus ? h("span", { className: "dsh-readpilot-long-hint" }, state.exportStatus) : null
       ),
-      state.error ? h("div", { className: "dsh-reader-chat-error" }, state.error) : null,
+      state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
       editing ? h(
         "div",
-        { className: "dsh-reader-long-editor" },
+        { className: "dsh-readpilot-long-editor" },
         h(
           "div",
-          { className: "dsh-reader-long-editor-head" },
+          { className: "dsh-readpilot-long-editor-head" },
           h("input", {
             value: state.title,
             placeholder: t("longNoteTitle"),
@@ -2043,7 +2043,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           }),
           h(
             "span",
-            { className: "dsh-reader-long-kind" },
+            { className: "dsh-readpilot-long-kind" },
             kind === "book" ? t("bookNote") : t("noteKindTopic")
           )
         ),
@@ -2062,43 +2062,43 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         }),
         state.conflict ? h(
           "div",
-          { className: "dsh-reader-long-conflict" },
+          { className: "dsh-readpilot-long-conflict" },
           h("span", null, t("longNoteConflict")),
           h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             onClick: () => void state.reload()
           }, t("reload"))
         ) : null,
         h(
           "div",
-          { className: "dsh-reader-long-editor-actions" },
+          { className: "dsh-readpilot-long-editor-actions" },
           h("button", {
             type: "button",
-            className: "dsh-reader-chat-send",
+            className: "dsh-readpilot-chat-send",
             disabled: state.saving || !state.draft.trim(),
             onClick: () => void state.save()
           }, state.saving ? t("noteSaving") : t("save")),
           h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             onClick: state.cancel
           }, t("cancel")),
           state.active ? h("button", {
             type: "button",
-            className: "dsh-reader-note-delete",
+            className: "dsh-readpilot-note-delete",
             disabled: state.saving,
             onClick: () => void state.remove()
           }, t("delete")) : null,
           state.active ? h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             disabled: state.historyBusy,
             onClick: state.toggleHistory
           }, t("history")) : null,
           state.active ? h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             disabled: state.externalBusy,
             title: t("openExternalHint"),
             onClick: () => void state.openExternal()
@@ -2106,61 +2106,61 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ),
         state.active && state.historyOpen ? h(
           "div",
-          { className: "dsh-reader-history" },
-          h("div", { className: "dsh-reader-drafts-head" }, t("history")),
-          state.history.length === 0 ? h("div", { className: "dsh-reader-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
+          { className: "dsh-readpilot-history" },
+          h("div", { className: "dsh-readpilot-drafts-head" }, t("history")),
+          state.history.length === 0 ? h("div", { className: "dsh-readpilot-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
             "div",
-            { key: entry.id, className: "dsh-reader-history-row" },
-            h("span", { className: "dsh-reader-long-meta" }, new Date(entry.createdAt).toLocaleString()),
+            { key: entry.id, className: "dsh-readpilot-history-row" },
+            h("span", { className: "dsh-readpilot-long-meta" }, new Date(entry.createdAt).toLocaleString()),
             h(
               "span",
-              { className: "dsh-reader-long-meta" },
+              { className: "dsh-readpilot-long-meta" },
               `${entry.characters} ${t("noteContextChars")}`
             ),
             h("button", {
               type: "button",
-              className: "dsh-reader-note-jump",
+              className: "dsh-readpilot-note-jump",
               disabled: state.historyBusy,
               onClick: () => void state.restoreHistory(entry)
             }, t("historyRestore"))
           )),
           h("button", {
             type: "button",
-            className: "dsh-reader-note-jump",
+            className: "dsh-readpilot-note-jump",
             onClick: state.toggleHistory
           }, t("historyClose"))
         ) : null,
         h(
           "details",
-          { className: "dsh-reader-long-preview" },
+          { className: "dsh-readpilot-long-preview" },
           h("summary", null, t("longNotePreview")),
           h(MarkdownMessage, { text: state.draft, prefix: "long-note" })
         )
-      ) : state.loading ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : state.notes.length === 0 ? h(
+      ) : state.loading ? h("div", { className: "dsh-readpilot-chat-empty" }, t("loading")) : state.notes.length === 0 ? h(
         "div",
-        { className: "dsh-reader-chat-empty" },
+        { className: "dsh-readpilot-chat-empty" },
         h("div", null, t("longNoteEmpty")),
-        h("div", { className: "dsh-reader-long-hint" }, t("longNotesHint"))
+        h("div", { className: "dsh-readpilot-long-hint" }, t("longNotesHint"))
       ) : h(
         "div",
-        { className: "dsh-reader-long-list" },
+        { className: "dsh-readpilot-long-list" },
         state.notes.map((note) => h(
           "button",
           {
             key: note.id,
             type: "button",
-            className: "dsh-reader-long-note",
+            className: "dsh-readpilot-long-note",
             onClick: () => void state.open(note)
           },
           h(
             "span",
-            { className: "dsh-reader-long-kind" },
+            { className: "dsh-readpilot-long-kind" },
             note.kind === "book" ? t("bookNote") : t("noteKindTopic")
           ),
-          h("span", { className: "dsh-reader-long-title" }, note.title),
+          h("span", { className: "dsh-readpilot-long-title" }, note.title),
           h(
             "span",
-            { className: "dsh-reader-long-meta" },
+            { className: "dsh-readpilot-long-meta" },
             `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`
           )
         ))
@@ -2187,14 +2187,14 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   function cardEditor(t, scope, text, setText, history, props) {
     return h(
       "div",
-      { className: "dsh-reader-memory-card" },
+      { className: "dsh-readpilot-memory-card" },
       h(
         "div",
-        { className: "dsh-reader-memory-card-head" },
+        { className: "dsh-readpilot-memory-card-head" },
         h("span", null, scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")),
         h(
           "span",
-          { className: "dsh-reader-long-meta" },
+          { className: "dsh-readpilot-long-meta" },
           `${text.length} ${t("noteContextChars")} · ${t("memoryHistoryCount")} ${history.length}`
         )
       ),
@@ -2206,33 +2206,33 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }),
       h(
         "div",
-        { className: "dsh-reader-long-editor-actions" },
+        { className: "dsh-readpilot-long-editor-actions" },
         h("button", {
           type: "button",
-          className: "dsh-reader-chat-send",
+          className: "dsh-readpilot-chat-send",
           disabled: props.busy,
           onClick: () => props.onSave(scope, text)
         }, t("save")),
         h("button", {
           type: "button",
-          className: "dsh-reader-note-jump",
+          className: "dsh-readpilot-note-jump",
           disabled: props.busy || history.length === 0,
           onClick: () => props.onUndo(scope)
         }, t("memoryUndo")),
         h("button", {
           type: "button",
-          className: "dsh-reader-note-delete",
+          className: "dsh-readpilot-note-delete",
           disabled: props.busy || !text.trim(),
           onClick: () => props.onClear(scope)
         }, t("clear"))
       ),
       history.length > 0 ? h(
         "details",
-        { className: "dsh-reader-memory-history" },
+        { className: "dsh-readpilot-memory-history" },
         h("summary", null, `${t("history")} · ${history.length}`),
         history.slice(0, 10).map((entry) => h(
           "div",
-          { key: entry.id, className: "dsh-reader-long-hint" },
+          { key: entry.id, className: "dsh-readpilot-long-hint" },
           `${new Date(entry.createdAt).toLocaleString()} · ${entry.characters} ${t("noteContextChars")}`
         ))
       ) : null
@@ -2249,41 +2249,41 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     if (!status && props.loading) {
       return h(
         "section",
-        { className: "dsh-reader-memory" },
-        h("div", { className: "dsh-reader-chat-empty" }, t("loading"))
+        { className: "dsh-readpilot-memory" },
+        h("div", { className: "dsh-readpilot-chat-empty" }, t("loading"))
       );
     }
     if (!status) {
       return h(
         "section",
-        { className: "dsh-reader-memory" },
-        props.error ? h("div", { className: "dsh-reader-chat-error" }, props.error) : null,
-        h("button", { type: "button", className: "dsh-reader-note-jump", onClick: props.onRefresh }, t("memoryLoad"))
+        { className: "dsh-readpilot-memory" },
+        props.error ? h("div", { className: "dsh-readpilot-chat-error" }, props.error) : null,
+        h("button", { type: "button", className: "dsh-readpilot-note-jump", onClick: props.onRefresh }, t("memoryLoad"))
       );
     }
     return h(
       "section",
-      { className: "dsh-reader-memory" },
+      { className: "dsh-readpilot-memory" },
       h(
         "div",
-        { className: "dsh-reader-memory-head" },
+        { className: "dsh-readpilot-memory-head" },
         h("h4", null, t("memory")),
         h("button", {
           type: "button",
-          className: "dsh-reader-note-jump",
+          className: "dsh-readpilot-note-jump",
           disabled: props.busy,
           onClick: props.onRefresh
         }, t("refresh"))
       ),
-      props.error ? h("div", { className: "dsh-reader-chat-error" }, props.error) : null,
+      props.error ? h("div", { className: "dsh-readpilot-chat-error" }, props.error) : null,
       h(
         "div",
-        { className: "dsh-reader-memory-modes" },
-        h("span", { className: "dsh-reader-long-meta" }, t("memoryDefaultMode")),
+        { className: "dsh-readpilot-memory-modes" },
+        h("span", { className: "dsh-readpilot-long-meta" }, t("memoryDefaultMode")),
         ["off", "ask", "on"].map((mode) => h("button", {
           key: mode,
           type: "button",
-          className: "dsh-reader-chat-tab",
+          className: "dsh-readpilot-chat-tab",
           "data-active": status.mode === mode ? "true" : "false",
           disabled: props.busy,
           onClick: () => props.onMode(mode)
@@ -2291,53 +2291,53 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       ),
       h(
         "div",
-        { className: "dsh-reader-memory-modes" },
-        h("span", { className: "dsh-reader-long-meta" }, t("memoryThisBook")),
+        { className: "dsh-readpilot-memory-modes" },
+        h("span", { className: "dsh-readpilot-long-meta" }, t("memoryThisBook")),
         ["inherit", "on", "off"].map((state) => h("button", {
           key: state,
           type: "button",
-          className: "dsh-reader-chat-tab",
+          className: "dsh-readpilot-chat-tab",
           "data-active": status.book === state ? "true" : "false",
           disabled: props.busy,
           onClick: () => props.onBookState(state)
         }, bookStateLabel(t, state))),
-        h("span", { className: "dsh-reader-long-meta" }, `${t("memoryEffective")} ${effectiveLabel(t, status.effective)}`)
+        h("span", { className: "dsh-readpilot-long-meta" }, `${t("memoryEffective")} ${effectiveLabel(t, status.effective)}`)
       ),
       status.proposals.length > 0 ? h(
         "div",
-        { className: "dsh-reader-memory-proposals" },
-        h("div", { className: "dsh-reader-drafts-head" }, t("memoryProposals")),
+        { className: "dsh-readpilot-memory-proposals" },
+        h("div", { className: "dsh-readpilot-drafts-head" }, t("memoryProposals")),
         status.proposals.map((proposal) => h(
           "div",
-          { key: proposal.id, className: "dsh-reader-draft" },
+          { key: proposal.id, className: "dsh-readpilot-draft" },
           h(
             "div",
-            { className: "dsh-reader-draft-head" },
+            { className: "dsh-readpilot-draft-head" },
             h(
               "span",
-              { className: "dsh-reader-long-kind" },
+              { className: "dsh-readpilot-long-kind" },
               proposal.scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")
             ),
             h(
               "span",
-              { className: "dsh-reader-long-title" },
+              { className: "dsh-readpilot-long-title" },
               proposal.mode === "append" ? t("memoryAppend") : t("memoryReplace")
             ),
-            h("span", { className: "dsh-reader-long-meta" }, new Date(proposal.createdAt).toLocaleTimeString())
+            h("span", { className: "dsh-readpilot-long-meta" }, new Date(proposal.createdAt).toLocaleTimeString())
           ),
-          h("pre", { className: "dsh-reader-diff" }, proposal.preview.slice(0, 1200)),
+          h("pre", { className: "dsh-readpilot-diff" }, proposal.preview.slice(0, 1200)),
           h(
             "div",
-            { className: "dsh-reader-long-editor-actions" },
+            { className: "dsh-readpilot-long-editor-actions" },
             h("button", {
               type: "button",
-              className: "dsh-reader-chat-send",
+              className: "dsh-readpilot-chat-send",
               disabled: props.busy,
               onClick: () => props.onApprove(proposal.id)
             }, t("memoryApprove")),
             h("button", {
               type: "button",
-              className: "dsh-reader-note-jump",
+              className: "dsh-readpilot-note-jump",
               disabled: props.busy,
               onClick: () => props.onReject(proposal.id)
             }, t("memoryReject"))
@@ -2346,7 +2346,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       ) : null,
       cardEditor(t, "book", bookDraft, setBookDraft, status.bookHistory, props),
       cardEditor(t, "reader", readerDraft, setReaderDraft, status.readerHistory, props),
-      h("div", { className: "dsh-reader-long-hint" }, t("memoryHint"))
+      h("div", { className: "dsh-readpilot-long-hint" }, t("memoryHint"))
     );
   }
 
@@ -2428,7 +2428,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       offset += item.text.length;
       return h("span", {
         key: `pdf-text-${index}`,
-        className: "dsh-reader-pdf-text-item",
+        className: "dsh-readpilot-pdf-text-item",
         "data-offset": start,
         style: {
           left: item.left,
@@ -2562,28 +2562,28 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       return h(
         "div",
         {
-          className: "dsh-reader-visual",
+          className: "dsh-readpilot-visual",
           "data-paged": "true",
           "data-layout": layout,
           ref: containerRef
         },
-        visualLoading ? h("div", { className: "dsh-reader-muted" }, t("loading")) : visualError ? h(
+        visualLoading ? h("div", { className: "dsh-readpilot-muted" }, t("loading")) : visualError ? h(
           "div",
-          { className: "dsh-reader-visual-error" },
+          { className: "dsh-readpilot-visual-error" },
           h("div", null, visualError),
           h(
             "div",
-            { className: "dsh-reader-reader-inner" },
+            { className: "dsh-readpilot-reader-inner" },
             renderBlocks(screen.content.blocks, screen.content.chapterId)
           )
         ) : pageViews.length > 0 ? h(
           "div",
-          { className: "dsh-reader-pdf-spread", ref: spreadRef },
+          { className: "dsh-readpilot-pdf-spread", ref: spreadRef },
           pageViews.map((view, index) => h(
             "div",
             {
               key: `pdf-page-${visual.page + index}`,
-              className: "dsh-reader-pdf-slot",
+              className: "dsh-readpilot-pdf-slot",
               style: {
                 width: view.width * pdfFit,
                 height: view.height * pdfFit,
@@ -2594,7 +2594,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             h(
               "div",
               {
-                className: "dsh-reader-pdf-page",
+                className: "dsh-readpilot-pdf-page",
                 "data-page": visual.page + index,
                 style: {
                   width: view.width,
@@ -2604,16 +2604,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
                 }
               },
               h("img", {
-                src: `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
+                src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
                 alt: screen.content.title,
                 draggable: false
               }),
               h("div", {
-                className: "dsh-reader-pdf-text",
+                className: "dsh-readpilot-pdf-text",
                 onMouseUp: index === 0 ? onPdfMouseUp : void 0
               }, renderPdfTextItems(view)),
               h("div", {
-                className: "dsh-reader-note-layer",
+                className: "dsh-readpilot-note-layer",
                 ref: index === 0 ? noteLayerRef : void 0
               })
             )
@@ -2624,18 +2624,18 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-reader-visual",
+        className: "dsh-readpilot-visual",
         "data-paged": readingMode === "paged" ? "true" : "false",
         "data-layout": layout,
         ref: containerRef
       },
       h("iframe", {
         ref: epubFrameRef,
-        className: "dsh-reader-epub-frame",
+        className: "dsh-readpilot-epub-frame",
         "data-paged": readingMode === "paged" ? "true" : "false",
         sandbox: "allow-same-origin",
         title: screen.content.title,
-        src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+        src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
         onLoad: onEpubLoad,
         style: epubWidth === null ? void 0 : { width: epubWidth, maxWidth: "100%", margin: "0 auto" }
       })
@@ -2668,10 +2668,10 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     if (!chatOpen) return null;
     return h(
       "aside",
-      { className: "dsh-reader-chat" },
+      { className: "dsh-readpilot-chat" },
       h("div", {
         key: "resizer",
-        className: "dsh-reader-chat-resizer",
+        className: "dsh-readpilot-chat-resizer",
         role: "separator",
         "aria-orientation": "vertical",
         "aria-label": t("resizeChat"),
@@ -2688,14 +2688,14 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }),
       h(
         "div",
-        { className: "dsh-reader-chat-head" },
+        { className: "dsh-readpilot-chat-head" },
         h(
           "div",
-          { className: "dsh-reader-chat-tabs", role: "tablist" },
+          { className: "dsh-readpilot-chat-tabs", role: "tablist" },
           h("button", {
             type: "button",
             role: "tab",
-            className: "dsh-reader-chat-tab",
+            className: "dsh-readpilot-chat-tab",
             "data-active": chatTab === "chat" ? "true" : "false",
             "aria-selected": chatTab === "chat",
             onClick: () => setChatTab("chat")
@@ -2703,7 +2703,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h("button", {
             type: "button",
             role: "tab",
-            className: "dsh-reader-chat-tab",
+            className: "dsh-readpilot-chat-tab",
             "data-active": chatTab === "notes" ? "true" : "false",
             "aria-selected": chatTab === "notes",
             onClick: () => setChatTab("notes")
@@ -2711,7 +2711,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h("button", {
             type: "button",
             role: "tab",
-            className: "dsh-reader-chat-tab",
+            className: "dsh-readpilot-chat-tab",
             "data-active": chatTab === "long" ? "true" : "false",
             "aria-selected": chatTab === "long",
             onClick: () => setChatTab("long")
@@ -2719,7 +2719,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h("button", {
             type: "button",
             role: "tab",
-            className: "dsh-reader-chat-tab",
+            className: "dsh-readpilot-chat-tab",
             "data-active": chatTab === "memory" ? "true" : "false",
             "aria-selected": chatTab === "memory",
             onClick: () => setChatTab("memory")
@@ -2727,12 +2727,12 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ),
         h("button", {
           type: "button",
-          className: "dsh-reader-chat-close",
+          className: "dsh-readpilot-chat-close",
           onClick: () => setChatOpen(false)
         }, t("closeChat"))
       ),
-      chatTab === "notes" ? notesBody : chatTab === "long" ? longNotesBody : chatTab === "memory" ? memoryBody : nativeChat ? h("div", { className: "dsh-reader-native-chat" }, nativeChat) : chatBody,
-      chatTab === "chat" && !nativeChat && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
+      chatTab === "notes" ? notesBody : chatTab === "long" ? longNotesBody : chatTab === "memory" ? memoryBody : nativeChat ? h("div", { className: "dsh-readpilot-native-chat" }, nativeChat) : chatBody,
+      chatTab === "chat" && !nativeChat && chatError ? h("div", { className: "dsh-readpilot-chat-error" }, chatError) : null,
       chatTab === "chat" && !nativeChat ? chatCompose : null
     );
   }
@@ -2756,28 +2756,28 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }) {
     return h(
       "div",
-      { className: "dsh-reader-header" },
+      { className: "dsh-readpilot-header" },
       h(
         "div",
-        { className: "dsh-reader-header-main" },
+        { className: "dsh-readpilot-header-main" },
         screen.kind !== "library" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("back"),
           onClick: onBack
         }, "←") : null,
         h(
           "div",
           { style: { minWidth: 0 } },
-          h("div", { className: "dsh-reader-title" }, title),
-          subtitle ? h("div", { className: "dsh-reader-subtitle" }, subtitle) : null
+          h("div", { className: "dsh-readpilot-title" }, title),
+          subtitle ? h("div", { className: "dsh-readpilot-subtitle" }, subtitle) : null
         )
       ),
       h(
         "div",
-        { className: "dsh-reader-header-actions" },
+        { className: "dsh-readpilot-header-actions" },
         screen.kind === "book" ? h("select", {
-          className: "dsh-reader-palette-select",
+          className: "dsh-readpilot-palette-select",
           value: paletteId,
           title: t("palette"),
           "aria-label": t("palette"),
@@ -2789,38 +2789,38 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ))) : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("search"),
           "aria-expanded": searchOpen ? "true" : "false",
           onClick: onToggleSearch
         }, t("search")) : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("companion"),
           onClick: onToggleChat
         }, t("companion")) : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("bookmark"),
           onClick: onBookmark
         }, "🔖") : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("toc"),
           onClick: onToggleToc
         }, "☰") : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("fontSize"),
           onClick: onFontDecrease
         }, "A-") : null,
         screen.kind === "book" ? h("button", {
           type: "button",
-          className: "dsh-reader-icon-btn",
+          className: "dsh-readpilot-icon-btn",
           title: t("fontSize"),
           onClick: onFontIncrease
         }, "A+") : null
@@ -2835,17 +2835,17 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-reader-selection",
+        className: "dsh-readpilot-selection",
         style: { left: selection.x, top: Math.max(8, selection.y - 48) },
         onMouseDown: (event) => event.preventDefault()
       },
       selection.blockIndex == null ? null : h(
         "div",
-        { className: "dsh-reader-selection-colors", role: "group", "aria-label": t("highlight") },
+        { className: "dsh-readpilot-selection-colors", role: "group", "aria-label": t("highlight") },
         COLORS.map((color) => h("button", {
           key: color,
           type: "button",
-          className: "dsh-reader-color-btn",
+          className: "dsh-readpilot-color-btn",
           "data-color": color,
           title: `${t("highlight")}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
           "aria-label": `${t("highlight")}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
@@ -2879,7 +2879,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-reader-note-overlay",
+        className: "dsh-readpilot-note-overlay",
         onMouseDown: (event) => {
           if (event.target === event.currentTarget) closeNoteEditor();
         }
@@ -2887,20 +2887,20 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h(
         "div",
         {
-          className: "dsh-reader-note-dialog",
+          className: "dsh-readpilot-note-dialog",
           role: "dialog",
           "aria-modal": "true",
           "aria-label": title
         },
         h("h3", null, title),
-        h("div", { className: "dsh-reader-note-dialog-quote" }, noteEditor.quote),
+        h("div", { className: "dsh-readpilot-note-dialog-quote" }, noteEditor.quote),
         isHighlight ? h(
           "div",
-          { className: "dsh-reader-note-colors", role: "group", "aria-label": t("highlight") },
+          { className: "dsh-readpilot-note-colors", role: "group", "aria-label": t("highlight") },
           COLORS.map((color) => h("button", {
             key: color,
             type: "button",
-            className: "dsh-reader-color-btn",
+            className: "dsh-readpilot-color-btn",
             "data-color": color,
             "data-active": noteColor === color ? "true" : "false",
             title: t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
@@ -2916,13 +2916,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           disabled: noteSaving,
           onChange: (event) => setNoteDraft(event.target.value)
         }),
-        noteError ? h("div", { className: "dsh-reader-note-dialog-error" }, noteError) : null,
+        noteError ? h("div", { className: "dsh-readpilot-note-dialog-error" }, noteError) : null,
         h(
           "div",
-          { className: "dsh-reader-note-dialog-actions" },
+          { className: "dsh-readpilot-note-dialog-actions" },
           noteEditor.noteId ? h("button", {
             type: "button",
-            className: "dsh-reader-secondary",
+            className: "dsh-readpilot-secondary",
             disabled: noteSaving,
             onClick: async () => {
               await deleteNote({ id: noteEditor.noteId, bookId: activeBookId });
@@ -2931,13 +2931,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           }, t("delete")) : null,
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary",
+            className: "dsh-readpilot-secondary",
             disabled: noteSaving,
             onClick: closeNoteEditor
           }, t("cancel")),
           h("button", {
             type: "button",
-            className: "dsh-reader-primary",
+            className: "dsh-readpilot-primary",
             disabled: noteSaving || !isHighlight && !noteDraft.trim(),
             onClick: () => void saveNote()
           }, noteSaving ? t("noteSaving") : t("save"))
@@ -2963,12 +2963,12 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         return { error };
       }
       componentDidCatch(error, info) {
-        console.error("dsh-reader: render failed", error, info);
+        console.error("dsh-readpilot: render failed", error, info);
       }
       render() {
         if (this.state.error) {
           return h("div", {
-            className: "dsh-reader-error",
+            className: "dsh-readpilot-error",
             style: { padding: 20, whiteSpace: "pre-wrap", fontFamily: "monospace" }
           }, `阅读器渲染失败
 ${String(this.state.error?.stack ?? this.state.error)}`);
@@ -3011,17 +3011,17 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     return h(
       "div",
       {
-        className: "dsh-reader-bar",
+        className: "dsh-readpilot-bar",
         "data-mode": mode,
         "data-format": format,
         "data-layout": layout
       },
       h(
         "div",
-        { className: "dsh-reader-bar-group dsh-reader-bar-nav" },
+        { className: "dsh-readpilot-bar-group dsh-readpilot-bar-nav" },
         h("button", {
           type: "button",
-          className: "dsh-reader-secondary dsh-reader-bar-btn",
+          className: "dsh-readpilot-secondary dsh-readpilot-bar-btn",
           title: prevLabel,
           "aria-label": prevLabel,
           disabled: !canPrev,
@@ -3029,22 +3029,22 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }, "‹"),
         h("button", {
           type: "button",
-          className: "dsh-reader-secondary dsh-reader-bar-btn",
+          className: "dsh-readpilot-secondary dsh-readpilot-bar-btn",
           title: nextLabel,
           "aria-label": nextLabel,
           disabled: !canNext,
           onClick: onNext
         }, "›")
       ),
-      h("div", { className: "dsh-reader-bar-title", title: chapterTitle }, chapterTitle),
+      h("div", { className: "dsh-readpilot-bar-title", title: chapterTitle }, chapterTitle),
       h(
         "div",
-        { className: "dsh-reader-bar-group dsh-reader-bar-controls" },
+        { className: "dsh-readpilot-bar-group dsh-readpilot-bar-controls" },
         numericPage ? h(
           "div",
-          { className: "dsh-reader-bar-group dsh-reader-bar-page" },
+          { className: "dsh-readpilot-bar-group dsh-readpilot-bar-page" },
           h("input", {
-            className: "dsh-reader-page-input",
+            className: "dsh-readpilot-page-input",
             type: "number",
             min: 1,
             max: Math.max(1, pageTotal),
@@ -3058,24 +3058,24 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
               if (Number.isFinite(page)) onPageCommit?.(page);
             }
           }),
-          h("span", { className: "dsh-reader-bar-position" }, `/ ${pageTotal}`)
+          h("span", { className: "dsh-readpilot-bar-position" }, `/ ${pageTotal}`)
         ) : h("span", {
-          className: "dsh-reader-bar-position",
+          className: "dsh-readpilot-bar-position",
           title: t(paged ? "page" : "chapter")
         }, pagePosition),
         onToggleMode ? h("button", {
           type: "button",
-          className: "dsh-reader-secondary dsh-reader-bar-toggle",
+          className: "dsh-readpilot-secondary dsh-readpilot-bar-toggle",
           title: modeLabel2,
           "aria-label": modeLabel2,
           onClick: onToggleMode
         }, modeLabel2) : null,
         paged && onLayoutChange ? h(
           "div",
-          { className: "dsh-reader-bar-group dsh-reader-bar-layout" },
+          { className: "dsh-readpilot-bar-group dsh-readpilot-bar-layout" },
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary dsh-reader-bar-toggle",
+            className: "dsh-readpilot-secondary dsh-readpilot-bar-toggle",
             title: t("singlePage"),
             "aria-label": t("singlePage"),
             "aria-pressed": layout === "single" ? "true" : "false",
@@ -3084,7 +3084,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           }, t("singlePage")),
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary dsh-reader-bar-toggle",
+            className: "dsh-readpilot-secondary dsh-readpilot-bar-toggle",
             title: t("doublePage"),
             "aria-label": t("doublePage"),
             "aria-pressed": layout === "double" ? "true" : "false",
@@ -3094,18 +3094,18 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         ) : null,
         zoom !== void 0 && onZoom ? h(
           "div",
-          { className: "dsh-reader-bar-group dsh-reader-bar-zoom" },
+          { className: "dsh-readpilot-bar-group dsh-readpilot-bar-zoom" },
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary dsh-reader-bar-btn",
+            className: "dsh-readpilot-secondary dsh-readpilot-bar-btn",
             title: t("zoomOut"),
             "aria-label": t("zoomOut"),
             onClick: () => onZoom(-0.25)
           }, "−"),
-          h("span", { className: "dsh-reader-bar-position" }, `${Math.round(zoom * 100)}%`),
+          h("span", { className: "dsh-readpilot-bar-position" }, `${Math.round(zoom * 100)}%`),
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary dsh-reader-bar-btn",
+            className: "dsh-readpilot-secondary dsh-readpilot-bar-btn",
             title: t("zoomIn"),
             "aria-label": t("zoomIn"),
             onClick: () => onZoom(0.25)
@@ -3241,7 +3241,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }
         if (!sessionId) {
           sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId);
-          runtime.layout.selectPanel("dsh-reader");
+          runtime.layout.selectPanel("dsh-readpilot");
         }
         const session = sessionId;
         await call("session", { bookId: book.id, sessionId: session });
@@ -3374,34 +3374,34 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   }) {
     return h(
       "div",
-      { className: "dsh-reader-chat-body", ref: chatBodyRef },
+      { className: "dsh-readpilot-chat-body", ref: chatBodyRef },
       hasMore ? h("button", {
         type: "button",
-        className: "dsh-reader-chat-more",
+        className: "dsh-readpilot-chat-more",
         disabled: loadingEarlier,
         onClick: () => void loadEarlier()
       }, loadingEarlier ? t("loading") : t("loadEarlier")) : null,
       messages.length === 0 ? h(
         "div",
-        { className: "dsh-reader-chat-empty" },
+        { className: "dsh-readpilot-chat-empty" },
         workspaceId ? t("chatEmpty") : t("chatDisabled")
       ) : messages.map((message) => h(
         "div",
         {
           key: message.key,
-          className: "dsh-reader-msg",
+          className: "dsh-readpilot-msg",
           "data-role": message.role
         },
         h(
           "div",
-          { className: "dsh-reader-msg-role" },
+          { className: "dsh-readpilot-msg-role" },
           message.role === "user" ? t("you") : t("assistant")
         ),
-        message.role === "assistant" ? h(MarkdownMessage, { text: message.text, prefix: message.key }) : h("div", { className: "dsh-reader-msg-text" }, message.text)
+        message.role === "assistant" ? h(MarkdownMessage, { text: message.text, prefix: message.key }) : h("div", { className: "dsh-readpilot-msg-text" }, message.text)
       )),
       sending || running ? h(
         "div",
-        { className: "dsh-reader-chat-thinking" },
+        { className: "dsh-readpilot-chat-thinking" },
         sending ? t("sending") : t("thinking")
       ) : null
     );
@@ -3417,7 +3417,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   }) {
     return h(
       "div",
-      { className: "dsh-reader-chat-compose" },
+      { className: "dsh-readpilot-chat-compose" },
       h("textarea", {
         ref: chatInputRef,
         value: draft,
@@ -3434,11 +3434,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }),
       h(
         "div",
-        { className: "dsh-reader-chat-compose-row" },
-        h("span", { className: "dsh-reader-chat-hint" }, workspaceId ? "Enter / Shift+Enter" : ""),
+        { className: "dsh-readpilot-chat-compose-row" },
+        h("span", { className: "dsh-readpilot-chat-hint" }, workspaceId ? "Enter / Shift+Enter" : ""),
         h("button", {
           type: "button",
-          className: "dsh-reader-chat-send",
+          className: "dsh-readpilot-chat-send",
           disabled: !draft.trim() || sending || !workspaceId,
           onClick: () => void send()
         }, sending ? t("sending") : t("send"))
@@ -3463,7 +3463,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         return { failed: true };
       }
       componentDidCatch(error, info) {
-        console.error("dsh-reader: native companion failed", error, info);
+        console.error("dsh-readpilot: native companion failed", error, info);
       }
       render() {
         if (this.state.failed) return this.props.fallback ?? null;
@@ -3874,7 +3874,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     React.useEffect(() => {
       const layer = noteLayerRef.current;
       if (!layer) return;
-      const root = visual?.kind === "pdf" ? layer.parentElement : contentRef.current?.querySelector(".dsh-reader-reader-inner");
+      const root = visual?.kind === "pdf" ? layer.parentElement : contentRef.current?.querySelector(".dsh-readpilot-reader-inner");
       const currentChapter = activeChapterId;
       const relevant = screen.kind === "book" ? notes.filter((note) => note.chapterId === currentChapter && typeof note.quote === "string" && note.quote) : [];
       layer.textContent = "";
@@ -3902,7 +3902,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           for (const rect of rects) {
             if (!rect.width || !rect.height) continue;
             const hit = document.createElement("div");
-            hit.className = note.kind === "highlight" ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-hit";
+            hit.className = note.kind === "highlight" ? `dsh-readpilot-note-hit dsh-readpilot-highlight-${note.color ?? "yellow"}` : "dsh-readpilot-note-hit";
             hit.dataset.noteId = note.id;
             hit.style.left = `${isPdf ? rect.left : rect.left - layerRect.left}px`;
             hit.style.top = `${isPdf ? rect.top : rect.top - layerRect.top}px`;
@@ -3917,7 +3917,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       };
       const onClick = (event) => {
         const target = event.target;
-        const hit = target?.closest?.(".dsh-reader-note-hit");
+        const hit = target?.closest?.(".dsh-readpilot-note-hit");
         if (!hit) return;
         const note = notes.find((entry) => entry.id === hit.dataset.noteId);
         if (note) openNoteEditor(note);
@@ -4643,7 +4643,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   }
 
   // src/client/hooks/use-visual.ts
-  var EPUB_PAGING_STYLE_ID = "dsh-reader-paging";
+  var EPUB_PAGING_STYLE_ID = "dsh-readpilot-paging";
   var EPUB_WHEEL_THRESHOLD = 40;
   function applyEpubPagingStyle(doc, layout) {
     let style = doc.getElementById(EPUB_PAGING_STYLE_ID);
@@ -5047,8 +5047,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const NativeChatBoundary = createNativeChatBoundary();
     const NS = "dshReader";
     const style = document.createElement("style");
-    style.dataset.plugin = "dsh-reader";
-    style.dataset.pluginCss = "dsh-reader/reader.css";
+    style.dataset.plugin = "dsh-readpilot";
+    style.dataset.pluginCss = "dsh-readpilot/reader.css";
     style.textContent = CSS;
     document.head.appendChild(style);
     let runtime;
@@ -5057,7 +5057,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       if (!runtime || !runtime.connection) throw new Error("连接服务不可用");
       let response;
       try {
-        response = await fetch("/api/dsh-reader", {
+        response = await fetch("/api/dsh-readpilot", {
           method: "POST",
           credentials: "same-origin",
           headers: { "content-type": "application/json" },
@@ -5359,8 +5359,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (!target) return;
         target.scrollIntoView({ block: "center", behavior: "smooth" });
         if (pending.flash) {
-          target.classList.add("dsh-reader-flash");
-          window.setTimeout(() => target.classList.remove("dsh-reader-flash"), 1500);
+          target.classList.add("dsh-readpilot-flash");
+          window.setTimeout(() => target.classList.remove("dsh-readpilot-flash"), 1500);
         }
       }, []);
       React.useEffect(() => {
@@ -5417,7 +5417,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (!selection) return;
         const dismiss = (event) => {
           const target = event.target;
-          if (target && typeof target.closest === "function" && target.closest(".dsh-reader-selection")) return;
+          if (target && typeof target.closest === "function" && target.closest(".dsh-readpilot-selection")) return;
           setSelection(null);
         };
         const frameDoc = epubFrameRef.current?.contentDocument ?? null;
@@ -5543,9 +5543,9 @@ ${question}`;
       });
       const fallbackChat = h(
         "div",
-        { className: "dsh-reader-chat-fallback" },
+        { className: "dsh-readpilot-chat-fallback" },
         chatBody,
-        chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
+        chatError ? h("div", { className: "dsh-readpilot-chat-error" }, chatError) : null,
         chatCompose
       );
       const companionReference = chatBinding?.reference;
@@ -5555,7 +5555,7 @@ ${question}`;
         h(
           props.SessionProvider,
           { session: companionReference },
-          props.renderSlot("dsh-reader.companion", { onReady: handleNativeReady, fallback: fallbackChat })
+          props.renderSlot("dsh-readpilot.companion", { onReady: handleNativeReady, fallback: fallbackChat })
         )
       ) : null;
       const notesBody = h(NotesBody, {
@@ -5708,7 +5708,7 @@ ${question}`;
       const textReader = screen.kind === "book" ? effectiveMode === "paged" ? h(
         "div",
         {
-          className: "dsh-reader-reader",
+          className: "dsh-readpilot-reader",
           "data-paged": "true",
           ref: contentRef,
           style: { fontSize },
@@ -5716,42 +5716,42 @@ ${question}`;
         },
         h(
           "div",
-          { className: "dsh-reader-page-frame", ref: textPager.frameRef, style: pageFrameStyle },
+          { className: "dsh-readpilot-page-frame", ref: textPager.frameRef, style: pageFrameStyle },
           h(
             "div",
             {
-              className: "dsh-reader-reader-inner dsh-reader-paged-inner",
+              className: "dsh-readpilot-reader-inner dsh-readpilot-paged-inner",
               ref: textPager.innerRef,
               style: textPager.innerStyle
             },
-            h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
+            h("h1", { className: "dsh-readpilot-chapter-title" }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),
-            h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
+            h("div", { className: "dsh-readpilot-note-layer", ref: noteLayerRef })
           )
         )
       ) : h(
         "div",
         {
-          className: "dsh-reader-reader",
+          className: "dsh-readpilot-reader",
           ref: contentRef,
           style: { fontSize },
           onMouseUp: onContentMouseUp
         },
         h(
           "div",
-          { className: "dsh-reader-reader-inner", style: textColumnStyle },
-          h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
+          { className: "dsh-readpilot-reader-inner", style: textColumnStyle },
+          h("h1", { className: "dsh-readpilot-chapter-title" }, screen.content.title),
           renderBlocks(screen.content.blocks, screen.content.chapterId),
-          h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
+          h("div", { className: "dsh-readpilot-note-layer", ref: noteLayerRef })
         )
       ) : null;
       const bookView = screen.kind === "book" ? h(
         "div",
         {
-          className: "dsh-reader-book",
+          className: "dsh-readpilot-book",
           "data-toc": tocOpen ? "true" : "false",
           "data-chat": chatOpen ? "true" : "false",
-          style: { "--dsh-reader-chat-width": `${chatWidth}px` }
+          style: { "--dsh-readpilot-chat-width": `${chatWidth}px` }
         },
         tocOpen ? h(Toc, {
           t,
@@ -5761,13 +5761,13 @@ ${question}`;
         }) : null,
         h(
           "div",
-          { className: "dsh-reader-main" },
+          { className: "dsh-readpilot-main" },
           readerBar,
           visualReader ?? textReader
         ),
         chatOpen ? h("button", {
           type: "button",
-          className: "dsh-reader-chat-backdrop",
+          className: "dsh-readpilot-chat-backdrop",
           "aria-label": t("closeChat"),
           onClick: () => setChatOpen(false)
         }) : null,
@@ -5776,7 +5776,7 @@ ${question}`;
       return h(
         "div",
         {
-          className: "dsh-reader-panel",
+          className: "dsh-readpilot-panel",
           style: {
             "--reader-bg": palette.bg,
             "--reader-fg": palette.fg,
@@ -5802,9 +5802,9 @@ ${question}`;
           onFontDecrease: () => setFontSize((previous) => Math.max(14, previous - 1)),
           onFontIncrease: () => setFontSize((previous) => Math.min(24, previous + 1))
         }),
-        error ? h("div", { className: "dsh-reader-error" }, error) : null,
+        error ? h("div", { className: "dsh-readpilot-error" }, error) : null,
         searchPanel,
-        !snapshot ? h("div", { className: "dsh-reader-muted" }, busy ? t("loading") : t("loadFailed")) : screen.kind === "setup" || !snapshot.settings.libraryDir ? h(Setup, {
+        !snapshot ? h("div", { className: "dsh-readpilot-muted" }, busy ? t("loading") : t("loadFailed")) : screen.kind === "setup" || !snapshot.settings.libraryDir ? h(Setup, {
           t,
           initialPath: snapshot.settings.libraryDir ?? "",
           busy,
@@ -5821,12 +5821,12 @@ ${question}`;
           onSetTags: setBookTags
         }) : screen.kind === "unsupported" ? h(
           "div",
-          { className: "dsh-reader-empty" },
+          { className: "dsh-readpilot-empty" },
           h("h2", null, screen.book.title),
           h("p", null, t("unsupportedHint")),
           h("button", {
             type: "button",
-            className: "dsh-reader-secondary",
+            className: "dsh-readpilot-secondary",
             onClick: backToLibrary
           }, t("back"))
         ) : bookView,
@@ -5858,7 +5858,7 @@ ${question}`;
       return h(ReaderErrorBoundary, null, h(ReaderPanel, props));
     }
     return {
-      name: "dsh-reader-client",
+      name: "dsh-readpilot-client",
       inject: ["slots", "layout", "locale", "connection", "sessions", "uiWorkspace"],
       foldTranscript,
       clampChatWidth,
@@ -5872,34 +5872,34 @@ ${question}`;
       apply(ctx) {
         runtime = ctx;
         boundText = ctx.locale.bind(NS);
-        ctx.effect(() => ctx.locale.register(NS, { zh, en }), "dsh-reader: dictionaries");
+        ctx.effect(() => ctx.locale.register(NS, { zh, en }), "dsh-readpilot: dictionaries");
         ctx.effect(
           () => ctx.slots.inject("sidebar.panellist", () => ctx.slots.register({
             name: "sidebar.panellist",
-            id: "dsh-reader",
+            id: "dsh-readpilot",
             order: 20,
             label: () => boundText("panel"),
             locale: NS
           }, PanelIcon)),
-          "dsh-reader: sidebar entry"
+          "dsh-readpilot: sidebar entry"
         );
         ctx.effect(
           () => ctx.slots.inject("main", () => ctx.slots.register({
             name: "main",
-            key: "dsh-reader",
+            key: "dsh-readpilot",
             locale: NS,
             children: {
-              "dsh-reader.companion": { kind: "single", scope: "session" }
+              "dsh-readpilot.companion": { kind: "single", scope: "session" }
             }
           }, ReaderPanelWithBoundary)),
-          "dsh-reader: main panel"
+          "dsh-readpilot: main panel"
         );
         ctx.effect(
-          () => ctx.slots.inject("dsh-reader.companion", () => ctx.slots.register({
-            name: "dsh-reader.companion",
+          () => ctx.slots.inject("dsh-readpilot.companion", () => ctx.slots.register({
+            name: "dsh-readpilot.companion",
             locale: NS
           }, NativeCompanion)),
-          "dsh-reader: native companion"
+          "dsh-readpilot: native companion"
         );
       }
     };
@@ -5912,5 +5912,5 @@ ${question}`;
   return __toCommonJS(index_exports);
 })();
 /* Generated by scripts/build-client.ts; source in src/client/. */
-window.__ModuleLoader__.load({ id: 'dsh-reader', factory(require) { return __dshReaderBundle.create(require) } })
+window.__ModuleLoader__.load({ id: 'dsh-readpilot', factory(require) { return __dshReaderBundle.create(require) } })
 

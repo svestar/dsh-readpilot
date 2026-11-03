@@ -16,7 +16,7 @@
 |---|---|---|
 | `createPdfPageRenderer` | `src/visual/pdf.ts:createPdfPageRenderer` | 渲染页面 PNG、生成文本项并维护磁盘缓存 |
 | `pageView` | `src/api.ts:pageView` | 返回页面尺寸、页数与文本项 |
-| `pdfPage` | `src/api.ts:pdfPage` | 返回页面 PNG 给 `/api/dsh-reader/pdf-page` |
+| `pdfPage` | `src/api.ts:pdfPage` | 返回页面 PNG 给 `/api/dsh-readpilot/pdf-page` |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | PDF 页状态、单/双页取图、翻页、缩放、选段与页章节同步 |
 | `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | 页面图片、文本层与单/双页容器 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |

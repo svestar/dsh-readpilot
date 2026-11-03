@@ -60,15 +60,15 @@ export function ReaderBar({
     : `${chapterIndex + 1} / ${chapterTotal}`
 
   return h('div', {
-    className: 'dsh-reader-bar',
+    className: 'dsh-readpilot-bar',
     'data-mode': mode,
     'data-format': format,
     'data-layout': layout,
   },
-    h('div', { className: 'dsh-reader-bar-group dsh-reader-bar-nav' },
+    h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-nav' },
       h('button', {
         type: 'button',
-        className: 'dsh-reader-secondary dsh-reader-bar-btn',
+        className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
         title: prevLabel,
         'aria-label': prevLabel,
         disabled: !canPrev,
@@ -76,18 +76,18 @@ export function ReaderBar({
       }, '‹'),
       h('button', {
         type: 'button',
-        className: 'dsh-reader-secondary dsh-reader-bar-btn',
+        className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
         title: nextLabel,
         'aria-label': nextLabel,
         disabled: !canNext,
         onClick: onNext,
       }, '›')),
-    h('div', { className: 'dsh-reader-bar-title', title: chapterTitle }, chapterTitle),
-    h('div', { className: 'dsh-reader-bar-group dsh-reader-bar-controls' },
+    h('div', { className: 'dsh-readpilot-bar-title', title: chapterTitle }, chapterTitle),
+    h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-controls' },
       numericPage
-        ? h('div', { className: 'dsh-reader-bar-group dsh-reader-bar-page' },
+        ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-page' },
           h('input', {
-            className: 'dsh-reader-page-input',
+            className: 'dsh-readpilot-page-input',
             type: 'number',
             min: 1,
             max: Math.max(1, pageTotal),
@@ -101,25 +101,25 @@ export function ReaderBar({
               if (Number.isFinite(page)) onPageCommit?.(page)
             },
           }),
-          h('span', { className: 'dsh-reader-bar-position' }, `/ ${pageTotal}`))
+          h('span', { className: 'dsh-readpilot-bar-position' }, `/ ${pageTotal}`))
         : h('span', {
-          className: 'dsh-reader-bar-position',
+          className: 'dsh-readpilot-bar-position',
           title: t(paged ? 'page' : 'chapter'),
         }, pagePosition),
       onToggleMode
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-secondary dsh-reader-bar-toggle',
+          className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
           title: modeLabel,
           'aria-label': modeLabel,
           onClick: onToggleMode,
         }, modeLabel)
         : null,
       paged && onLayoutChange
-        ? h('div', { className: 'dsh-reader-bar-group dsh-reader-bar-layout' },
+        ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-layout' },
           h('button', {
             type: 'button',
-            className: 'dsh-reader-secondary dsh-reader-bar-toggle',
+            className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
             title: t('singlePage'),
             'aria-label': t('singlePage'),
             'aria-pressed': layout === 'single' ? 'true' : 'false',
@@ -128,7 +128,7 @@ export function ReaderBar({
           }, t('singlePage')),
           h('button', {
             type: 'button',
-            className: 'dsh-reader-secondary dsh-reader-bar-toggle',
+            className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
             title: t('doublePage'),
             'aria-label': t('doublePage'),
             'aria-pressed': layout === 'double' ? 'true' : 'false',
@@ -137,18 +137,18 @@ export function ReaderBar({
           }, t('doublePage')))
         : null,
       zoom !== undefined && onZoom
-        ? h('div', { className: 'dsh-reader-bar-group dsh-reader-bar-zoom' },
+        ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-zoom' },
           h('button', {
             type: 'button',
-            className: 'dsh-reader-secondary dsh-reader-bar-btn',
+            className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
             title: t('zoomOut'),
             'aria-label': t('zoomOut'),
             onClick: () => onZoom(-0.25),
           }, '−'),
-          h('span', { className: 'dsh-reader-bar-position' }, `${Math.round(zoom * 100)}%`),
+          h('span', { className: 'dsh-readpilot-bar-position' }, `${Math.round(zoom * 100)}%`),
           h('button', {
             type: 'button',
-            className: 'dsh-reader-secondary dsh-reader-bar-btn',
+            className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
             title: t('zoomIn'),
             'aria-label': t('zoomIn'),
             onClick: () => onZoom(0.25),

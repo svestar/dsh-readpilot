@@ -8,7 +8,7 @@
 
 ## 行为
 
-阅读界面默认使用 `auto` 配色，正文背景与文字通过 DSH 的 `--dsw-alias-bg-base`、`--dsw-alias-label-primary` 等变量跟随界面深浅色。用户可在书籍视图头部的下拉中切换 `auto`、`light`、`dark`、`sepia`、`green`、`night` 六种方案；选择写入 `localStorage` 的 `dsh-reader.palette`，刷新后保留。配色应用到 txt/md 正文、PDF 页面周围背景、EPUB iframe 的页面背景与基础文字色；PDF 页面图片保持原色，顶部栏、TOC、伴读/笔记栏继续使用 DSH 主题。
+阅读界面默认使用 `auto` 配色，正文背景与文字通过 DSH 的 `--dsw-alias-bg-base`、`--dsw-alias-label-primary` 等变量跟随界面深浅色。用户可在书籍视图头部的下拉中切换 `auto`、`light`、`dark`、`sepia`、`green`、`night` 六种方案；选择写入 `localStorage` 的 `dsh-readpilot.palette`，刷新后保留。配色应用到 txt/md 正文、PDF 页面周围背景、EPUB iframe 的页面背景与基础文字色；PDF 页面图片保持原色，顶部栏、TOC、伴读/笔记栏继续使用 DSH 主题。
 
 ## 接口与代码映射
 

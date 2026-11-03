@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { createNotesStore, notesPath } from '../src/notes.ts'
 
 async function tempStore(t: any) {
-  const dataDir = await mkdtemp(join(tmpdir(), 'dsh-reader-notes-'))
+  const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-notes-'))
   t.after(() => rm(dataDir, { recursive: true, force: true }))
   return { dataDir, store: createNotesStore(dataDir) }
 }

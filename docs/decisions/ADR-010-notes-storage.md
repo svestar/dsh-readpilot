@@ -6,12 +6,12 @@
 
 ## 背景
 
-现有笔记是 `$DSH_HOME/dsh-reader/notes/<bookId>.json` 的单一数组，kind 为 note/highlight/bookmark，正文上限 4000 字符，按块与偏移锚定原文。它适合划线、批注与短评，但不适合章节长笔记、整书笔记和自由主题笔记；这些内容需要 markdown、可由用户直接编辑、可由伴读按上下文读取。用户要求笔记目录位于书库工作区内且可见。
+现有笔记是 `$DSH_HOME/dsh-readpilot/notes/<bookId>.json` 的单一数组，kind 为 note/highlight/bookmark，正文上限 4000 字符，按块与偏移锚定原文。它适合划线、批注与短评，但不适合章节长笔记、整书笔记和自由主题笔记；这些内容需要 markdown、可由用户直接编辑、可由伴读按上下文读取。用户要求笔记目录位于书库工作区内且可见。
 
 ## 决策
 
 1. 两层存储：锚定短笔记（note/highlight/bookmark）继续用现有 JSON 与 `src/notes.ts`；长笔记与整书笔记用书库工作区的 markdown 文件。
-2. 可见目录 `<library>/notes/`，首次创建时写入 `.dsh-reader-notes` 标记；`scanLibrary` 只在标记存在时跳过该目录，避免误吞用户已有的同名书目录。
+2. 可见目录 `<library>/notes/`，首次创建时写入 `.dsh-readpilot-notes` 标记；`scanLibrary` 只在标记存在时跳过该目录，避免误吞用户已有的同名书目录。
 3. 每本书一个子目录（`<book-slug>-<bookId8>`），`book.md` 固定为整书笔记，其余 `.md` 都是自由主题笔记；不生成 `index.md`，索引由 Host 扫描文件名与 front-matter 在内存构建。
 4. front-matter 记录 `id`、`title`、`bookId`、`created`、`updated`；文件名用于展示，`id` 用于链接，重命名由 UI 更新引用。
 5. `.history/` 存版本快照，`.pending/` 存伴读草稿，`.exports/` 存一次性导出；三者隐藏，不参与笔记列表与上下文。

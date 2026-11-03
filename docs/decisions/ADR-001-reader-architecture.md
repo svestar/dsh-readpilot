@@ -15,8 +15,8 @@ DSH 提供两种插件形态：静态 Cordis Bundle（npm 包，Host 与 Client 
 1. 采用静态 Bundle：`package.json` 的 `dsh.bundle.patch` 插入一行 Host 插件，`dsh.client` 声明浏览器半端；Host 负责扫描、解析、缓存、工具与 HTTP 接口，Client 负责主面板阅读界面。
 2. 阅读器是 `main` 面板的独立入口，不占用 `conversation.view`；书库路径配置成功后，用 `workspaceRegistry` 把该目录注册为 DSH 工作区，并把 `workspaceId` 持久化。
 3. 每本书在 `sessions.json` 中保存一个 `sessionId`。首次提问时用 `uiWorkspace.connectWorkspace` 在该书库工作区创建会话，之后复用；会话列表因此自然留在书库工作区。
-4. 书籍原地读取，不复制；解析产物缓存在 `$DSH_HOME/dsh-reader/cache`，以文件路径生成的稳定 id 加 `mtime`、`size` 失效。
-5. Host 用 `connection.fetch.register` 注册 `/api/dsh-reader` 精确路由，Client 用同源 `fetch` 调用；该路由继承 `/api` 的浏览器 cookie 鉴权，不注册无鉴权的裸 HTTP 路由。
+4. 书籍原地读取，不复制；解析产物缓存在 `$DSH_HOME/dsh-readpilot/cache`，以文件路径生成的稳定 id 加 `mtime`、`size` 失效。
+5. Host 用 `connection.fetch.register` 注册 `/api/dsh-readpilot` 精确路由，Client 用同源 `fetch` 调用；该路由继承 `/api` 的浏览器 cookie 鉴权，不注册无鉴权的裸 HTTP 路由。
 6. PDF 在 M3 只做文本抽取与页锚点，不做像素渲染；扫描版 PDF 明确不支持。
 
 ## 备选方案

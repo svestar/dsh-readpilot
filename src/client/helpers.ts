@@ -58,8 +58,8 @@ export function foldTranscript(entries: readonly any[] | null | undefined): Chat
   return messages
 }
 
-export const CHAT_WIDTH_KEY = 'dsh-reader.chat-width'
-export const READER_PALETTE_KEY = 'dsh-reader.palette'
+export const CHAT_WIDTH_KEY = 'dsh-readpilot.chat-width'
+export const READER_PALETTE_KEY = 'dsh-readpilot.palette'
 
 export interface ReaderPalette {
   id: string
@@ -225,7 +225,7 @@ export function collectTextNodes(root: Element | null | undefined): { nodes: Tex
   let node = walker.nextNode()
   while (node) {
     const parent = node.parentElement
-    if (!parent?.closest('.dsh-reader-note-layer')) nodes.push(node as Text)
+    if (!parent?.closest('.dsh-readpilot-note-layer')) nodes.push(node as Text)
     node = walker.nextNode()
   }
   return { nodes, text: nodes.map(entry => entry.nodeValue ?? '').join('') }
@@ -353,7 +353,7 @@ export function applyEpubNoteMarks(
     pink: 'rgba(244,114,182,.30)',
     purple: 'rgba(192,132,252,.30)',
   }
-  style.textContent = `mark.dsh-reader-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-reader-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-reader-highlight-green{background:${highlightColors.green}!important}mark.dsh-reader-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-reader-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-reader-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-reader-note-mark.dsh-reader-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`
+  style.textContent = `mark.dsh-readpilot-note-mark{background:${paletteCssColors(palette).highlight}!important;color:inherit!important;cursor:pointer;border-radius:2px}mark.dsh-readpilot-highlight-yellow{background:${highlightColors.yellow}!important}mark.dsh-readpilot-highlight-green{background:${highlightColors.green}!important}mark.dsh-readpilot-highlight-blue{background:${highlightColors.blue}!important}mark.dsh-readpilot-highlight-pink{background:${highlightColors.pink}!important}mark.dsh-readpilot-highlight-purple{background:${highlightColors.purple}!important}mark.dsh-readpilot-note-mark.dsh-readpilot-note-flash{box-shadow:0 0 0 2px ${paletteCssColors(palette).selection}}`
   const onClick = (event: Event) => {
     const target = event.target as Element | null
     const mark = target?.closest?.('mark[data-note-id]') as HTMLElement | null
@@ -370,8 +370,8 @@ export function applyEpubNoteMarks(
     if (!range) continue
     const mark = doc.createElement('mark')
     mark.className = note.kind === 'highlight'
-      ? `dsh-reader-note-mark dsh-reader-highlight-${note.color ?? 'yellow'}`
-      : 'dsh-reader-note-mark'
+      ? `dsh-readpilot-note-mark dsh-readpilot-highlight-${note.color ?? 'yellow'}`
+      : 'dsh-readpilot-note-mark'
     mark.dataset.noteId = note.id
     mark.appendChild(range.extractContents())
     range.insertNode(mark)
@@ -381,8 +381,8 @@ export function applyEpubNoteMarks(
     const target = doc.querySelector(`mark[data-note-id="${jumpNoteId}"]`)
     if (target) {
       target.scrollIntoView({ block: 'center', behavior: 'auto' })
-      target.classList.add('dsh-reader-note-flash')
-      setTimeout(() => target.classList.remove('dsh-reader-note-flash'), 1600)
+      target.classList.add('dsh-readpilot-note-flash')
+      setTimeout(() => target.classList.remove('dsh-readpilot-note-flash'), 1600)
       jumped = true
     }
   }

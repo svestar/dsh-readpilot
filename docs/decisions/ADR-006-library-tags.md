@@ -11,7 +11,7 @@
 ## 决策
 
 1. 分类采用**自定义标签**：一本书可属于多个标签，标签不改变目录结构。
-2. 标签存到 `$DSH_HOME/dsh-reader/library-meta.json`，结构为 `{ tags: { [bookId]: string[] } }`；新增 `libraryMeta` 与 `setBookTags` RPC。
+2. 标签存到 `$DSH_HOME/dsh-readpilot/library-meta.json`，结构为 `{ tags: { [bookId]: string[] } }`；新增 `libraryMeta` 与 `setBookTags` RPC。
 3. 最近阅读直接由现有 `progress.updatedAt` 计算，不新增“已读”状态或历史表。
 4. 客户端用 `filterBooks`、`recentBooks`、`tagCatalogue` 做分类、搜索、排序和标签计数。
 5. 标签文件损坏或条目非法时回退空标签，不阻塞书库；每本书最多 20 个标签，每个 1–24 字。

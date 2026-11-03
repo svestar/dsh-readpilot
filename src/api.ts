@@ -1263,8 +1263,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       bookId: book.id,
       filePath: book.path,
       href,
-      assetBase: '/api/dsh-reader/epub-asset',
-      docBase: '/api/dsh-reader/epub-doc',
+      assetBase: '/api/dsh-readpilot/epub-asset',
+      docBase: '/api/dsh-readpilot/epub-doc',
     })
   }
 

@@ -4,7 +4,7 @@ import { basename, join, resolve, sep } from 'node:path'
 import { readJson, writeJson } from './fsjson.ts'
 
 export const NOTES_DIR_NAME = 'notes'
-export const NOTES_MARKER = '.dsh-reader-notes'
+export const NOTES_MARKER = '.dsh-readpilot-notes'
 export const BOOK_NOTE_FILE = 'book.md'
 const BOOK_META_FILE = '.book.json'
 const HISTORY_DIR = '.history'
@@ -214,7 +214,7 @@ async function ensureRoot(root: string): Promise<void> {
   const marker = join(root, NOTES_MARKER)
   if (await exists(marker)) return
   try {
-    await writeFile(marker, 'dsh-reader notes\n', { encoding: 'utf8', flag: 'wx' })
+    await writeFile(marker, 'dsh-readpilot notes\n', { encoding: 'utf8', flag: 'wx' })
   } catch (error) {
     if ((error as NodeJS.ErrnoException | null)?.code !== 'EEXIST') throw error
   }

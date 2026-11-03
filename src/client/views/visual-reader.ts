@@ -39,7 +39,7 @@ function renderPdfTextItems(pageView: PageView) {
     offset += item.text.length
     return h('span', {
       key: `pdf-text-${index}`,
-      className: 'dsh-reader-pdf-text-item',
+      className: 'dsh-readpilot-pdf-text-item',
       'data-offset': start,
       style: {
         left: item.left,
@@ -178,23 +178,23 @@ export function VisualReader({
   if (screen.kind !== 'book') return null
   if (visual.kind === 'pdf') {
     return h('div', {
-      className: 'dsh-reader-visual',
+      className: 'dsh-readpilot-visual',
       'data-paged': 'true',
       'data-layout': layout,
       ref: containerRef,
     },
     visualLoading
-      ? h('div', { className: 'dsh-reader-muted' }, t('loading'))
+      ? h('div', { className: 'dsh-readpilot-muted' }, t('loading'))
       : visualError
-        ? h('div', { className: 'dsh-reader-visual-error' },
+        ? h('div', { className: 'dsh-readpilot-visual-error' },
           h('div', null, visualError),
-          h('div', { className: 'dsh-reader-reader-inner' },
+          h('div', { className: 'dsh-readpilot-reader-inner' },
             renderBlocks(screen.content.blocks, screen.content.chapterId)))
         : pageViews.length > 0
-          ? h('div', { className: 'dsh-reader-pdf-spread', ref: spreadRef },
+          ? h('div', { className: 'dsh-readpilot-pdf-spread', ref: spreadRef },
             pageViews.map((view, index) => h('div', {
               key: `pdf-page-${visual.page + index}`,
-              className: 'dsh-reader-pdf-slot',
+              className: 'dsh-readpilot-pdf-slot',
               style: {
                 width: view.width * pdfFit,
                 height: view.height * pdfFit,
@@ -203,7 +203,7 @@ export function VisualReader({
               },
             },
             h('div', {
-              className: 'dsh-reader-pdf-page',
+              className: 'dsh-readpilot-pdf-page',
               'data-page': visual.page + index,
               style: {
                 width: view.width,
@@ -213,33 +213,33 @@ export function VisualReader({
               },
             },
             h('img', {
-              src: `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
+              src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
               alt: screen.content.title,
               draggable: false,
             }),
             h('div', {
-              className: 'dsh-reader-pdf-text',
+              className: 'dsh-readpilot-pdf-text',
               onMouseUp: index === 0 ? onPdfMouseUp : undefined,
             }, renderPdfTextItems(view)),
             h('div', {
-              className: 'dsh-reader-note-layer',
+              className: 'dsh-readpilot-note-layer',
               ref: index === 0 ? noteLayerRef : undefined,
             })))))
           : null)
   }
   return h('div', {
-    className: 'dsh-reader-visual',
+    className: 'dsh-readpilot-visual',
     'data-paged': readingMode === 'paged' ? 'true' : 'false',
     'data-layout': layout,
     ref: containerRef,
   },
   h('iframe', {
     ref: epubFrameRef,
-    className: 'dsh-reader-epub-frame',
+    className: 'dsh-readpilot-epub-frame',
     'data-paged': readingMode === 'paged' ? 'true' : 'false',
     sandbox: 'allow-same-origin',
     title: screen.content.title,
-    src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+    src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
     onLoad: onEpubLoad,
     style: epubWidth === null ? undefined : { width: epubWidth, maxWidth: '100%', margin: '0 auto' },
   }))

@@ -24,11 +24,11 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
     : null
   const items = (outline ?? detail.toc) as TocRow[]
   const activePage = detail.toc.find(item => item.id === activeChapter)?.page
-  return h('aside', { className: 'dsh-reader-toc' },
-    h('div', { className: 'dsh-reader-toc-title' }, t('toc')),
+  return h('aside', { className: 'dsh-readpilot-toc' },
+    h('div', { className: 'dsh-readpilot-toc-title' }, t('toc')),
     items.length === 0
-      ? h('div', { className: 'dsh-reader-muted' }, t('noToc'))
-      : h('div', { className: 'dsh-reader-toc-list' },
+      ? h('div', { className: 'dsh-readpilot-muted' }, t('noToc'))
+      : h('div', { className: 'dsh-readpilot-toc-list' },
         items.map(item => {
           const chapterId = outline
             ? item.chapterId ?? detail.toc.find(entry => entry.page === item.page)?.id
@@ -39,7 +39,7 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
           return h('button', {
             key: item.id,
             type: 'button',
-            className: 'dsh-reader-toc-item',
+            className: 'dsh-readpilot-toc-item',
             'data-active': active ? 'true' : 'false',
             'data-level': item.level ?? 0,
             disabled: !chapterId,

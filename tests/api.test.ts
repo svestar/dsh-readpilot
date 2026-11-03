@@ -26,7 +26,7 @@ function fakeContext() {
 }
 
 async function makeLibrary(t: any) {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-api-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
   const library = join(root, 'books')
   const data = join(root, 'data')
   await mkdir(library, { recursive: true })
@@ -80,7 +80,7 @@ test('configure_creates_workspace', async t => {
   assert.equal(ctx.workspaces.length, 1)
   assert.equal(first.books.length, 1)
   const promptFile = await readFile(join(library, 'AGENTS.md'), 'utf8')
-  assert.match(promptFile, /dsh-reader:prompt:begin/)
+  assert.match(promptFile, /dsh-readpilot:prompt:begin/)
   assert.equal((await api.state()).books.length, 1)
 
   const second = await api.configureLibrary({ path: library })

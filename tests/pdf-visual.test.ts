@@ -29,7 +29,7 @@ function makePdf(text: string) {
 }
 
 test('render_pdf_page_png', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-pdf-visual-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-pdf-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const filePath = join(root, 'hello.pdf')
   await writeFile(filePath, makePdf('Hello PDF'))
@@ -51,7 +51,7 @@ test('render_pdf_page_png', async t => {
 })
 
 test('pdf_page_rejects_out_of_range', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-pdf-visual-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-pdf-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const filePath = join(root, 'hello.pdf')
   await writeFile(filePath, makePdf('Hello PDF'))

@@ -35,23 +35,23 @@ export function Header({
   onFontDecrease,
   onFontIncrease,
 }: HeaderProps) {
-  return h('div', { className: 'dsh-reader-header' },
-    h('div', { className: 'dsh-reader-header-main' },
+  return h('div', { className: 'dsh-readpilot-header' },
+    h('div', { className: 'dsh-readpilot-header-main' },
       screen.kind !== 'library'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('back'),
           onClick: onBack,
         }, '←')
         : null,
       h('div', { style: { minWidth: 0 } },
-        h('div', { className: 'dsh-reader-title' }, title),
-        subtitle ? h('div', { className: 'dsh-reader-subtitle' }, subtitle) : null)),
-    h('div', { className: 'dsh-reader-header-actions' },
+        h('div', { className: 'dsh-readpilot-title' }, title),
+        subtitle ? h('div', { className: 'dsh-readpilot-subtitle' }, subtitle) : null)),
+    h('div', { className: 'dsh-readpilot-header-actions' },
       screen.kind === 'book'
         ? h('select', {
-          className: 'dsh-reader-palette-select',
+          className: 'dsh-readpilot-palette-select',
           value: paletteId,
           title: t('palette'),
           'aria-label': t('palette'),
@@ -62,7 +62,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('search'),
           'aria-expanded': searchOpen ? 'true' : 'false',
           onClick: onToggleSearch,
@@ -71,7 +71,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('companion'),
           onClick: onToggleChat,
         }, t('companion'))
@@ -79,7 +79,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('bookmark'),
           onClick: onBookmark,
         }, '🔖')
@@ -87,7 +87,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('toc'),
           onClick: onToggleToc,
         }, '☰')
@@ -95,7 +95,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('fontSize'),
           onClick: onFontDecrease,
         }, 'A-')
@@ -103,7 +103,7 @@ export function Header({
       screen.kind === 'book'
         ? h('button', {
           type: 'button',
-          className: 'dsh-reader-icon-btn',
+          className: 'dsh-readpilot-icon-btn',
           title: t('fontSize'),
           onClick: onFontIncrease,
         }, 'A+')

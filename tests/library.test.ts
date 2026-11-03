@@ -7,7 +7,7 @@ import { bookIdFor, findBookByKey, scanLibrary } from '../src/library.ts'
 import { NOTES_MARKER } from '../src/note-files.ts'
 
 test('scan_lists_books', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-library-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-library-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   await writeFile(join(root, 'a.txt'), 'hello', 'utf8')
   await writeFile(join(root, 'b.md'), '# b', 'utf8')
@@ -31,7 +31,7 @@ test('book_id_is_stable', () => {
 })
 
 test('scan_skips_reader_notes_dir', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-library-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-library-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   await writeFile(join(root, 'a.txt'), 'hello', 'utf8')
   await mkdir(join(root, 'notes'), { recursive: true })
@@ -40,7 +40,7 @@ test('scan_skips_reader_notes_dir', async t => {
   const before = await scanLibrary(root)
   assert.ok(before.some(book => book.title === 'fake'))
 
-  await writeFile(join(root, 'notes', NOTES_MARKER), 'dsh-reader notes\n', 'utf8')
+  await writeFile(join(root, 'notes', NOTES_MARKER), 'dsh-readpilot notes\n', 'utf8')
   const after = await scanLibrary(root)
   assert.equal(after.some(book => book.title === 'fake'), false)
   assert.ok(after.some(book => book.title === 'a'))

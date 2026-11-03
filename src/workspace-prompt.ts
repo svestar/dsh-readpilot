@@ -1,8 +1,8 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 
-const BEGIN = '<!-- dsh-reader:prompt:begin -->'
-const END = '<!-- dsh-reader:prompt:end -->'
+const BEGIN = '<!-- dsh-readpilot:prompt:begin -->'
+const END = '<!-- dsh-readpilot:prompt:end -->'
 
 export const READING_PROMPT = [
   '你是阅读助手，服务对象正在 DSH 阅读器中读书。',

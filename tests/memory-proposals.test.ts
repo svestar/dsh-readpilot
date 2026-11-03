@@ -6,7 +6,7 @@ import { join } from 'node:path'
 import { createMemoryProposalStore } from '../src/memory-proposals.ts'
 
 async function makeStore(t: any) {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-memory-proposals-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-memory-proposals-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   return createMemoryProposalStore(join(root, 'data'))
 }

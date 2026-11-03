@@ -8,7 +8,7 @@ import { bookmarkContext } from '../src/client/bookmark-label.ts'
 import { pdfNoteRects } from '../src/client/helpers.ts'
 
 test('highlight_and_bookmark_lifecycle', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-reader-marks-'))
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-marks-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const store = createNotesStore(root)
   const highlight = await store.add('book-a', {
