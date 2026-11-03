@@ -3,7 +3,7 @@
 - **ID：** FTR-012
 - **名称：** 笔记高亮
 - **状态：** active
-- **代码：** `src/client/helpers.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/views/selection-note.ts`（`NoteDialog`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/client/helpers.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/views/selection-note.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/highlight.test.ts`
 
 ## 行为
@@ -16,7 +16,7 @@
 |---|---|---|
 | `findNoteOccurrence` | `src/client/helpers.ts:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
 | `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
-| `NoteDialog` / `NotesBody` | `src/client/views/selection-note.ts:NoteDialog`；`src/client/views/notes-search.ts:NotesBody` | 编辑对话框与右栏笔记列表 |
+| `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/views/selection-note.ts:SelectionToolbar`；`src/client/views/selection-note.ts:NoteDialog`；`src/client/views/notes-search.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
 | `handleNotes` | `src/api.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
 
