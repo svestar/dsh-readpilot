@@ -414,6 +414,22 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
       })
 
+      React.useEffect(() => {
+        if (!selection) return
+        const dismiss = (event: Event) => {
+          const target = event.target as Element | null
+          if (target && typeof target.closest === 'function' && target.closest('.dsh-reader-selection')) return
+          setSelection(null)
+        }
+        const frameDoc = epubFrameRef.current?.contentDocument ?? null
+        document.addEventListener('pointerdown', dismiss, true)
+        frameDoc?.addEventListener('pointerdown', dismiss, true)
+        return () => {
+          document.removeEventListener('pointerdown', dismiss, true)
+          frameDoc?.removeEventListener('pointerdown', dismiss, true)
+        }
+      }, [epubFrameRef, selection, setSelection])
+
 
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: 'library' })

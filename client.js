@@ -4165,6 +4165,21 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setSelection,
         selectChapter
       });
+      React.useEffect(() => {
+        if (!selection) return;
+        const dismiss = (event) => {
+          const target = event.target;
+          if (target && typeof target.closest === "function" && target.closest(".dsh-reader-selection")) return;
+          setSelection(null);
+        };
+        const frameDoc = epubFrameRef.current?.contentDocument ?? null;
+        document.addEventListener("pointerdown", dismiss, true);
+        frameDoc?.addEventListener("pointerdown", dismiss, true);
+        return () => {
+          document.removeEventListener("pointerdown", dismiss, true);
+          frameDoc?.removeEventListener("pointerdown", dismiss, true);
+        };
+      }, [epubFrameRef, selection, setSelection]);
       const backToLibrary = React.useCallback(() => {
         setScreen({ kind: "library" });
         setSelection(null);
