@@ -61,7 +61,7 @@ def main():
     if "--check" in sys.argv[1:]:
         current = INDEX.read_text(encoding="utf-8") if INDEX.is_file() else ""
         if current != content:
-            print("功能索引与文档头部不一致，请运行：uv run --no-project scripts/gen_feature_index.py", file=sys.stderr)
+            print("功能索引与文档头部不一致，请运行：python scripts/gen_feature_index.py", file=sys.stderr)
             return 1
         print("功能索引已是最新。")
         return 0

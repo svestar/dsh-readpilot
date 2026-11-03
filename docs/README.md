@@ -11,8 +11,8 @@
 
 1. 分配或复用 `FTR-NNN`，避免 ID 重复。
 2. 按 `docs/templates/feature.md` 创建或更新功能文档，写入真实代码、测试路径与关键符号。
-3. 运行 `uv run --no-project scripts/gen_feature_index.py` 重建索引，索引不手改。
-4. 修改代码和测试后运行 `uv run --no-project scripts/check_docs.py`。
+3. 运行 `python scripts/gen_feature_index.py` 重建索引，索引不手改。
+4. 修改代码和测试后运行 `python scripts/check_docs.py`。
 
 ## 拆分与删除
 
@@ -22,7 +22,7 @@
 
 ## 发布规则包
 
-运行 `uv run --no-project scripts/package_rules.py` 生成 `dist/agent-maintainability-rules.zip`。产物只含规则、门禁脚本、模板与工作流，不含本项目的功能文档与示例代码，索引在打包时重建为空。脚本按固定顺序与时间戳打包，并在解压后重跑索引检查、文档门禁与自测；任一项失败则不产出产物。
+运行 `python scripts/package_rules.py` 生成 `dist/agent-maintainability-rules.zip`。产物只含规则、门禁脚本、模板与工作流，不含本项目的功能文档与示例代码，索引在打包时重建为空。脚本按固定顺序与时间戳打包，并在解压后重跑索引检查、文档门禁与自测；任一项失败则不产出产物。
 
 ## 原则
 

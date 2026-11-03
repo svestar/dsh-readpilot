@@ -34,7 +34,7 @@
 2. 简述方案与影响范围，再做最小修改。
 3. 补测试，验证可观察行为而非实现细节。
 4. 更新功能文档与 ADR，运行 `scripts/gen_feature_index.py` 重建索引。
-5. 按改动面选择验证范围：只改单个模块时运行该模块测试；涉及共享约定、索引结构或门禁脚本时运行全量。再运行格式化与静态检查，以及文档门禁及其自测：`uv run --no-project scripts/check_docs.py`、`uv run --no-project scripts/test_check_docs.py`（CI 使用 `python` 等价命令）。
+5. 按改动面选择验证范围：只改单个模块时运行该模块测试；涉及共享约定、索引结构或门禁脚本时运行全量。再运行格式化与静态检查，以及文档门禁及其自测：`python scripts/check_docs.py`、`python scripts/test_check_docs.py`。
 6. 汇报改动、实际执行的命令与结果、未验证事项与风险；不得声称未运行的检查已通过。
 
 ## 完成条件
