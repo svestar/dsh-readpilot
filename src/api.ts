@@ -1,5 +1,6 @@
+import { spawn } from 'node:child_process'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
-import { basename, isAbsolute, join, resolve } from 'node:path'
+import { basename, isAbsolute, join, resolve, sep } from 'node:path'
 import type { Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import type { Book } from './library.ts'
@@ -50,6 +51,18 @@ export interface ReaderContext {
 
 export interface ReaderConfig {
   maxBookBytes?: number
+}
+
+function openWithExternalEditor(path: string): Promise<void> {
+  const command = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open'
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, [path], { detached: true, stdio: 'ignore', windowsHide: false })
+    child.once('error', reject)
+    child.once('spawn', () => {
+      child.unref()
+      resolve()
+    })
+  })
 }
 
 export interface ReaderApiOptions {
@@ -160,6 +173,7 @@ export interface ReaderApi {
   noteDrafts(payload?: any): Promise<any>
   noteDraftCreate(payload?: any): Promise<{ draft: NoteDraftRecord }>
   toolNoteFiles(payload?: any): Promise<any>
+  openNoteFile(payload?: any): Promise<{ opened: boolean; path: string }>
   exportNotes(payload?: any): Promise<{ markdown: string; fileName: string; path?: string }>
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
@@ -185,6 +199,15 @@ export class ReaderError extends Error {
     this.name = 'ReaderError'
     this.code = code
   }
+}
+
+export function noteFilePath(libraryDir: string, notePath: string): string {
+  const notesRoot = resolve(libraryDir, NOTES_DIR_NAME)
+  const target = resolve(libraryDir, notePath)
+  if (target !== notesRoot && !target.startsWith(`${notesRoot}${sep}`)) {
+    throw new ReaderError('invalid-note', '笔记路径越界')
+  }
+  return target
 }
 
 function positiveInteger(value: unknown, fallback: number): number {
@@ -1087,6 +1110,25 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return createNoteDraftStore(dataDir, await ensureNoteFileStore())
   }
 
+  async function openNoteFile({ bookId, id }: any = {}): Promise<{ opened: boolean; path: string }> {
+    const book = await resolveBook(bookId)
+    const store = await ensureNoteFileStore()
+    const content = await store.read(book, String(id ?? ''))
+    const settings = await currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const target = noteFilePath(settings.libraryDir, content.note.path)
+    await stat(target)
+    try {
+      await openWithExternalEditor(target)
+    } catch (error) {
+      throw new ReaderError(
+        'open-failed',
+        `无法打开外部编辑器：${error instanceof Error ? error.message : String(error)}`,
+      )
+    }
+    return { opened: true, path: content.note.path }
+  }
+
   async function exportNotes({ bookId, save }: any = {}): Promise<{ markdown: string; fileName: string; path?: string }> {
     const book = await resolveBook(bookId)
     const opened = await open({ bookId: book.id })
@@ -1251,6 +1293,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       notes: handleNotes,
       noteFiles: handleNoteFiles,
       noteDrafts,
+      openNoteFile,
       exportNotes,
       pageView,
       libraryMeta,
@@ -1288,6 +1331,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     noteDrafts,
     noteDraftCreate,
     toolNoteFiles,
+    openNoteFile,
     exportNotes,
     search,
     libraryMeta,

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createReaderApi } from '../src/api.ts'
+import { createReaderApi, noteFilePath } from '../src/api.ts'
 
 function fakeContext() {
   const workspaces: any[] = []
@@ -392,4 +392,28 @@ test('export_notes_rpc', async t => {
   assert.match(exported.value.markdown, /黑暗森林/)
   assert.match(exported.value.markdown, /测试引用/)
   assert.match(exported.value.fileName, /阅读笔记\.md$/)
+})
+
+test('open_note_file_rejects_invalid_note', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  const opened = await api.handleRpc('openNoteFile', { bookId, id: '../bad' })
+  assert.equal(opened.ok, false)
+})
+
+test('note_file_path_is_relative_to_library', () => {
+  const root = join(tmpdir(), 'book-store')
+  const notePath = join('notes', 'book-id', 'chapter.md')
+  assert.equal(noteFilePath(root, notePath), join(root, notePath))
+  assert.throws(
+    () => noteFilePath(root, join('notes', '..', 'outside.md')),
+    (error: any) => error?.code === 'invalid-note',
+  )
+  assert.throws(
+    () => noteFilePath(root, join('other', 'outside.md')),
+    (error: any) => error?.code === 'invalid-note',
+  )
 })

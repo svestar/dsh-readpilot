@@ -9,6 +9,8 @@ interface ChatPanelProps {
   setChatTab: StateSetter<string>
   setChatOpen: StateSetter<boolean>
   notesBody: any
+  longNotesBody: any
+  memoryBody: any
   chatBody: any
   nativeChat?: any
   chatError: string
@@ -30,6 +32,8 @@ export function ChatPanel({
   setChatTab,
   setChatOpen,
   notesBody,
+  longNotesBody,
+  memoryBody,
   chatBody,
   nativeChat,
   chatError,
@@ -79,7 +83,23 @@ export function ChatPanel({
           'data-active': chatTab === 'notes' ? 'true' : 'false',
           'aria-selected': chatTab === 'notes',
           onClick: () => setChatTab('notes'),
-        }, t('notes'))),
+        }, t('notes')),
+        h('button', {
+          type: 'button',
+          role: 'tab',
+          className: 'dsh-reader-chat-tab',
+          'data-active': chatTab === 'long' ? 'true' : 'false',
+          'aria-selected': chatTab === 'long',
+          onClick: () => setChatTab('long'),
+        }, t('longNotes')),
+        h('button', {
+          type: 'button',
+          role: 'tab',
+          className: 'dsh-reader-chat-tab',
+          'data-active': chatTab === 'memory' ? 'true' : 'false',
+          'aria-selected': chatTab === 'memory',
+          onClick: () => setChatTab('memory'),
+        }, t('memory'))),
       h('button', {
         type: 'button',
         className: 'dsh-reader-chat-close',
@@ -87,9 +107,13 @@ export function ChatPanel({
       }, t('closeChat'))),
     chatTab === 'notes'
       ? notesBody
-      : nativeChat
-        ? h('div', { className: 'dsh-reader-native-chat' }, nativeChat)
-        : chatBody,
+      : chatTab === 'long'
+        ? longNotesBody
+        : chatTab === 'memory'
+          ? memoryBody
+          : nativeChat
+            ? h('div', { className: 'dsh-reader-native-chat' }, nativeChat)
+            : chatBody,
     chatTab === 'chat' && !nativeChat && chatError
       ? h('div', { className: 'dsh-reader-chat-error' }, chatError)
       : null,

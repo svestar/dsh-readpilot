@@ -23,6 +23,8 @@ import { renderBlocks, selectionAnchor } from './views/markdown.ts'
 import { PanelIcon, Setup } from './views/panels.ts'
 import { Library } from './views/library-view.ts'
 import { NotesBody, SearchPanel } from './views/notes-search.ts'
+import { LongNotes } from './views/long-notes.ts'
+import { MemoryPanel } from './views/memory-panel.ts'
 import { VisualReader } from './views/visual-reader.ts'
 import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
@@ -211,8 +213,8 @@ export function createPlugin(require: (name: string) => any) {
         }).catch(() => {})
       }, [activeSessionId, screen, call])
 
-      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'notes' })
-      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'notes' })
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'long' })
+      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'memory' })
 
       const [noteContextBusy, setNoteContextBusy] = React.useState(false)
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
@@ -645,9 +647,23 @@ export function createPlugin(require: (name: string) => any) {
         openNote,
         noteDeletingId,
         deleteNote,
-        longNotes,
-        noteContext,
-        memory,
+      })
+
+      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext })
+      const memoryBody = h(MemoryPanel, {
+        t,
+        status: memory.status,
+        loading: memory.loading,
+        error: memory.error,
+        busy: memory.busy,
+        onRefresh: memory.refresh,
+        onMode: memory.setMode,
+        onBookState: memory.setBookState,
+        onSave: memory.saveCard,
+        onUndo: memory.undo,
+        onClear: memory.clear,
+        onApprove: memory.approve,
+        onReject: memory.reject,
       })
 
       const searchPanel = h(SearchPanel, {
@@ -672,6 +688,8 @@ export function createPlugin(require: (name: string) => any) {
         setChatTab,
         setChatOpen,
         notesBody,
+        longNotesBody,
+        memoryBody,
         chatBody,
         nativeChat,
         chatError,

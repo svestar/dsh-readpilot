@@ -33,6 +33,7 @@ export interface LongNotesState {
   historyBusy: boolean
   exporting: boolean
   exportStatus: string
+  externalBusy: boolean
   setDraft: (value: string) => void
   setTitle: (value: string) => void
   open: (note: LongNote) => Promise<void>
@@ -46,6 +47,7 @@ export interface LongNotesState {
   toggleHistory: () => void
   restoreHistory: (entry: LongNoteHistory) => Promise<void>
   exportNotes: (save: boolean) => Promise<void>
+  openExternal: () => Promise<void>
 }
 
 export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNotesOptions): LongNotesState {
@@ -66,6 +68,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
   const [historyBusy, setHistoryBusy] = React.useState(false)
   const [exporting, setExporting] = React.useState(false)
   const [exportStatus, setExportStatus] = React.useState('')
+  const [externalBusy, setExternalBusy] = React.useState(false)
   const requestRef = React.useRef(0)
   const draftRequestRef = React.useRef(0)
   const readRef = React.useRef(0)
@@ -387,6 +390,20 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     }
   }, [activeBookId, call, exporting, t])
 
+  const openExternal = React.useCallback(async () => {
+    if (!activeBookId || !active || externalBusy) return
+    const bookId = activeBookId
+    setExternalBusy(true)
+    setError('')
+    try {
+      await call('openNoteFile', { bookId, id: active.note.id })
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('openExternalFailed')}：${messageOf(cause)}`)
+    } finally {
+      setExternalBusy(false)
+    }
+  }, [active, activeBookId, call, externalBusy, t])
+
   return {
     notes,
     loading,
@@ -405,6 +422,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     historyBusy,
     exporting,
     exportStatus,
+    externalBusy,
     setDraft,
     setTitle,
     open,
@@ -418,5 +436,6 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     toggleHistory,
     restoreHistory,
     exportNotes,
+    openExternal,
   }
 }

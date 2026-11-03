@@ -189,7 +189,7 @@ export const CSS = `
 .dsh-reader-long-editor-head input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
 .dsh-reader-long-editor textarea{display:block;width:100%;box-sizing:border-box;min-height:180px;max-height:46vh;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
 .dsh-reader-long-editor-head input:focus,.dsh-reader-long-editor textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px}
+.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .dsh-reader-long-conflict{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.5}
 .dsh-reader-long-preview summary{cursor:pointer;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.8}
 .dsh-reader-long-preview .dsh-reader-md{max-width:none;margin-top:6px;padding-left:0;border-left:0}

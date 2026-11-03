@@ -626,6 +626,9 @@ var __dshReaderBundle = (() => {
     exportNotes: "导出",
     exportSave: "保存到书库",
     exportFailed: "导出失败",
+    openExternal: "外部编辑器",
+    openExternalFailed: "打开外部编辑器失败",
+    openExternalHint: "用系统默认应用打开当前笔记文件；未保存的修改请先保存。",
     exportSaved: "已保存",
     memory: "记忆",
     memoryLoad: "加载记忆",
@@ -808,6 +811,9 @@ var __dshReaderBundle = (() => {
     exportNotes: "Export",
     exportSave: "Save to library",
     exportFailed: "Export failed",
+    openExternal: "External editor",
+    openExternalFailed: "Could not open the external editor",
+    openExternalHint: "Open the current note file in the system default app; save unsaved changes first.",
     exportSaved: "Saved",
     memory: "Memory",
     memoryLoad: "Load memory",
@@ -1044,7 +1050,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-long-editor-head input{flex:1;min-width:0;height:30px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
 .dsh-reader-long-editor textarea{display:block;width:100%;box-sizing:border-box;min-height:180px;max-height:46vh;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px;line-height:1.6;resize:vertical}
 .dsh-reader-long-editor-head input:focus,.dsh-reader-long-editor textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px}
+.dsh-reader-long-editor-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .dsh-reader-long-conflict{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.5}
 .dsh-reader-long-preview summary{cursor:pointer;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.8}
 .dsh-reader-long-preview .dsh-reader-md{max-width:none;margin-top:6px;padding-left:0;border-left:0}
@@ -1732,6 +1738,177 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     };
   }
 
+  // src/client/views/notes-search.ts
+  function chapterTitleOf(screen, chapterId) {
+    return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
+  }
+  function markActions({ t, item, noteDeletingId, deleteNote, openNote }) {
+    return [
+      h("button", {
+        key: "jump",
+        type: "button",
+        className: "dsh-reader-note-jump",
+        title: t("jump"),
+        onClick: () => openNote(item)
+      }, t("jump")),
+      h("button", {
+        key: "delete",
+        type: "button",
+        className: "dsh-reader-note-delete",
+        disabled: noteDeletingId === item.id,
+        onClick: () => void deleteNote(item)
+      }, noteDeletingId === item.id ? t("loading") : t("delete"))
+    ];
+  }
+  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
+    const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
+    return h(
+      "div",
+      { className: "dsh-reader-notes" },
+      notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
+      notesLoading && !hasMarks ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
+        highlights.length > 0 ? h(
+          "section",
+          { key: "highlights", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("highlights")} · ${highlights.length}`),
+          highlights.map((highlight) => h(
+            "div",
+            { key: highlight.id, className: "dsh-reader-note dsh-reader-mark-highlight" },
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dsh-reader-note-main",
+                onClick: () => openNote(highlight)
+              },
+              h(
+                "div",
+                { className: "dsh-reader-note-chapter" },
+                h("span", { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? "yellow"}` }),
+                chapterTitleOf(screen, highlight.chapterId) || t("reading")
+              ),
+              h("div", { className: "dsh-reader-note-quote" }, highlight.quote),
+              highlight.annotation ? h("div", { className: "dsh-reader-note-body" }, highlight.annotation) : null
+            ),
+            ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote })
+          ))
+        ) : null,
+        notes.length > 0 ? h(
+          "section",
+          { key: "notes", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("shortNotes")} · ${notes.length}`),
+          notes.map((note) => h(
+            "div",
+            { key: note.id, className: "dsh-reader-note" },
+            h(
+              "button",
+              {
+                type: "button",
+                className: "dsh-reader-note-main",
+                onClick: () => openNote(note)
+              },
+              h("div", { className: "dsh-reader-note-chapter" }, chapterTitleOf(screen, note.chapterId) || t("reading")),
+              note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
+              h("div", { className: "dsh-reader-note-body" }, note.note)
+            ),
+            ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote })
+          ))
+        ) : null,
+        bookmarks.length > 0 ? h(
+          "section",
+          { key: "bookmarks", className: "dsh-reader-mark-section" },
+          h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
+          bookmarks.map((bookmark) => {
+            const context = bookmarkContext(screen, bookmark.chapterId);
+            const title = context.chapterTitle || bookmark.note || t("bookmark");
+            const detail = bookmark.annotation || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : "");
+            return h(
+              "div",
+              { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
+              h(
+                "button",
+                {
+                  type: "button",
+                  className: "dsh-reader-note-main",
+                  onClick: () => openNote(bookmark)
+                },
+                h("div", { className: "dsh-reader-note-chapter" }, title),
+                detail ? h("div", { className: "dsh-reader-note-body" }, detail) : null
+              ),
+              ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
+            );
+          })
+        ) : null
+      ]
+    );
+  }
+  function SearchPanel({
+    t,
+    open,
+    screen,
+    searchInputRef,
+    searchQuery,
+    setSearchQuery,
+    runSearch,
+    searchBusy,
+    setSearchOpen,
+    searchError,
+    searchResults,
+    openSearchMatch
+  }) {
+    if (!open || screen.kind !== "book") return null;
+    return h(
+      "div",
+      { className: "dsh-reader-search" },
+      h(
+        "div",
+        { className: "dsh-reader-search-bar" },
+        h("input", {
+          ref: searchInputRef,
+          value: searchQuery,
+          placeholder: t("searchPlaceholder"),
+          spellCheck: false,
+          onChange: (event) => setSearchQuery(event.target.value),
+          onKeyDown: (event) => {
+            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
+              event.preventDefault();
+              void runSearch();
+            }
+          }
+        }),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-primary",
+          disabled: searchBusy || !searchQuery.trim(),
+          onClick: () => void runSearch()
+        }, searchBusy ? t("searching") : t("search")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-icon-btn",
+          title: t("closeSearch"),
+          "aria-label": t("closeSearch"),
+          onClick: () => setSearchOpen(false)
+        }, "×")
+      ),
+      searchError ? h("div", { className: "dsh-reader-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-reader-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-reader-search-hint" }, t("searchEmpty")) : h(
+        "div",
+        { className: "dsh-reader-search-list" },
+        searchResults.matches.map((match, index) => h(
+          "button",
+          {
+            key: `${match.chapterId}:${match.offset}:${index}`,
+            type: "button",
+            className: "dsh-reader-search-result",
+            onClick: () => openSearchMatch(match)
+          },
+          h("div", { className: "dsh-reader-search-chapter" }, match.chapterTitle),
+          h("div", { className: "dsh-reader-search-snippet" }, match.snippet)
+        )),
+        searchResults.truncated ? h("div", { className: "dsh-reader-search-hint" }, t("searchTruncated")) : null
+      )
+    );
+  }
+
   // src/client/views/long-notes.ts
   function LongNotes({ t, state, noteContext }) {
     const editing = Boolean(state.active || state.creating);
@@ -1918,7 +2095,14 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             className: "dsh-reader-note-jump",
             disabled: state.historyBusy,
             onClick: state.toggleHistory
-          }, t("history")) : null
+          }, t("history")) : null,
+          state.active ? h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            disabled: state.externalBusy,
+            title: t("openExternalHint"),
+            onClick: () => void state.openExternal()
+          }, t("openExternal")) : null
         ),
         state.active && state.historyOpen ? h(
           "div",
@@ -2163,195 +2347,6 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       cardEditor(t, "book", bookDraft, setBookDraft, status.bookHistory, props),
       cardEditor(t, "reader", readerDraft, setReaderDraft, status.readerHistory, props),
       h("div", { className: "dsh-reader-long-hint" }, t("memoryHint"))
-    );
-  }
-
-  // src/client/views/notes-search.ts
-  function chapterTitleOf(screen, chapterId) {
-    return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
-  }
-  function markActions({ t, item, noteDeletingId, deleteNote, openNote }) {
-    return [
-      h("button", {
-        key: "jump",
-        type: "button",
-        className: "dsh-reader-note-jump",
-        title: t("jump"),
-        onClick: () => openNote(item)
-      }, t("jump")),
-      h("button", {
-        key: "delete",
-        type: "button",
-        className: "dsh-reader-note-delete",
-        disabled: noteDeletingId === item.id,
-        onClick: () => void deleteNote(item)
-      }, noteDeletingId === item.id ? t("loading") : t("delete"))
-    ];
-  }
-  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext, memory }) {
-    const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
-    const hasLong = Boolean(longNotes);
-    const hasMemory = Boolean(memory);
-    return h(
-      "div",
-      { className: "dsh-reader-notes" },
-      longNotes ? h(LongNotes, { t, state: longNotes, noteContext }) : null,
-      memory ? h(MemoryPanel, {
-        t,
-        status: memory.status,
-        loading: memory.loading,
-        error: memory.error,
-        busy: memory.busy,
-        onRefresh: memory.refresh,
-        onMode: memory.setMode,
-        onBookState: memory.setBookState,
-        onSave: memory.saveCard,
-        onUndo: memory.undo,
-        onClear: memory.clear,
-        onApprove: memory.approve,
-        onReject: memory.reject
-      }) : null,
-      notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-      notesLoading && !hasMarks && !hasLong && !hasMemory ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks && !hasLong && !hasMemory ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
-        highlights.length > 0 ? h(
-          "section",
-          { key: "highlights", className: "dsh-reader-mark-section" },
-          h("h4", null, `${t("highlights")} · ${highlights.length}`),
-          highlights.map((highlight) => h(
-            "div",
-            { key: highlight.id, className: "dsh-reader-note dsh-reader-mark-highlight" },
-            h(
-              "button",
-              {
-                type: "button",
-                className: "dsh-reader-note-main",
-                onClick: () => openNote(highlight)
-              },
-              h(
-                "div",
-                { className: "dsh-reader-note-chapter" },
-                h("span", { className: `dsh-reader-color-dot dsh-reader-color-${highlight.color ?? "yellow"}` }),
-                chapterTitleOf(screen, highlight.chapterId) || t("reading")
-              ),
-              h("div", { className: "dsh-reader-note-quote" }, highlight.quote),
-              highlight.annotation ? h("div", { className: "dsh-reader-note-body" }, highlight.annotation) : null
-            ),
-            ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote })
-          ))
-        ) : null,
-        notes.length > 0 ? h(
-          "section",
-          { key: "notes", className: "dsh-reader-mark-section" },
-          h("h4", null, `${t("shortNotes")} · ${notes.length}`),
-          notes.map((note) => h(
-            "div",
-            { key: note.id, className: "dsh-reader-note" },
-            h(
-              "button",
-              {
-                type: "button",
-                className: "dsh-reader-note-main",
-                onClick: () => openNote(note)
-              },
-              h("div", { className: "dsh-reader-note-chapter" }, chapterTitleOf(screen, note.chapterId) || t("reading")),
-              note.quote ? h("div", { className: "dsh-reader-note-quote" }, note.quote) : null,
-              h("div", { className: "dsh-reader-note-body" }, note.note)
-            ),
-            ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote })
-          ))
-        ) : null,
-        bookmarks.length > 0 ? h(
-          "section",
-          { key: "bookmarks", className: "dsh-reader-mark-section" },
-          h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
-          bookmarks.map((bookmark) => {
-            const context = bookmarkContext(screen, bookmark.chapterId);
-            const title = context.chapterTitle || bookmark.note || t("bookmark");
-            const detail = bookmark.annotation || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : "");
-            return h(
-              "div",
-              { key: bookmark.id, className: "dsh-reader-note dsh-reader-mark-bookmark" },
-              h(
-                "button",
-                {
-                  type: "button",
-                  className: "dsh-reader-note-main",
-                  onClick: () => openNote(bookmark)
-                },
-                h("div", { className: "dsh-reader-note-chapter" }, title),
-                detail ? h("div", { className: "dsh-reader-note-body" }, detail) : null
-              ),
-              ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote })
-            );
-          })
-        ) : null
-      ]
-    );
-  }
-  function SearchPanel({
-    t,
-    open,
-    screen,
-    searchInputRef,
-    searchQuery,
-    setSearchQuery,
-    runSearch,
-    searchBusy,
-    setSearchOpen,
-    searchError,
-    searchResults,
-    openSearchMatch
-  }) {
-    if (!open || screen.kind !== "book") return null;
-    return h(
-      "div",
-      { className: "dsh-reader-search" },
-      h(
-        "div",
-        { className: "dsh-reader-search-bar" },
-        h("input", {
-          ref: searchInputRef,
-          value: searchQuery,
-          placeholder: t("searchPlaceholder"),
-          spellCheck: false,
-          onChange: (event) => setSearchQuery(event.target.value),
-          onKeyDown: (event) => {
-            if (event.key === "Enter" && !event.nativeEvent.isComposing) {
-              event.preventDefault();
-              void runSearch();
-            }
-          }
-        }),
-        h("button", {
-          type: "button",
-          className: "dsh-reader-primary",
-          disabled: searchBusy || !searchQuery.trim(),
-          onClick: () => void runSearch()
-        }, searchBusy ? t("searching") : t("search")),
-        h("button", {
-          type: "button",
-          className: "dsh-reader-icon-btn",
-          title: t("closeSearch"),
-          "aria-label": t("closeSearch"),
-          onClick: () => setSearchOpen(false)
-        }, "×")
-      ),
-      searchError ? h("div", { className: "dsh-reader-search-hint", "data-error": "true" }, searchError) : searchBusy ? h("div", { className: "dsh-reader-search-hint" }, t("searching")) : searchResults === null ? null : searchResults.matches.length === 0 ? h("div", { className: "dsh-reader-search-hint" }, t("searchEmpty")) : h(
-        "div",
-        { className: "dsh-reader-search-list" },
-        searchResults.matches.map((match, index) => h(
-          "button",
-          {
-            key: `${match.chapterId}:${match.offset}:${index}`,
-            type: "button",
-            className: "dsh-reader-search-result",
-            onClick: () => openSearchMatch(match)
-          },
-          h("div", { className: "dsh-reader-search-chapter" }, match.chapterTitle),
-          h("div", { className: "dsh-reader-search-snippet" }, match.snippet)
-        )),
-        searchResults.truncated ? h("div", { className: "dsh-reader-search-hint" }, t("searchTruncated")) : null
-      )
     );
   }
 
@@ -2655,6 +2650,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     setChatTab,
     setChatOpen,
     notesBody,
+    longNotesBody,
+    memoryBody,
     chatBody,
     nativeChat,
     chatError,
@@ -2710,7 +2707,23 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             "data-active": chatTab === "notes" ? "true" : "false",
             "aria-selected": chatTab === "notes",
             onClick: () => setChatTab("notes")
-          }, t("notes"))
+          }, t("notes")),
+          h("button", {
+            type: "button",
+            role: "tab",
+            className: "dsh-reader-chat-tab",
+            "data-active": chatTab === "long" ? "true" : "false",
+            "aria-selected": chatTab === "long",
+            onClick: () => setChatTab("long")
+          }, t("longNotes")),
+          h("button", {
+            type: "button",
+            role: "tab",
+            className: "dsh-reader-chat-tab",
+            "data-active": chatTab === "memory" ? "true" : "false",
+            "aria-selected": chatTab === "memory",
+            onClick: () => setChatTab("memory")
+          }, t("memory"))
         ),
         h("button", {
           type: "button",
@@ -2718,7 +2731,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           onClick: () => setChatOpen(false)
         }, t("closeChat"))
       ),
-      chatTab === "notes" ? notesBody : nativeChat ? h("div", { className: "dsh-reader-native-chat" }, nativeChat) : chatBody,
+      chatTab === "notes" ? notesBody : chatTab === "long" ? longNotesBody : chatTab === "memory" ? memoryBody : nativeChat ? h("div", { className: "dsh-reader-native-chat" }, nativeChat) : chatBody,
       chatTab === "chat" && !nativeChat && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
       chatTab === "chat" && !nativeChat ? chatCompose : null
     );
@@ -3982,6 +3995,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [historyBusy, setHistoryBusy] = React.useState(false);
     const [exporting, setExporting] = React.useState(false);
     const [exportStatus, setExportStatus] = React.useState("");
+    const [externalBusy, setExternalBusy] = React.useState(false);
     const requestRef = React.useRef(0);
     const draftRequestRef = React.useRef(0);
     const readRef = React.useRef(0);
@@ -4284,6 +4298,19 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setExporting(false);
       }
     }, [activeBookId, call, exporting, t]);
+    const openExternal = React.useCallback(async () => {
+      if (!activeBookId || !active || externalBusy) return;
+      const bookId = activeBookId;
+      setExternalBusy(true);
+      setError("");
+      try {
+        await call("openNoteFile", { bookId, id: active.note.id });
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("openExternalFailed")}：${messageOf(cause)}`);
+      } finally {
+        setExternalBusy(false);
+      }
+    }, [active, activeBookId, call, externalBusy, t]);
     return {
       notes,
       loading,
@@ -4302,6 +4329,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       historyBusy,
       exporting,
       exportStatus,
+      externalBusy,
       setDraft,
       setTitle,
       open,
@@ -4314,7 +4342,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       rejectDraft,
       toggleHistory,
       restoreHistory,
-      exportNotes
+      exportNotes,
+      openExternal
     };
   }
 
@@ -5148,8 +5177,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }).catch(() => {
         });
       }, [activeSessionId, screen, call]);
-      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === "notes" });
-      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === "notes" });
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === "long" });
+      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === "memory" });
       const [noteContextBusy, setNoteContextBusy] = React.useState(false);
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0);
       const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId]);
@@ -5539,10 +5568,23 @@ ${question}`;
         screen,
         openNote,
         noteDeletingId,
-        deleteNote,
-        longNotes,
-        noteContext,
-        memory
+        deleteNote
+      });
+      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext });
+      const memoryBody = h(MemoryPanel, {
+        t,
+        status: memory.status,
+        loading: memory.loading,
+        error: memory.error,
+        busy: memory.busy,
+        onRefresh: memory.refresh,
+        onMode: memory.setMode,
+        onBookState: memory.setBookState,
+        onSave: memory.saveCard,
+        onUndo: memory.undo,
+        onClear: memory.clear,
+        onApprove: memory.approve,
+        onReject: memory.reject
       });
       const searchPanel = h(SearchPanel, {
         t,
@@ -5565,6 +5607,8 @@ ${question}`;
         setChatTab,
         setChatOpen,
         notesBody,
+        longNotesBody,
+        memoryBody,
         chatBody,
         nativeChat,
         chatError,

@@ -1,14 +1,9 @@
 import { h } from '../runtime.ts'
 import { bookmarkContext } from '../bookmark-label.ts'
-import { LongNotes } from './long-notes.ts'
-import { MemoryPanel } from './memory-panel.ts'
 import type { StateSetter } from '../runtime.ts'
-import type { LongNotesState } from '../hooks/use-long-notes.ts'
-import type { MemoryState } from '../hooks/use-memory.ts'
 import type {
   MutableRef,
   Note,
-  NoteContextToggle,
   NoteRef,
   Screen,
   SearchMatch,
@@ -60,38 +55,15 @@ interface NotesBodyProps {
   openNote: (note: Note) => void
   noteDeletingId: string | null
   deleteNote: (note: NoteRef) => Promise<void> | void
-  longNotes?: LongNotesState
-  noteContext?: NoteContextToggle
-  memory?: MemoryState
 }
 
-export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext, memory }: NotesBodyProps) {
+export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
   const hasMarks = notes.length + highlights.length + bookmarks.length > 0
-  const hasLong = Boolean(longNotes)
-  const hasMemory = Boolean(memory)
   return h('div', { className: 'dsh-reader-notes' },
-    longNotes ? h(LongNotes, { t, state: longNotes, noteContext }) : null,
-    memory
-      ? h(MemoryPanel, {
-        t,
-        status: memory.status,
-        loading: memory.loading,
-        error: memory.error,
-        busy: memory.busy,
-        onRefresh: memory.refresh,
-        onMode: memory.setMode,
-        onBookState: memory.setBookState,
-        onSave: memory.saveCard,
-        onUndo: memory.undo,
-        onClear: memory.clear,
-        onApprove: memory.approve,
-        onReject: memory.reject,
-      })
-      : null,
     notesError ? h('div', { className: 'dsh-reader-chat-error' }, notesError) : null,
-    notesLoading && !hasMarks && !hasLong && !hasMemory
+    notesLoading && !hasMarks
       ? h('div', { className: 'dsh-reader-chat-empty' }, t('loading'))
-      : !hasMarks && !hasLong && !hasMemory
+      : !hasMarks
         ? notesError ? null : h('div', { className: 'dsh-reader-chat-empty' }, t('noteEmpty'))
         : [
           highlights.length > 0

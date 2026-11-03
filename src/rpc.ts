@@ -96,6 +96,16 @@ export interface ExportNotesResult {
   path?: string
 }
 
+export interface OpenNoteFilePayload {
+  bookId: string
+  id: string
+}
+
+export interface OpenNoteFileResult {
+  opened: boolean
+  path: string
+}
+
 export interface MemoryPayload {
   action: 'status' | 'setMode' | 'setBook' | 'write' | 'undo' | 'clear' | 'approve' | 'reject'
   bookId: string
@@ -212,6 +222,7 @@ export interface CallRpc {
   (endpoint: 'noteFiles', payload: NoteFilesHistoryPayload): Promise<{ history: NoteHistoryEntry[] }>
   (endpoint: 'noteFiles', payload: NoteFilesRestorePayload): Promise<NoteFileContentResult>
   (endpoint: 'exportNotes', payload: ExportNotesPayload): Promise<ExportNotesResult>
+  (endpoint: 'openNoteFile', payload: OpenNoteFilePayload): Promise<OpenNoteFileResult>
   (endpoint: 'memory', payload: MemoryPayload): Promise<any>
   (endpoint: 'setNoteContext', payload: SetNoteContextPayload): Promise<SetNoteContextResult>
   (endpoint: 'noteDrafts', payload: NoteDraftsListPayload): Promise<{ drafts: NoteDraftRecord[] }>

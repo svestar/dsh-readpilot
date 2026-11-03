@@ -165,6 +165,15 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
               disabled: state.historyBusy,
               onClick: state.toggleHistory,
             }, t('history'))
+            : null,
+          state.active
+            ? h('button', {
+              type: 'button',
+              className: 'dsh-reader-note-jump',
+              disabled: state.externalBusy,
+              title: t('openExternalHint'),
+              onClick: () => void state.openExternal(),
+            }, t('openExternal'))
             : null),
         state.active && state.historyOpen
           ? h('div', { className: 'dsh-reader-history' },

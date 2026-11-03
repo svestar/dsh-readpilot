@@ -10,7 +10,7 @@
 
 记忆设置存 `$DSH_HOME/dsh-reader/companion.json` 的 `memory`：全局模式 `off | ask | on`，默认 `ask`；单书状态 `inherit | on | off`，默认 `inherit`。全局 `off` 暂停所有书；单书 `off`/`on` 优先；`inherit` 跟随全局。每本书一张卡 `memory/<bookId>.md`，跨书读者卡 `memory/reader.md`；书卡上限 4000 字符、读者卡 2000 字符，写入前把旧内容存入 `.history/`，最多 10 份，可撤销与清空。
 
-右栏“笔记”标签内新增记忆区：全局模式、本书状态、生效状态、书卡/读者卡编辑、撤销、清空，以及待确认的记忆提议。记忆开启时，Host 的 systemPrompt.context 记忆条目按会话注入 `<reading_memory>`，只在当前书生效状态为 `on` 时注入；读者卡只随当前书一起注入。`reader_memory` 工具提供 `read`、`update`、`forget`：`read` 返回两张卡；`update` 在 `ask` 模式下生成提议、在 `on` 模式下直接写入、在 `off` 模式下报错；`forget` 清空对应卡。提议在记忆区“同意并保存”后把本书设为 `on` 并写入，选择“不用”则把本书设为 `off`。
+右栏“记忆”标签显示记忆页：全局模式、本书状态、生效状态、书卡/读者卡编辑、撤销、清空，以及待确认的记忆提议。记忆开启时，Host 的 systemPrompt.context 记忆条目按会话注入 `<reading_memory>`，只在当前书生效状态为 `on` 时注入；读者卡只随当前书一起注入。`reader_memory` 工具提供 `read`、`update`、`forget`：`read` 返回两张卡；`update` 在 `ask` 模式下生成提议、在 `on` 模式下直接写入、在 `off` 模式下报错；`forget` 清空对应卡。提议在记忆页“同意并保存”后把本书设为 `on` 并写入，选择“不用”则把本书设为 `off`。
 
 ## 接口与代码映射
 
