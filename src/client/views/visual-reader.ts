@@ -117,18 +117,21 @@ export function VisualReader({
         return
       }
       if (!spread) return
-      const width = spread.clientWidth
-      if (!(width > 0)) return
-      const key = `double:${width}:${pageViews.map(view => `${view.width}x${view.height}`).join(',')}`
+      const box = contentBox(container)
+      if (!(box.width > 0) || !(box.height > 0)) return
+      const key = `double:${box.width}x${box.height}:${pageViews.map(view => `${view.width}x${view.height}`).join(',')}`
       if (key === lastKey) return
       lastKey = key
       const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0
       const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0)
-      const available = width - gap * Math.max(0, pageViews.length - 1)
-      setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1)
+      const pageHeight = pageViews.reduce((max, view) => Math.max(max, view.height), 0)
+      const available = box.width - gap * Math.max(0, pageViews.length - 1)
+      setPdfFit(pageWidth > 0 && pageHeight > 0 && available > 0
+        ? Math.min(1, available / pageWidth, box.height / pageHeight)
+        : 1)
     }
     measure()
-    const target = layout === 'single' ? container : spread
+    const target = container
     let observer: ResizeObserver | null = null
     if (target && typeof ResizeObserver === 'function') {
       observer = new ResizeObserver(measure)

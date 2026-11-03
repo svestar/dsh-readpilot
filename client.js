@@ -895,7 +895,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
 .dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;width:100%;max-width:100%;margin:0 auto;padding:28px 40px;overflow:hidden}
 .dsh-reader-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
-.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;max-width:100%;margin-block:auto}
+.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:center;justify-content:center;gap:16px;max-width:100%;margin-block:auto}
 .dsh-reader-pdf-spread .dsh-reader-pdf-page{margin:0}
 .dsh-reader-visual[data-paged="true"]{overflow:auto}
 /* keep the 62px total block padding but split it evenly so paged PDF pages sit at the visual center */
@@ -1824,27 +1824,28 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         if (layout === "single") {
           const view = pageViews[0];
           if (!view || !(view.width > 0) || !(view.height > 0)) return;
-          const box = contentBox(container);
-          if (!(box.width > 0) || !(box.height > 0)) return;
-          const key2 = `single:${box.width}x${box.height}:${view.width}x${view.height}`;
+          const box2 = contentBox(container);
+          if (!(box2.width > 0) || !(box2.height > 0)) return;
+          const key2 = `single:${box2.width}x${box2.height}:${view.width}x${view.height}`;
           if (key2 === lastKey) return;
           lastKey = key2;
-          setPdfFit(Math.min(1, box.height / view.height, box.width / view.width));
+          setPdfFit(Math.min(1, box2.height / view.height, box2.width / view.width));
           return;
         }
         if (!spread) return;
-        const width = spread.clientWidth;
-        if (!(width > 0)) return;
-        const key = `double:${width}:${pageViews.map((view) => `${view.width}x${view.height}`).join(",")}`;
+        const box = contentBox(container);
+        if (!(box.width > 0) || !(box.height > 0)) return;
+        const key = `double:${box.width}x${box.height}:${pageViews.map((view) => `${view.width}x${view.height}`).join(",")}`;
         if (key === lastKey) return;
         lastKey = key;
         const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0;
         const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0);
-        const available = width - gap * Math.max(0, pageViews.length - 1);
-        setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1);
+        const pageHeight = pageViews.reduce((max, view) => Math.max(max, view.height), 0);
+        const available = box.width - gap * Math.max(0, pageViews.length - 1);
+        setPdfFit(pageWidth > 0 && pageHeight > 0 && available > 0 ? Math.min(1, available / pageWidth, box.height / pageHeight) : 1);
       };
       measure();
-      const target = layout === "single" ? container : spread;
+      const target = container;
       let observer = null;
       if (target && typeof ResizeObserver === "function") {
         observer = new ResizeObserver(measure);
