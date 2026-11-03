@@ -10,6 +10,7 @@ interface ChatPanelProps {
   setChatOpen: StateSetter<boolean>
   notesBody: any
   chatBody: any
+  nativeChat?: any
   chatError: string
   chatCompose: any
   chatWidth: number
@@ -30,6 +31,7 @@ export function ChatPanel({
   setChatOpen,
   notesBody,
   chatBody,
+  nativeChat,
   chatError,
   chatCompose,
   chatWidth,
@@ -85,9 +87,11 @@ export function ChatPanel({
       }, t('closeChat'))),
     chatTab === 'notes'
       ? notesBody
-      : chatBody,
-    chatTab === 'chat' && chatError
+      : nativeChat
+        ? h('div', { className: 'dsh-reader-native-chat' }, nativeChat)
+        : chatBody,
+    chatTab === 'chat' && !nativeChat && chatError
       ? h('div', { className: 'dsh-reader-chat-error' }, chatError)
       : null,
-    chatTab === 'chat' ? chatCompose : null)
+    chatTab === 'chat' && !nativeChat ? chatCompose : null)
 }

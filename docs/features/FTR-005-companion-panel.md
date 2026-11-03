@@ -3,33 +3,30 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/helpers.ts`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/views/chat-panel.ts`（`ChatPanel`）；`src/client/views/chat-content.ts`（`ChatBody`、`ChatCompose`）；`src/client/plugin.ts`（`ReaderPanel`）
-- **测试：** `tests/client-chat.test.ts`
+- **代码：** `src/client/views/native-companion.ts`（`NativeCompanion`、`createNativeChatBoundary`）；`src/client/views/chat-panel.ts`（`ChatPanel`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/plugin.ts`（`ReaderPanel`、`createPlugin`）；`src/client/helpers.ts`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/views/chat-content.ts`（`ChatBody`、`ChatCompose`）
+- **测试：** `tests/client-chat.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为
 
-打开一本可读的书籍后，正文右侧出现“伴读”栏，默认显示该书伴读会话中已落定的用户消息与助手文本消息。用户消息只取 `source.kind === 'user'` 的真实输入；运行上下文、技能目录、时间上下文等注入消息不显示。用户消息右对齐并使用气泡，助手消息左对齐并使用品牌色竖线，角色标签分别显示“你”和“伴读”。助手消息按基础 Markdown 渲染：标题、粗体/斜体、行内代码、围栏代码块、列表、引用、安全链接和分隔线；用户消息保持纯文本。用户在输入框中输入并发送，消息通过 `session.prompt` 进入同一会话，回答随会话事件更新；运行中显示“思考中…”，发送中显示“发送中…”。会话尚未创建时，首次发送在书库工作区中创建会话并保存映射。选中正文文字后，工具条的“解释 / 总结 / 翻译”只把书名、章节、引用原文和对应问题预填到输入框，不自动发送。宽屏下可拖动伴读栏左缘调整宽度（280–560px），双击恢复 340px，方向键每次调整 24px，宽度按浏览器记住；窄屏下伴读栏变为覆盖在正文上的可折叠抽屉，宽度固定。
+打开一本可读的书籍后，正文右侧出现“伴读”栏。书籍已有伴读会话且宿主支持 Conversation Factory 时，面板用 `SessionProvider` 绑定该书会话，并渲染 `conversation.content` 的 embedded occurrence：原生正文、工具卡、推理、审批、队列、模型选择、附件与 Composer 一起出现，和 Chat 面板是同一个会话。面板顶部保留“伴读 / 标记”标签、关闭按钮与拖动分隔线；阅读器仍提供书名与章节标题。选中正文后的“解释 / 总结 / 翻译”优先通过原生 `inputActions.setDraft` 把引用和问题写进 Composer，不自动发送；原生输入不可用时退回面板内的草稿输入框。还没有会话时，面板内输入框在首次发送时创建会话并保存映射，随后切换到原生会话。会话被删除或失效时清除映射并重建一次；仍失败则保留输入并显示错误。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `foldTranscript` | `src/client/helpers.ts:foldTranscript` | 从会话事件窗口折叠出用户/助手文本消息 |
-| `clampChatWidth` | `src/client/helpers.ts:clampChatWidth` | 把拖动宽度夹取到 280–560px 与窗口可用宽度 |
-| `parseMarkdownBlocks` | `src/client/helpers.ts:parseMarkdownBlocks` | 把助手文本切成基础 Markdown 块 |
-| `useCompanion` | `src/client/hooks/use-companion.ts:useCompanion` | 会话引用、事件订阅、发送、加载更早与拖动调宽 |
-| `ChatPanel` / `ChatBody` / `ChatCompose` | `src/client/views/chat-panel.ts:ChatPanel`；`src/client/views/chat-content.ts:ChatBody` | 渲染伴读栏外壳、消息列表与输入区 |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合伴读与阅读器状态 |
+| `NativeCompanion` | `src/client/views/native-companion.ts:NativeCompanion` | 在 SessionProvider 内渲染 embedded `conversation.content`，固定 Chat 视图 |
+| `createNativeChatBoundary` | `src/client/views/native-companion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
+| `ChatPanel` | `src/client/views/chat-panel.ts:ChatPanel` | 伴读/标记标签、原生聊天或折叠聊天、错误与输入区 |
+| `useCompanion` | `src/client/hooks/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、就绪后应用只读策略 |
+| `ReaderPanel` / `createPlugin` | `src/client/plugin.ts:ReaderPanel`；`src/client/plugin.ts:createPlugin` | 组装阅读器、声明 session 子槽、注册原生与折叠两条路径 |
 
 ## 约束与失败行为
 
-只显示 `user/message` 与 `assistant/message` 中的 `text` 块；用户消息还要求 `source.kind === 'user'`，因此运行上下文、技能目录、时间上下文等注入消息不会出现在伴读栏。助手 Markdown 不支持表格、图片、脚注、数学公式和原始 HTML；未闭合代码围栏按代码块处理；链接只允许 `http:`、`https:`、`mailto:` 与 `#`。工具卡片、推理、附件、审批、命令与图片不显示。历史默认显示最近 50 条，`hasMore` 时可加载更早。未配置书库工作区时输入框禁用并提示先创建书库。会话被删除时清除旧引用并重建一次；仍失败则保留输入内容并显示错误，用户可重试。发送使用 `queue` 模式，运行中仍可继续排队。宽度限制 280–560px，且不超过窗口可用宽度；窄屏忽略已保存宽度，恢复宽屏后使用保存值；`localStorage` 不可用或值非法时回退 340px。会话事件来自 `ctx.sessions.retain(sessionId).binding.eventSource`，不新增 Host 接口。
+`main` 面板注册声明 `dsh-reader.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 退回现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度 360–640px，默认 420px，按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。
 
 ## 验收与测试
 
-- 正常路径：用户文本与助手文本被折叠为两条消息，助手内容中的工具块被跳过（`fold_transcript_keeps_text`）。
-- 边界：工具结果、系统事件、纯工具消息和空白文本不产生消息（`fold_transcript_skips_non_text`）。
-- 正常路径：运行上下文、技能目录与时间上下文等注入消息被跳过，只保留真实用户输入（`fold_transcript_skips_context_messages`）。
-- 边界：宽度小于 280px、大于 560px 或超出窗口可用宽度时被夹取，非法值回退 340px（`clamp_chat_width_bounds`）。
-- 正常路径：标题、段落、列表、引用、分隔线与围栏代码块被识别为对应块类型（`parse_markdown_blocks_basic`）。
-- 边界：段落内的单换行保留，空行才分段（`parse_markdown_blocks_keeps_newlines`）。
+- 正常路径：伴读子组件以 embedded 变体和固定 Chat 视图渲染 conversation.content（`native_companion_renders_embedded_conversation`）。
+- 边界：缺少 Factory 时伴读子组件返回传入的 fallback，由外层退回折叠（`native_companion_falls_back_without_factory`）。
+- 正常路径：折叠仍只保留真实用户输入与助手文本（`fold_transcript_keeps_text`、`fold_transcript_skips_non_text`、`fold_transcript_skips_context_messages`）。
+- 边界：宽度夹取到 360–640px，非法值回退 420px（`clamp_chat_width_bounds`）。

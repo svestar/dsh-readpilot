@@ -14,6 +14,28 @@ export interface SessionPayload {
   sessionId: string | null
 }
 
+export interface CompanionPolicyPayload {
+  sessionId: string
+}
+
+export interface CompanionPolicyResult {
+  sessionId: string
+  mode: string | null
+  applied: boolean
+}
+
+export interface CompanionContextPayload {
+  sessionId: string
+  bookId: string
+  title: string
+  chapter: string
+}
+
+export interface CompanionContextResult {
+  sessionId: string
+  characters: number
+}
+
 export interface SearchPayload {
   bookId: string
   query: string
@@ -71,6 +93,8 @@ export interface CallRpc {
   (endpoint: 'chapter', payload: { bookId: string; chapterId: string }): Promise<ChapterContent>
   (endpoint: 'progress', payload: ProgressPayload): Promise<{ bookId: string; chapterId: string }>
   (endpoint: 'session', payload: SessionPayload): Promise<{ bookId: string; sessionId: string | null }>
+  (endpoint: 'companionPolicy', payload: CompanionPolicyPayload): Promise<CompanionPolicyResult>
+  (endpoint: 'companionContext', payload: CompanionContextPayload): Promise<CompanionContextResult>
   (endpoint: 'search', payload: SearchPayload): Promise<SearchResult>
   (endpoint: 'notes', payload: NotesListPayload): Promise<{ notes: NoteRecord[] }>
   (endpoint: 'notes', payload: NotesAddPayload): Promise<{ note: NoteRecord }>

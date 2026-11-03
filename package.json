@@ -1,6 +1,6 @@
 {
   "name": "dsh-reader",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Read TXT, Markdown, EPUB and PDF books with an AI companion session per book.",
   "type": "module",

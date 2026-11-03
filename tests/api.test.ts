@@ -133,6 +133,37 @@ test('rpc_envelope_dispatches', async t => {
   assert.equal(unknown.error?.code, 'unknown-endpoint')
 })
 
+test('companion_policy_sets_read_only_once', async t => {
+  const { data } = await makeLibrary(t)
+  const appended: Array<{ type: string; value: any }> = []
+  let current: string | undefined
+  const session = {
+    append(type: string, value: any) {
+      appended.push({ type, value })
+      current = value.mode
+    },
+  }
+  const ctx = {
+    get(name: string) {
+      if (name === 'sessions') return { get: (id: string) => id === 's1' ? session : undefined }
+      if (name === 'sandboxPolicy') return { overrideOf: () => current }
+      return undefined
+    },
+  }
+  const api = createReaderApi({ ctx, dataDir: data })
+
+  const first = await api.setCompanionPolicy({ sessionId: 's1' })
+  assert.equal(first.applied, true)
+  assert.deepEqual(appended, [{ type: 'sandbox/mode', value: { mode: 'read-only' } }])
+
+  const second = await api.setCompanionPolicy({ sessionId: 's1' })
+  assert.equal(second.applied, false)
+  assert.equal(appended.length, 1)
+
+  const missing = await api.setCompanionPolicy({ sessionId: 's2' })
+  assert.equal(missing.mode, null)
+})
+
 test('notes_rpc_roundtrip', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

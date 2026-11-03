@@ -4,23 +4,23 @@ DSH Web GUI 的电子书阅读插件。书库是一个用户指定的本机目�
 
 ## 当前能力
 
-- 书库：扫描目录中的 `.txt`、`.md`、`.epub`、`.pdf`；EPUB 按 spine 解析，PDF 抽取文本层并渲染页面。支持最近阅读、自定义标签、书名/标签搜索与排序。
-- 阅读：PDF/EPUB/txt/md 均可分页（PDF 恒为分页，EPUB/txt/md 可切换滚动/分页），支持单/双页与滚轮翻页；PDF 页面图片叠加可选文本层，EPUB 用 iframe 保留原书 CSS/图片/字体，txt/md 使用文本块。含目录、进度、搜索与笔记；五色划线、批注与章节书签；引文在正文高亮，点击可编辑，列表可跳转；配色可跟随 DSH 深浅色，或选浅/深色、羊皮纸、护眼绿、夜间。
-- 伴读：阅读界面右侧有伴读栏，显示会话历史并可输入；宽度可拖动，用户消息右对齐、助手消息左对齐并支持基础 Markdown；窄屏下是可折叠抽屉；选中正文后的“解释 / 总结 / 翻译”只把引用和问题预填到输入框，不自动发送。
-- 工具：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`，供模型按需读取、检索和记笔记；阅读助手纪律写入书库工作区的 `AGENTS.md`（管理块），只对该书库会话生效。
+- 书库：扫描 `.txt`、`.md`、`.epub`、`.pdf`；EPUB 按 spine 解析，PDF 抽取文本层并渲染页面。支持最近阅读、标签、书名/标签搜索与排序。
+- 阅读：四种格式都支持分页；PDF 恒为分页，其余可切滚动/分页；支持单/双页、滚轮翻页、目录、进度、搜索与笔记；五色划线、批注与书签，引文在正文高亮并可跳转；配色跟随 DSH 或选浅/深色、羊皮纸、护眼绿、夜间。
+- 伴读：右侧栏嵌入原生会话，与 Chat 共享同一会话，使用原生 Composer、工具卡、推理、审批与模型选择；不支持 Conversation Factory 或渲染失败时退回基础文本折叠。宽度可拖动，窄屏为抽屉；选段“解释/总结/翻译”只预填输入框，不自动发送。会话就绪后切到只读沙箱。
+- 工具：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`；阅读纪律写入书库工作区的 `AGENTS.md`（管理块），只对该书库会话生效。
 
 ## 安装与首次使用
 
-通过 Plugins 页面选择本地目录安装，或使用 `plugin_manager` 的 `install_bundle` 指向本目录。本地目录安装前先在本目录执行 `pnpm install`，再执行 `pnpm run build` 生成 Host 端的 `dist/` 与 Client 端的 `client.js`。Host 端依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
+通过 Plugins 页面选择本地目录安装，或用 `plugin_manager` 的 `install_bundle` 指向本目录。安装前先执行 `pnpm install` 和 `pnpm run build`，生成 Host 的 `dist/` 与 Client 的 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`。安装后刷新页面，在左侧栏点“阅读”，输入或选择书库目录，点“创建书库”。
 
 ## 开发
 
-Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`）。需要 Node 22.18+。`pnpm run build` 清理 `dist/` 后用 tsc 生成 Host、esbuild 生成 `client.js`；两者是产物，不要手工修改。只改 Client 可运行 `pnpm run build:client`。类型检查用 `pnpm run typecheck`，测试用 `pnpm test`（先重建 `client.js`）。
+Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`），需要 Node 22.18+。`pnpm run build` 清理 `dist/` 后用 tsc 生成 Host、esbuild 生成 `client.js`；只改 Client 可用 `pnpm run build:client`。类型检查用 `pnpm run typecheck`，测试用 `pnpm test`（先重建 `client.js`）。
 
 ## 数据
 
-书库原文件不复制。设置、进度、会话映射与解析缓存位于 `$DSH_HOME/dsh-reader/`；EPUB 解压资源在 `assets/`，PDF 页面图片在 `cache/pages/`；书籍解析缓存以路径生成的稳定 id 加文件修改时间失效。
+书库原文件不复制。设置、进度、会话映射与解析缓存位于 `$DSH_HOME/dsh-reader/`；EPUB 解压资源在 `assets/`，PDF 页面图片在 `cache/pages/`；解析缓存按路径 id 与文件修改时间失效。
 
 ## 限制
 
-EPUB 不执行原书脚本，但保留 CSS/图片/字体；PDF 以 PDF.js 页面图片 + 文本层显示，不做 OCR，扫描版需要自带文本层；PDF 双栏、连字和页眉页脚可能影响文本层与页面图像的重合。书内检索是字面量扫描，不是全文索引。单本书默认限制 100 MB，书库扫描深度 3 层、最多 2000 个文件。
+EPUB 不执行原书脚本，但保留 CSS/图片/字体；PDF 用页面图片 + 文本层，不做 OCR，扫描版需要自带文本层；双栏、连字和页眉页脚可能影响文本层与页面图像的重合。书内检索是字面量扫描，不是全文索引。单本默认 100 MB，书库扫描深度 3 层、最多 2000 个文件。原生伴读依赖 DSH 的 Conversation Factory 契约，升级后需复核，失败会退回折叠。

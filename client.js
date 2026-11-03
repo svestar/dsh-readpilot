@@ -334,9 +334,9 @@ var __dshReaderBundle = (() => {
       jumped
     };
   }
-  var CHAT_WIDTH_DEFAULT = 340;
-  var CHAT_WIDTH_MIN = 280;
-  var CHAT_WIDTH_MAX = 560;
+  var CHAT_WIDTH_DEFAULT = 420;
+  var CHAT_WIDTH_MIN = 360;
+  var CHAT_WIDTH_MAX = 640;
   function clampChatWidth(value, viewportWidth) {
     const numeric = Number.isFinite(value) ? value : CHAT_WIDTH_DEFAULT;
     const available = Number.isFinite(viewportWidth) ? viewportWidth - 230 - 360 : CHAT_WIDTH_MAX;
@@ -781,8 +781,8 @@ var __dshReaderBundle = (() => {
 .dsh-reader-path-row{display:flex;gap:8px;margin-bottom:14px}
 .dsh-reader-path-row input{flex:1;min-width:0;height:34px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit}
 .dsh-reader-path-row input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
-.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) var(--dsh-reader-chat-width,340px)}
-.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) var(--dsh-reader-chat-width,340px)}
+.dsh-reader-book{flex:1;min-height:0;display:grid;position:relative;grid-template-columns:230px minmax(0,1fr) var(--dsh-reader-chat-width,420px)}
+.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr) var(--dsh-reader-chat-width,420px)}
 .dsh-reader-book[data-chat="false"]{grid-template-columns:230px minmax(0,1fr)}
 .dsh-reader-book[data-toc="false"][data-chat="false"]{grid-template-columns:minmax(0,1fr)}
 .dsh-reader-toc{min-height:0;overflow:auto;padding:12px 10px 40px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
@@ -803,6 +803,9 @@ var __dshReaderBundle = (() => {
 .dsh-reader-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-reader-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
+.dsh-reader-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.dsh-reader-native-chat>[data-conversation-content]{flex:1;min-height:0;min-width:0}
+.dsh-reader-chat-fallback{flex:1;min-height:0;display:flex;flex-direction:column}
 .dsh-reader-chat-empty{padding:18px 6px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.7}
 .dsh-reader-chat-more{display:block;width:100%;margin-bottom:10px;padding:5px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-reader-chat-more:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -949,7 +952,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
 .dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-spacer{flex:1}
-@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(360px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-resizer{display:none}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
+@media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-resizer{display:none}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}.dsh-reader-bar{padding:6px 10px;gap:6px}.dsh-reader-bar-title{order:3;flex:1 0 100%}.dsh-reader-bar-controls{margin-left:auto}.dsh-reader-page-frame{padding:18px 16px}.dsh-reader-pdf-spread{gap:8px}}
 `;
 
@@ -1989,6 +1992,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     setChatOpen,
     notesBody,
     chatBody,
+    nativeChat,
     chatError,
     chatCompose,
     chatWidth,
@@ -2050,9 +2054,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           onClick: () => setChatOpen(false)
         }, t("closeChat"))
       ),
-      chatTab === "notes" ? notesBody : chatBody,
-      chatTab === "chat" && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
-      chatTab === "chat" ? chatCompose : null
+      chatTab === "notes" ? notesBody : nativeChat ? h("div", { className: "dsh-reader-native-chat" }, nativeChat) : chatBody,
+      chatTab === "chat" && !nativeChat && chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
+      chatTab === "chat" && !nativeChat ? chatCompose : null
     );
   }
 
@@ -2505,13 +2509,17 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const record = { sessionId, reference, unsubscribe };
       chatRef.current = record;
       setChatBinding(record);
-      reference.ready.catch((error) => {
+      reference.ready.then(() => {
+        if (chatRef.current !== record) return;
+        void call("companionPolicy", { sessionId }).catch(() => {
+        });
+      }).catch((error) => {
         if (chatRef.current === record) {
           setChatError(`${t("loadFailed")}：${messageOf(error)}`);
         }
       });
       return reference;
-    }, [releaseChat, runtime, t]);
+    }, [releaseChat, runtime, t, call]);
     React.useEffect(() => {
       if (!activeSessionId) {
         releaseChat();
@@ -2759,6 +2767,69 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }, sending ? t("sending") : t("send"))
       )
     );
+  }
+
+  // src/client/views/native-companion.ts
+  function createNativeChatBoundary() {
+    if (typeof React.Component !== "function") {
+      return function NativeChatBoundaryPassthrough({ children }) {
+        return children;
+      };
+    }
+    const Base = React.Component;
+    return class NativeChatBoundary extends Base {
+      constructor(props) {
+        super(props);
+        this.state = { failed: false };
+      }
+      static getDerivedStateFromError() {
+        return { failed: true };
+      }
+      componentDidCatch(error, info) {
+        console.error("dsh-reader: native companion failed", error, info);
+      }
+      render() {
+        if (this.state.failed) return this.props.fallback ?? null;
+        return this.props.children;
+      }
+    };
+  }
+  function FixedChatView(props) {
+    return props.renderSlot("conversation.session", { view: "chat" });
+  }
+  function NativeCompanion(props) {
+    const {
+      renderFactorySlot,
+      useSession,
+      useConversation,
+      useSessions,
+      sessionId,
+      inputActions,
+      onReady,
+      fallback
+    } = props;
+    React.useEffect(() => {
+      if (typeof onReady === "function") onReady({ inputActions });
+      return () => {
+        if (typeof onReady === "function") onReady(null);
+      };
+    }, [inputActions, onReady]);
+    const session = useSession((value) => value);
+    const conversation = useConversation((value) => value);
+    const summaryBlank = useSessions((state) => state?.byId?.[sessionId]?.blank);
+    if (typeof renderFactorySlot !== "function" || sessionId === void 0) {
+      return fallback ?? null;
+    }
+    const activeTargets = conversation?.activeTargets;
+    const shellPhase = activeTargets && typeof activeTargets.size === "number" && activeTargets.size > 0 || !session?.blank && !session?.awaitingFirstTurn || session?.running ? "active" : session?.promptAttempted ? "engaging" : "blank";
+    const settling = shellPhase === "blank" && session?.openState === "loading" && summaryBlank !== true;
+    const hero = shellPhase === "blank" && (session?.openState === "open" || summaryBlank === true);
+    const rendered = renderFactorySlot(
+      "conversation.content",
+      { variant: "embedded", phase: settling ? "settling" : hero ? "hero" : "active", hero },
+      { slots: { views: FixedChatView } }
+    );
+    return rendered ?? fallback ?? null;
   }
 
   // src/client/hooks/use-search.ts
@@ -3853,6 +3924,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   function createPlugin(require2) {
     bindRuntime(require2);
     const ReaderErrorBoundary = createReaderErrorBoundary();
+    const NativeChatBoundary = createNativeChatBoundary();
     const NS = "dshReader";
     const style = document.createElement("style");
     style.dataset.plugin = "dsh-reader";
@@ -3963,8 +4035,26 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         resetResize,
         resizeKeyDown,
         hasMore,
-        loadingEarlier
+        loadingEarlier,
+        chatBinding
       } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession });
+      const nativeInputRef = React.useRef(null);
+      const handleNativeReady = React.useCallback((value) => {
+        nativeInputRef.current = value;
+        if (!value || !chatBinding?.sessionId) return;
+        void call("companionPolicy", { sessionId: chatBinding.sessionId }).catch(() => {
+        });
+      }, [chatBinding, call]);
+      React.useEffect(() => {
+        if (screen.kind !== "book" || !activeSessionId) return;
+        void call("companionContext", {
+          sessionId: activeSessionId,
+          bookId: screen.detail.book.id,
+          title: screen.detail.book.title,
+          chapter: screen.content.title
+        }).catch(() => {
+        });
+      }, [activeSessionId, screen, call]);
       const visualFor = React.useCallback((detail, item) => {
         if (!detail || !item) return null;
         if (detail.book.format === "pdf") {
@@ -4220,11 +4310,23 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           translate: t("translatePrompt")
         }[kind];
         const quote = selection.text.split("\n").map((line) => `> ${line}`).join("\n");
-        setDraft(`我在读《${screen.detail.book.title}》的《${screen.content.title}》。
+        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。
 
 ${quote}
 
-${question}`);
+${question}`;
+        const nativeInput = nativeInputRef.current?.inputActions;
+        let prefilledNative = false;
+        if (nativeInput && typeof nativeInput.setDraft === "function") {
+          try {
+            nativeInput.setDraft(text);
+            if (typeof nativeInput.focus === "function") nativeInput.focus();
+            prefilledNative = true;
+          } catch {
+            prefilledNative = false;
+          }
+        }
+        if (!prefilledNative) setDraft(text);
         setSelection(null);
         setChatOpen(true);
         setChatTab("chat");
@@ -4281,6 +4383,23 @@ ${question}`);
         send,
         chatInputRef
       });
+      const fallbackChat = h(
+        "div",
+        { className: "dsh-reader-chat-fallback" },
+        chatBody,
+        chatError ? h("div", { className: "dsh-reader-chat-error" }, chatError) : null,
+        chatCompose
+      );
+      const companionReference = chatBinding?.reference;
+      const nativeChat = companionReference && props.SessionProvider && props.renderSlot ? h(
+        NativeChatBoundary,
+        { fallback: fallbackChat },
+        h(
+          props.SessionProvider,
+          { session: companionReference },
+          props.renderSlot("dsh-reader.companion", { onReady: handleNativeReady, fallback: fallbackChat })
+        )
+      ) : null;
       const notesBody = h(NotesBody, {
         t,
         notesError,
@@ -4315,6 +4434,7 @@ ${question}`);
         setChatOpen,
         notesBody,
         chatBody,
+        nativeChat,
         chatError,
         chatCompose,
         chatWidth,
@@ -4567,6 +4687,7 @@ ${question}`);
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
+      NativeCompanion,
       READER_PALETTE_IDS,
       READER_PALETTES,
       resolveReaderPalette,
@@ -4589,9 +4710,19 @@ ${question}`);
           () => ctx.slots.inject("main", () => ctx.slots.register({
             name: "main",
             key: "dsh-reader",
-            locale: NS
+            locale: NS,
+            children: {
+              "dsh-reader.companion": { kind: "single", scope: "session" }
+            }
           }, ReaderPanelWithBoundary)),
           "dsh-reader: main panel"
+        );
+        ctx.effect(
+          () => ctx.slots.inject("dsh-reader.companion", () => ctx.slots.register({
+            name: "dsh-reader.companion",
+            locale: NS
+          }, NativeCompanion)),
+          "dsh-reader: native companion"
         );
       }
     };

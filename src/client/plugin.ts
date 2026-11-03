@@ -30,6 +30,7 @@ import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
 import { useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
+import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -53,6 +54,7 @@ import type { CallRpc } from '../rpc.ts'
 export function createPlugin(require: (name: string) => any) {
     bindRuntime(require)
     const ReaderErrorBoundary = createReaderErrorBoundary()
+    const NativeChatBoundary = createNativeChatBoundary()
     const NS = 'dshReader'
 
 
@@ -92,7 +94,7 @@ export function createPlugin(require: (name: string) => any) {
 
 
 
-    function ReaderPanel(props: { t?: TextFn }) {
+    function ReaderPanel(props: { t?: TextFn; SessionProvider?: any; renderSlot?: any }) {
       const t: TextFn = props.t ?? boundText
       const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null)
       const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
@@ -184,7 +186,25 @@ export function createPlugin(require: (name: string) => any) {
         resizeKeyDown,
         hasMore,
         loadingEarlier,
+        chatBinding,
       } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession })
+
+      const nativeInputRef = React.useRef<any>(null)
+      const handleNativeReady = React.useCallback((value: any) => {
+        nativeInputRef.current = value
+        if (!value || !chatBinding?.sessionId) return
+        void call('companionPolicy', { sessionId: chatBinding.sessionId }).catch(() => {})
+      }, [chatBinding, call])
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || !activeSessionId) return
+        void call('companionContext', {
+          sessionId: activeSessionId,
+          bookId: screen.detail.book.id,
+          title: screen.detail.book.title,
+          chapter: screen.content.title,
+        }).catch(() => {})
+      }, [activeSessionId, screen, call])
 
       const visualFor = React.useCallback((detail: BookDetail, item: TocItem | undefined): Visual | null => {
         if (!detail || !item) return null
@@ -474,7 +494,19 @@ export function createPlugin(require: (name: string) => any) {
           translate: t('translatePrompt'),
         }[kind]
         const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
-        setDraft(`我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n${question}`)
+        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n${question}`
+        const nativeInput = nativeInputRef.current?.inputActions
+        let prefilledNative = false
+        if (nativeInput && typeof nativeInput.setDraft === 'function') {
+          try {
+            nativeInput.setDraft(text)
+            if (typeof nativeInput.focus === 'function') nativeInput.focus()
+            prefilledNative = true
+          } catch {
+            prefilledNative = false
+          }
+        }
+        if (!prefilledNative) setDraft(text)
         setSelection(null)
         setChatOpen(true)
         setChatTab('chat')
@@ -545,6 +577,18 @@ export function createPlugin(require: (name: string) => any) {
         chatInputRef,
       })
 
+      const fallbackChat = h('div', { className: 'dsh-reader-chat-fallback' },
+        chatBody,
+        chatError ? h('div', { className: 'dsh-reader-chat-error' }, chatError) : null,
+        chatCompose)
+
+      const companionReference = chatBinding?.reference
+      const nativeChat = companionReference && props.SessionProvider && props.renderSlot
+        ? h(NativeChatBoundary, { fallback: fallbackChat },
+          h(props.SessionProvider, { session: companionReference },
+            props.renderSlot('dsh-reader.companion', { onReady: handleNativeReady, fallback: fallbackChat })))
+        : null
+
       const notesBody = h(NotesBody, {
         t,
         notesError,
@@ -581,6 +625,7 @@ export function createPlugin(require: (name: string) => any) {
         setChatOpen,
         notesBody,
         chatBody,
+        nativeChat,
         chatError,
         chatCompose,
         chatWidth,
@@ -849,6 +894,7 @@ export function createPlugin(require: (name: string) => any) {
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
+      NativeCompanion,
       READER_PALETTE_IDS,
       READER_PALETTES,
       resolveReaderPalette,
@@ -872,8 +918,18 @@ export function createPlugin(require: (name: string) => any) {
             name: 'main',
             key: 'dsh-reader',
             locale: NS,
+            children: {
+              'dsh-reader.companion': { kind: 'single', scope: 'session' },
+            },
           }, ReaderPanelWithBoundary)),
           'dsh-reader: main panel',
+        )
+        ctx.effect(
+          () => ctx.slots.inject('dsh-reader.companion', () => ctx.slots.register({
+            name: 'dsh-reader.companion',
+            locale: NS,
+          }, NativeCompanion)),
+          'dsh-reader: native companion',
         )
       },
     }

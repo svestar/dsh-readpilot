@@ -8,7 +8,7 @@
 | `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.ts` | `tests/formats.test.ts` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.ts` | `tests/api.test.ts` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.ts` | `tests/tools.test.ts` | active |
-| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/helpers.ts` | `tests/client-chat.test.ts` | active |
+| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts` | active |
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.ts` | `tests/epub.test.ts` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.ts` | `tests/pdf.test.ts` | active |
 | `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.ts` | `tests/notes.test.ts` | active |

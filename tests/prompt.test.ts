@@ -4,6 +4,7 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ensureWorkspacePrompt, READING_PROMPT } from '../src/workspace-prompt.ts'
+import { createReaderApi } from '../src/api.ts'
 
 test('workspace_prompt_created_and_managed', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-reader-prompt-'))
@@ -33,4 +34,22 @@ test('workspace_prompt_replaces_managed_block', async t => {
   const content = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.doesNotMatch(content, /旧内容/)
   assert.ok(content.includes(READING_PROMPT))
+})
+
+test('companion_context_is_scoped_to_session', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'dsh-reader-context-'))
+  t.after(() => rm(data, { recursive: true, force: true }))
+  const api = createReaderApi({ ctx: { get: () => undefined }, dataDir: data })
+
+  const result = await api.setCompanionContext({
+    sessionId: 's1',
+    bookId: 'b1',
+    title: '三体',
+    chapter: '第三章',
+  })
+  assert.ok(result.characters > 0)
+  const text = api.companionContextOf('s1')
+  assert.match(text, /三体/)
+  assert.match(text, /第三章/)
+  assert.equal(api.companionContextOf('s2'), '')
 })

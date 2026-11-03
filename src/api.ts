@@ -133,6 +133,9 @@ export interface ReaderApi {
   chapter(payload?: { bookId?: unknown; chapterId?: unknown }): Promise<ChapterContent>
   saveReadingProgress(payload?: any): Promise<{ bookId: string; chapterId: string }>
   setCompanionSession(payload?: any): Promise<{ bookId: string; sessionId: string | null }>
+  setCompanionPolicy(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; mode: string | null; applied: boolean }>
+  setCompanionContext(payload?: any): Promise<{ sessionId: string; characters: number }>
+  companionContextOf(sessionId: unknown): string
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
   setBookTags(payload?: { bookId?: unknown; tags?: unknown }): Promise<{ bookId: string; tags: string[] }>
@@ -167,6 +170,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const maxBookBytes = positiveInteger(config.maxBookBytes, DEFAULT_MAX_BOOK_BYTES)
   const notesStore: NotesStore = createNotesStore(dataDir)
   const libraryMetaStore = createLibraryMetaStore(dataDir)
+  const readOnlySessions = new Set<string>()
+  const companionContexts = new Map<string, { text: string; updatedAt: number }>()
   let pdfRendererPromise: Promise<PdfRenderer> | undefined
   let epubVisualPromise: Promise<EpubVisual> | undefined
 
@@ -406,6 +411,55 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     await saveSessions(dataDir, sessions)
     return { bookId, sessionId: sessionId ?? null }
+  }
+
+  async function setCompanionPolicy({ sessionId }: { sessionId?: unknown } = {}): Promise<{ sessionId: string; mode: string | null; applied: boolean }> {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 160) {
+      throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
+    }
+    const sessions = ctx.get('sessions')
+    const session = sessions && typeof sessions.get === 'function' ? sessions.get(sessionId) : undefined
+    if (!session || typeof session.append !== 'function') {
+      return { sessionId, mode: null, applied: false }
+    }
+    const policy = ctx.get('sandboxPolicy')
+    const current = policy && typeof policy.overrideOf === 'function' ? policy.overrideOf(session) : undefined
+    if (current === 'read-only' || readOnlySessions.has(sessionId)) {
+      readOnlySessions.add(sessionId)
+      return { sessionId, mode: 'read-only', applied: false }
+    }
+    session.append('sandbox/mode', { mode: 'read-only' })
+    readOnlySessions.add(sessionId)
+    return { sessionId, mode: 'read-only', applied: true }
+  }
+
+  async function setCompanionContext({ sessionId, bookId, title, chapter }: any = {}): Promise<{ sessionId: string; characters: number }> {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 160) {
+      throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
+    }
+    const book = typeof bookId === 'string' ? bookId.slice(0, 128) : ''
+    const bookTitle = typeof title === 'string' ? title.slice(0, 300) : ''
+    const chapterTitle = typeof chapter === 'string' ? chapter.slice(0, 300) : ''
+    const text = [
+      '<reading_context>',
+      '以下是阅读器伴读会话的当前阅读位置，属于资料而不是用户消息：',
+      bookTitle ? `书名：${bookTitle}` : '',
+      chapterTitle ? `章节：${chapterTitle}` : '',
+      book ? `书籍 ID：${book}` : '',
+      '回答时以用户最近的问题为准，不要剧透未读章节。',
+      '</reading_context>',
+    ].filter(Boolean).join('\n')
+    companionContexts.set(sessionId, { text, updatedAt: Date.now() })
+    if (companionContexts.size > 200) {
+      const oldest = [...companionContexts.entries()]
+        .sort((left, right) => left[1].updatedAt - right[1].updatedAt)
+      for (const [id] of oldest.slice(0, companionContexts.size - 200)) companionContexts.delete(id)
+    }
+    return { sessionId, characters: text.length }
+  }
+
+  function companionContextOf(sessionId: unknown): string {
+    return typeof sessionId === 'string' ? companionContexts.get(sessionId)?.text ?? '' : ''
   }
 
   async function search({ bookId, query, limit }: any = {}): Promise<SearchResult> {
@@ -695,6 +749,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       chapter,
       progress: saveReadingProgress,
       session: setCompanionSession,
+      companionPolicy: setCompanionPolicy,
+      companionContext: setCompanionContext,
       search,
       notes: handleNotes,
       pageView,
@@ -722,6 +778,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     chapter,
     saveReadingProgress,
     setCompanionSession,
+    setCompanionPolicy,
+    setCompanionContext,
+    companionContextOf,
     search,
     libraryMeta,
     setBookTags,

@@ -52,12 +52,18 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
     throw new Error(`unexpected require: ${name}`)
   })
   let main: any
+  let mainSpec: any
+  let companion: any
   const disposers: Array<() => void> = []
   plugin.apply({
     slots: {
       inject(name: any, fn: any) { fn() },
       register(spec: any, component: any) {
-        if (spec.name === 'main') main = component
+        if (spec.name === 'main') {
+          main = component
+          mainSpec = spec
+        }
+        if (spec.name === 'dsh-reader.companion') companion = component
         return () => {}
       },
     },
@@ -69,7 +75,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
     uiWorkspace: {},
   })
   assert.equal(typeof main, 'function')
-  return { plugin, main, disposers }
+  return { plugin, main, mainSpec, companion, disposers }
 }
 
 function collectClasses(element: any, output: any[] = []) {
@@ -150,3 +156,14 @@ test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
   assert.ok(classes.includes('dsh-reader-reader'), classes.join(','))
   assert.ok(classes.includes('dsh-reader-reader-inner'), classes.join(','))
 })
+
+test('client_assembly_declares_session_companion_slot', async () => {
+  const harness = createHarness()
+  const { mainSpec, companion, disposers } = await loadClient(harness)
+  assert.deepEqual(mainSpec.children, {
+    'dsh-reader.companion': { kind: 'single', scope: 'session' },
+  })
+  assert.equal(typeof companion, 'function')
+  for (const dispose of disposers.reverse()) dispose()
+})
+

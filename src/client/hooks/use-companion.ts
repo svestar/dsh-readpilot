@@ -100,13 +100,16 @@ export function useCompanion({
     const record: ChatBinding = { sessionId, reference, unsubscribe }
     chatRef.current = record
     setChatBinding(record)
-    reference.ready.catch((error: unknown) => {
+    reference.ready.then(() => {
+      if (chatRef.current !== record) return
+      void call('companionPolicy', { sessionId }).catch(() => {})
+    }).catch((error: unknown) => {
       if (chatRef.current === record) {
         setChatError(`${t('loadFailed')}：${messageOf(error)}`)
       }
     })
     return reference
-  }, [releaseChat, runtime, t])
+  }, [releaseChat, runtime, t, call])
 
   React.useEffect(() => {
     if (!activeSessionId) {

@@ -22,6 +22,15 @@ export function apply(ctx: any, config: any = {}): void {
 
   ctx.effect(() => registerTools(ctx, api), 'dsh-reader: tools')
 
+  ctx.inject(['systemPrompt'], (scope: any) => {
+    scope.effect(() => scope.systemPrompt.context({
+      name: 'dsh-reader:reading',
+      order: 9500,
+      interpolate: false,
+      text: ({ agent }: any) => api.companionContextOf(agent?.session?.id),
+    }), 'dsh-reader: reading context')
+  })
+
   ctx.inject(['connection'], (connectionCtx: any) => {
     connectionCtx.effect(() => {
       const register = connectionCtx.connection.fetch.register

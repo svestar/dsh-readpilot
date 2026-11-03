@@ -20,7 +20,10 @@ globalAny.document = {
 // @ts-expect-error client.js is a build artifact without type declarations.
 await import('../client.js')
 
-const plugin = globalAny.__readerRegistration.factory(() => ({ createElement: () => null }))
+const plugin = globalAny.__readerRegistration.factory(() => ({
+  createElement: () => null,
+  useEffect: () => {},
+}))
 
 function event(type: string, seq: number, data: any) {
   return { type: 'event', event: { type, seq, time: 0, data } }
@@ -82,11 +85,11 @@ test('fold_transcript_skips_context_messages', () => {
 })
 
 test('clamp_chat_width_bounds', () => {
-  assert.equal(plugin.clampChatWidth(200, 1440), 280)
-  assert.equal(plugin.clampChatWidth(900, 1440), 560)
-  assert.equal(plugin.clampChatWidth(400, 900), 310)
-  assert.equal(plugin.clampChatWidth(400, 700), 280)
-  assert.equal(plugin.clampChatWidth(Number.NaN, 1440), 340)
+  assert.equal(plugin.clampChatWidth(200, 1440), 360)
+  assert.equal(plugin.clampChatWidth(900, 1440), 640)
+  assert.equal(plugin.clampChatWidth(400, 900), 360)
+  assert.equal(plugin.clampChatWidth(400, 700), 360)
+  assert.equal(plugin.clampChatWidth(Number.NaN, 1440), 420)
 })
 
 test('parse_markdown_blocks_basic', () => {
@@ -118,4 +121,37 @@ test('parse_markdown_blocks_keeps_newlines', () => {
   assert.equal(blocks.length, 2)
   assert.equal(blocks[0].text, 'line one\nline two')
   assert.equal(blocks[1].text, 'second paragraph')
+})
+
+test('native_companion_renders_embedded_conversation', () => {
+  const calls: any[] = []
+  const element = plugin.NativeCompanion({
+    sessionId: 's1',
+    renderFactorySlot(name: string, props: any, options: any) {
+      calls.push({ name, props, options })
+      return 'factory'
+    },
+    useSession: () => ({ blank: false, awaitingFirstTurn: false, running: false, openState: 'open' }),
+    useConversation: () => ({ activeTargets: new Set(['chat']) }),
+    useSessions: (selector: any) => selector({ byId: { s1: { blank: false } } }),
+    inputActions: {},
+    onReady: () => {},
+  })
+  assert.equal(element, 'factory')
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].name, 'conversation.content')
+  assert.equal(calls[0].props.variant, 'embedded')
+  assert.equal(calls[0].props.phase, 'active')
+  assert.equal(typeof calls[0].options.slots.views, 'function')
+})
+
+test('native_companion_falls_back_without_factory', () => {
+  const element = plugin.NativeCompanion({
+    sessionId: 's1',
+    useSession: () => ({}),
+    useConversation: () => ({ activeTargets: new Set() }),
+    useSessions: () => false,
+    fallback: 'fallback',
+  })
+  assert.equal(element, 'fallback')
 })

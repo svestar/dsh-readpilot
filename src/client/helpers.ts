@@ -378,9 +378,9 @@ export function applyEpubNoteMarks(
   }
 }
 
-export const CHAT_WIDTH_DEFAULT = 340
-export const CHAT_WIDTH_MIN = 280
-export const CHAT_WIDTH_MAX = 560
+export const CHAT_WIDTH_DEFAULT = 420
+export const CHAT_WIDTH_MIN = 360
+export const CHAT_WIDTH_MAX = 640
 
 export function clampChatWidth(value: number, viewportWidth: number): number {
   const numeric = Number.isFinite(value) ? value : CHAT_WIDTH_DEFAULT
