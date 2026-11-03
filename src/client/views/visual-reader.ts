@@ -1,128 +1,181 @@
-import { h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import { renderBlocks } from './markdown.ts'
-import type { StateSetter } from '../runtime.ts'
+import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { MutableRef, PageView, Screen, TextFn, Visual } from '../types.ts'
+
+const PDF_WHEEL_THRESHOLD = 40
 
 interface VisualReaderProps {
   t: TextFn
   visual: Visual | null
   screen: Screen
-  pageView: PageView | null
-  pageInput: string
-  setPageInput: StateSetter<string>
-  goPdfPage: (page: number) => void
-  zoomPdf: (delta: number) => void
+  pageViews: PageView[]
+  layout: PageLayout
+  readingMode?: ReaderMode
+  stepPdfPage: (delta: number) => void
   visualLoading: boolean
   visualError: string
   onPdfMouseUp: () => void
   noteLayerRef: MutableRef<HTMLDivElement | null>
-  goEpubChapter: (delta: number) => void
   onEpubLoad: (event: any) => void
   epubFrameRef: MutableRef<HTMLIFrameElement | null>
 }
 
+function renderPdfTextItems(pageView: PageView) {
+  let offset = 0
+  return (pageView.textItems ?? []).map((item, index) => {
+    const start = offset
+    offset += item.text.length
+    return h('span', {
+      key: `pdf-text-${index}`,
+      className: 'dsh-reader-pdf-text-item',
+      'data-offset': start,
+      style: {
+        left: item.left,
+        top: item.top,
+        width: item.width,
+        height: item.height,
+        fontSize: item.fontSize,
+      },
+    }, item.text)
+  })
+}
+
 export function VisualReader({
-  t, visual, screen, pageView, pageInput, setPageInput, goPdfPage, zoomPdf,
-  visualLoading, visualError, onPdfMouseUp, noteLayerRef, goEpubChapter, onEpubLoad, epubFrameRef,
+  t,
+  visual,
+  screen,
+  pageViews,
+  layout,
+  readingMode = 'paged',
+  stepPdfPage,
+  visualLoading,
+  visualError,
+  onPdfMouseUp,
+  noteLayerRef,
+  onEpubLoad,
+  epubFrameRef,
 }: VisualReaderProps) {
+  const containerRef = React.useRef<HTMLDivElement | null>(null)
+  const spreadRef = React.useRef<HTMLDivElement | null>(null)
+  const [pdfFit, setPdfFit] = React.useState(1)
+  const pdfPaged = visual?.kind === 'pdf' && screen.kind === 'book'
+
+  React.useEffect(() => {
+    const container = containerRef.current
+    if (!pdfPaged || !container) return
+    let accumulated = 0
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey || event.metaKey || event.altKey) return
+      if (!event.deltaY) return
+      event.preventDefault()
+      if ((accumulated > 0) !== (event.deltaY > 0)) accumulated = 0
+      accumulated += event.deltaY
+      if (Math.abs(accumulated) < PDF_WHEEL_THRESHOLD) return
+      const direction = accumulated > 0 ? 1 : -1
+      accumulated = 0
+      stepPdfPage(direction)
+    }
+    container.addEventListener('wheel', onWheel, { passive: false })
+    return () => container.removeEventListener('wheel', onWheel)
+  }, [pdfPaged, stepPdfPage])
+
+  React.useEffect(() => {
+    if (!pdfPaged || layout !== 'double') {
+      setPdfFit(1)
+      return
+    }
+    const spread = spreadRef.current
+    if (!spread) return
+    let lastWidth = -1
+    const measure = () => {
+      const width = spread.clientWidth
+      if (width <= 0 || width === lastWidth) return
+      lastWidth = width
+      const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0
+      const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0)
+      const available = width - gap * Math.max(0, pageViews.length - 1)
+      setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1)
+    }
+    measure()
+    let observer: ResizeObserver | null = null
+    if (typeof ResizeObserver === 'function') {
+      observer = new ResizeObserver(measure)
+      observer.observe(spread)
+    }
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [layout, pageViews, pdfPaged, visualError, visualLoading])
+
   if (!visual) return null
   if (screen.kind !== 'book') return null
-  const pdfPageUrl = visual.kind === 'pdf' && screen.kind === 'book'
-    ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}`
-    : ''
-  const epubIndex = screen.kind === 'book'
-    ? screen.detail.toc.findIndex(item => item.id === screen.content.chapterId)
-    : -1
-  return (visual?.kind === 'pdf'
-        ? h('div', { className: 'dsh-reader-visual' },
-          h('div', { className: 'dsh-reader-visual-bar' },
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-secondary',
-              disabled: visual.page <= 1,
-              onClick: () => goPdfPage(visual.page - 1),
-            }, '‹'),
-            h('input', {
-              className: 'dsh-reader-page-input',
-              type: 'number',
-              min: 1,
-              max: pageView?.pageCount ?? 1,
-              value: pageInput,
-              onChange: (event: any) => setPageInput(event.target.value),
-              onKeyDown: (event: any) => {
-                if (event.key === 'Enter') goPdfPage(Number(pageInput))
+  if (visual.kind === 'pdf') {
+    return h('div', {
+      className: 'dsh-reader-visual',
+      'data-paged': 'true',
+      'data-layout': layout,
+      ref: containerRef,
+    },
+    visualLoading
+      ? h('div', { className: 'dsh-reader-muted' }, t('loading'))
+      : visualError
+        ? h('div', { className: 'dsh-reader-visual-error' },
+          h('div', null, visualError),
+          h('div', { className: 'dsh-reader-reader-inner' },
+            renderBlocks(screen.content.blocks, screen.content.chapterId)))
+        : pageViews.length > 0
+          ? h('div', { className: 'dsh-reader-pdf-spread', ref: spreadRef },
+            pageViews.map((view, index) => h('div', {
+              key: `pdf-page-${visual.page + index}`,
+              className: 'dsh-reader-pdf-slot',
+              style: {
+                width: view.width * pdfFit,
+                height: view.height * pdfFit,
+                flex: 'none',
+                position: 'relative',
               },
+            },
+            h('div', {
+              className: 'dsh-reader-pdf-page',
+              'data-page': visual.page + index,
+              style: {
+                width: view.width,
+                height: view.height,
+                transform: `scale(${pdfFit})`,
+                transformOrigin: '0 0',
+              },
+            },
+            h('img', {
+              src: `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
+              alt: screen.content.title,
+              draggable: false,
             }),
-            h('span', { className: 'dsh-reader-page-total' }, `/ ${pageView?.pageCount ?? '?'}`),
-            h('button', {
-              type: 'button',
-              className: 'dsh-reader-secondary',
-              disabled: Boolean(pageView && visual.page >= pageView.pageCount),
-              onClick: () => goPdfPage(visual.page + 1),
-            }, '›'),
-            h('button', { type: 'button', className: 'dsh-reader-secondary', onClick: () => zoomPdf(-0.25) }, '−'),
-            h('span', { className: 'dsh-reader-page-total' }, `${Math.round(visual.scale * 100)}%`),
-            h('button', { type: 'button', className: 'dsh-reader-secondary', onClick: () => zoomPdf(0.25) }, '+')),
-          visualLoading
-            ? h('div', { className: 'dsh-reader-muted' }, t('loading'))
-            : visualError
-              ? h('div', { className: 'dsh-reader-visual-error' },
-                h('div', null, visualError),
-                h('div', { className: 'dsh-reader-reader-inner' },
-                  renderBlocks(screen.content.blocks, screen.content.chapterId)))
-              : pageView
-                ? h('div', {
-                  className: 'dsh-reader-pdf-page',
-                  style: { width: pageView.width, height: pageView.height },
-                },
-                h('img', { src: pdfPageUrl, alt: screen.content.title, draggable: false }),
-                h('div', { className: 'dsh-reader-pdf-text', onMouseUp: onPdfMouseUp },
-                  (pageView.textItems ?? []).map((item, index) => {
-                    const offset = (pageView.textItems ?? [])
-                      .slice(0, index)
-                      .reduce((sum, entry) => sum + entry.text.length, 0)
-                    return h('span', {
-                      key: `pdf-text-${index}`,
-                      className: 'dsh-reader-pdf-text-item',
-                      'data-offset': offset,
-                      style: {
-                        left: item.left,
-                        top: item.top,
-                        width: item.width,
-                        height: item.height,
-                        fontSize: item.fontSize,
-                      },
-                    }, item.text)
-                  })),
-                h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))
-                : null)
-        : visual?.kind === 'epub'
-          ? h('div', { className: 'dsh-reader-visual' },
-            h('div', { className: 'dsh-reader-visual-bar dsh-reader-epub-bar' },
-              h('button', {
-                type: 'button',
-                className: 'dsh-reader-secondary',
-                disabled: epubIndex <= 0,
-                onClick: () => goEpubChapter(-1),
-              }, '‹'),
-              h('span', {
-                className: 'dsh-reader-page-total dsh-reader-epub-title',
-                title: screen.content.title,
-              }, screen.content.title),
-              h('button', {
-                type: 'button',
-                className: 'dsh-reader-secondary',
-                disabled: epubIndex < 0 || epubIndex >= screen.detail.toc.length - 1,
-                onClick: () => goEpubChapter(1),
-              }, '›')),
-            h('iframe', {
-              ref: epubFrameRef,
-              className: 'dsh-reader-epub-frame',
-              sandbox: 'allow-same-origin',
-              title: screen.content.title,
-              src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
-              onLoad: onEpubLoad,
-            }))
-          : null
-)
+            h('div', {
+              className: 'dsh-reader-pdf-text',
+              onMouseUp: index === 0 ? onPdfMouseUp : undefined,
+            }, renderPdfTextItems(view)),
+            h('div', {
+              className: 'dsh-reader-note-layer',
+              ref: index === 0 ? noteLayerRef : undefined,
+            })))))
+          : null)
+  }
+  return h('div', {
+    className: 'dsh-reader-visual',
+    'data-paged': readingMode === 'paged' ? 'true' : 'false',
+    'data-layout': layout,
+    ref: containerRef,
+  },
+  h('iframe', {
+    ref: epubFrameRef,
+    className: 'dsh-reader-epub-frame',
+    'data-paged': readingMode === 'paged' ? 'true' : 'false',
+    sandbox: 'allow-same-origin',
+    title: screen.content.title,
+    src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+    onLoad: onEpubLoad,
+  }))
 }

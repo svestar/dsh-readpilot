@@ -11,6 +11,7 @@ import {
   timestampOf,
 } from '../helpers.ts'
 import type { ReaderPalette } from '../helpers.ts'
+import type { PageLayout } from '../paging.ts'
 import type { StateSetter } from '../runtime.ts'
 import type {
   CallRpc,
@@ -36,6 +37,8 @@ interface NotesOptions {
   pageView: PageView | null
   palette: ReaderPalette
   fontSize: number
+  paged: boolean
+  layout: PageLayout
   contentRef: MutableRef<HTMLDivElement | null>
   epubFrameRef: MutableRef<HTMLIFrameElement | null>
   epubReady: number
@@ -54,6 +57,8 @@ export function useNotes({
   pageView,
   palette,
   fontSize,
+  paged,
+  layout,
   contentRef,
   epubFrameRef,
   epubReady,
@@ -336,7 +341,7 @@ export function useNotes({
       layer.textContent = ''
       if (!root.isConnected) return
       const { text } = collectTextNodes(root)
-      const rootRect = root.getBoundingClientRect()
+      const layerRect = layer.getBoundingClientRect()
       const isPdf = visual?.kind === 'pdf'
       for (const note of relevant) {
         const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
@@ -357,8 +362,8 @@ export function useNotes({
             ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? 'yellow'}`
             : 'dsh-reader-note-hit'
           hit.dataset.noteId = note.id
-          hit.style.left = `${isPdf ? rect.left : rect.left - rootRect.left}px`
-          hit.style.top = `${isPdf ? rect.top : rect.top - rootRect.top}px`
+          hit.style.left = `${isPdf ? rect.left : rect.left - layerRect.left}px`
+          hit.style.top = `${isPdf ? rect.top : rect.top - layerRect.top}px`
           hit.style.width = `${rect.width}px`
           hit.style.height = `${rect.height}px`
           layer.appendChild(hit)
@@ -384,7 +389,7 @@ export function useNotes({
       window.removeEventListener('resize', schedule)
       layer.textContent = ''
     }
-  }, [activeChapterId, contentRef, fontSize, notes, openNoteEditor, pageView, palette, screen, visual?.kind, visual?.kind === 'pdf' ? visual.page : null])
+  }, [activeChapterId, contentRef, fontSize, layout, notes, openNoteEditor, paged, pageView, palette, screen, visual?.kind, visual?.kind === 'pdf' ? visual.page : null])
 
   React.useEffect(() => {
     const frame = epubFrameRef.current
@@ -399,7 +404,7 @@ export function useNotes({
     )
     if (result.jumped) pendingEpubNoteRef.current = null
     return result.cleanup
-  }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.kind, visual?.kind === 'epub' ? visual.href : null])
+  }, [epubFrameRef, epubJumpToken, epubReady, layout, notes, openNoteEditor, paged, palette, screen, visual?.kind, visual?.kind === 'epub' ? visual.href : null])
 
   const noteItems = notes.filter(note => note.kind !== 'highlight' && note.kind !== 'bookmark')
   const highlights = notes.filter(note => note.kind === 'highlight')

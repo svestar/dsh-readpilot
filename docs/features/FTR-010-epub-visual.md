@@ -8,7 +8,7 @@
 
 ## 行为
 
-打开 EPUB 时，Host 把资源解压到 `$DSH_HOME/dsh-reader/assets/<bookId>/`，按 OPF 解析目录与 spine。Client 用 iframe 加载 `/api/dsh-reader/epub-doc`，Host 返回清洗后的章节 XHTML，并把 CSS、图片、字体 URL 改写为 `/api/dsh-reader/epub-asset`，因此原书 CSS/图片/字体得以保留。目录点击或上一章/下一章切换 iframe；父页面读取 iframe 选区，选段可预填伴读或建笔记。搜索/笔记点击切换到对应章节。
+打开 EPUB 时，Host 把资源解压到 `$DSH_HOME/dsh-reader/assets/<bookId>/`，按 OPF 解析目录与 spine。Client 用 iframe 加载 `/api/dsh-reader/epub-doc`，Host 返回清洗后的章节 XHTML，并把 CSS、图片、字体 URL 改写为 `/api/dsh-reader/epub-asset`，因此原书 CSS/图片/字体得以保留。打开时默认滚动阅读；共享工具栏可切到分页，分页在 iframe 内按一或两栏排版，并用滚轮或按钮翻页，章节边界切到相邻章节。目录点击切换 iframe；滚动模式下上一章/下一章切换章节。父页面读取 iframe 选区，选段可预填伴读或建笔记。搜索/笔记点击切换到对应章节，笔记在 iframe 内高亮并滚动定位。分页布局、页码与滚轮行为见 [FTR-019](FTR-019-paged-reading.md)。
 
 ## 接口与代码映射
 
@@ -19,12 +19,12 @@
 | `epubDocument` | `src/api.ts:epubDocument` | 返回清洗后的章节 HTML |
 | `epubAsset` | `src/api.ts:epubAsset` | 返回 CSS/图片/字体字节 |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
-| `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | iframe 与章节工具栏 |
+| `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | iframe 与分页容器 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为
 
-iframe 使用 `sandbox="allow-same-origin"`，不启用 `allow-scripts`；原书 script、事件属性、iframe/object/form 等被移除，`javascript:` 与远程 URL 被清空。资源路径必须在解压根内，`..`/绝对路径被拒绝。CSS 中的 `url()` 会改写为同一资源路由；远程 CSS 资源被置空。EPUB 加密、缺 container/OPF、路径穿越或损坏章节返回明确错误。v1 为滚动阅读，不做分页和精确 CFI；搜索/笔记在视觉模式只做章节跳转，精确高亮留待后续。章节工具栏左右按钮固定，章节名在中间截断，长标题不会推动翻页按钮。页面背景与基础文字色由 FTR-011 覆盖，图片、字体与布局保持原书。
+iframe 使用 `sandbox="allow-same-origin"`，不启用 `allow-scripts`；原书 script、事件属性、iframe/object/form 等被移除，`javascript:` 与远程 URL 被清空。资源路径必须在解压根内，`..`/绝对路径被拒绝。CSS 中的 `url()` 会改写为同一资源路由；远程 CSS 资源被置空。EPUB 加密、缺 container/OPF、路径穿越或损坏章节返回明确错误。分页由浏览器多栏 CSS 基于原书样式实现，不生成 CFI 或印刷页码；原书固定宽高、浮动或分栏样式可能使分栏不理想。搜索跳转按章节，笔记点击在 iframe 内定位并高亮。共享工具栏的翻页按钮固定，章节名在中间截断，长标题不会推动按钮。页面背景与基础文字色由 FTR-011 覆盖，图片、字体与布局保持原书。
 
 ## 验收与测试
 

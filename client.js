@@ -562,7 +562,19 @@ var __dshReaderBundle = (() => {
     noteSaveFailed: "笔记保存失败",
     noteDeleteFailed: "笔记删除失败",
     delete: "删除",
-    jump: "跳转"
+    jump: "跳转",
+    pagePrev: "上一页",
+    pageNext: "下一页",
+    chapterPrev: "上一章",
+    chapterNext: "下一章",
+    pagedMode: "分页模式",
+    scrollMode: "滚动模式",
+    singlePage: "单页",
+    doublePage: "双页",
+    page: "页码",
+    chapter: "章节",
+    zoomOut: "缩小",
+    zoomIn: "放大"
   };
   var en = {
     panel: "Reader",
@@ -666,7 +678,19 @@ var __dshReaderBundle = (() => {
     noteSaveFailed: "Could not save the note",
     noteDeleteFailed: "Could not delete the note",
     delete: "Delete",
-    jump: "Jump"
+    jump: "Jump",
+    pagePrev: "Previous page",
+    pageNext: "Next page",
+    chapterPrev: "Previous chapter",
+    chapterNext: "Next chapter",
+    pagedMode: "Paged mode",
+    scrollMode: "Scroll mode",
+    singlePage: "Single page",
+    doublePage: "Double page",
+    page: "Page",
+    chapter: "Chapter",
+    zoomOut: "Zoom out",
+    zoomIn: "Zoom in"
   };
 
   // src/client/styles.ts
@@ -858,6 +882,23 @@ var __dshReaderBundle = (() => {
 .dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
 .dsh-reader-reader-inner{position:relative;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-reader-main{display:flex;flex-direction:column;min-width:0;min-height:0}
+.dsh-reader-main>.dsh-reader-reader{flex:1;min-height:0}
+.dsh-reader-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
+.dsh-reader-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
+.dsh-reader-bar-title{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}
+.dsh-reader-bar-position{flex:none;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;font-variant-numeric:tabular-nums}
+.dsh-reader-bar .dsh-reader-secondary{height:28px;padding:0 9px;border-radius:7px;font-size:12px}
+.dsh-reader-bar .dsh-reader-bar-btn{min-width:28px;padding:0 7px}
+.dsh-reader-bar .dsh-reader-page-input{width:52px}
+.dsh-reader-bar-toggle[data-active="true"],.dsh-reader-bar-toggle[aria-pressed="true"]{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-reader-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
+.dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;padding:28px 40px;overflow:hidden}
+.dsh-reader-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
+.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;max-width:100%}
+.dsh-reader-pdf-spread .dsh-reader-pdf-page{margin:0}
+.dsh-reader-visual[data-paged="true"]{overflow:auto}
+.dsh-reader-epub-frame[data-paged="true"]{height:100%;min-height:0}
 .dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
 .dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
 .dsh-reader-note-hit:hover{opacity:1}
@@ -907,7 +948,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-reader-spacer{flex:1}
 @media (max-width:1100px){.dsh-reader-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-reader-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-reader-chat{position:absolute;top:0;right:0;bottom:0;width:min(360px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-reader-chat-resizer{display:none}.dsh-reader-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
-@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}}
+@media (max-width:760px){.dsh-reader-book{grid-template-columns:1fr!important}.dsh-reader-toc{display:none}.dsh-reader-reader{padding:20px 18px 80px}.dsh-reader-bar{padding:6px 10px;gap:6px}.dsh-reader-bar-title{order:3;flex:1 0 100%}.dsh-reader-bar-controls{margin-left:auto}.dsh-reader-page-frame{padding:18px 16px}.dsh-reader-pdf-spread{gap:8px}}
 `;
 
   // src/client/runtime.ts
@@ -1646,130 +1687,175 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }
 
   // src/client/views/visual-reader.ts
+  var PDF_WHEEL_THRESHOLD = 40;
+  function renderPdfTextItems(pageView) {
+    let offset = 0;
+    return (pageView.textItems ?? []).map((item, index) => {
+      const start = offset;
+      offset += item.text.length;
+      return h("span", {
+        key: `pdf-text-${index}`,
+        className: "dsh-reader-pdf-text-item",
+        "data-offset": start,
+        style: {
+          left: item.left,
+          top: item.top,
+          width: item.width,
+          height: item.height,
+          fontSize: item.fontSize
+        }
+      }, item.text);
+    });
+  }
   function VisualReader({
     t,
     visual,
     screen,
-    pageView,
-    pageInput,
-    setPageInput,
-    goPdfPage,
-    zoomPdf,
+    pageViews,
+    layout,
+    readingMode = "paged",
+    stepPdfPage,
     visualLoading,
     visualError,
     onPdfMouseUp,
     noteLayerRef,
-    goEpubChapter,
     onEpubLoad,
     epubFrameRef
   }) {
+    const containerRef = React.useRef(null);
+    const spreadRef = React.useRef(null);
+    const [pdfFit, setPdfFit] = React.useState(1);
+    const pdfPaged = visual?.kind === "pdf" && screen.kind === "book";
+    React.useEffect(() => {
+      const container = containerRef.current;
+      if (!pdfPaged || !container) return;
+      let accumulated = 0;
+      const onWheel = (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (!event.deltaY) return;
+        event.preventDefault();
+        if (accumulated > 0 !== event.deltaY > 0) accumulated = 0;
+        accumulated += event.deltaY;
+        if (Math.abs(accumulated) < PDF_WHEEL_THRESHOLD) return;
+        const direction = accumulated > 0 ? 1 : -1;
+        accumulated = 0;
+        stepPdfPage(direction);
+      };
+      container.addEventListener("wheel", onWheel, { passive: false });
+      return () => container.removeEventListener("wheel", onWheel);
+    }, [pdfPaged, stepPdfPage]);
+    React.useEffect(() => {
+      if (!pdfPaged || layout !== "double") {
+        setPdfFit(1);
+        return;
+      }
+      const spread = spreadRef.current;
+      if (!spread) return;
+      let lastWidth = -1;
+      const measure = () => {
+        const width = spread.clientWidth;
+        if (width <= 0 || width === lastWidth) return;
+        lastWidth = width;
+        const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0;
+        const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0);
+        const available = width - gap * Math.max(0, pageViews.length - 1);
+        setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1);
+      };
+      measure();
+      let observer = null;
+      if (typeof ResizeObserver === "function") {
+        observer = new ResizeObserver(measure);
+        observer.observe(spread);
+      }
+      window.addEventListener("resize", measure);
+      return () => {
+        observer?.disconnect();
+        window.removeEventListener("resize", measure);
+      };
+    }, [layout, pageViews, pdfPaged, visualError, visualLoading]);
     if (!visual) return null;
     if (screen.kind !== "book") return null;
-    const pdfPageUrl = visual.kind === "pdf" && screen.kind === "book" ? `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page}&scale=${visual.scale}` : "";
-    const epubIndex = screen.kind === "book" ? screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId) : -1;
-    return visual?.kind === "pdf" ? h(
-      "div",
-      { className: "dsh-reader-visual" },
-      h(
-        "div",
-        { className: "dsh-reader-visual-bar" },
-        h("button", {
-          type: "button",
-          className: "dsh-reader-secondary",
-          disabled: visual.page <= 1,
-          onClick: () => goPdfPage(visual.page - 1)
-        }, "‹"),
-        h("input", {
-          className: "dsh-reader-page-input",
-          type: "number",
-          min: 1,
-          max: pageView?.pageCount ?? 1,
-          value: pageInput,
-          onChange: (event) => setPageInput(event.target.value),
-          onKeyDown: (event) => {
-            if (event.key === "Enter") goPdfPage(Number(pageInput));
-          }
-        }),
-        h("span", { className: "dsh-reader-page-total" }, `/ ${pageView?.pageCount ?? "?"}`),
-        h("button", {
-          type: "button",
-          className: "dsh-reader-secondary",
-          disabled: Boolean(pageView && visual.page >= pageView.pageCount),
-          onClick: () => goPdfPage(visual.page + 1)
-        }, "›"),
-        h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(-0.25) }, "−"),
-        h("span", { className: "dsh-reader-page-total" }, `${Math.round(visual.scale * 100)}%`),
-        h("button", { type: "button", className: "dsh-reader-secondary", onClick: () => zoomPdf(0.25) }, "+")
-      ),
-      visualLoading ? h("div", { className: "dsh-reader-muted" }, t("loading")) : visualError ? h(
-        "div",
-        { className: "dsh-reader-visual-error" },
-        h("div", null, visualError),
-        h(
-          "div",
-          { className: "dsh-reader-reader-inner" },
-          renderBlocks(screen.content.blocks, screen.content.chapterId)
-        )
-      ) : pageView ? h(
+    if (visual.kind === "pdf") {
+      return h(
         "div",
         {
-          className: "dsh-reader-pdf-page",
-          style: { width: pageView.width, height: pageView.height }
+          className: "dsh-reader-visual",
+          "data-paged": "true",
+          "data-layout": layout,
+          ref: containerRef
         },
-        h("img", { src: pdfPageUrl, alt: screen.content.title, draggable: false }),
-        h(
+        visualLoading ? h("div", { className: "dsh-reader-muted" }, t("loading")) : visualError ? h(
           "div",
-          { className: "dsh-reader-pdf-text", onMouseUp: onPdfMouseUp },
-          (pageView.textItems ?? []).map((item, index) => {
-            const offset = (pageView.textItems ?? []).slice(0, index).reduce((sum, entry) => sum + entry.text.length, 0);
-            return h("span", {
-              key: `pdf-text-${index}`,
-              className: "dsh-reader-pdf-text-item",
-              "data-offset": offset,
+          { className: "dsh-reader-visual-error" },
+          h("div", null, visualError),
+          h(
+            "div",
+            { className: "dsh-reader-reader-inner" },
+            renderBlocks(screen.content.blocks, screen.content.chapterId)
+          )
+        ) : pageViews.length > 0 ? h(
+          "div",
+          { className: "dsh-reader-pdf-spread", ref: spreadRef },
+          pageViews.map((view, index) => h(
+            "div",
+            {
+              key: `pdf-page-${visual.page + index}`,
+              className: "dsh-reader-pdf-slot",
               style: {
-                left: item.left,
-                top: item.top,
-                width: item.width,
-                height: item.height,
-                fontSize: item.fontSize
+                width: view.width * pdfFit,
+                height: view.height * pdfFit,
+                flex: "none",
+                position: "relative"
               }
-            }, item.text);
-          })
-        ),
-        h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
-      ) : null
-    ) : visual?.kind === "epub" ? h(
+            },
+            h(
+              "div",
+              {
+                className: "dsh-reader-pdf-page",
+                "data-page": visual.page + index,
+                style: {
+                  width: view.width,
+                  height: view.height,
+                  transform: `scale(${pdfFit})`,
+                  transformOrigin: "0 0"
+                }
+              },
+              h("img", {
+                src: `/api/dsh-reader/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
+                alt: screen.content.title,
+                draggable: false
+              }),
+              h("div", {
+                className: "dsh-reader-pdf-text",
+                onMouseUp: index === 0 ? onPdfMouseUp : void 0
+              }, renderPdfTextItems(view)),
+              h("div", {
+                className: "dsh-reader-note-layer",
+                ref: index === 0 ? noteLayerRef : void 0
+              })
+            )
+          ))
+        ) : null
+      );
+    }
+    return h(
       "div",
-      { className: "dsh-reader-visual" },
-      h(
-        "div",
-        { className: "dsh-reader-visual-bar dsh-reader-epub-bar" },
-        h("button", {
-          type: "button",
-          className: "dsh-reader-secondary",
-          disabled: epubIndex <= 0,
-          onClick: () => goEpubChapter(-1)
-        }, "‹"),
-        h("span", {
-          className: "dsh-reader-page-total dsh-reader-epub-title",
-          title: screen.content.title
-        }, screen.content.title),
-        h("button", {
-          type: "button",
-          className: "dsh-reader-secondary",
-          disabled: epubIndex < 0 || epubIndex >= screen.detail.toc.length - 1,
-          onClick: () => goEpubChapter(1)
-        }, "›")
-      ),
+      {
+        className: "dsh-reader-visual",
+        "data-paged": readingMode === "paged" ? "true" : "false",
+        "data-layout": layout,
+        ref: containerRef
+      },
       h("iframe", {
         ref: epubFrameRef,
         className: "dsh-reader-epub-frame",
+        "data-paged": readingMode === "paged" ? "true" : "false",
         sandbox: "allow-same-origin",
         title: screen.content.title,
         src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
         onLoad: onEpubLoad
       })
-    ) : null;
+    );
   }
 
   // src/client/views/chat-panel.ts
@@ -2087,6 +2173,143 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         return this.props.children;
       }
     };
+  }
+
+  // src/client/views/reader-bar.ts
+  function ReaderBar({
+    t,
+    format,
+    mode,
+    layout,
+    chapterTitle,
+    chapterIndex,
+    chapterTotal,
+    pageStart,
+    pageEnd,
+    pageTotal,
+    canPrev,
+    canNext,
+    onPrev,
+    onNext,
+    onToggleMode,
+    onLayoutChange,
+    pageInput,
+    setPageInput,
+    onPageCommit,
+    zoom,
+    onZoom
+  }) {
+    const paged = mode === "paged";
+    const prevLabel = t(paged ? "pagePrev" : "chapterPrev");
+    const nextLabel = t(paged ? "pageNext" : "chapterNext");
+    const modeLabel = t(paged ? "scrollMode" : "pagedMode");
+    const numericPage = paged && Boolean(onPageCommit) && pageInput !== void 0;
+    const pagePosition = paged ? `${pageStart}${pageEnd > pageStart ? `–${pageEnd}` : ""} / ${pageTotal}` : `${chapterIndex + 1} / ${chapterTotal}`;
+    return h(
+      "div",
+      {
+        className: "dsh-reader-bar",
+        "data-mode": mode,
+        "data-format": format,
+        "data-layout": layout
+      },
+      h(
+        "div",
+        { className: "dsh-reader-bar-group dsh-reader-bar-nav" },
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary dsh-reader-bar-btn",
+          title: prevLabel,
+          "aria-label": prevLabel,
+          disabled: !canPrev,
+          onClick: onPrev
+        }, "‹"),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-secondary dsh-reader-bar-btn",
+          title: nextLabel,
+          "aria-label": nextLabel,
+          disabled: !canNext,
+          onClick: onNext
+        }, "›")
+      ),
+      h("div", { className: "dsh-reader-bar-title", title: chapterTitle }, chapterTitle),
+      h(
+        "div",
+        { className: "dsh-reader-bar-group dsh-reader-bar-controls" },
+        numericPage ? h(
+          "div",
+          { className: "dsh-reader-bar-group dsh-reader-bar-page" },
+          h("input", {
+            className: "dsh-reader-page-input",
+            type: "number",
+            min: 1,
+            max: Math.max(1, pageTotal),
+            value: pageInput,
+            title: t("page"),
+            "aria-label": t("page"),
+            onChange: (event) => setPageInput?.(event.target.value),
+            onKeyDown: (event) => {
+              if (event.key !== "Enter") return;
+              const page = Number(pageInput);
+              if (Number.isFinite(page)) onPageCommit?.(page);
+            }
+          }),
+          h("span", { className: "dsh-reader-bar-position" }, `/ ${pageTotal}`)
+        ) : h("span", {
+          className: "dsh-reader-bar-position",
+          title: t(paged ? "page" : "chapter")
+        }, pagePosition),
+        onToggleMode ? h("button", {
+          type: "button",
+          className: "dsh-reader-secondary dsh-reader-bar-toggle",
+          title: modeLabel,
+          "aria-label": modeLabel,
+          onClick: onToggleMode
+        }, modeLabel) : null,
+        paged && onLayoutChange ? h(
+          "div",
+          { className: "dsh-reader-bar-group dsh-reader-bar-layout" },
+          h("button", {
+            type: "button",
+            className: "dsh-reader-secondary dsh-reader-bar-toggle",
+            title: t("singlePage"),
+            "aria-label": t("singlePage"),
+            "aria-pressed": layout === "single" ? "true" : "false",
+            "data-active": layout === "single" ? "true" : "false",
+            onClick: () => onLayoutChange("single")
+          }, t("singlePage")),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-secondary dsh-reader-bar-toggle",
+            title: t("doublePage"),
+            "aria-label": t("doublePage"),
+            "aria-pressed": layout === "double" ? "true" : "false",
+            "data-active": layout === "double" ? "true" : "false",
+            onClick: () => onLayoutChange("double")
+          }, t("doublePage"))
+        ) : null,
+        zoom !== void 0 && onZoom ? h(
+          "div",
+          { className: "dsh-reader-bar-group dsh-reader-bar-zoom" },
+          h("button", {
+            type: "button",
+            className: "dsh-reader-secondary dsh-reader-bar-btn",
+            title: t("zoomOut"),
+            "aria-label": t("zoomOut"),
+            onClick: () => onZoom(-0.25)
+          }, "−"),
+          h("span", { className: "dsh-reader-bar-position" }, `${Math.round(zoom * 100)}%`),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-secondary dsh-reader-bar-btn",
+            title: t("zoomIn"),
+            "aria-label": t("zoomIn"),
+            onClick: () => onZoom(0.25)
+          }, "+")
+        ) : null
+      )
+    );
   }
 
   // src/client/hooks/use-companion.ts
@@ -2525,6 +2748,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     pageView,
     palette,
     fontSize,
+    paged,
+    layout,
     contentRef,
     epubFrameRef,
     epubReady,
@@ -2790,7 +3015,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         layer.textContent = "";
         if (!root.isConnected) return;
         const { text } = collectTextNodes(root);
-        const rootRect = root.getBoundingClientRect();
+        const layerRect = layer.getBoundingClientRect();
         const isPdf = visual?.kind === "pdf";
         for (const note of relevant) {
           const stripped = note.quote.replace(/^[\s•·▪◦●]+/, "");
@@ -2809,8 +3034,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             const hit = document.createElement("div");
             hit.className = note.kind === "highlight" ? `dsh-reader-note-hit dsh-reader-highlight-${note.color ?? "yellow"}` : "dsh-reader-note-hit";
             hit.dataset.noteId = note.id;
-            hit.style.left = `${isPdf ? rect.left : rect.left - rootRect.left}px`;
-            hit.style.top = `${isPdf ? rect.top : rect.top - rootRect.top}px`;
+            hit.style.left = `${isPdf ? rect.left : rect.left - layerRect.left}px`;
+            hit.style.top = `${isPdf ? rect.top : rect.top - layerRect.top}px`;
             hit.style.width = `${rect.width}px`;
             hit.style.height = `${rect.height}px`;
             layer.appendChild(hit);
@@ -2836,7 +3061,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         window.removeEventListener("resize", schedule);
         layer.textContent = "";
       };
-    }, [activeChapterId, contentRef, fontSize, notes, openNoteEditor, pageView, palette, screen, visual?.kind, visual?.kind === "pdf" ? visual.page : null]);
+    }, [activeChapterId, contentRef, fontSize, layout, notes, openNoteEditor, paged, pageView, palette, screen, visual?.kind, visual?.kind === "pdf" ? visual.page : null]);
     React.useEffect(() => {
       const frame = epubFrameRef.current;
       if (visual?.kind !== "epub" || screen.kind !== "book" || !frame) return;
@@ -2850,7 +3075,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       );
       if (result.jumped) pendingEpubNoteRef.current = null;
       return result.cleanup;
-    }, [epubFrameRef, epubJumpToken, epubReady, notes, openNoteEditor, palette, screen, visual?.kind, visual?.kind === "epub" ? visual.href : null]);
+    }, [epubFrameRef, epubJumpToken, epubReady, layout, notes, openNoteEditor, paged, palette, screen, visual?.kind, visual?.kind === "epub" ? visual.href : null]);
     const noteItems = notes.filter((note) => note.kind !== "highlight" && note.kind !== "bookmark");
     const highlights = notes.filter((note) => note.kind === "highlight");
     const bookmarks = notes.filter((note) => note.kind === "bookmark");
@@ -2881,43 +3106,327 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
+  // src/client/paging.ts
+  var PAGE_GAP = 40;
+  function columnsFor(layout) {
+    return layout === "double" ? 2 : 1;
+  }
+  function finiteOrZero(value) {
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  function validGap(gap) {
+    return Number.isFinite(gap) && gap >= 0 ? gap : PAGE_GAP;
+  }
+  function measurePageMetrics(viewportWidth, scrollWidth, layout, gap = PAGE_GAP) {
+    const columns = columnsFor(layout);
+    const g = validGap(gap);
+    const width = finiteOrZero(viewportWidth);
+    const content = finiteOrZero(scrollWidth);
+    const columnWidth = Math.max(1, (width - g * (columns - 1)) / columns);
+    const stride = columns * (columnWidth + g);
+    if (content <= width + 0.5) {
+      return { columns, columnWidth, totalColumns: 1, pageCount: 1, stride };
+    }
+    const totalColumns = Math.max(1, Math.round((content + g) / (columnWidth + g)));
+    const pageCount = Math.max(1, Math.ceil(totalColumns / columns));
+    return { columns, columnWidth, totalColumns, pageCount, stride };
+  }
+  function pageBounds(pageIndex, layout, totalColumns) {
+    const columns = columnsFor(layout);
+    const total = Number.isFinite(totalColumns) && totalColumns >= 1 ? Math.floor(totalColumns) : 1;
+    const pageCount = Math.max(1, Math.ceil(total / columns));
+    const index = clampPageIndex(pageIndex, pageCount);
+    const start = index * columns + 1;
+    const end = Math.min(start + columns - 1, total);
+    return { start, end };
+  }
+  function clampPageIndex(pageIndex, pageCount) {
+    const count = Number.isFinite(pageCount) ? Math.floor(pageCount) : 0;
+    if (count < 1) return 0;
+    const index = Number.isFinite(pageIndex) ? Math.floor(pageIndex) : 0;
+    if (index < 0) return 0;
+    return Math.min(index, count - 1);
+  }
+  function pageStep(layout) {
+    return columnsFor(layout);
+  }
+
+  // src/client/hooks/use-text-pager.ts
+  var WHEEL_THRESHOLD = 40;
+  function useTextPager({ enabled, layout, screen, fontSize, selectChapter }) {
+    const [page, setPage] = React.useState(0);
+    const [pageCount, setPageCount] = React.useState(1);
+    const [pageTotal, setPageTotal] = React.useState(1);
+    const [stride, setStride] = React.useState(0);
+    const frameRef = React.useRef(null);
+    const innerRef = React.useRef(null);
+    const pendingLastRef = React.useRef(null);
+    const pageRef = React.useRef(0);
+    const scrollPageRef = React.useRef(null);
+    pageRef.current = page;
+    const active = enabled && screen.kind === "book";
+    const chapterId = screen.kind === "book" ? screen.content.chapterId : "";
+    const bookId = screen.kind === "book" ? screen.detail.book.id : "";
+    const toc = screen.kind === "book" ? screen.detail.toc : [];
+    const chapterIndex = toc.findIndex((item) => item.id === chapterId);
+    const prevChapter = chapterIndex > 0 ? toc[chapterIndex - 1] : null;
+    const nextChapter = chapterIndex >= 0 && chapterIndex + 1 < toc.length ? toc[chapterIndex + 1] : null;
+    React.useEffect(() => {
+      if (!active) {
+        pendingLastRef.current = null;
+        return;
+      }
+      setPage(0);
+      const inner = innerRef.current;
+      if (inner) inner.scrollLeft = 0;
+    }, [active, chapterId, layout]);
+    React.useEffect(() => {
+      if (pendingLastRef.current !== null && pendingLastRef.current !== chapterId) {
+        pendingLastRef.current = null;
+      }
+    }, [chapterId]);
+    React.useEffect(() => {
+      if (!active) {
+        setStride(0);
+        setPageCount(1);
+        setPageTotal(1);
+        return;
+      }
+      const inner = innerRef.current;
+      if (!inner) return;
+      let rafId = 0;
+      const measure = () => {
+        rafId = 0;
+        if (!inner.isConnected) return;
+        const width = inner.clientWidth;
+        const height = inner.clientHeight;
+        const content = inner.scrollWidth;
+        if (width <= 0 || height <= 0) return;
+        const metrics = measurePageMetrics(width, content, layout, PAGE_GAP);
+        const pendingLast = pendingLastRef.current === chapterId;
+        if (pendingLast) pendingLastRef.current = null;
+        setStride(metrics.stride);
+        setPageCount(metrics.pageCount);
+        setPageTotal(metrics.totalColumns);
+        if (pendingLast) {
+          setPage(metrics.pageCount - 1);
+        } else {
+          setPage((previous) => clampPageIndex(previous, metrics.pageCount));
+        }
+      };
+      const schedule = () => {
+        if (rafId) return;
+        if (typeof requestAnimationFrame === "function") {
+          rafId = requestAnimationFrame(measure);
+          return;
+        }
+        measure();
+      };
+      const view = typeof window === "undefined" ? null : window;
+      let observer = null;
+      if (typeof ResizeObserver === "function") {
+        observer = new ResizeObserver(schedule);
+        observer.observe(inner);
+      }
+      view?.addEventListener("resize", schedule);
+      schedule();
+      return () => {
+        if (rafId && typeof cancelAnimationFrame === "function") cancelAnimationFrame(rafId);
+        observer?.disconnect();
+        view?.removeEventListener("resize", schedule);
+      };
+    }, [active, chapterId, fontSize, layout]);
+    React.useEffect(() => {
+      const fromScroll = scrollPageRef.current === page;
+      scrollPageRef.current = null;
+      if (!active) return;
+      const inner = innerRef.current;
+      if (!inner) return;
+      if (fromScroll) return;
+      const maxLeft = Math.max(0, inner.scrollWidth - inner.clientWidth);
+      const left = Math.min(clampPageIndex(page, pageCount) * stride, maxLeft);
+      if (Math.abs(inner.scrollLeft - left) > 1) inner.scrollLeft = left;
+    }, [active, page, pageCount, stride]);
+    React.useEffect(() => {
+      if (!active || stride <= 0) return;
+      const inner = innerRef.current;
+      if (!inner) return;
+      const onScroll = () => {
+        const current = clampPageIndex(pageRef.current, pageCount);
+        const maxLeft = Math.max(0, inner.scrollWidth - inner.clientWidth);
+        const snapped = Math.min(current * stride, maxLeft);
+        if (Math.abs(inner.scrollLeft - snapped) <= 1) return;
+        const next = clampPageIndex(Math.round(inner.scrollLeft / stride), pageCount);
+        if (next === current) return;
+        scrollPageRef.current = next;
+        setPage(next);
+      };
+      inner.addEventListener("scroll", onScroll);
+      return () => inner.removeEventListener("scroll", onScroll);
+    }, [active, pageCount, stride]);
+    const goPage = React.useCallback((delta) => {
+      if (!active || delta === 0) return;
+      const direction = delta > 0 ? 1 : -1;
+      const current = clampPageIndex(page, pageCount);
+      const target = current + direction;
+      if (target >= 0 && target < pageCount) {
+        setPage(target);
+        return;
+      }
+      const neighbour = direction > 0 ? nextChapter : prevChapter;
+      if (!neighbour) return;
+      if (direction < 0) pendingLastRef.current = neighbour.id;
+      void selectChapter(bookId, neighbour.id);
+    }, [active, bookId, nextChapter, page, pageCount, prevChapter, selectChapter]);
+    React.useEffect(() => {
+      if (!enabled) return;
+      const frame = frameRef.current;
+      if (!frame) return;
+      let accumulated = 0;
+      const onWheel = (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        event.preventDefault();
+        accumulated += event.deltaY;
+        if (Math.abs(accumulated) < WHEEL_THRESHOLD) return;
+        const direction = accumulated > 0 ? 1 : -1;
+        accumulated = 0;
+        goPage(direction);
+      };
+      frame.addEventListener("wheel", onWheel, { passive: false });
+      return () => frame.removeEventListener("wheel", onWheel);
+    }, [enabled, goPage]);
+    const innerStyle = React.useMemo(() => ({
+      height: "100%",
+      width: "100%",
+      maxWidth: "none",
+      margin: "0",
+      overflow: "hidden",
+      columnCount: columnsFor(layout),
+      columnGap: `${PAGE_GAP}px`,
+      columnFill: "auto"
+    }), [layout]);
+    const safePage = active ? clampPageIndex(page, pageCount) : 0;
+    const count = active ? pageCount : 1;
+    const total = active ? pageTotal : 1;
+    const bounds = pageBounds(safePage, layout, total);
+    const canPrev = active && (safePage > 0 || prevChapter !== null);
+    const canNext = active && (safePage < count - 1 || nextChapter !== null);
+    return {
+      frameRef,
+      innerRef,
+      innerStyle,
+      page: safePage,
+      pageCount: count,
+      pageStart: bounds.start,
+      pageEnd: bounds.end,
+      pageTotal: total,
+      canPrev,
+      canNext,
+      goPage
+    };
+  }
+
   // src/client/hooks/use-visual.ts
+  var EPUB_PAGING_STYLE_ID = "dsh-reader-paging";
+  var EPUB_WHEEL_THRESHOLD = 40;
+  function applyEpubPagingStyle(doc, layout) {
+    let style = doc.getElementById(EPUB_PAGING_STYLE_ID);
+    if (!style) {
+      style = doc.createElement("style");
+      style.id = EPUB_PAGING_STYLE_ID;
+      (doc.head ?? doc.documentElement).appendChild(style);
+    }
+    style.textContent = `html { height: 100%; column-count: ${columnsFor(layout)}; column-gap: ${PAGE_GAP}px; column-fill: auto; overflow: hidden; } body { margin: 0 !important; }`;
+  }
+  function removeEpubPagingStyle(doc) {
+    doc?.getElementById(EPUB_PAGING_STYLE_ID)?.remove();
+  }
+  function readyEpubDocument(frame) {
+    const doc = frame?.contentDocument;
+    if (!doc?.documentElement || doc.readyState === "loading") return null;
+    const source = frame?.src;
+    if (source && doc.URL !== source) return null;
+    return doc;
+  }
+  function measureEpubDocument(doc, layout) {
+    applyEpubPagingStyle(doc, layout);
+    const html = doc.documentElement;
+    return measurePageMetrics(html.clientWidth, html.scrollWidth, layout);
+  }
+  function scrollEpubPage(frame, page, stride) {
+    const doc = frame?.contentDocument;
+    if (doc) doc.documentElement.scrollLeft = page * stride;
+  }
   function useVisual({
     call,
     t,
     screen,
     palette,
     setSelection,
-    selectChapter
+    selectChapter,
+    readingMode = "paged",
+    layout = "single"
   }) {
     const [visual, setVisual] = React.useState(null);
     const [pageView, setPageView] = React.useState(null);
+    const [pageViews, setPageViews] = React.useState([]);
+    const [pdfPageCount, setPdfPageCount] = React.useState(0);
     const [pageInput, setPageInput] = React.useState("1");
     const [visualLoading, setVisualLoading] = React.useState(false);
     const [visualError, setVisualError] = React.useState("");
     const [epubReady, setEpubReady] = React.useState(0);
+    const [epubPage, setEpubPage] = React.useState(0);
+    const [epubPageCount, setEpubPageCount] = React.useState(1);
+    const [epubPageStart, setEpubPageStart] = React.useState(1);
+    const [epubPageEnd, setEpubPageEnd] = React.useState(1);
+    const [epubPageTotal, setEpubPageTotal] = React.useState(1);
     const epubFrameRef = React.useRef(null);
     const epubCleanupRef = React.useRef(null);
+    const epubPageRef = React.useRef(0);
+    const epubPageCountRef = React.useRef(1);
+    const epubStrideRef = React.useRef(0);
+    const epubTotalRef = React.useRef(1);
+    const epubMeasuredRef = React.useRef(false);
+    const epubPendingLastRef = React.useRef(null);
+    const goEpubPageRef = React.useRef(() => {
+    });
     const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
+    const epubHref = visual?.kind === "epub" ? visual.href : null;
+    const epubChapterId = screen.kind === "book" ? screen.content.chapterId : "";
+    const epubPaged = readingMode === "paged" && screen.kind === "book" && visual?.kind === "epub";
     React.useEffect(() => {
       if (!visual || visual.kind !== "pdf" || screen.kind !== "book") {
         setPageView(null);
+        setPageViews([]);
+        setPdfPageCount(0);
         return;
       }
       let cancelled = false;
       setVisualLoading(true);
       setVisualError("");
-      call("pageView", {
-        bookId: screen.detail.book.id,
-        page: visual.page,
-        scale: visual.scale
-      }).then((value) => {
+      const bookId = screen.detail.book.id;
+      const page = visual.page;
+      const scale = visual.scale;
+      const double = layout === "double";
+      const load = async () => {
+        const first = await call("pageView", { bookId, page, scale });
         if (cancelled) return;
-        setPageView(value);
-        setPageInput(String(visual.page));
-      }).catch((cause) => {
+        let views = [first];
+        if (double && page < first.pageCount) {
+          const second = await call("pageView", { bookId, page: page + 1, scale });
+          if (cancelled) return;
+          views = [first, second];
+        }
+        setPageViews(views);
+        setPageView(first);
+        setPdfPageCount(first.pageCount);
+        setPageInput(String(page));
+      };
+      void load().catch((cause) => {
         if (cancelled) return;
         setPageView(null);
+        setPageViews([]);
+        setPdfPageCount(0);
         setVisualError(`${t("loadFailed")}：${messageOf(cause)}`);
       }).finally(() => {
         if (!cancelled) setVisualLoading(false);
@@ -2925,7 +3434,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       return () => {
         cancelled = true;
       };
-    }, [call, screen, t, visual]);
+    }, [call, layout, screen, t, visual]);
     React.useEffect(() => {
       if (screen.kind !== "book" || visual?.kind !== "pdf" || !pageView) return;
       if (!activeChapterId || activeChapterId === screen.content.chapterId) return;
@@ -2936,10 +3445,19 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       epubCleanupRef.current = null;
     }, [visual?.kind === "epub" ? visual.href : null]);
     const goPdfPage = React.useCallback((next) => {
-      const pageCount = pageView?.pageCount ?? 1;
+      const pageCount = pdfPageCount || pageView?.pageCount || 1;
       const page = Math.min(Math.max(1, next), pageCount);
-      setVisual((previous) => previous?.kind === "pdf" ? { ...previous, page } : previous);
-    }, [pageView]);
+      setVisual((previous) => previous?.kind === "pdf" && previous.page !== page ? { ...previous, page } : previous);
+    }, [pageView, pdfPageCount]);
+    const stepPdfPage = React.useCallback((delta) => {
+      if (!Number.isFinite(delta) || delta === 0) return;
+      const pageCount = pdfPageCount || pageView?.pageCount || 1;
+      setVisual((previous) => {
+        if (previous?.kind !== "pdf") return previous;
+        const page = Math.min(Math.max(1, previous.page + delta * pageStep(layout)), pageCount);
+        return page === previous.page ? previous : { ...previous, page };
+      });
+    }, [layout, pageView, pdfPageCount]);
     const zoomPdf = React.useCallback((delta) => {
       setVisual((previous) => previous?.kind === "pdf" ? { ...previous, scale: Math.min(3, Math.max(1, previous.scale + delta)) } : previous);
     }, []);
@@ -3000,16 +3518,173 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
     }, [palette, visual?.kind === "epub" ? visual.href : null]);
     const goEpubChapter = React.useCallback((delta) => {
+      epubPendingLastRef.current = null;
       if (screen.kind !== "book") return;
       const index = screen.detail.toc.findIndex((item) => item.id === screen.content.chapterId);
       const next = screen.detail.toc[index + delta];
       if (next) void selectChapter(screen.detail.book.id, next.id);
     }, [screen, selectChapter]);
+    const resetEpubState = React.useCallback(() => {
+      epubPageRef.current = 0;
+      epubPageCountRef.current = 1;
+      epubStrideRef.current = 0;
+      epubTotalRef.current = 1;
+      epubMeasuredRef.current = false;
+      setEpubPage(0);
+      setEpubPageCount(1);
+      setEpubPageStart(1);
+      setEpubPageEnd(1);
+      setEpubPageTotal(1);
+    }, []);
+    const goEpubPage = React.useCallback((delta) => {
+      if (!epubPaged || !epubMeasuredRef.current) return;
+      const direction = delta > 0 ? 1 : delta < 0 ? -1 : 0;
+      if (!direction) return;
+      const next = epubPageRef.current + direction;
+      if (next >= 0 && next < epubPageCount) {
+        epubPageRef.current = next;
+        setEpubPage(next);
+        const total = epubTotalRef.current;
+        const bounds = pageBounds(next, layout, total);
+        setEpubPageTotal(total);
+        setEpubPageStart(bounds.start);
+        setEpubPageEnd(bounds.end);
+        scrollEpubPage(epubFrameRef.current, next, epubStrideRef.current);
+        return;
+      }
+      const toc = screen.kind === "book" ? screen.detail.toc : [];
+      const index = toc.findIndex((item) => item.id === screen.content.chapterId);
+      if (direction > 0) {
+        if (index < 0 || index >= toc.length - 1) return;
+        epubPageRef.current = 0;
+        epubMeasuredRef.current = false;
+        setEpubPage(0);
+        goEpubChapter(1);
+        return;
+      }
+      if (index <= 0) return;
+      const previous = toc[index - 1];
+      goEpubChapter(-1);
+      epubMeasuredRef.current = false;
+      epubPendingLastRef.current = previous.id;
+    }, [epubPaged, epubPageCount, goEpubChapter, layout, screen]);
+    React.useEffect(() => {
+      goEpubPageRef.current = goEpubPage;
+    }, [goEpubPage]);
+    React.useEffect(() => {
+      epubPendingLastRef.current = null;
+      resetEpubState();
+    }, [layout, readingMode, resetEpubState]);
+    React.useEffect(() => {
+      if (!epubPaged) return;
+      if (epubPendingLastRef.current !== null && epubPendingLastRef.current === epubChapterId) {
+        epubPageRef.current = 0;
+        epubMeasuredRef.current = false;
+        setEpubPage(0);
+        return;
+      }
+      epubPendingLastRef.current = null;
+      resetEpubState();
+    }, [epubChapterId, epubHref, epubPaged, resetEpubState]);
+    React.useEffect(() => {
+      const frame = epubFrameRef.current;
+      if (!epubPaged) {
+        const doc = frame?.contentDocument;
+        if (doc) {
+          removeEpubPagingStyle(doc);
+          doc.documentElement.scrollLeft = 0;
+        }
+        resetEpubState();
+        return;
+      }
+      if (!readyEpubDocument(frame)) return;
+      let animationFrame = 0;
+      animationFrame = requestAnimationFrame(() => {
+        const doc = readyEpubDocument(frame);
+        if (!doc) return;
+        const metrics = measureEpubDocument(doc, layout);
+        const pendingLast = epubPendingLastRef.current !== null && epubPendingLastRef.current === epubChapterId;
+        const page = clampPageIndex(pendingLast ? metrics.pageCount - 1 : epubPageRef.current, metrics.pageCount);
+        epubPageRef.current = page;
+        epubPageCountRef.current = metrics.pageCount;
+        epubStrideRef.current = metrics.stride;
+        epubTotalRef.current = metrics.totalColumns;
+        epubMeasuredRef.current = true;
+        const bounds = pageBounds(page, layout, metrics.totalColumns);
+        setEpubPage(page);
+        setEpubPageCount(metrics.pageCount);
+        setEpubPageTotal(metrics.totalColumns);
+        setEpubPageStart(bounds.start);
+        setEpubPageEnd(bounds.end);
+        doc.documentElement.scrollLeft = page * metrics.stride;
+        if (pendingLast) epubPendingLastRef.current = null;
+      });
+      return () => cancelAnimationFrame(animationFrame);
+    }, [epubChapterId, epubHref, epubPaged, epubReady, layout, resetEpubState]);
+    React.useEffect(() => {
+      if (!epubPaged) return;
+      const frame = epubFrameRef.current;
+      if (!readyEpubDocument(frame)) return;
+      const doc = frame?.contentDocument;
+      if (!doc) return;
+      let accumulated = 0;
+      const onWheel = (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) return;
+        if (!event.deltaY) return;
+        event.preventDefault();
+        if (accumulated > 0 !== event.deltaY > 0) accumulated = 0;
+        accumulated += event.deltaY;
+        if (Math.abs(accumulated) < EPUB_WHEEL_THRESHOLD) return;
+        const direction = accumulated > 0 ? 1 : -1;
+        accumulated = 0;
+        goEpubPageRef.current(direction);
+      };
+      doc.addEventListener("wheel", onWheel, { passive: false });
+      return () => doc.removeEventListener("wheel", onWheel);
+    }, [epubHref, epubPaged, epubPage, epubReady, layout]);
+    React.useEffect(() => {
+      if (!epubPaged) return;
+      const frame = epubFrameRef.current;
+      if (!readyEpubDocument(frame)) return;
+      const doc = frame?.contentDocument;
+      if (!doc) return;
+      let animationFrame = 0;
+      const sync = () => {
+        animationFrame = 0;
+        if (!epubMeasuredRef.current) return;
+        const stride = epubStrideRef.current;
+        if (stride <= 0) return;
+        const page = clampPageIndex(Math.round(doc.documentElement.scrollLeft / stride), epubPageCountRef.current);
+        if (page === epubPageRef.current) return;
+        epubPageRef.current = page;
+        setEpubPage(page);
+        const total = epubTotalRef.current;
+        const bounds = pageBounds(page, layout, total);
+        setEpubPageTotal(total);
+        setEpubPageStart(bounds.start);
+        setEpubPageEnd(bounds.end);
+      };
+      const onScroll = () => {
+        if (animationFrame) return;
+        animationFrame = requestAnimationFrame(sync);
+      };
+      doc.addEventListener("scroll", onScroll, { passive: true, capture: true });
+      return () => {
+        doc.removeEventListener("scroll", onScroll, true);
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+      };
+    }, [epubHref, epubPaged, epubReady, layout]);
+    React.useEffect(() => () => {
+      const doc = epubFrameRef.current?.contentDocument;
+      if (doc) removeEpubPagingStyle(doc);
+    }, [epubFrameRef]);
     return {
       visual,
       setVisual,
       pageView,
       setPageView,
+      pageViews,
+      pdfPageCount,
       pageInput,
       setPageInput,
       visualLoading,
@@ -3017,11 +3692,18 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setVisualError,
       epubReady,
       epubFrameRef,
+      epubPage,
+      epubPageCount,
+      epubPageStart,
+      epubPageEnd,
+      epubPageTotal,
       goPdfPage,
+      stepPdfPage,
       zoomPdf,
       onPdfMouseUp,
       onEpubLoad,
-      goEpubChapter
+      goEpubChapter,
+      goEpubPage
     };
   }
 
@@ -3065,6 +3747,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const t = props.t ?? boundText;
       const [snapshot, setSnapshot] = React.useState(null);
       const [screen, setScreen] = React.useState({ kind: "library" });
+      const [readingMode, setReadingMode] = React.useState("scroll");
+      const [pageLayout, setPageLayout] = React.useState("single");
       const [error, setError] = React.useState("");
       const [busy, setBusy] = React.useState(false);
       const [tocOpen, setTocOpen] = React.useState(true);
@@ -3072,6 +3756,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const [selection, setSelection] = React.useState(null);
       const [paletteId, setPaletteId] = React.useState(readPaletteId);
       const palette = resolveReaderPalette(paletteId);
+      const format = screen.kind === "book" ? screen.detail.book.format : null;
+      const isTextFormat = format === "txt" || format === "md";
+      const effectiveMode = format === "pdf" ? "paged" : readingMode;
       const contentRef = React.useRef(null);
       const pendingScrollRef = React.useRef(null);
       const refresh = React.useCallback(async () => {
@@ -3152,6 +3839,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         pendingScrollRef.current = null;
         try {
           const detail = await call("open", { bookId: book.id });
+          setReadingMode(detail.book.format === "pdf" ? "paged" : "scroll");
+          setPageLayout("single");
           if (!detail.supported) {
             setScreen({ kind: "unsupported", book: detail.book });
             return;
@@ -3186,9 +3875,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             const item = screen.detail.toc.find((entry) => entry.id === chapterId);
             setVisual(visualFor(screen.detail, item));
           }
-          const toc = screen.kind === "book" ? screen.detail.toc : [];
-          const index = toc.findIndex((item) => item.id === chapterId);
-          const percent = index >= 0 && toc.length > 0 ? index / toc.length * 100 : void 0;
+          const toc2 = screen.kind === "book" ? screen.detail.toc : [];
+          const index = toc2.findIndex((item) => item.id === chapterId);
+          const percent = index >= 0 && toc2.length > 0 ? index / toc2.length * 100 : void 0;
           void call("progress", { bookId, chapterId, chapterTitle: content.title, percent }).catch(() => {
           });
         } catch (cause) {
@@ -3219,6 +3908,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setVisual,
         pageView,
         setPageView,
+        pageViews,
+        pdfPageCount,
         pageInput,
         setPageInput,
         visualLoading,
@@ -3226,13 +3917,47 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setVisualError,
         epubReady,
         epubFrameRef,
+        epubPage,
+        epubPageCount,
+        epubPageStart,
+        epubPageEnd,
+        epubPageTotal,
         goPdfPage,
+        stepPdfPage,
         zoomPdf,
         onPdfMouseUp,
         onEpubLoad,
-        goEpubChapter
-      } = useVisual({ call, t, screen, palette, setSelection, selectChapter });
+        goEpubChapter,
+        goEpubPage
+      } = useVisual({
+        call,
+        t,
+        screen,
+        palette,
+        setSelection,
+        selectChapter,
+        readingMode: effectiveMode,
+        layout: pageLayout
+      });
+      const textPager = useTextPager({
+        enabled: isTextFormat && effectiveMode === "paged",
+        layout: pageLayout,
+        screen,
+        fontSize,
+        selectChapter
+      });
       const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
+      const toc = screen.kind === "book" ? screen.detail.toc : [];
+      const chapterIndex = screen.kind === "book" ? toc.findIndex((item) => item.id === screen.content.chapterId) : -1;
+      const chapterTotal = toc.length;
+      const goChapter = React.useCallback((delta) => {
+        if (screen.kind !== "book") return;
+        const item = screen.detail.toc[chapterIndex + delta];
+        if (item) void selectChapter(screen.detail.book.id, item.id);
+      }, [chapterIndex, screen, selectChapter]);
+      const toggleReadingMode = React.useCallback(() => {
+        setReadingMode((previous) => previous === "paged" ? "scroll" : "paged");
+      }, []);
       const scrollToBlock = React.useCallback((pending) => {
         const container = contentRef.current;
         if (!container || !Number.isInteger(pending.blockIndex)) return;
@@ -3285,6 +4010,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         pageView,
         palette,
         fontSize,
+        paged: effectiveMode === "paged",
+        layout: pageLayout,
         contentRef,
         epubFrameRef,
         epubReady,
@@ -3438,23 +4165,126 @@ ${question}`);
         resetResize,
         resizeKeyDown
       });
+      const pdfVisual = visual?.kind === "pdf" ? visual : null;
+      const pdfPage = pdfVisual?.page ?? 1;
+      const readerBarProps = format === "pdf" ? {
+        pageStart: pdfPage,
+        pageEnd: Math.min(pdfPage + columnsFor(pageLayout) - 1, pdfPageCount || pdfPage),
+        pageTotal: pdfPageCount || 1,
+        canPrev: pdfPage > 1,
+        canNext: pdfPage < pdfPageCount,
+        onPrev: () => stepPdfPage(-1),
+        onNext: () => stepPdfPage(1),
+        pageInput,
+        setPageInput,
+        onPageCommit: goPdfPage,
+        zoom: pdfVisual?.scale ?? 1,
+        onZoom: zoomPdf,
+        onLayoutChange: setPageLayout
+      } : format === "epub" ? effectiveMode === "paged" ? {
+        pageStart: epubPageStart,
+        pageEnd: epubPageEnd,
+        pageTotal: epubPageTotal,
+        canPrev: epubPage > 0 || chapterIndex > 0,
+        canNext: epubPage < epubPageCount - 1 || chapterIndex < chapterTotal - 1,
+        onPrev: () => goEpubPage(-1),
+        onNext: () => goEpubPage(1),
+        onToggleMode: toggleReadingMode,
+        onLayoutChange: setPageLayout
+      } : {
+        pageStart: 1,
+        pageEnd: 1,
+        pageTotal: 1,
+        canPrev: chapterIndex > 0,
+        canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
+        onPrev: () => goEpubChapter(-1),
+        onNext: () => goEpubChapter(1),
+        onToggleMode: toggleReadingMode
+      } : effectiveMode === "paged" ? {
+        pageStart: textPager.pageStart,
+        pageEnd: textPager.pageEnd,
+        pageTotal: textPager.pageTotal,
+        canPrev: textPager.canPrev,
+        canNext: textPager.canNext,
+        onPrev: () => textPager.goPage(-1),
+        onNext: () => textPager.goPage(1),
+        onToggleMode: toggleReadingMode,
+        onLayoutChange: setPageLayout
+      } : {
+        pageStart: 1,
+        pageEnd: 1,
+        pageTotal: 1,
+        canPrev: chapterIndex > 0,
+        canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
+        onPrev: () => goChapter(-1),
+        onNext: () => goChapter(1),
+        onToggleMode: toggleReadingMode
+      };
+      const readerBar = screen.kind === "book" ? h(ReaderBar, {
+        t,
+        format: screen.detail.book.format,
+        mode: effectiveMode,
+        layout: pageLayout,
+        chapterTitle: screen.content.title,
+        chapterIndex,
+        chapterTotal,
+        ...readerBarProps
+      }) : null;
       const visualReader = visual ? h(VisualReader, {
         t,
         visual,
         screen,
-        pageView,
-        pageInput,
-        setPageInput,
-        goPdfPage,
-        zoomPdf,
+        pageViews,
+        layout: pageLayout,
+        readingMode: effectiveMode,
+        stepPdfPage,
         visualLoading,
         visualError,
         onPdfMouseUp,
         noteLayerRef,
-        goEpubChapter,
         onEpubLoad,
         epubFrameRef
       }) : null;
+      const textReader = screen.kind === "book" ? effectiveMode === "paged" ? h(
+        "div",
+        {
+          className: "dsh-reader-reader",
+          "data-paged": "true",
+          ref: contentRef,
+          style: { fontSize },
+          onMouseUp: onContentMouseUp
+        },
+        h(
+          "div",
+          { className: "dsh-reader-page-frame", ref: textPager.frameRef },
+          h(
+            "div",
+            {
+              className: "dsh-reader-reader-inner dsh-reader-paged-inner",
+              ref: textPager.innerRef,
+              style: textPager.innerStyle
+            },
+            h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
+            renderBlocks(screen.content.blocks, screen.content.chapterId),
+            h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
+          )
+        )
+      ) : h(
+        "div",
+        {
+          className: "dsh-reader-reader",
+          ref: contentRef,
+          style: { fontSize },
+          onMouseUp: onContentMouseUp
+        },
+        h(
+          "div",
+          { className: "dsh-reader-reader-inner" },
+          h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
+          renderBlocks(screen.content.blocks, screen.content.chapterId),
+          h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
+        )
+      ) : null;
       const bookView = screen.kind === "book" ? h(
         "div",
         {
@@ -3469,21 +4299,11 @@ ${question}`);
           activeChapter: screen.content.chapterId,
           onSelect: (chapterId) => void selectChapter(screen.detail.book.id, chapterId)
         }) : null,
-        visualReader ?? h(
+        h(
           "div",
-          {
-            className: "dsh-reader-reader",
-            ref: contentRef,
-            style: { fontSize },
-            onMouseUp: onContentMouseUp
-          },
-          h(
-            "div",
-            { className: "dsh-reader-reader-inner" },
-            h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
-            renderBlocks(screen.content.blocks, screen.content.chapterId),
-            h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })
-          )
+          { className: "dsh-reader-main" },
+          readerBar,
+          visualReader ?? textReader
         ),
         chatOpen ? h("button", {
           type: "button",

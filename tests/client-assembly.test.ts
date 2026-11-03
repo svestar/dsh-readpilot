@@ -124,3 +124,29 @@ test('client_assembly_renders_library_and_text_reader', async () => {
   assert.ok(readerClasses.includes('dsh-reader-reader'), readerClasses.join(','))
   assert.ok(readerClasses.includes('dsh-reader-reader-inner'))
 })
+
+test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
+  const harness = createHarness()
+  harness.state.snapshot = {
+    settings: { libraryDir: 'E:/Books', workspaceId: 'w1' },
+    books: [],
+    sessions: {},
+    tags: {},
+  }
+  harness.state.screen = {
+    kind: 'book',
+    detail: {
+      book: { id: 'b1', title: 'Book', format: 'txt' },
+      toc: [{ id: 'c001', title: 'One', page: 1 }],
+      progress: null,
+    },
+    content: { chapterId: 'c001', title: 'One', blocks: [{ type: 'p', text: 'Hello' }] },
+  }
+  const { main } = await loadClient(harness)
+  harness.reset()
+  const classes = collectClasses(main({ t: (key: string) => key }))
+  assert.ok(classes.includes('dsh-reader-main'), classes.join(','))
+  assert.ok(classes.includes('dsh-reader-bar'), classes.join(','))
+  assert.ok(classes.includes('dsh-reader-reader'), classes.join(','))
+  assert.ok(classes.includes('dsh-reader-reader-inner'), classes.join(','))
+})

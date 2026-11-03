@@ -22,3 +22,4 @@
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.ts` | `tests/reading-anchor.test.ts` | active |
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.ts` | `tests/prompt.test.ts` | active |
 | `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
+| `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts` | active |

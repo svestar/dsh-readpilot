@@ -27,11 +27,15 @@ import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
+import { ReaderBar } from './views/reader-bar.ts'
 import { useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
+import { useTextPager } from './hooks/use-text-pager.ts'
 import { useVisual } from './hooks/use-visual.ts'
+import { columnsFor } from './paging.ts'
+import type { PageLayout, ReaderMode } from './paging.ts'
 import type {
   BookDetail,
   ClientBook,
@@ -91,6 +95,8 @@ export function createPlugin(require: (name: string) => any) {
       const t: TextFn = props.t ?? boundText
       const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null)
       const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
+      const [readingMode, setReadingMode] = React.useState<ReaderMode>('scroll')
+      const [pageLayout, setPageLayout] = React.useState<PageLayout>('single')
       const [error, setError] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [tocOpen, setTocOpen] = React.useState(true)
@@ -98,6 +104,9 @@ export function createPlugin(require: (name: string) => any) {
       const [selection, setSelection] = React.useState<Selection | null>(null)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const palette = resolveReaderPalette(paletteId)
+      const format = screen.kind === 'book' ? screen.detail.book.format : null
+      const isTextFormat = format === 'txt' || format === 'md'
+      const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
       const pendingScrollRef = React.useRef<PendingScroll | null>(null)
 
@@ -193,6 +202,8 @@ export function createPlugin(require: (name: string) => any) {
         pendingScrollRef.current = null
         try {
           const detail = await call('open', { bookId: book.id })
+          setReadingMode(detail.book.format === 'pdf' ? 'paged' : 'scroll')
+          setPageLayout('single')
           if (!detail.supported) {
             setScreen({ kind: 'unsupported', book: detail.book })
             return
@@ -269,6 +280,8 @@ export function createPlugin(require: (name: string) => any) {
         setVisual,
         pageView,
         setPageView,
+        pageViews,
+        pdfPageCount,
         pageInput,
         setPageInput,
         visualLoading,
@@ -276,18 +289,56 @@ export function createPlugin(require: (name: string) => any) {
         setVisualError,
         epubReady,
         epubFrameRef,
+        epubPage,
+        epubPageCount,
+        epubPageStart,
+        epubPageEnd,
+        epubPageTotal,
         goPdfPage,
+        stepPdfPage,
         zoomPdf,
         onPdfMouseUp,
         onEpubLoad,
         goEpubChapter,
-      } = useVisual({ call, t, screen, palette, setSelection, selectChapter })
+        goEpubPage,
+      } = useVisual({
+        call,
+        t,
+        screen,
+        palette,
+        setSelection,
+        selectChapter,
+        readingMode: effectiveMode,
+        layout: pageLayout,
+      })
+
+      const textPager = useTextPager({
+        enabled: isTextFormat && effectiveMode === 'paged',
+        layout: pageLayout,
+        screen,
+        fontSize,
+        selectChapter,
+      })
 
       const activeChapterId = screen.kind === 'book'
         ? (visual?.kind === 'pdf'
           ? screen.detail.toc.find(item => item.page === visual.page)?.id ?? screen.content.chapterId
           : screen.content.chapterId)
         : ''
+
+      const toc = screen.kind === 'book' ? screen.detail.toc : []
+      const chapterIndex = screen.kind === 'book' ? toc.findIndex(item => item.id === screen.content.chapterId) : -1
+      const chapterTotal = toc.length
+
+      const goChapter = React.useCallback((delta: number) => {
+        if (screen.kind !== 'book') return
+        const item = screen.detail.toc[chapterIndex + delta]
+        if (item) void selectChapter(screen.detail.book.id, item.id)
+      }, [chapterIndex, screen, selectChapter])
+
+      const toggleReadingMode = React.useCallback(() => {
+        setReadingMode(previous => previous === 'paged' ? 'scroll' : 'paged')
+      }, [])
 
 
       const scrollToBlock = React.useCallback((pending: PendingScroll) => {
@@ -347,6 +398,8 @@ export function createPlugin(require: (name: string) => any) {
         pageView,
         palette,
         fontSize,
+        paged: effectiveMode === 'paged',
+        layout: pageLayout,
         contentRef,
         epubFrameRef,
         epubReady,
@@ -519,24 +572,129 @@ export function createPlugin(require: (name: string) => any) {
       })
 
 
+      const pdfVisual = visual?.kind === 'pdf' ? visual : null
+      const pdfPage = pdfVisual?.page ?? 1
+
+      const readerBarProps = format === 'pdf'
+        ? {
+          pageStart: pdfPage,
+          pageEnd: Math.min(pdfPage + columnsFor(pageLayout) - 1, pdfPageCount || pdfPage),
+          pageTotal: pdfPageCount || 1,
+          canPrev: pdfPage > 1,
+          canNext: pdfPage < pdfPageCount,
+          onPrev: () => stepPdfPage(-1),
+          onNext: () => stepPdfPage(1),
+          pageInput,
+          setPageInput,
+          onPageCommit: goPdfPage,
+          zoom: pdfVisual?.scale ?? 1,
+          onZoom: zoomPdf,
+          onLayoutChange: setPageLayout,
+        }
+        : format === 'epub'
+          ? effectiveMode === 'paged'
+            ? {
+              pageStart: epubPageStart,
+              pageEnd: epubPageEnd,
+              pageTotal: epubPageTotal,
+              canPrev: epubPage > 0 || chapterIndex > 0,
+              canNext: epubPage < epubPageCount - 1 || chapterIndex < chapterTotal - 1,
+              onPrev: () => goEpubPage(-1),
+              onNext: () => goEpubPage(1),
+              onToggleMode: toggleReadingMode,
+              onLayoutChange: setPageLayout,
+            }
+            : {
+              pageStart: 1,
+              pageEnd: 1,
+              pageTotal: 1,
+              canPrev: chapterIndex > 0,
+              canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
+              onPrev: () => goEpubChapter(-1),
+              onNext: () => goEpubChapter(1),
+              onToggleMode: toggleReadingMode,
+            }
+          : effectiveMode === 'paged'
+            ? {
+              pageStart: textPager.pageStart,
+              pageEnd: textPager.pageEnd,
+              pageTotal: textPager.pageTotal,
+              canPrev: textPager.canPrev,
+              canNext: textPager.canNext,
+              onPrev: () => textPager.goPage(-1),
+              onNext: () => textPager.goPage(1),
+              onToggleMode: toggleReadingMode,
+              onLayoutChange: setPageLayout,
+            }
+            : {
+              pageStart: 1,
+              pageEnd: 1,
+              pageTotal: 1,
+              canPrev: chapterIndex > 0,
+              canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
+              onPrev: () => goChapter(-1),
+              onNext: () => goChapter(1),
+              onToggleMode: toggleReadingMode,
+            }
+
+      const readerBar = screen.kind === 'book'
+        ? h(ReaderBar, {
+          t,
+          format: screen.detail.book.format,
+          mode: effectiveMode,
+          layout: pageLayout,
+          chapterTitle: screen.content.title,
+          chapterIndex,
+          chapterTotal,
+          ...readerBarProps,
+        })
+        : null
+
       const visualReader = visual ? h(VisualReader, {
         t,
         visual,
         screen,
-        pageView,
-        pageInput,
-        setPageInput,
-        goPdfPage,
-        zoomPdf,
+        pageViews,
+        layout: pageLayout,
+        readingMode: effectiveMode,
+        stepPdfPage,
         visualLoading,
         visualError,
         onPdfMouseUp,
         noteLayerRef,
-        goEpubChapter,
         onEpubLoad,
         epubFrameRef,
       }) : null
 
+      const textReader = screen.kind === 'book'
+        ? effectiveMode === 'paged'
+          ? h('div', {
+            className: 'dsh-reader-reader',
+            'data-paged': 'true',
+            ref: contentRef,
+            style: { fontSize },
+            onMouseUp: onContentMouseUp,
+          },
+          h('div', { className: 'dsh-reader-page-frame', ref: textPager.frameRef },
+            h('div', {
+              className: 'dsh-reader-reader-inner dsh-reader-paged-inner',
+              ref: textPager.innerRef,
+              style: textPager.innerStyle,
+            },
+            h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+            renderBlocks(screen.content.blocks, screen.content.chapterId),
+            h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))))
+          : h('div', {
+            className: 'dsh-reader-reader',
+            ref: contentRef,
+            style: { fontSize },
+            onMouseUp: onContentMouseUp,
+          },
+          h('div', { className: 'dsh-reader-reader-inner' },
+            h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
+            renderBlocks(screen.content.blocks, screen.content.chapterId),
+            h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef })))
+        : null
 
       const bookView = screen.kind === 'book'
         ? h('div', {
@@ -551,16 +709,9 @@ export function createPlugin(require: (name: string) => any) {
           activeChapter: screen.content.chapterId,
           onSelect: (chapterId: string) => void selectChapter(screen.detail.book.id, chapterId),
         }) : null,
-        visualReader ?? h('div', {
-          className: 'dsh-reader-reader',
-          ref: contentRef,
-          style: { fontSize },
-          onMouseUp: onContentMouseUp,
-        },
-        h('div', { className: 'dsh-reader-reader-inner' },
-          h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
-          renderBlocks(screen.content.blocks, screen.content.chapterId),
-          h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef }))),
+        h('div', { className: 'dsh-reader-main' },
+          readerBar,
+          visualReader ?? textReader),
         chatOpen
           ? h('button', {
             type: 'button',
