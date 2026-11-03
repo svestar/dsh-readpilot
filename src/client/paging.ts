@@ -2,6 +2,7 @@ export type PageLayout = 'single' | 'double'
 export type ReaderMode = 'scroll' | 'paged'
 
 export const PAGE_GAP = 40
+export const PAGE_ASPECT = 210 / 297
 
 export function columnsFor(layout: PageLayout): number {
   return layout === 'double' ? 2 : 1
@@ -58,4 +59,12 @@ export function clampPageIndex(pageIndex: number, pageCount: number): number {
 
 export function pageStep(layout: PageLayout): number {
   return columnsFor(layout)
+}
+
+export function pageWidthForHeight(height: number, availableWidth: number, ratio = PAGE_ASPECT): number {
+  const h = finiteOrZero(height)
+  const available = finiteOrZero(availableWidth)
+  const r = finiteOrZero(ratio)
+  if (h <= 0 || available <= 0 || r <= 0) return 0
+  return Math.min(available, h * r)
 }

@@ -881,7 +881,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
 .dsh-reader-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-reader-visual-error .dsh-reader-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
-.dsh-reader-reader-inner{position:relative;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-reader-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
 .dsh-reader-main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .dsh-reader-main>.dsh-reader-reader{flex:1;min-height:0}
 .dsh-reader-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
@@ -893,7 +893,7 @@ var __dshReaderBundle = (() => {
 .dsh-reader-bar .dsh-reader-page-input{width:52px}
 .dsh-reader-bar-toggle[data-active="true"],.dsh-reader-bar-toggle[aria-pressed="true"]{border-color:var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
 .dsh-reader-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
-.dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;padding:28px 40px;overflow:hidden}
+.dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;width:100%;max-width:100%;margin:0 auto;padding:28px 40px;overflow:hidden}
 .dsh-reader-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
 .dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;max-width:100%}
 .dsh-reader-pdf-spread .dsh-reader-pdf-page{margin:0}
@@ -1686,8 +1686,70 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
+  // src/client/paging.ts
+  var PAGE_GAP = 40;
+  var PAGE_ASPECT = 210 / 297;
+  function columnsFor(layout) {
+    return layout === "double" ? 2 : 1;
+  }
+  function finiteOrZero(value) {
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }
+  function validGap(gap) {
+    return Number.isFinite(gap) && gap >= 0 ? gap : PAGE_GAP;
+  }
+  function measurePageMetrics(viewportWidth, scrollWidth, layout, gap = PAGE_GAP) {
+    const columns = columnsFor(layout);
+    const g = validGap(gap);
+    const width = finiteOrZero(viewportWidth);
+    const content = finiteOrZero(scrollWidth);
+    const columnWidth = Math.max(1, (width - g * (columns - 1)) / columns);
+    const stride = columns * (columnWidth + g);
+    if (content <= width + 0.5) {
+      return { columns, columnWidth, totalColumns: 1, pageCount: 1, stride };
+    }
+    const totalColumns = Math.max(1, Math.round((content + g) / (columnWidth + g)));
+    const pageCount = Math.max(1, Math.ceil(totalColumns / columns));
+    return { columns, columnWidth, totalColumns, pageCount, stride };
+  }
+  function pageBounds(pageIndex, layout, totalColumns) {
+    const columns = columnsFor(layout);
+    const total = Number.isFinite(totalColumns) && totalColumns >= 1 ? Math.floor(totalColumns) : 1;
+    const pageCount = Math.max(1, Math.ceil(total / columns));
+    const index = clampPageIndex(pageIndex, pageCount);
+    const start = index * columns + 1;
+    const end = Math.min(start + columns - 1, total);
+    return { start, end };
+  }
+  function clampPageIndex(pageIndex, pageCount) {
+    const count = Number.isFinite(pageCount) ? Math.floor(pageCount) : 0;
+    if (count < 1) return 0;
+    const index = Number.isFinite(pageIndex) ? Math.floor(pageIndex) : 0;
+    if (index < 0) return 0;
+    return Math.min(index, count - 1);
+  }
+  function pageStep(layout) {
+    return columnsFor(layout);
+  }
+  function pageWidthForHeight(height, availableWidth, ratio = PAGE_ASPECT) {
+    const h2 = finiteOrZero(height);
+    const available = finiteOrZero(availableWidth);
+    const r = finiteOrZero(ratio);
+    if (h2 <= 0 || available <= 0 || r <= 0) return 0;
+    return Math.min(available, h2 * r);
+  }
+
   // src/client/views/visual-reader.ts
   var PDF_WHEEL_THRESHOLD = 40;
+  function contentBox(element) {
+    const style = getComputedStyle(element);
+    const paddingX = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0);
+    const paddingY = (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0);
+    return {
+      width: element.clientWidth - paddingX,
+      height: element.clientHeight - paddingY
+    };
+  }
   function renderPdfTextItems(pageView) {
     let offset = 0;
     return (pageView.textItems ?? []).map((item, index) => {
@@ -1725,7 +1787,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const containerRef = React.useRef(null);
     const spreadRef = React.useRef(null);
     const [pdfFit, setPdfFit] = React.useState(1);
+    const [epubWidth, setEpubWidth] = React.useState(null);
     const pdfPaged = visual?.kind === "pdf" && screen.kind === "book";
+    const epubShaped = visual?.kind === "epub" && screen.kind === "book" && (readingMode === "scroll" || layout === "single");
     React.useEffect(() => {
       const container = containerRef.current;
       if (!pdfPaged || !container) return;
@@ -1745,27 +1809,44 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       return () => container.removeEventListener("wheel", onWheel);
     }, [pdfPaged, stepPdfPage]);
     React.useEffect(() => {
-      if (!pdfPaged || layout !== "double") {
+      if (!pdfPaged) {
         setPdfFit(1);
         return;
       }
+      const container = containerRef.current;
+      if (!container) return;
       const spread = spreadRef.current;
-      if (!spread) return;
-      let lastWidth = -1;
+      if (layout === "double" && !spread) return;
+      let lastKey = "";
       const measure = () => {
+        if (layout === "single") {
+          const view = pageViews[0];
+          if (!view || !(view.width > 0) || !(view.height > 0)) return;
+          const box = contentBox(container);
+          if (!(box.width > 0) || !(box.height > 0)) return;
+          const key2 = `single:${box.width}x${box.height}:${view.width}x${view.height}`;
+          if (key2 === lastKey) return;
+          lastKey = key2;
+          setPdfFit(Math.min(1, box.height / view.height, box.width / view.width));
+          return;
+        }
+        if (!spread) return;
         const width = spread.clientWidth;
-        if (width <= 0 || width === lastWidth) return;
-        lastWidth = width;
+        if (!(width > 0)) return;
+        const key = `double:${width}:${pageViews.map((view) => `${view.width}x${view.height}`).join(",")}`;
+        if (key === lastKey) return;
+        lastKey = key;
         const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0;
         const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0);
         const available = width - gap * Math.max(0, pageViews.length - 1);
         setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1);
       };
       measure();
+      const target = layout === "single" ? container : spread;
       let observer = null;
-      if (typeof ResizeObserver === "function") {
+      if (target && typeof ResizeObserver === "function") {
         observer = new ResizeObserver(measure);
-        observer.observe(spread);
+        observer.observe(target);
       }
       window.addEventListener("resize", measure);
       return () => {
@@ -1773,6 +1854,35 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         window.removeEventListener("resize", measure);
       };
     }, [layout, pageViews, pdfPaged, visualError, visualLoading]);
+    React.useEffect(() => {
+      if (!epubShaped) {
+        setEpubWidth(null);
+        return;
+      }
+      const container = containerRef.current;
+      if (!container) return;
+      let lastKey = "";
+      const measure = () => {
+        const box = contentBox(container);
+        if (!(box.width > 0) || !(box.height > 0)) return;
+        const key = `${box.width}x${box.height}`;
+        if (key === lastKey) return;
+        lastKey = key;
+        const width = pageWidthForHeight(box.height, box.width);
+        setEpubWidth(width > 0 ? width : null);
+      };
+      measure();
+      let observer = null;
+      if (typeof ResizeObserver === "function") {
+        observer = new ResizeObserver(measure);
+        observer.observe(container);
+      }
+      window.addEventListener("resize", measure);
+      return () => {
+        observer?.disconnect();
+        window.removeEventListener("resize", measure);
+      };
+    }, [epubShaped]);
     if (!visual) return null;
     if (screen.kind !== "book") return null;
     if (visual.kind === "pdf") {
@@ -1853,7 +1963,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         sandbox: "allow-same-origin",
         title: screen.content.title,
         src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
-        onLoad: onEpubLoad
+        onLoad: onEpubLoad,
+        style: epubWidth === null ? void 0 : { width: epubWidth, margin: "0 auto" }
       })
     );
   }
@@ -3106,51 +3217,6 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
-  // src/client/paging.ts
-  var PAGE_GAP = 40;
-  function columnsFor(layout) {
-    return layout === "double" ? 2 : 1;
-  }
-  function finiteOrZero(value) {
-    return Number.isFinite(value) && value > 0 ? value : 0;
-  }
-  function validGap(gap) {
-    return Number.isFinite(gap) && gap >= 0 ? gap : PAGE_GAP;
-  }
-  function measurePageMetrics(viewportWidth, scrollWidth, layout, gap = PAGE_GAP) {
-    const columns = columnsFor(layout);
-    const g = validGap(gap);
-    const width = finiteOrZero(viewportWidth);
-    const content = finiteOrZero(scrollWidth);
-    const columnWidth = Math.max(1, (width - g * (columns - 1)) / columns);
-    const stride = columns * (columnWidth + g);
-    if (content <= width + 0.5) {
-      return { columns, columnWidth, totalColumns: 1, pageCount: 1, stride };
-    }
-    const totalColumns = Math.max(1, Math.round((content + g) / (columnWidth + g)));
-    const pageCount = Math.max(1, Math.ceil(totalColumns / columns));
-    return { columns, columnWidth, totalColumns, pageCount, stride };
-  }
-  function pageBounds(pageIndex, layout, totalColumns) {
-    const columns = columnsFor(layout);
-    const total = Number.isFinite(totalColumns) && totalColumns >= 1 ? Math.floor(totalColumns) : 1;
-    const pageCount = Math.max(1, Math.ceil(total / columns));
-    const index = clampPageIndex(pageIndex, pageCount);
-    const start = index * columns + 1;
-    const end = Math.min(start + columns - 1, total);
-    return { start, end };
-  }
-  function clampPageIndex(pageIndex, pageCount) {
-    const count = Number.isFinite(pageCount) ? Math.floor(pageCount) : 0;
-    if (count < 1) return 0;
-    const index = Number.isFinite(pageIndex) ? Math.floor(pageIndex) : 0;
-    if (index < 0) return 0;
-    return Math.min(index, count - 1);
-  }
-  function pageStep(layout) {
-    return columnsFor(layout);
-  }
-
   // src/client/hooks/use-text-pager.ts
   var WHEEL_THRESHOLD = 40;
   function useTextPager({ enabled, layout, screen, fontSize, selectChapter }) {
@@ -3324,6 +3390,54 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       canNext,
       goPage
     };
+  }
+
+  // src/client/hooks/use-page-width.ts
+  function paddingOf(value) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : 0;
+  }
+  function usePageWidth({ enabled, containerRef }) {
+    const [width, setWidth] = React.useState(0);
+    React.useEffect(() => {
+      if (!enabled) {
+        setWidth(0);
+        return;
+      }
+      const view = typeof window === "undefined" ? null : window;
+      let rafId = 0;
+      const measure = () => {
+        rafId = 0;
+        const container2 = containerRef.current;
+        if (!container2 || !container2.isConnected || !view) return;
+        const style = view.getComputedStyle(container2);
+        const contentWidth = container2.clientWidth - paddingOf(style.paddingLeft) - paddingOf(style.paddingRight);
+        const contentHeight = container2.clientHeight - paddingOf(style.paddingTop) - paddingOf(style.paddingBottom);
+        setWidth(pageWidthForHeight(contentHeight, contentWidth, PAGE_ASPECT));
+      };
+      const schedule = () => {
+        if (rafId) return;
+        if (typeof requestAnimationFrame === "function") {
+          rafId = requestAnimationFrame(measure);
+          return;
+        }
+        measure();
+      };
+      const container = containerRef.current;
+      let observer = null;
+      if (container && typeof ResizeObserver === "function") {
+        observer = new ResizeObserver(schedule);
+        observer.observe(container);
+      }
+      view?.addEventListener("resize", schedule);
+      schedule();
+      return () => {
+        if (rafId && typeof cancelAnimationFrame === "function") cancelAnimationFrame(rafId);
+        observer?.disconnect();
+        view?.removeEventListener("resize", schedule);
+      };
+    }, [enabled, containerRef]);
+    return enabled ? width : 0;
   }
 
   // src/client/hooks/use-visual.ts
@@ -3599,10 +3713,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
       if (!readyEpubDocument(frame)) return;
       let animationFrame = 0;
-      animationFrame = requestAnimationFrame(() => {
+      let lastSize = "";
+      const measure = () => {
+        animationFrame = 0;
         const doc = readyEpubDocument(frame);
         if (!doc) return;
         const metrics = measureEpubDocument(doc, layout);
+        lastSize = frame ? `${frame.clientWidth}x${frame.clientHeight}` : "";
         const pendingLast = epubPendingLastRef.current !== null && epubPendingLastRef.current === epubChapterId;
         const page = clampPageIndex(pendingLast ? metrics.pageCount - 1 : epubPageRef.current, metrics.pageCount);
         epubPageRef.current = page;
@@ -3618,8 +3735,22 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setEpubPageEnd(bounds.end);
         doc.documentElement.scrollLeft = page * metrics.stride;
         if (pendingLast) epubPendingLastRef.current = null;
-      });
-      return () => cancelAnimationFrame(animationFrame);
+      };
+      const schedule = () => {
+        if (frame && `${frame.clientWidth}x${frame.clientHeight}` === lastSize) return;
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        animationFrame = requestAnimationFrame(measure);
+      };
+      schedule();
+      let observer = null;
+      if (frame && typeof ResizeObserver === "function") {
+        observer = new ResizeObserver(schedule);
+        observer.observe(frame);
+      }
+      return () => {
+        if (animationFrame) cancelAnimationFrame(animationFrame);
+        observer?.disconnect();
+      };
     }, [epubChapterId, epubHref, epubPaged, epubReady, layout, resetEpubState]);
     React.useEffect(() => {
       if (!epubPaged) return;
@@ -3939,6 +4070,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         readingMode: effectiveMode,
         layout: pageLayout
       });
+      const textPageWidth = usePageWidth({
+        enabled: isTextFormat && (effectiveMode === "scroll" || effectiveMode === "paged" && pageLayout === "single"),
+        containerRef: contentRef
+      });
       const textPager = useTextPager({
         enabled: isTextFormat && effectiveMode === "paged",
         layout: pageLayout,
@@ -4245,6 +4380,8 @@ ${question}`);
         onEpubLoad,
         epubFrameRef
       }) : null;
+      const pageFrameStyle = textPageWidth > 0 ? { width: `${textPageWidth}px`, margin: "0 auto" } : void 0;
+      const textColumnStyle = textPageWidth > 0 ? { width: `${textPageWidth}px`, maxWidth: "100%", margin: "0 auto" } : void 0;
       const textReader = screen.kind === "book" ? effectiveMode === "paged" ? h(
         "div",
         {
@@ -4256,7 +4393,7 @@ ${question}`);
         },
         h(
           "div",
-          { className: "dsh-reader-page-frame", ref: textPager.frameRef },
+          { className: "dsh-reader-page-frame", ref: textPager.frameRef, style: pageFrameStyle },
           h(
             "div",
             {
@@ -4279,7 +4416,7 @@ ${question}`);
         },
         h(
           "div",
-          { className: "dsh-reader-reader-inner" },
+          { className: "dsh-reader-reader-inner", style: textColumnStyle },
           h("h1", { className: "dsh-reader-chapter-title" }, screen.content.title),
           renderBlocks(screen.content.blocks, screen.content.chapterId),
           h("div", { className: "dsh-reader-note-layer", ref: noteLayerRef })

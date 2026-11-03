@@ -1,9 +1,20 @@
 import { React, h } from '../runtime.ts'
 import { renderBlocks } from './markdown.ts'
+import { pageWidthForHeight } from '../paging.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { MutableRef, PageView, Screen, TextFn, Visual } from '../types.ts'
 
 const PDF_WHEEL_THRESHOLD = 40
+
+function contentBox(element: HTMLElement): { width: number; height: number } {
+  const style = getComputedStyle(element)
+  const paddingX = (Number.parseFloat(style.paddingLeft) || 0) + (Number.parseFloat(style.paddingRight) || 0)
+  const paddingY = (Number.parseFloat(style.paddingTop) || 0) + (Number.parseFloat(style.paddingBottom) || 0)
+  return {
+    width: element.clientWidth - paddingX,
+    height: element.clientHeight - paddingY,
+  }
+}
 
 interface VisualReaderProps {
   t: TextFn
@@ -59,7 +70,10 @@ export function VisualReader({
   const containerRef = React.useRef<HTMLDivElement | null>(null)
   const spreadRef = React.useRef<HTMLDivElement | null>(null)
   const [pdfFit, setPdfFit] = React.useState(1)
+  const [epubWidth, setEpubWidth] = React.useState<number | null>(null)
   const pdfPaged = visual?.kind === 'pdf' && screen.kind === 'book'
+  const epubShaped = visual?.kind === 'epub' && screen.kind === 'book'
+    && (readingMode === 'scroll' || layout === 'single')
 
   React.useEffect(() => {
     const container = containerRef.current
@@ -81,27 +95,44 @@ export function VisualReader({
   }, [pdfPaged, stepPdfPage])
 
   React.useEffect(() => {
-    if (!pdfPaged || layout !== 'double') {
+    if (!pdfPaged) {
       setPdfFit(1)
       return
     }
+    const container = containerRef.current
+    if (!container) return
     const spread = spreadRef.current
-    if (!spread) return
-    let lastWidth = -1
+    if (layout === 'double' && !spread) return
+    let lastKey = ''
     const measure = () => {
+      if (layout === 'single') {
+        const view = pageViews[0]
+        if (!view || !(view.width > 0) || !(view.height > 0)) return
+        const box = contentBox(container)
+        if (!(box.width > 0) || !(box.height > 0)) return
+        const key = `single:${box.width}x${box.height}:${view.width}x${view.height}`
+        if (key === lastKey) return
+        lastKey = key
+        setPdfFit(Math.min(1, box.height / view.height, box.width / view.width))
+        return
+      }
+      if (!spread) return
       const width = spread.clientWidth
-      if (width <= 0 || width === lastWidth) return
-      lastWidth = width
+      if (!(width > 0)) return
+      const key = `double:${width}:${pageViews.map(view => `${view.width}x${view.height}`).join(',')}`
+      if (key === lastKey) return
+      lastKey = key
       const gap = Number.parseFloat(getComputedStyle(spread).columnGap) || 0
       const pageWidth = pageViews.reduce((sum, view) => sum + view.width, 0)
       const available = width - gap * Math.max(0, pageViews.length - 1)
       setPdfFit(pageWidth > 0 && available > 0 ? Math.min(1, available / pageWidth) : 1)
     }
     measure()
+    const target = layout === 'single' ? container : spread
     let observer: ResizeObserver | null = null
-    if (typeof ResizeObserver === 'function') {
+    if (target && typeof ResizeObserver === 'function') {
       observer = new ResizeObserver(measure)
-      observer.observe(spread)
+      observer.observe(target)
     }
     window.addEventListener('resize', measure)
     return () => {
@@ -109,6 +140,36 @@ export function VisualReader({
       window.removeEventListener('resize', measure)
     }
   }, [layout, pageViews, pdfPaged, visualError, visualLoading])
+
+  React.useEffect(() => {
+    if (!epubShaped) {
+      setEpubWidth(null)
+      return
+    }
+    const container = containerRef.current
+    if (!container) return
+    let lastKey = ''
+    const measure = () => {
+      const box = contentBox(container)
+      if (!(box.width > 0) || !(box.height > 0)) return
+      const key = `${box.width}x${box.height}`
+      if (key === lastKey) return
+      lastKey = key
+      const width = pageWidthForHeight(box.height, box.width)
+      setEpubWidth(width > 0 ? width : null)
+    }
+    measure()
+    let observer: ResizeObserver | null = null
+    if (typeof ResizeObserver === 'function') {
+      observer = new ResizeObserver(measure)
+      observer.observe(container)
+    }
+    window.addEventListener('resize', measure)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', measure)
+    }
+  }, [epubShaped])
 
   if (!visual) return null
   if (screen.kind !== 'book') return null
@@ -177,5 +238,6 @@ export function VisualReader({
     title: screen.content.title,
     src: `/api/dsh-reader/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
     onLoad: onEpubLoad,
+    style: epubWidth === null ? undefined : { width: epubWidth, margin: '0 auto' },
   }))
 }

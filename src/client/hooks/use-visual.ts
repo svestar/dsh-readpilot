@@ -327,10 +327,13 @@ export function useVisual({
     }
     if (!readyEpubDocument(frame)) return
     let animationFrame = 0
-    animationFrame = requestAnimationFrame(() => {
+    let lastSize = ''
+    const measure = () => {
+      animationFrame = 0
       const doc = readyEpubDocument(frame)
       if (!doc) return
       const metrics = measureEpubDocument(doc, layout)
+      lastSize = frame ? `${frame.clientWidth}x${frame.clientHeight}` : ''
       const pendingLast = epubPendingLastRef.current !== null && epubPendingLastRef.current === epubChapterId
       const page = clampPageIndex(pendingLast ? metrics.pageCount - 1 : epubPageRef.current, metrics.pageCount)
       epubPageRef.current = page
@@ -346,8 +349,22 @@ export function useVisual({
       setEpubPageEnd(bounds.end)
       doc.documentElement.scrollLeft = page * metrics.stride
       if (pendingLast) epubPendingLastRef.current = null
-    })
-    return () => cancelAnimationFrame(animationFrame)
+    }
+    const schedule = () => {
+      if (frame && `${frame.clientWidth}x${frame.clientHeight}` === lastSize) return
+      if (animationFrame) cancelAnimationFrame(animationFrame)
+      animationFrame = requestAnimationFrame(measure)
+    }
+    schedule()
+    let observer: ResizeObserver | null = null
+    if (frame && typeof ResizeObserver === 'function') {
+      observer = new ResizeObserver(schedule)
+      observer.observe(frame)
+    }
+    return () => {
+      if (animationFrame) cancelAnimationFrame(animationFrame)
+      observer?.disconnect()
+    }
   }, [epubChapterId, epubHref, epubPaged, epubReady, layout, resetEpubState])
 
   React.useEffect(() => {

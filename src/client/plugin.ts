@@ -33,6 +33,7 @@ import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
+import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
 import { columnsFor } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
@@ -310,6 +311,11 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
         readingMode: effectiveMode,
         layout: pageLayout,
+      })
+
+      const textPageWidth = usePageWidth({
+        enabled: isTextFormat && (effectiveMode === 'scroll' || (effectiveMode === 'paged' && pageLayout === 'single')),
+        containerRef: contentRef,
       })
 
       const textPager = useTextPager({
@@ -666,6 +672,13 @@ export function createPlugin(require: (name: string) => any) {
         epubFrameRef,
       }) : null
 
+      const pageFrameStyle = textPageWidth > 0
+        ? { width: `${textPageWidth}px`, margin: '0 auto' }
+        : undefined
+      const textColumnStyle = textPageWidth > 0
+        ? { width: `${textPageWidth}px`, maxWidth: '100%', margin: '0 auto' }
+        : undefined
+
       const textReader = screen.kind === 'book'
         ? effectiveMode === 'paged'
           ? h('div', {
@@ -675,7 +688,7 @@ export function createPlugin(require: (name: string) => any) {
             style: { fontSize },
             onMouseUp: onContentMouseUp,
           },
-          h('div', { className: 'dsh-reader-page-frame', ref: textPager.frameRef },
+          h('div', { className: 'dsh-reader-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
             h('div', {
               className: 'dsh-reader-reader-inner dsh-reader-paged-inner',
               ref: textPager.innerRef,
@@ -690,7 +703,7 @@ export function createPlugin(require: (name: string) => any) {
             style: { fontSize },
             onMouseUp: onContentMouseUp,
           },
-          h('div', { className: 'dsh-reader-reader-inner' },
+          h('div', { className: 'dsh-reader-reader-inner', style: textColumnStyle },
             h('h1', { className: 'dsh-reader-chapter-title' }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),
             h('div', { className: 'dsh-reader-note-layer', ref: noteLayerRef })))

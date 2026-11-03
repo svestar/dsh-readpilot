@@ -1,12 +1,14 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import {
+  PAGE_ASPECT,
   PAGE_GAP,
   clampPageIndex,
   columnsFor,
   measurePageMetrics,
   pageBounds,
   pageStep,
+  pageWidthForHeight,
 } from '../src/client/paging.ts'
 
 test('columns_for_layouts', () => {
@@ -139,4 +141,38 @@ test('page_bounds', () => {
   assert.deepEqual(pageBounds(0, 'double', 0), { start: 1, end: 1 })
   assert.deepEqual(pageBounds(0, 'double', -4), { start: 1, end: 1 })
   assert.deepEqual(pageBounds(NaN, 'double', 5), { start: 1, end: 2 })
+})
+
+test('page_width_from_height', () => {
+  assert.equal(PAGE_ASPECT, 210 / 297)
+  assert.equal(pageWidthForHeight(1188, 2000), 1188 * PAGE_ASPECT)
+  assert.ok(Math.abs(pageWidthForHeight(1188, 2000) - 840) < 1e-9)
+  assert.equal(pageWidthForHeight(1188, 2000, PAGE_ASPECT), 1188 * PAGE_ASPECT)
+})
+
+test('page_width_clamps_to_available_width', () => {
+  assert.equal(pageWidthForHeight(1188, 600), 600)
+  assert.equal(pageWidthForHeight(100, 600), 100 * PAGE_ASPECT)
+  assert.equal(pageWidthForHeight(1188, 600, 0.5), 594)
+  assert.equal(pageWidthForHeight(1188, 500, 0.5), 500)
+})
+
+test('page_width_invalid_inputs', () => {
+  assert.equal(pageWidthForHeight(0, 800), 0)
+  assert.equal(pageWidthForHeight(-100, 800), 0)
+  assert.equal(pageWidthForHeight(NaN, 800), 0)
+  assert.equal(pageWidthForHeight(Infinity, 800), 0)
+  assert.equal(pageWidthForHeight(800, 0), 0)
+  assert.equal(pageWidthForHeight(800, -50), 0)
+  assert.equal(pageWidthForHeight(800, NaN), 0)
+  assert.equal(pageWidthForHeight(800, Infinity), 0)
+})
+
+test('page_width_custom_ratio', () => {
+  assert.equal(pageWidthForHeight(1000, 2000, 1.5), 1500)
+  assert.equal(pageWidthForHeight(1000, 1200, 1.5), 1200)
+  assert.equal(pageWidthForHeight(1000, 2000, 0), 0)
+  assert.equal(pageWidthForHeight(1000, 2000, -1), 0)
+  assert.equal(pageWidthForHeight(1000, 2000, NaN), 0)
+  assert.equal(pageWidthForHeight(1000, 2000, Infinity), 0)
 })
