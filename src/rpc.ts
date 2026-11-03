@@ -1,7 +1,7 @@
 import type { ChapterContent, OpenResult, PageViewResult, ReaderState, SearchResult } from './api.ts'
 import type { LibraryMeta } from './library-meta.ts'
 import type { NoteKind, NoteRecord } from './notes.ts'
-import type { NoteFileKind, NoteFileRecord } from './note-files.ts'
+import type { NoteFileKind, NoteFileRecord, NoteHistoryEntry } from './note-files.ts'
 import type { NoteDraftRecord } from './note-drafts.ts'
 
 export interface ProgressPayload {
@@ -70,6 +70,40 @@ export interface NoteFilesRemovePayload {
   action: 'remove'
   bookId: string
   id: string
+}
+
+export interface NoteFilesHistoryPayload {
+  action: 'history'
+  bookId: string
+  id: string
+}
+
+export interface NoteFilesRestorePayload {
+  action: 'restore'
+  bookId: string
+  id: string
+  historyId: string
+}
+
+export interface ExportNotesPayload {
+  bookId: string
+  save?: boolean
+}
+
+export interface ExportNotesResult {
+  markdown: string
+  fileName: string
+  path?: string
+}
+
+export interface MemoryPayload {
+  action: 'status' | 'setMode' | 'setBook' | 'write' | 'undo' | 'clear' | 'approve' | 'reject'
+  bookId: string
+  mode?: string
+  state?: string
+  scope?: string
+  text?: string
+  proposalId?: string
 }
 
 export interface NoteFileContentResult {
@@ -175,6 +209,10 @@ export interface CallRpc {
   (endpoint: 'noteFiles', payload: NoteFilesCreatePayload): Promise<NoteFileContentResult>
   (endpoint: 'noteFiles', payload: NoteFilesWritePayload): Promise<NoteFileContentResult>
   (endpoint: 'noteFiles', payload: NoteFilesRemovePayload): Promise<{ deleted: boolean }>
+  (endpoint: 'noteFiles', payload: NoteFilesHistoryPayload): Promise<{ history: NoteHistoryEntry[] }>
+  (endpoint: 'noteFiles', payload: NoteFilesRestorePayload): Promise<NoteFileContentResult>
+  (endpoint: 'exportNotes', payload: ExportNotesPayload): Promise<ExportNotesResult>
+  (endpoint: 'memory', payload: MemoryPayload): Promise<any>
   (endpoint: 'setNoteContext', payload: SetNoteContextPayload): Promise<SetNoteContextResult>
   (endpoint: 'noteDrafts', payload: NoteDraftsListPayload): Promise<{ drafts: NoteDraftRecord[] }>
   (endpoint: 'noteDrafts', payload: NoteDraftsApplyPayload): Promise<NoteFileContentResult>

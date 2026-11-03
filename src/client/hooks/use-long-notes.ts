@@ -1,6 +1,6 @@
 import { React } from '../runtime.ts'
-import { messageOf } from '../helpers.ts'
-import type { CallRpc, LongNote, NoteDraft, TextFn } from '../types.ts'
+import { downloadText, messageOf } from '../helpers.ts'
+import type { CallRpc, LongNote, LongNoteHistory, NoteDraft, TextFn } from '../types.ts'
 
 interface LongNotesOptions {
   call: CallRpc
@@ -28,6 +28,11 @@ export interface LongNotesState {
   createKind: 'book' | 'topic'
   drafts: NoteDraft[]
   draftBusyId: string | null
+  history: LongNoteHistory[]
+  historyOpen: boolean
+  historyBusy: boolean
+  exporting: boolean
+  exportStatus: string
   setDraft: (value: string) => void
   setTitle: (value: string) => void
   open: (note: LongNote) => Promise<void>
@@ -38,6 +43,9 @@ export interface LongNotesState {
   reload: () => Promise<void>
   applyDraft: (draft: NoteDraft) => Promise<void>
   rejectDraft: (draft: NoteDraft) => Promise<void>
+  toggleHistory: () => void
+  restoreHistory: (entry: LongNoteHistory) => Promise<void>
+  exportNotes: (save: boolean) => Promise<void>
 }
 
 export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNotesOptions): LongNotesState {
@@ -53,6 +61,11 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
   const [conflict, setConflict] = React.useState(false)
   const [drafts, setDrafts] = React.useState<NoteDraft[]>([])
   const [draftBusyId, setDraftBusyId] = React.useState<string | null>(null)
+  const [history, setHistory] = React.useState<LongNoteHistory[]>([])
+  const [historyOpen, setHistoryOpen] = React.useState(false)
+  const [historyBusy, setHistoryBusy] = React.useState(false)
+  const [exporting, setExporting] = React.useState(false)
+  const [exportStatus, setExportStatus] = React.useState('')
   const requestRef = React.useRef(0)
   const draftRequestRef = React.useRef(0)
   const readRef = React.useRef(0)
@@ -113,6 +126,10 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setConflict(false)
     setDrafts([])
     setDraftBusyId(null)
+    setHistory([])
+    setHistoryOpen(false)
+    setHistoryBusy(false)
+    setExportStatus('')
     void load()
   }, [activeBookId, load])
 
@@ -147,6 +164,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
       setDraft(value.body)
       setTitle(value.note.title)
       setCreating(false)
+      setHistory([])
+      setHistoryOpen(false)
+      setExportStatus('')
     } catch (cause) {
       if (readRef.current === request && bookRef.current === bookId) {
         setError(`${t('notesFailed')}：${messageOf(cause)}`)
@@ -168,6 +188,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setCreateKind(kind)
     setConflict(false)
     setError('')
+    setHistory([])
+    setHistoryOpen(false)
+    setExportStatus('')
     setTitle(kind === 'book' ? t('bookNote') : '')
     setDraft('')
   }, [notes, open, t])
@@ -292,6 +315,78 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     }
   }, [activeBookId, call, draftBusyId, loadDrafts, t])
 
+  const loadHistory = React.useCallback(async () => {
+    if (!activeBookId || !active) return
+    const bookId = activeBookId
+    setHistoryBusy(true)
+    try {
+      const value = await call('noteFiles', { action: 'history', bookId, id: active.note.id })
+      if (bookRef.current === bookId) setHistory(value.history.slice())
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause)}`)
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [active, activeBookId, call, t])
+
+  const toggleHistory = React.useCallback(() => {
+    if (!active) return
+    if (historyOpen) {
+      setHistoryOpen(false)
+      return
+    }
+    setHistoryOpen(true)
+    void loadHistory()
+  }, [active, historyOpen, loadHistory])
+
+  const restoreHistory = React.useCallback(async (entry: LongNoteHistory) => {
+    if (!activeBookId || !active || historyBusy) return
+    const bookId = activeBookId
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
+      && !window.confirm(t('historyRestoreConfirm'))) return
+    setHistoryBusy(true)
+    setError('')
+    try {
+      const value = await call('noteFiles', {
+        action: 'restore',
+        bookId,
+        id: active.note.id,
+        historyId: entry.id,
+      })
+      if (bookRef.current !== bookId) return
+      setActive({ note: value.note, body: value.body, hash: value.hash })
+      setDraft(value.body)
+      setTitle(value.note.title)
+      await loadHistory()
+      await load()
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause)}`)
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [active, activeBookId, call, historyBusy, load, loadHistory, t])
+
+  const exportNotes = React.useCallback(async (save: boolean) => {
+    if (!activeBookId || exporting) return
+    const bookId = activeBookId
+    setExporting(true)
+    setExportStatus('')
+    setError('')
+    try {
+      const value = await call('exportNotes', { bookId, save })
+      if (bookRef.current !== bookId) return
+      if (save) {
+        setExportStatus(value.path ? `${t('exportSaved')}：${value.path}` : t('exportSaved'))
+      } else {
+        downloadText(value.fileName, value.markdown)
+      }
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause)}`)
+    } finally {
+      setExporting(false)
+    }
+  }, [activeBookId, call, exporting, t])
+
   return {
     notes,
     loading,
@@ -305,6 +400,11 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     createKind,
     drafts,
     draftBusyId,
+    history,
+    historyOpen,
+    historyBusy,
+    exporting,
+    exportStatus,
     setDraft,
     setTitle,
     open,
@@ -315,5 +415,8 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     reload,
     applyDraft,
     rejectDraft,
+    toggleHistory,
+    restoreHistory,
+    exportNotes,
   }
 }

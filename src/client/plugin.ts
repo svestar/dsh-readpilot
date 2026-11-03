@@ -35,6 +35,7 @@ import { NativeCompanion, createNativeChatBoundary } from './views/native-compan
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
+import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
@@ -211,6 +212,7 @@ export function createPlugin(require: (name: string) => any) {
       }, [activeSessionId, screen, call])
 
       const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'notes' })
+      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'notes' })
 
       const [noteContextBusy, setNoteContextBusy] = React.useState(false)
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
@@ -227,7 +229,8 @@ export function createPlugin(require: (name: string) => any) {
             const notes = { ...(previous.companion?.notes ?? {}) }
             if (result.enabled) notes[bookId] = true
             else delete notes[bookId]
-            return { ...previous, companion: { notes } }
+            const companion = previous.companion ?? { notes: {}, memory: { mode: 'ask' as const, books: {} } }
+            return { ...previous, companion: { ...companion, notes } }
           })
           setNoteContextCharacters(result.characters)
         } catch (cause) {
@@ -644,6 +647,7 @@ export function createPlugin(require: (name: string) => any) {
         deleteNote,
         longNotes,
         noteContext,
+        memory,
       })
 
       const searchPanel = h(SearchPanel, {

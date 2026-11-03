@@ -1,4 +1,4 @@
-import { mkdir, readFile, realpath, stat } from 'node:fs/promises'
+import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, isAbsolute, join, resolve } from 'node:path'
 import type { Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
@@ -11,9 +11,16 @@ import { createNotesStore } from './notes.ts'
 import type { NoteFileStore } from './note-files.ts'
 import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
 import type { CompanionSettings } from './companion-settings.ts'
-import { loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
+import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
+import type { MemoryStore } from './memory-store.ts'
+import { MemoryStoreError, createMemoryStore } from './memory-store.ts'
+import { buildReadingMemory } from './memory-context.ts'
+import type { MemoryProposalStore } from './memory-proposals.ts'
+import { MemoryProposalError, createMemoryProposalStore } from './memory-proposals.ts'
 import type { NoteDraftRecord, NoteDraftStore } from './note-drafts.ts'
 import { NoteDraftError, createNoteDraftStore } from './note-drafts.ts'
+import type { ExportLongNote, ExportMark } from './note-export.ts'
+import { buildNotesMarkdown } from './note-export.ts'
 import { buildReadingNotes } from './notes-context.ts'
 import type { ReadingHighlight, ReadingNote } from './notes-context.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
@@ -147,9 +154,13 @@ export interface ReaderApi {
   companionContextOf(sessionId: unknown): string
   setNoteContext(payload?: any): Promise<{ bookId: string; enabled: boolean; characters: number }>
   notesContextFor(sessionId: unknown): string
+  memory(payload?: any): Promise<any>
+  memoryTool(payload?: any): Promise<any>
+  memoryContextFor(sessionId: unknown): string
   noteDrafts(payload?: any): Promise<any>
   noteDraftCreate(payload?: any): Promise<{ draft: NoteDraftRecord }>
   toolNoteFiles(payload?: any): Promise<any>
+  exportNotes(payload?: any): Promise<{ markdown: string; fileName: string; path?: string }>
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
   setBookTags(payload?: { bookId?: unknown; tags?: unknown }): Promise<{ bookId: string; tags: string[] }>
@@ -188,7 +199,10 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const companionContexts = new Map<string, { text: string; updatedAt: number }>()
   const companionReadings = new Map<string, { bookId: string; title: string; chapter: string; updatedAt: number }>()
   const notesContextCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
-  let companionSettings: CompanionSettings = { notes: {} }
+  let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'ask', books: {} } }
+  const memoryStore: MemoryStore = createMemoryStore(dataDir)
+  const memoryProposalStore: MemoryProposalStore = createMemoryProposalStore(dataDir)
+  const memoryCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
   let noteFileStore: NoteFileStore | null = null
   let noteFileRoot: string | null = null
   let pdfRendererPromise: Promise<PdfRenderer> | undefined
@@ -490,6 +504,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         for (const [id] of oldest.slice(0, companionReadings.size - 200)) companionReadings.delete(id)
       }
       if (companionSettings.notes[book]) void rebuildNotesContext(book)
+      if (effectiveMemoryState(companionSettings, book) === 'on') void rebuildMemory(book)
     }
     return { sessionId, characters: text.length }
   }
@@ -778,11 +793,11 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
     companionSettings = await loadCompanionSettings(dataDir)
     if (enabled) {
-      companionSettings = { notes: { ...companionSettings.notes, [book.id]: true } }
+      companionSettings = { ...companionSettings, notes: { ...companionSettings.notes, [book.id]: true } }
     } else {
       const notes = { ...companionSettings.notes }
       delete notes[book.id]
-      companionSettings = { notes }
+      companionSettings = { ...companionSettings, notes }
       notesContextCache.delete(book.id)
     }
     await saveCompanionSettings(dataDir, companionSettings)
@@ -795,6 +810,215 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const reading = companionReadings.get(sessionId)
     if (!reading || !companionSettings.notes[reading.bookId]) return ''
     return notesContextCache.get(reading.bookId)?.text ?? ''
+  }
+
+  async function rebuildMemory(bookId: string): Promise<number> {
+    try {
+      if (effectiveMemoryState(companionSettings, bookId) !== 'on') {
+        memoryCache.delete(bookId)
+        return 0
+      }
+      const book = await resolveBook(bookId)
+      const [reader, card] = await Promise.all([memoryStore.readReader(), memoryStore.readBook(bookId)])
+      const text = buildReadingMemory({ bookTitle: book.title, reader: reader.text, book: card.text })
+      memoryCache.set(bookId, { text, characters: text.length, updatedAt: Date.now() })
+      return text.length
+    } catch {
+      memoryCache.delete(bookId)
+      return 0
+    }
+  }
+
+  async function rebuildAllMemory(): Promise<void> {
+    const bookIds = new Set<string>()
+    for (const reading of companionReadings.values()) bookIds.add(reading.bookId)
+    await Promise.all([...bookIds].map(bookId => rebuildMemory(bookId)))
+  }
+
+  async function memoryStatus(book: Book): Promise<any> {
+    const [bookCard, readerCard, bookHistory, readerHistory, proposals] = await Promise.all([
+      memoryStore.readBook(book.id),
+      memoryStore.readReader(),
+      memoryStore.listHistory(book.id),
+      memoryStore.listHistory(null),
+      memoryProposalStore.list(book.id),
+    ])
+    return {
+      mode: companionSettings.memory.mode,
+      book: companionSettings.memory.books[book.id] ?? 'inherit',
+      effective: effectiveMemoryState(companionSettings, book.id),
+      bookText: bookCard.text,
+      readerText: readerCard.text,
+      bookHistory,
+      readerHistory,
+      proposals,
+    }
+  }
+
+  async function memory(payload: any = {}): Promise<any> {
+    const book = await resolveBook(payload.bookId)
+    companionSettings = await loadCompanionSettings(dataDir)
+    try {
+      if (payload.action === 'setMode') {
+        const mode = payload.mode
+        if (mode !== 'off' && mode !== 'ask' && mode !== 'on') {
+          throw new ReaderError('invalid-memory', '记忆模式必须是 off、ask 或 on')
+        }
+        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, mode } }
+        await saveCompanionSettings(dataDir, companionSettings)
+        await rebuildAllMemory()
+        return memoryStatus(book)
+      }
+      if (payload.action === 'setBook') {
+        const state = payload.state
+        if (state !== 'inherit' && state !== 'on' && state !== 'off') {
+          throw new ReaderError('invalid-memory', '单书状态必须是 inherit、on 或 off')
+        }
+        const books = { ...companionSettings.memory.books }
+        if (state === 'inherit') delete books[book.id]
+        else books[book.id] = state
+        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, books } }
+        await saveCompanionSettings(dataDir, companionSettings)
+        await rebuildMemory(book.id)
+        return memoryStatus(book)
+      }
+      if (payload.action === 'write') {
+        const text = typeof payload.text === 'string' ? payload.text : ''
+        if (payload.scope === 'reader') {
+          await memoryStore.writeReader(text)
+          await rebuildAllMemory()
+        } else {
+          await memoryStore.writeBook(book.id, text)
+          await rebuildMemory(book.id)
+        }
+        return memoryStatus(book)
+      }
+      if (payload.action === 'undo') {
+        if (payload.scope === 'reader') {
+          await memoryStore.undo(null)
+          await rebuildAllMemory()
+        } else {
+          await memoryStore.undo(book.id)
+          await rebuildMemory(book.id)
+        }
+        return memoryStatus(book)
+      }
+      if (payload.action === 'clear') {
+        if (payload.scope === 'reader') {
+          await memoryStore.clearReader()
+          await rebuildAllMemory()
+        } else {
+          await memoryStore.clearBook(book.id)
+          await rebuildMemory(book.id)
+        }
+        return memoryStatus(book)
+      }
+      if (payload.action === 'approve') {
+        const proposalId = String(payload.proposalId ?? '')
+        const proposal = (await memoryProposalStore.list(book.id)).find(item => item.id === proposalId)
+        if (!proposal) throw new ReaderError('proposal-not-found', '记忆提议不存在')
+        if (proposal.scope === 'reader') {
+          await memoryStore.writeReader(proposal.preview)
+        } else {
+          await memoryStore.writeBook(book.id, proposal.preview)
+        }
+        await memoryProposalStore.reject(book.id, proposal.id)
+        const books = { ...companionSettings.memory.books, [book.id]: 'on' as const }
+        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, books } }
+        await saveCompanionSettings(dataDir, companionSettings)
+        if (proposal.scope === 'reader') await rebuildAllMemory()
+        else await rebuildMemory(book.id)
+        return memoryStatus(book)
+      }
+      if (payload.action === 'reject') {
+        await memoryProposalStore.reject(book.id, String(payload.proposalId ?? ''))
+        const books = { ...companionSettings.memory.books, [book.id]: 'off' as const }
+        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, books } }
+        await saveCompanionSettings(dataDir, companionSettings)
+        await rebuildMemory(book.id)
+        return memoryStatus(book)
+      }
+      if (payload.action === 'status' || payload.action === undefined) return memoryStatus(book)
+      throw new ReaderError('invalid-memory-action', `未知记忆操作：${String(payload.action)}`)
+    } catch (error) {
+      if (error instanceof MemoryStoreError || error instanceof MemoryProposalError) {
+        throw new ReaderError(error.code, error.message)
+      }
+      throw error
+    }
+  }
+
+  async function memoryTool(payload: any = {}): Promise<any> {
+    const books = await libraryBooks()
+    const found = findBookByKey(books, payload.book)
+    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(payload.book)}`)
+    companionSettings = await loadCompanionSettings(dataDir)
+    const effective = effectiveMemoryState(companionSettings, found.id)
+    const scope = payload.scope === 'reader' ? 'reader' : 'book'
+    try {
+      if (payload.action === 'read') {
+        const [reader, card] = await Promise.all([memoryStore.readReader(), memoryStore.readBook(found.id)])
+        return {
+          bookId: found.id,
+          bookTitle: found.title,
+          effective,
+          bookCard: card.text,
+          readerCard: reader.text,
+        }
+      }
+      if (payload.action === 'forget') {
+        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭或尚未同意')
+        if (scope === 'reader') {
+          await memoryStore.clearReader()
+          await rebuildAllMemory()
+        } else {
+          await memoryStore.clearBook(found.id)
+          await rebuildMemory(found.id)
+        }
+        return { forgotten: true, scope }
+      }
+      if (payload.action === 'update') {
+        if (effective === 'off') throw new ReaderError('memory-off', '记忆已关闭')
+        const text = typeof payload.text === 'string' ? payload.text.trim() : ''
+        if (!text) throw new ReaderError('invalid-memory', '记忆内容不能为空')
+        const mode = payload.mode === 'replace' ? 'replace' : 'append'
+        const current = scope === 'reader'
+          ? (await memoryStore.readReader()).text
+          : (await memoryStore.readBook(found.id)).text
+        const preview = mode === 'append' && current.trim() ? `${current.trim()}\n\n${text}` : text
+        if (effective === 'ask') {
+          const proposal = await memoryProposalStore.create(found.id, { scope, mode, text, preview })
+          return {
+            needsConsent: true,
+            proposalId: proposal.id,
+            preview,
+            message: '记忆尚未开启，等待用户在笔记页的记忆区确认。',
+          }
+        }
+        if (scope === 'reader') {
+          await memoryStore.writeReader(preview)
+          await rebuildAllMemory()
+        } else {
+          await memoryStore.writeBook(found.id, preview)
+          await rebuildMemory(found.id)
+        }
+        return { saved: true, scope, characters: preview.length }
+      }
+      throw new ReaderError('invalid-memory-action', `未知记忆操作：${String(payload.action)}`)
+    } catch (error) {
+      if (error instanceof MemoryStoreError || error instanceof MemoryProposalError) {
+        throw new ReaderError(error.code, error.message)
+      }
+      throw error
+    }
+  }
+
+  function memoryContextFor(sessionId: unknown): string {
+    if (typeof sessionId !== 'string' || !sessionId) return ''
+    const reading = companionReadings.get(sessionId)
+    if (!reading) return ''
+    if (effectiveMemoryState(companionSettings, reading.bookId) !== 'on') return ''
+    return memoryCache.get(reading.bookId)?.text ?? ''
   }
 
   async function noteDrafts(payload: any = {}): Promise<any> {
@@ -863,6 +1087,60 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return createNoteDraftStore(dataDir, await ensureNoteFileStore())
   }
 
+  async function exportNotes({ bookId, save }: any = {}): Promise<{ markdown: string; fileName: string; path?: string }> {
+    const book = await resolveBook(bookId)
+    const opened = await open({ bookId: book.id })
+    const store = await ensureNoteFileStore()
+    const files = await store.list(book)
+    const notes: ExportLongNote[] = []
+    for (const file of files) {
+      try {
+        const content = await store.read(book, file.id)
+        notes.push({
+          kind: file.kind,
+          title: file.title,
+          body: content.body,
+          path: file.path,
+          updatedAt: file.updatedAt,
+        })
+      } catch {
+        // Export the remaining notes even if one file is unreadable.
+      }
+    }
+    const chapterTitles = new Map(opened.toc.map(item => [item.id, item.title]))
+    const marks: ExportMark[] = (await notesStore.list(book.id)).map(record => ({
+      kind: record.kind,
+      chapterTitle: chapterTitles.get(record.chapterId) ?? record.chapterId,
+      quote: record.quote,
+      note: record.note,
+      annotation: record.annotation,
+      color: record.color,
+      pageLabel: record.kind === 'bookmark' ? record.annotation : undefined,
+    }))
+    const meta = await libraryMetaStore.list()
+    const markdown = buildNotesMarkdown({
+      book: {
+        title: book.title,
+        ...(opened.book.author ? { author: opened.book.author } : {}),
+        ...(meta.tags[book.id]?.length ? { tags: meta.tags[book.id] } : {}),
+        ...(opened.progress
+          ? { progress: { chapterTitle: opened.progress.chapterTitle, percent: opened.progress.percent } }
+          : {}),
+      },
+      notes,
+      marks,
+    })
+    const safeTitle = book.title.replace(/[\\/:*?"<>|]/g, '-').trim() || '阅读笔记'
+    const fileName = `${safeTitle}-阅读笔记.md`
+    if (save !== true) return { markdown, fileName }
+    const settings = await currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const dir = join(settings.libraryDir, NOTES_DIR_NAME, '.exports')
+    await mkdir(dir, { recursive: true })
+    await writeFile(join(dir, fileName), markdown, 'utf8')
+    return { markdown, fileName, path: `notes/.exports/${fileName}` }
+  }
+
   async function handleNoteFiles(payload: any = {}): Promise<any> {
     const book = await resolveBook(payload.bookId)
     const store = await ensureNoteFileStore()
@@ -885,6 +1163,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       }
       if (payload.action === 'remove') {
         const result = { deleted: await store.remove(book, String(payload.id ?? '')) }
+        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
+        return result
+      }
+      if (payload.action === 'history') {
+        return { history: await store.listHistory(book, String(payload.id ?? '')) }
+      }
+      if (payload.action === 'restore') {
+        const result = await store.restoreHistory(book, String(payload.id ?? ''), String(payload.historyId ?? ''))
         if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
         return result
       }
@@ -960,10 +1246,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       companionPolicy: setCompanionPolicy,
       companionContext: setCompanionContext,
       setNoteContext,
+      memory,
       search,
       notes: handleNotes,
       noteFiles: handleNoteFiles,
       noteDrafts,
+      exportNotes,
       pageView,
       libraryMeta,
       setBookTags,
@@ -994,9 +1282,13 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     companionContextOf,
     setNoteContext,
     notesContextFor,
+    memory,
+    memoryTool,
+    memoryContextFor,
     noteDrafts,
     noteDraftCreate,
     toolNoteFiles,
+    exportNotes,
     search,
     libraryMeta,
     setBookTags,

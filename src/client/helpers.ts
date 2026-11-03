@@ -5,6 +5,20 @@ export function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
 }
 
+export function downloadText(fileName: string, text: string): void {
+  if (typeof document === 'undefined' || typeof URL === 'undefined' || !document.body) return
+  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' })
+  const url = URL.createObjectURL(blob)
+  const anchor = document.createElement('a')
+  anchor.href = url
+  anchor.download = fileName
+  anchor.style.display = 'none'
+  document.body.appendChild(anchor)
+  anchor.click()
+  anchor.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
 export function formatSize(bytes: unknown): string {
   if (!Number.isFinite(bytes)) return ''
   const value = bytes as number

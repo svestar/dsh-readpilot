@@ -28,6 +28,19 @@ var __dshReaderBundle = (() => {
   function messageOf(error) {
     return error instanceof Error ? error.message : String(error);
   }
+  function downloadText(fileName, text) {
+    if (typeof document === "undefined" || typeof URL === "undefined" || !document.body) return;
+    const blob = new Blob([text], { type: "text/markdown;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
   function formatSize(bytes) {
     if (!Number.isFinite(bytes)) return "";
     const value = bytes;
@@ -604,6 +617,45 @@ var __dshReaderBundle = (() => {
     rejectDraft: "拒绝",
     draftActionFailed: "草稿操作失败",
     draftDiffTruncated: "差异过长，仅显示前 80 行",
+    history: "历史",
+    historyEmpty: "还没有历史版本。",
+    historyRestore: "恢复",
+    historyRestoreConfirm: "恢复到这个版本？当前内容会先存入历史。",
+    historyFailed: "历史操作失败",
+    historyClose: "收起",
+    exportNotes: "导出",
+    exportSave: "保存到书库",
+    exportFailed: "导出失败",
+    exportSaved: "已保存",
+    memory: "记忆",
+    memoryLoad: "加载记忆",
+    memoryDefaultMode: "默认",
+    memoryThisBook: "本书",
+    memoryEffective: "当前生效",
+    memoryModeOff: "关闭",
+    memoryModeAsk: "询问",
+    memoryModeOn: "全部开启",
+    memoryBookInherit: "跟随",
+    memoryBookOn: "始终开启",
+    memoryBookOff: "始终关闭",
+    memoryEffectiveOff: "关闭",
+    memoryEffectiveAsk: "待询问",
+    memoryEffectiveOn: "开启",
+    memoryBookCard: "本书记忆",
+    memoryReaderCard: "读者卡",
+    memoryBookPlaceholder: "这本书的阅读关系、读者观点与未解决问题。",
+    memoryReaderPlaceholder: "跨书的读者偏好，例如语言、深度、回答风格。",
+    memoryUndo: "撤销最近一次",
+    memoryHistoryCount: "历史",
+    memoryProposals: "待确认的记忆",
+    memoryApprove: "同意并保存",
+    memoryReject: "不用",
+    memoryAppend: "追加",
+    memoryReplace: "替换",
+    memoryHint: "记忆只保存读者与阅读关系，不保存书里的情节设定；开启后伴读可自动更新，每次更新可撤销。",
+    memoryFailed: "记忆操作失败",
+    clear: "清空",
+    refresh: "刷新",
     pagePrev: "上一页",
     pageNext: "下一页",
     chapterPrev: "上一章",
@@ -747,6 +799,45 @@ var __dshReaderBundle = (() => {
     rejectDraft: "Reject",
     draftActionFailed: "Draft action failed",
     draftDiffTruncated: "Diff is long; showing the first 80 lines",
+    history: "History",
+    historyEmpty: "No history yet.",
+    historyRestore: "Restore",
+    historyRestoreConfirm: "Restore this version? The current content is saved to history first.",
+    historyFailed: "History action failed",
+    historyClose: "Close",
+    exportNotes: "Export",
+    exportSave: "Save to library",
+    exportFailed: "Export failed",
+    exportSaved: "Saved",
+    memory: "Memory",
+    memoryLoad: "Load memory",
+    memoryDefaultMode: "Default",
+    memoryThisBook: "This book",
+    memoryEffective: "Effective",
+    memoryModeOff: "Off",
+    memoryModeAsk: "Ask",
+    memoryModeOn: "All on",
+    memoryBookInherit: "Inherit",
+    memoryBookOn: "Always on",
+    memoryBookOff: "Always off",
+    memoryEffectiveOff: "Off",
+    memoryEffectiveAsk: "Needs consent",
+    memoryEffectiveOn: "On",
+    memoryBookCard: "Book memory",
+    memoryReaderCard: "Reader card",
+    memoryBookPlaceholder: "Reading relationship, the reader’s views and open questions for this book.",
+    memoryReaderPlaceholder: "Cross-book preferences such as language, depth and answer style.",
+    memoryUndo: "Undo last",
+    memoryHistoryCount: "history",
+    memoryProposals: "Pending memory",
+    memoryApprove: "Approve and save",
+    memoryReject: "Not now",
+    memoryAppend: "Append",
+    memoryReplace: "Replace",
+    memoryHint: "Memory keeps the reader and reading relationship, not book plot facts. When on, the companion can update it automatically and every update can be undone.",
+    memoryFailed: "Memory action failed",
+    clear: "Clear",
+    refresh: "Refresh",
     pagePrev: "Previous page",
     pageNext: "Next page",
     chapterPrev: "Previous chapter",
@@ -927,6 +1018,20 @@ var __dshReaderBundle = (() => {
 .dsh-reader-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
 .dsh-reader-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
 .dsh-reader-diff-same{color:var(--dsw-alias-label-secondary)}
+.dsh-reader-memory{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dsh-reader-memory-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
+.dsh-reader-memory-modes{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.dsh-reader-memory-card{display:flex;flex-direction:column;gap:6px}
+.dsh-reader-memory-card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dsh-reader-memory-card textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;line-height:1.6;resize:vertical}
+.dsh-reader-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-memory-history{font-size:11px}
+.dsh-reader-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
+.dsh-reader-memory-proposals{display:flex;flex-direction:column;gap:7px}
+.dsh-reader-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-history-row:last-child{border-bottom:0}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}
@@ -1729,6 +1834,23 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           );
         })
       ) : null,
+      h(
+        "div",
+        { className: "dsh-reader-long-notes-actions" },
+        h("button", {
+          type: "button",
+          className: "dsh-reader-note-jump",
+          disabled: state.exporting,
+          onClick: () => void state.exportNotes(false)
+        }, t("exportNotes")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-note-jump",
+          disabled: state.exporting,
+          onClick: () => void state.exportNotes(true)
+        }, t("exportSave")),
+        state.exportStatus ? h("span", { className: "dsh-reader-long-hint" }, state.exportStatus) : null
+      ),
       state.error ? h("div", { className: "dsh-reader-chat-error" }, state.error) : null,
       editing ? h(
         "div",
@@ -1790,8 +1912,40 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             className: "dsh-reader-note-delete",
             disabled: state.saving,
             onClick: () => void state.remove()
-          }, t("delete")) : null
+          }, t("delete")) : null,
+          state.active ? h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            disabled: state.historyBusy,
+            onClick: state.toggleHistory
+          }, t("history")) : null
         ),
+        state.active && state.historyOpen ? h(
+          "div",
+          { className: "dsh-reader-history" },
+          h("div", { className: "dsh-reader-drafts-head" }, t("history")),
+          state.history.length === 0 ? h("div", { className: "dsh-reader-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
+            "div",
+            { key: entry.id, className: "dsh-reader-history-row" },
+            h("span", { className: "dsh-reader-long-meta" }, new Date(entry.createdAt).toLocaleString()),
+            h(
+              "span",
+              { className: "dsh-reader-long-meta" },
+              `${entry.characters} ${t("noteContextChars")}`
+            ),
+            h("button", {
+              type: "button",
+              className: "dsh-reader-note-jump",
+              disabled: state.historyBusy,
+              onClick: () => void state.restoreHistory(entry)
+            }, t("historyRestore"))
+          )),
+          h("button", {
+            type: "button",
+            className: "dsh-reader-note-jump",
+            onClick: state.toggleHistory
+          }, t("historyClose"))
+        ) : null,
         h(
           "details",
           { className: "dsh-reader-long-preview" },
@@ -1830,6 +1984,188 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
+  // src/client/views/memory-panel.ts
+  function modeLabel(t, mode) {
+    if (mode === "off") return t("memoryModeOff");
+    if (mode === "on") return t("memoryModeOn");
+    return t("memoryModeAsk");
+  }
+  function bookStateLabel(t, state) {
+    if (state === "on") return t("memoryBookOn");
+    if (state === "off") return t("memoryBookOff");
+    return t("memoryBookInherit");
+  }
+  function effectiveLabel(t, effective) {
+    if (effective === "on") return t("memoryEffectiveOn");
+    if (effective === "off") return t("memoryEffectiveOff");
+    return t("memoryEffectiveAsk");
+  }
+  function cardEditor(t, scope, text, setText, history, props) {
+    return h(
+      "div",
+      { className: "dsh-reader-memory-card" },
+      h(
+        "div",
+        { className: "dsh-reader-memory-card-head" },
+        h("span", null, scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")),
+        h(
+          "span",
+          { className: "dsh-reader-long-meta" },
+          `${text.length} ${t("noteContextChars")} · ${t("memoryHistoryCount")} ${history.length}`
+        )
+      ),
+      h("textarea", {
+        value: text,
+        rows: 5,
+        placeholder: scope === "book" ? t("memoryBookPlaceholder") : t("memoryReaderPlaceholder"),
+        onChange: (event) => setText(event.target.value)
+      }),
+      h(
+        "div",
+        { className: "dsh-reader-long-editor-actions" },
+        h("button", {
+          type: "button",
+          className: "dsh-reader-chat-send",
+          disabled: props.busy,
+          onClick: () => props.onSave(scope, text)
+        }, t("save")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-note-jump",
+          disabled: props.busy || history.length === 0,
+          onClick: () => props.onUndo(scope)
+        }, t("memoryUndo")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-note-delete",
+          disabled: props.busy || !text.trim(),
+          onClick: () => props.onClear(scope)
+        }, t("clear"))
+      ),
+      history.length > 0 ? h(
+        "details",
+        { className: "dsh-reader-memory-history" },
+        h("summary", null, `${t("history")} · ${history.length}`),
+        history.slice(0, 10).map((entry) => h(
+          "div",
+          { key: entry.id, className: "dsh-reader-long-hint" },
+          `${new Date(entry.createdAt).toLocaleString()} · ${entry.characters} ${t("noteContextChars")}`
+        ))
+      ) : null
+    );
+  }
+  function MemoryPanel(props) {
+    const { t, status } = props;
+    const [bookDraft, setBookDraft] = React.useState("");
+    const [readerDraft, setReaderDraft] = React.useState("");
+    React.useEffect(() => {
+      setBookDraft(status?.bookText ?? "");
+      setReaderDraft(status?.readerText ?? "");
+    }, [status?.bookText, status?.readerText]);
+    if (!status && props.loading) {
+      return h(
+        "section",
+        { className: "dsh-reader-memory" },
+        h("div", { className: "dsh-reader-chat-empty" }, t("loading"))
+      );
+    }
+    if (!status) {
+      return h(
+        "section",
+        { className: "dsh-reader-memory" },
+        props.error ? h("div", { className: "dsh-reader-chat-error" }, props.error) : null,
+        h("button", { type: "button", className: "dsh-reader-note-jump", onClick: props.onRefresh }, t("memoryLoad"))
+      );
+    }
+    return h(
+      "section",
+      { className: "dsh-reader-memory" },
+      h(
+        "div",
+        { className: "dsh-reader-memory-head" },
+        h("h4", null, t("memory")),
+        h("button", {
+          type: "button",
+          className: "dsh-reader-note-jump",
+          disabled: props.busy,
+          onClick: props.onRefresh
+        }, t("refresh"))
+      ),
+      props.error ? h("div", { className: "dsh-reader-chat-error" }, props.error) : null,
+      h(
+        "div",
+        { className: "dsh-reader-memory-modes" },
+        h("span", { className: "dsh-reader-long-meta" }, t("memoryDefaultMode")),
+        ["off", "ask", "on"].map((mode) => h("button", {
+          key: mode,
+          type: "button",
+          className: "dsh-reader-chat-tab",
+          "data-active": status.mode === mode ? "true" : "false",
+          disabled: props.busy,
+          onClick: () => props.onMode(mode)
+        }, modeLabel(t, mode)))
+      ),
+      h(
+        "div",
+        { className: "dsh-reader-memory-modes" },
+        h("span", { className: "dsh-reader-long-meta" }, t("memoryThisBook")),
+        ["inherit", "on", "off"].map((state) => h("button", {
+          key: state,
+          type: "button",
+          className: "dsh-reader-chat-tab",
+          "data-active": status.book === state ? "true" : "false",
+          disabled: props.busy,
+          onClick: () => props.onBookState(state)
+        }, bookStateLabel(t, state))),
+        h("span", { className: "dsh-reader-long-meta" }, `${t("memoryEffective")} ${effectiveLabel(t, status.effective)}`)
+      ),
+      status.proposals.length > 0 ? h(
+        "div",
+        { className: "dsh-reader-memory-proposals" },
+        h("div", { className: "dsh-reader-drafts-head" }, t("memoryProposals")),
+        status.proposals.map((proposal) => h(
+          "div",
+          { key: proposal.id, className: "dsh-reader-draft" },
+          h(
+            "div",
+            { className: "dsh-reader-draft-head" },
+            h(
+              "span",
+              { className: "dsh-reader-long-kind" },
+              proposal.scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")
+            ),
+            h(
+              "span",
+              { className: "dsh-reader-long-title" },
+              proposal.mode === "append" ? t("memoryAppend") : t("memoryReplace")
+            ),
+            h("span", { className: "dsh-reader-long-meta" }, new Date(proposal.createdAt).toLocaleTimeString())
+          ),
+          h("pre", { className: "dsh-reader-diff" }, proposal.preview.slice(0, 1200)),
+          h(
+            "div",
+            { className: "dsh-reader-long-editor-actions" },
+            h("button", {
+              type: "button",
+              className: "dsh-reader-chat-send",
+              disabled: props.busy,
+              onClick: () => props.onApprove(proposal.id)
+            }, t("memoryApprove")),
+            h("button", {
+              type: "button",
+              className: "dsh-reader-note-jump",
+              disabled: props.busy,
+              onClick: () => props.onReject(proposal.id)
+            }, t("memoryReject"))
+          )
+        ))
+      ) : null,
+      cardEditor(t, "book", bookDraft, setBookDraft, status.bookHistory, props),
+      cardEditor(t, "reader", readerDraft, setReaderDraft, status.readerHistory, props),
+      h("div", { className: "dsh-reader-long-hint" }, t("memoryHint"))
+    );
+  }
+
   // src/client/views/notes-search.ts
   function chapterTitleOf(screen, chapterId) {
     return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
@@ -1852,15 +2188,31 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, noteDeletingId === item.id ? t("loading") : t("delete"))
     ];
   }
-  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext }) {
+  function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote, longNotes, noteContext, memory }) {
     const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
     const hasLong = Boolean(longNotes);
+    const hasMemory = Boolean(memory);
     return h(
       "div",
       { className: "dsh-reader-notes" },
       longNotes ? h(LongNotes, { t, state: longNotes, noteContext }) : null,
+      memory ? h(MemoryPanel, {
+        t,
+        status: memory.status,
+        loading: memory.loading,
+        error: memory.error,
+        busy: memory.busy,
+        onRefresh: memory.refresh,
+        onMode: memory.setMode,
+        onBookState: memory.setBookState,
+        onSave: memory.saveCard,
+        onUndo: memory.undo,
+        onClear: memory.clear,
+        onApprove: memory.approve,
+        onReject: memory.reject
+      }) : null,
       notesError ? h("div", { className: "dsh-reader-chat-error" }, notesError) : null,
-      notesLoading && !hasMarks && !hasLong ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks && !hasLong ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
+      notesLoading && !hasMarks && !hasLong && !hasMemory ? h("div", { className: "dsh-reader-chat-empty" }, t("loading")) : !hasMarks && !hasLong && !hasMemory ? notesError ? null : h("div", { className: "dsh-reader-chat-empty" }, t("noteEmpty")) : [
         highlights.length > 0 ? h(
           "section",
           { key: "highlights", className: "dsh-reader-mark-section" },
@@ -2640,7 +2992,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const paged = mode === "paged";
     const prevLabel = t(paged ? "pagePrev" : "chapterPrev");
     const nextLabel = t(paged ? "pageNext" : "chapterNext");
-    const modeLabel = t(paged ? "scrollMode" : "pagedMode");
+    const modeLabel2 = t(paged ? "scrollMode" : "pagedMode");
     const numericPage = paged && Boolean(onPageCommit) && pageInput !== void 0;
     const pagePosition = paged ? `${pageStart}${pageEnd > pageStart ? `–${pageEnd}` : ""} / ${pageTotal}` : `${chapterIndex + 1} / ${chapterTotal}`;
     return h(
@@ -2701,10 +3053,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         onToggleMode ? h("button", {
           type: "button",
           className: "dsh-reader-secondary dsh-reader-bar-toggle",
-          title: modeLabel,
-          "aria-label": modeLabel,
+          title: modeLabel2,
+          "aria-label": modeLabel2,
           onClick: onToggleMode
-        }, modeLabel) : null,
+        }, modeLabel2) : null,
         paged && onLayoutChange ? h(
           "div",
           { className: "dsh-reader-bar-group dsh-reader-bar-layout" },
@@ -3625,6 +3977,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [conflict, setConflict] = React.useState(false);
     const [drafts, setDrafts] = React.useState([]);
     const [draftBusyId, setDraftBusyId] = React.useState(null);
+    const [history, setHistory] = React.useState([]);
+    const [historyOpen, setHistoryOpen] = React.useState(false);
+    const [historyBusy, setHistoryBusy] = React.useState(false);
+    const [exporting, setExporting] = React.useState(false);
+    const [exportStatus, setExportStatus] = React.useState("");
     const requestRef = React.useRef(0);
     const draftRequestRef = React.useRef(0);
     const readRef = React.useRef(0);
@@ -3682,6 +4039,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setConflict(false);
       setDrafts([]);
       setDraftBusyId(null);
+      setHistory([]);
+      setHistoryOpen(false);
+      setHistoryBusy(false);
+      setExportStatus("");
       void load();
     }, [activeBookId, load]);
     React.useEffect(() => {
@@ -3714,6 +4075,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setDraft(value.body);
         setTitle(value.note.title);
         setCreating(false);
+        setHistory([]);
+        setHistoryOpen(false);
+        setExportStatus("");
       } catch (cause) {
         if (readRef.current === request && bookRef.current === bookId) {
           setError(`${t("notesFailed")}：${messageOf(cause)}`);
@@ -3734,6 +4098,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setCreateKind(kind);
       setConflict(false);
       setError("");
+      setHistory([]);
+      setHistoryOpen(false);
+      setExportStatus("");
       setTitle(kind === "book" ? t("bookNote") : "");
       setDraft("");
     }, [notes, open, t]);
@@ -3850,6 +4217,73 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setDraftBusyId(null);
       }
     }, [activeBookId, call, draftBusyId, loadDrafts, t]);
+    const loadHistory = React.useCallback(async () => {
+      if (!activeBookId || !active) return;
+      const bookId = activeBookId;
+      setHistoryBusy(true);
+      try {
+        const value = await call("noteFiles", { action: "history", bookId, id: active.note.id });
+        if (bookRef.current === bookId) setHistory(value.history.slice());
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("historyFailed")}：${messageOf(cause)}`);
+      } finally {
+        setHistoryBusy(false);
+      }
+    }, [active, activeBookId, call, t]);
+    const toggleHistory = React.useCallback(() => {
+      if (!active) return;
+      if (historyOpen) {
+        setHistoryOpen(false);
+        return;
+      }
+      setHistoryOpen(true);
+      void loadHistory();
+    }, [active, historyOpen, loadHistory]);
+    const restoreHistory = React.useCallback(async (entry) => {
+      if (!activeBookId || !active || historyBusy) return;
+      const bookId = activeBookId;
+      if (typeof window !== "undefined" && typeof window.confirm === "function" && !window.confirm(t("historyRestoreConfirm"))) return;
+      setHistoryBusy(true);
+      setError("");
+      try {
+        const value = await call("noteFiles", {
+          action: "restore",
+          bookId,
+          id: active.note.id,
+          historyId: entry.id
+        });
+        if (bookRef.current !== bookId) return;
+        setActive({ note: value.note, body: value.body, hash: value.hash });
+        setDraft(value.body);
+        setTitle(value.note.title);
+        await loadHistory();
+        await load();
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("historyFailed")}：${messageOf(cause)}`);
+      } finally {
+        setHistoryBusy(false);
+      }
+    }, [active, activeBookId, call, historyBusy, load, loadHistory, t]);
+    const exportNotes = React.useCallback(async (save2) => {
+      if (!activeBookId || exporting) return;
+      const bookId = activeBookId;
+      setExporting(true);
+      setExportStatus("");
+      setError("");
+      try {
+        const value = await call("exportNotes", { bookId, save: save2 });
+        if (bookRef.current !== bookId) return;
+        if (save2) {
+          setExportStatus(value.path ? `${t("exportSaved")}：${value.path}` : t("exportSaved"));
+        } else {
+          downloadText(value.fileName, value.markdown);
+        }
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("exportFailed")}：${messageOf(cause)}`);
+      } finally {
+        setExporting(false);
+      }
+    }, [activeBookId, call, exporting, t]);
     return {
       notes,
       loading,
@@ -3863,6 +4297,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       createKind,
       drafts,
       draftBusyId,
+      history,
+      historyOpen,
+      historyBusy,
+      exporting,
+      exportStatus,
       setDraft,
       setTitle,
       open,
@@ -3872,7 +4311,82 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       remove,
       reload,
       applyDraft,
-      rejectDraft
+      rejectDraft,
+      toggleHistory,
+      restoreHistory,
+      exportNotes
+    };
+  }
+
+  // src/client/hooks/use-memory.ts
+  function useMemory({ call, t, activeBookId, notesTabActive }) {
+    const [status, setStatus] = React.useState(null);
+    const [loading, setLoading] = React.useState(false);
+    const [error, setError] = React.useState("");
+    const [busy, setBusy] = React.useState(false);
+    const bookRef = React.useRef(activeBookId);
+    React.useEffect(() => {
+      bookRef.current = activeBookId;
+      setStatus(null);
+      setError("");
+    }, [activeBookId]);
+    const load = React.useCallback(async () => {
+      if (!activeBookId) {
+        setStatus(null);
+        return;
+      }
+      const bookId = activeBookId;
+      setLoading(true);
+      setError("");
+      try {
+        const value = await call("memory", { action: "status", bookId });
+        if (bookRef.current === bookId) setStatus(value);
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("memoryFailed")}：${messageOf(cause)}`);
+      } finally {
+        setLoading(false);
+      }
+    }, [activeBookId, call, t]);
+    React.useEffect(() => {
+      if (!activeBookId || !notesTabActive) return;
+      let cancelled = false;
+      const tick = () => {
+        if (!cancelled) void load();
+      };
+      tick();
+      const timer = window.setInterval(tick, 5e3);
+      return () => {
+        cancelled = true;
+        window.clearInterval(timer);
+      };
+    }, [activeBookId, notesTabActive, load]);
+    const run = React.useCallback(async (payload) => {
+      if (!activeBookId || busy) return;
+      const bookId = activeBookId;
+      setBusy(true);
+      setError("");
+      try {
+        const value = await call("memory", { ...payload, bookId });
+        if (bookRef.current === bookId) setStatus(value);
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("memoryFailed")}：${messageOf(cause)}`);
+      } finally {
+        setBusy(false);
+      }
+    }, [activeBookId, busy, call, t]);
+    return {
+      status,
+      loading,
+      error,
+      busy,
+      refresh: () => run({ action: "status" }),
+      setMode: (mode) => run({ action: "setMode", mode }),
+      setBookState: (state) => run({ action: "setBook", state }),
+      saveCard: (scope, text) => run({ action: "write", scope, text }),
+      undo: (scope) => run({ action: "undo", scope }),
+      clear: (scope) => run({ action: "clear", scope }),
+      approve: (proposalId) => run({ action: "approve", proposalId }),
+      reject: (proposalId) => run({ action: "reject", proposalId })
     };
   }
 
@@ -4635,6 +5149,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         });
       }, [activeSessionId, screen, call]);
       const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === "notes" });
+      const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === "notes" });
       const [noteContextBusy, setNoteContextBusy] = React.useState(false);
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0);
       const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId]);
@@ -4650,7 +5165,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             const notes2 = { ...previous.companion?.notes ?? {} };
             if (result.enabled) notes2[bookId] = true;
             else delete notes2[bookId];
-            return { ...previous, companion: { notes: notes2 } };
+            const companion = previous.companion ?? { notes: {}, memory: { mode: "ask", books: {} } };
+            return { ...previous, companion: { ...companion, notes: notes2 } };
           });
           setNoteContextCharacters(result.characters);
         } catch (cause) {
@@ -5025,7 +5541,8 @@ ${question}`;
         noteDeletingId,
         deleteNote,
         longNotes,
-        noteContext
+        noteContext,
+        memory
       });
       const searchPanel = h(SearchPanel, {
         t,

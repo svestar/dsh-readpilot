@@ -10,7 +10,7 @@ import type {
   TocItem as ApiTocItem,
 } from '../api.ts'
 import type { NoteRecord } from '../notes.ts'
-import type { NoteFileRecord } from '../note-files.ts'
+import type { NoteFileRecord, NoteHistoryEntry } from '../note-files.ts'
 import type { NoteDraftRecord } from '../note-drafts.ts'
 
 export type { CallRpc } from '../rpc.ts'
@@ -60,6 +60,7 @@ export type Visual = VisualPdf | VisualEpub
 
 export type Note = NoteRecord
 export type LongNote = NoteFileRecord
+export type LongNoteHistory = NoteHistoryEntry
 export type NoteDraft = NoteDraftRecord
 
 export interface NoteContextToggle {

@@ -12,7 +12,7 @@
 
 `reader_context` 是只读工具：不传书时按 `progress.updatedAt` 返回最近阅读的书；传 `book` 时返回指定书的元数据、进度、前 60 条目录和最近 10 条笔记。现有 `reader_books`、`reader_open`、`reader_read`、`reader_search`、`reader_note` 保持不变。
 
-阅读位置注入走 Host 的 `systemPrompt.context`：客户端在书籍与会话就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 回调按 `agent.session.id` 返回 `<reading_context>` 文本，只有该会话可见，不写 `AGENTS.md`，也不产生可见消息。书名与章节各截断 300 字符，最多保留 200 个会话。笔记上下文另由 [FTR-021](FTR-021-note-context.md) 按书注入。提示词还要求 `reader_notes` 的写操作只在用户明确要求时使用，生成草稿后提醒用户在笔记面板确认；短笔记用 `reader_note`（引用原文记一两句），长笔记用 `reader_notes`（整理/写/追加/扩写长文），含糊时先问。
+阅读位置注入走 Host 的 `systemPrompt.context`：客户端在书籍与会话就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 回调按 `agent.session.id` 返回 `<reading_context>` 文本，只有该会话可见，不写 `AGENTS.md`，也不产生可见消息。书名与章节各截断 300 字符，最多保留 200 个会话。笔记上下文另由 [FTR-021](FTR-021-note-context.md) 按书注入；记忆由 [FTR-023](FTR-023-memory.md) 按书的生效状态注入。提示词还要求 `reader_notes` 的写操作只在用户明确要求时使用，生成草稿后提醒用户在笔记面板确认；短笔记用 `reader_note`（引用原文记一两句），长笔记用 `reader_notes`（整理/写/追加/扩写长文），含糊时先问。
 
 ## 接口与代码映射
 

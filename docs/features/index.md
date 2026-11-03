@@ -26,3 +26,6 @@
 | `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts` | active |
 | `FTR-021` | 笔记上下文 | `docs/features/FTR-021-note-context.md` | `src/notes-context.ts` | `tests/notes-context.test.ts` | active |
 | `FTR-022` | 笔记草稿 | `docs/features/FTR-022-note-drafts.md` | `src/note-drafts.ts` | `tests/note-drafts.test.ts` | active |
+| `FTR-023` | 记忆 | `docs/features/FTR-023-memory.md` | `src/companion-settings.ts` | `tests/memory.test.ts` | active |
+| `FTR-024` | 笔记导出 | `docs/features/FTR-024-note-export.md` | `src/note-export.ts` | `tests/note-export.test.ts` | active |
+| `FTR-025` | 笔记历史 | `docs/features/FTR-025-note-history.md` | `src/note-files.ts` | `tests/note-history.test.ts` | active |

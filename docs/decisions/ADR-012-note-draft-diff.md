@@ -1,8 +1,8 @@
 # ADR-012：笔记草稿-差异-应用
 
-- **状态：** proposed
+- **状态：** accepted
 - **日期：** 2026-11-03
-- **范围：** FTR-005、FTR-008
+- **范围：** FTR-005、FTR-008、FTR-020、FTR-022
 
 ## 背景
 
@@ -11,8 +11,8 @@
 ## 决策
 
 1. 伴读会话使用 `read-only` 沙箱（ADR-009），通用 `write`/`edit`/shell 不能写工作区。
-2. 新增 `reader_notes` 工具（`index`、`read`、`create`、`write`、`append`）。写操作只生成草稿，落到 `notes/<book>/.pending/<draftId>.json`，不碰正式文件；返回草稿 id、目标路径与变更摘要。
-3. UI 展示行级 diff：新建为全文预览，追加为新增行，替换为统一 diff；预览可编辑后再应用。用户应用时 Host 校验 `baseHash`，不匹配则提示冲突，允许重放或手动合并；拒绝删除草稿。
+2. 新增 `reader_notes` 工具（`index`、`read`、`create`、`write`、`append`）。写操作只生成草稿，落到 `$DSH_HOME/dsh-reader/drafts/<bookId>/<draftId>.json`，不碰正式文件；返回草稿 id、目标笔记与字数。
+3. UI 展示行级 diff：新建为全文预览，追加为新增行，替换为统一 diff；预览只读，需要修改时拒绝草稿后让伴读重新生成，或应用后在编辑器修改。用户应用时 Host 校验 `baseHash`，不匹配则提示冲突，允许重放或手动合并；拒绝删除草稿。
 4. 应用前把旧内容快照到 `.history/<noteId>/<时间戳>.md`，保留最近若干份；撤销是用户动作，应用快照。
 5. 草稿与正式文件都只由 Host 写；UI 通过 RPC 读取草稿、应用与拒绝。用户在编辑器里的手动保存不走 diff。
 6. 整书综述这类跨多章任务可由伴读调用子 agent 生成草稿，但落盘仍走同一 apply 流程。

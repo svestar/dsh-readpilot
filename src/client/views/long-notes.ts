@@ -88,6 +88,22 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
               }, t('rejectDraft'))))
         }))
       : null,
+    h('div', { className: 'dsh-reader-long-notes-actions' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-reader-note-jump',
+        disabled: state.exporting,
+        onClick: () => void state.exportNotes(false),
+      }, t('exportNotes')),
+      h('button', {
+        type: 'button',
+        className: 'dsh-reader-note-jump',
+        disabled: state.exporting,
+        onClick: () => void state.exportNotes(true),
+      }, t('exportSave')),
+      state.exportStatus
+        ? h('span', { className: 'dsh-reader-long-hint' }, state.exportStatus)
+        : null),
     state.error ? h('div', { className: 'dsh-reader-chat-error' }, state.error) : null,
     editing
       ? h('div', { className: 'dsh-reader-long-editor' },
@@ -141,7 +157,36 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
               disabled: state.saving,
               onClick: () => void state.remove(),
             }, t('delete'))
+            : null,
+          state.active
+            ? h('button', {
+              type: 'button',
+              className: 'dsh-reader-note-jump',
+              disabled: state.historyBusy,
+              onClick: state.toggleHistory,
+            }, t('history'))
             : null),
+        state.active && state.historyOpen
+          ? h('div', { className: 'dsh-reader-history' },
+            h('div', { className: 'dsh-reader-drafts-head' }, t('history')),
+            state.history.length === 0
+              ? h('div', { className: 'dsh-reader-chat-empty' }, t('historyEmpty'))
+              : state.history.map(entry => h('div', { key: entry.id, className: 'dsh-reader-history-row' },
+                h('span', { className: 'dsh-reader-long-meta' }, new Date(entry.createdAt).toLocaleString()),
+                h('span', { className: 'dsh-reader-long-meta' },
+                  `${entry.characters} ${t('noteContextChars')}`),
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-reader-note-jump',
+                  disabled: state.historyBusy,
+                  onClick: () => void state.restoreHistory(entry),
+                }, t('historyRestore')))),
+            h('button', {
+              type: 'button',
+              className: 'dsh-reader-note-jump',
+              onClick: state.toggleHistory,
+            }, t('historyClose')))
+          : null,
         h('details', { className: 'dsh-reader-long-preview' },
           h('summary', null, t('longNotePreview')),
           h(MarkdownMessage, { text: state.draft, prefix: 'long-note' })))

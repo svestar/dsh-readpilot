@@ -35,6 +35,12 @@ export function apply(ctx: any, config: any = {}): void {
       interpolate: false,
       text: ({ agent }: any) => api.notesContextFor(agent?.session?.id),
     }), 'dsh-reader: notes context')
+    scope.effect(() => scope.systemPrompt.context({
+      name: 'dsh-reader:memory',
+      order: 9520,
+      interpolate: false,
+      text: ({ agent }: any) => api.memoryContextFor(agent?.session?.id),
+    }), 'dsh-reader: memory context')
   })
 
   ctx.inject(['connection'], (connectionCtx: any) => {

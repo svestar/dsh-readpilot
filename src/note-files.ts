@@ -10,6 +10,7 @@ const BOOK_META_FILE = '.book.json'
 const HISTORY_DIR = '.history'
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const NOTE_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
+const HISTORY_ID_PATTERN = /^\d{10,16}-[0-9a-f]{6,32}\.md$/
 const MAX_TITLE = 80
 const MAX_BODY = 200_000
 const MAX_HISTORY = 10
@@ -52,6 +53,14 @@ export interface NoteFileContent {
   hash: string
 }
 
+export interface NoteHistoryEntry {
+  id: string
+  /** 历史文件名中的毫秒时间戳；无法解析时回退到文件 mtime。 */
+  createdAt: number
+  /** 去掉 frontmatter 后的正文长度（UTF-16 码元，即 string.length）。 */
+  characters: number
+}
+
 interface BookMeta {
   version: number
   bookId: string
@@ -81,6 +90,20 @@ function assertBookId(bookId: unknown): string {
     throw new NoteFileError('invalid-book', 'bookId 不合法')
   }
   return bookId
+}
+
+function assertNoteId(noteId: unknown): string {
+  if (typeof noteId !== 'string' || !NOTE_ID_PATTERN.test(noteId)) {
+    throw new NoteFileError('invalid-note', '笔记 id 不合法')
+  }
+  return noteId
+}
+
+function assertHistoryId(historyId: unknown): string {
+  if (typeof historyId !== 'string' || !HISTORY_ID_PATTERN.test(historyId)) {
+    throw new NoteFileError('invalid-history', '历史版本 id 不合法')
+  }
+  return historyId
 }
 
 function sanitizeTitle(value: unknown, fallback: string): string {
@@ -263,6 +286,34 @@ function assertInside(dir: string, path: string): void {
   }
 }
 
+function historyStamp(id: string, mtime: number): number {
+  const stamp = Number(/^(\d+)-/.exec(id)?.[1] ?? NaN)
+  return Number.isFinite(stamp) && stamp > 0 ? stamp : mtime
+}
+
+function historyDirOf(dir: string, noteId: string): string {
+  const historyDir = join(dir, HISTORY_DIR)
+  const target = join(historyDir, assertNoteId(noteId))
+  assertInside(historyDir, target)
+  return target
+}
+
+async function readHistoryFile(dir: string, noteId: string, historyId: string): Promise<{ id: string; raw: string; createdAt: number }> {
+  const id = assertHistoryId(historyId)
+  const historyDir = historyDirOf(dir, noteId)
+  const path = join(historyDir, id)
+  assertInside(historyDir, path)
+  let raw: string
+  let info
+  try {
+    raw = await readFile(path, 'utf8')
+    info = await stat(path)
+  } catch {
+    throw new NoteFileError('history-not-found', '历史版本不存在')
+  }
+  return { id, raw, createdAt: historyStamp(id, info.mtimeMs) }
+}
+
 async function recordOf(dir: string, fileName: string, book: NoteBookRef): Promise<{ note: NoteFileRecord; body: string } | null> {
   const path = join(dir, fileName)
   assertInside(dir, path)
@@ -283,6 +334,9 @@ export interface NoteFileStore {
   create(book: NoteBookRef, input: { title?: unknown; kind?: unknown; body?: unknown }): Promise<NoteFileContent>
   write(book: NoteBookRef, id: string, input: { title?: unknown; body?: unknown; baseHash?: unknown }): Promise<NoteFileContent>
   remove(book: NoteBookRef, id: string): Promise<boolean>
+  listHistory(book: NoteBookRef, noteId: string): Promise<NoteHistoryEntry[]>
+  readHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<{ id: string; body: string; content: string; createdAt: number; characters: number }>
+  restoreHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<NoteFileContent>
 }
 
 export function createNoteFileStore(root: string, options: NoteFileStoreOptions = {}): NoteFileStore {
@@ -308,6 +362,16 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
       if (left.kind !== right.kind) return left.kind === 'book' ? -1 : 1
       return right.updatedAt - left.updatedAt
     })
+  }
+
+  async function requireNote(book: NoteBookRef, id: string): Promise<{ dir: string; note: NoteFileRecord }> {
+    assertBookId(book.id)
+    const dir = await findBookDir(root, book.id)
+    if (!dir) throw new NoteFileError('note-not-found', '笔记不存在')
+    for (const note of await list(book)) {
+      if (note.id === id) return { dir, note }
+    }
+    throw new NoteFileError('note-not-found', '笔记不存在')
   }
 
   async function read(book: NoteBookRef, id: string): Promise<NoteFileContent> {
@@ -404,7 +468,71 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     return true
   }
 
-  return { list, read, create, write, remove }
+  async function listHistory(book: NoteBookRef, noteId: string): Promise<NoteHistoryEntry[]> {
+    const { dir, note } = await requireNote(book, assertNoteId(noteId))
+    const historyDir = historyDirOf(dir, note.id)
+    let names
+    try {
+      names = await readdir(historyDir)
+    } catch {
+      return []
+    }
+    const entries: NoteHistoryEntry[] = []
+    for (const name of names) {
+      if (!HISTORY_ID_PATTERN.test(name)) continue
+      const path = join(historyDir, name)
+      assertInside(historyDir, path)
+      let raw: string
+      let info
+      try {
+        raw = await readFile(path, 'utf8')
+        info = await stat(path)
+      } catch {
+        continue
+      }
+      entries.push({
+        id: name,
+        createdAt: historyStamp(name, info.mtimeMs),
+        characters: parseFrontMatter(raw).body.length,
+      })
+    }
+    entries.sort((left, right) => {
+      if (left.createdAt !== right.createdAt) return right.createdAt - left.createdAt
+      return left.id < right.id ? 1 : left.id > right.id ? -1 : 0
+    })
+    return entries.slice(0, maxHistory)
+  }
+
+  async function readHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<{ id: string; body: string; content: string; createdAt: number; characters: number }> {
+    const { dir, note } = await requireNote(book, assertNoteId(noteId))
+    const snapshot = await readHistoryFile(dir, note.id, historyId)
+    const body = parseFrontMatter(snapshot.raw).body
+    return {
+      id: snapshot.id,
+      body,
+      content: snapshot.raw,
+      createdAt: snapshot.createdAt,
+      characters: body.length,
+    }
+  }
+
+  async function restoreHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<NoteFileContent> {
+    const { dir, note } = await requireNote(book, assertNoteId(noteId))
+    const snapshot = await readHistoryFile(dir, note.id, historyId)
+    const path = join(dir, note.fileName)
+    assertInside(dir, path)
+    let currentRaw: string
+    try {
+      currentRaw = await readFile(path, 'utf8')
+    } catch {
+      throw new NoteFileError('note-not-found', '笔记不存在')
+    }
+    await writeHistory(dir, note.id, currentRaw, maxHistory)
+    await atomicWrite(path, snapshot.raw)
+    return read(book, note.id)
+  }
+
+  return { list, read, create, write, remove, listHistory, readHistory, restoreHistory }
 }
 
 async function writeHistory(dir: string, id: string, raw: string, maxHistory: number): Promise<void> {

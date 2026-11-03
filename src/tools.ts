@@ -206,6 +206,39 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         }
       },
     },
+    {
+      name: 'reader_memory',
+      description:
+        'Read or update reading memory for one book. update/forget only take effect when memory is on for this book; when the global mode asks for consent, update creates a pending proposal the user must approve in the Notes tab. Use memory only for stable reader preferences, opinions and the reading relationship, never for book plot facts. Never claim memory was saved until the result says saved.',
+      parameters: {
+        type: 'object',
+        properties: {
+          action: {
+            type: 'string',
+            enum: ['read', 'update', 'forget'],
+            description: 'read memory cards, update one card, or forget one card.',
+          },
+          book: { type: 'string', description: 'Book id or title from reader_books or reader_context.' },
+          scope: { type: 'string', enum: ['book', 'reader'], description: 'book memory or the cross-book reader card; defaults to book.' },
+          mode: {
+            type: 'string',
+            enum: ['append', 'replace'],
+            description: 'append to the card or replace it; defaults to append.',
+          },
+          text: { type: 'string', description: 'Memory text for update.' },
+        },
+        required: ['action', 'book'],
+        additionalProperties: false,
+      },
+      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      async execute(args) {
+        try {
+          return await api.memoryTool(args ?? {})
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
+    },
   ]
 
   const disposers = definitions.map(definition => ctx.tools.register(definition))

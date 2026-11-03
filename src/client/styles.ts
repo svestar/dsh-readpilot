@@ -163,6 +163,20 @@ export const CSS = `
 .dsh-reader-diff-add{color:var(--dsw-alias-state-success-primary);background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 12%,transparent)}
 .dsh-reader-diff-del{color:var(--dsw-alias-state-error-primary);background:color-mix(in srgb,var(--dsw-alias-state-error-primary) 12%,transparent)}
 .dsh-reader-diff-same{color:var(--dsw-alias-label-secondary)}
+.dsh-reader-memory{display:flex;flex-direction:column;gap:8px;padding:2px 0 12px;margin-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-memory-head{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.dsh-reader-memory-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;font-weight:600;letter-spacing:.03em}
+.dsh-reader-memory-modes{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.dsh-reader-memory-card{display:flex;flex-direction:column;gap:6px}
+.dsh-reader-memory-card-head{display:flex;align-items:center;justify-content:space-between;gap:6px}
+.dsh-reader-memory-card textarea{display:block;width:100%;box-sizing:border-box;min-height:88px;max-height:220px;padding:8px 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12.5px;line-height:1.6;resize:vertical}
+.dsh-reader-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-reader-memory-history{font-size:11px}
+.dsh-reader-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
+.dsh-reader-memory-proposals{display:flex;flex-direction:column;gap:7px}
+.dsh-reader-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
+.dsh-reader-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-reader-history-row:last-child{border-bottom:0}
 .dsh-reader-long-list{display:flex;flex-direction:column;gap:4px}
 .dsh-reader-long-note{display:flex;align-items:center;gap:7px;width:100%;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;text-align:left;cursor:pointer}
 .dsh-reader-long-note:hover{background:var(--dsw-alias-bg-layer-2)}

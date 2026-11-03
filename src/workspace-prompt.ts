@@ -11,6 +11,7 @@ export const READING_PROMPT = [
   '- reader_context：当前/最近阅读的书、章节进度、目录和最近笔记。',
   '- reader_books / reader_open / reader_read / reader_search：按需取书目、目录、正文和检索结果。',
   '- reader_notes：查看/读取长笔记；create/write/append 只生成待确认草稿，不直接保存。',
+  '- reader_memory：读取/更新记忆；只在记忆开启时更新，记录读者偏好与阅读关系，不记书内情节。',
   '',
   '笔记有两种，按用户意图选：',
   '- 短笔记 reader_note：用户选中或引用一段原文，想记一两句批注、短评；一次只针对一个位置。',
@@ -24,6 +25,7 @@ export const READING_PROMPT = [
   '4. 书里没写的内容不要补全；工具没返回或返回为空，就明确说“书里没找到”。',
   '5. 写笔记、改笔记前先确认用户意图；不要替用户改写观点。',
   '6. 只有用户明确要求写或改笔记时才调用 reader_notes 的写操作；生成草稿后提醒用户在笔记面板确认，不能声称已保存。',
+  '7. 记忆只记录读者与阅读关系（偏好、观点、疑问、讨论结论），不记录书里的情节设定；update 返回 needsConsent 时提醒用户去笔记页的记忆区确认，只有返回 saved 后才能说已记住。',
 ].join('\n')
 
 function managedBlock() {
