@@ -895,9 +895,11 @@ var __dshReaderBundle = (() => {
 .dsh-reader-reader[data-paged="true"]{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
 .dsh-reader-page-frame{flex:1;min-height:0;box-sizing:border-box;width:100%;max-width:100%;margin:0 auto;padding:28px 40px;overflow:hidden}
 .dsh-reader-paged-inner{height:100%;width:100%;max-width:none;margin:0;column-fill:auto;overflow:hidden}
-.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;max-width:100%}
+.dsh-reader-pdf-spread{display:flex;flex-direction:row;align-items:flex-start;justify-content:center;gap:16px;max-width:100%;margin-block:auto}
 .dsh-reader-pdf-spread .dsh-reader-pdf-page{margin:0}
 .dsh-reader-visual[data-paged="true"]{overflow:auto}
+/* keep the 62px total block padding but split it evenly so paged PDF pages sit at the visual center */
+.dsh-reader-visual[data-paged="true"]:has(>.dsh-reader-pdf-spread){padding-block:31px}
 .dsh-reader-epub-frame[data-paged="true"]{height:100%;min-height:0}
 .dsh-reader-note-layer{position:absolute;inset:0;pointer-events:none;z-index:2}
 .dsh-reader-note-hit{position:absolute;background:var(--reader-highlight,rgba(245,197,66,.45));border-radius:2px;pointer-events:auto;cursor:pointer;opacity:.8}
