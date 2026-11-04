@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { join } from 'node:path'
 import { parsePdf } from '../src/formats/pdf.ts'
 
 function escapePdfString(value: string) {
@@ -98,7 +99,7 @@ test('parse_pdf_extracts_page_text', async () => {
 
 test('parse_pdf_without_text_returns_no_chapters', async () => {
   const buffer = buildPdf({ pages: [null] })
-  const book = await parsePdf(buffer, 'C:\\Books\\scanned.pdf')
+  const book = await parsePdf(buffer, join('Books', 'scanned.pdf'))
   assert.deepEqual(book.chapters, [])
   assert.equal(book.chars, 0)
   assert.equal(book.title, 'scanned')

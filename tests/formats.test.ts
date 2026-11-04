@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { join } from 'node:path'
 import { decodeText, formatOf, parseBook, splitChapters } from '../src/formats.ts'
 
 test('split_chinese_chapters', () => {
@@ -58,7 +59,7 @@ test('parse_markdown_uses_filename_title', () => {
     '',
     '更多正文。',
   ].join('\n')
-  const book = parseBook(Buffer.from(markdown, 'utf8'), 'md', 'E:\\Books\\My Notes.md')
+  const book = parseBook(Buffer.from(markdown, 'utf8'), 'md', join('Books', 'My Notes.md'))
   assert.equal(book.title, 'My Notes')
   assert.equal(book.chapters[0].title, '一级标题不是书名')
 })
