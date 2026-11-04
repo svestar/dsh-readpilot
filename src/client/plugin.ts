@@ -590,7 +590,7 @@ export function createPlugin(require: (name: string) => any) {
         window.getSelection()?.removeAllRanges()
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
         const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
-        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n`
+        const text = `${quote}\n\n`
         const nativeInput = nativeInputRef.current?.inputActions
         let prefilledNative = false
         if (nativeInput && typeof nativeInput.setDraft === 'function') {

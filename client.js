@@ -6001,9 +6001,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         window.getSelection()?.removeAllRanges();
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
         const quote = selection.text.split("\n").map((line) => `> ${line}`).join("\n");
-        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。
-
-${quote}
+        const text = `${quote}
 
 `;
         const nativeInput = nativeInputRef.current?.inputActions;
