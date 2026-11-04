@@ -65,3 +65,17 @@ test('note_draft_conflict_keeps_draft', async t => {
   assert.match(current.body, /用户改了/)
   assert.doesNotMatch(current.body, /章北海/)
 })
+
+test('note_draft_append_book_note', async t => {
+  const { notes, drafts, book } = await makeStores(t)
+  const created = await notes.create(book, { kind: 'book', title: '整书', body: '开头' })
+  assert.equal(created.note.id, 'book')
+
+  const draft = await drafts.create(book, { action: 'append', noteId: 'book', text: '后续' })
+  assert.match(draft.body, /开头/)
+  assert.match(draft.body, /后续/)
+
+  const applied = await drafts.apply(book, draft.id)
+  assert.equal(applied.note.id, 'book')
+  assert.match(applied.body, /后续/)
+})

@@ -31,5 +31,6 @@
 ## 验收与测试
 
 - 正常路径：追加草稿应用后正文包含新内容，草稿消失，拒绝的草稿不写文件（`note_draft_append_apply_and_reject`）。
+- 正常路径：整书笔记（id `book`）可生成追加草稿并应用（`note_draft_append_book_note`）。
 - 正常路径：新建主题笔记草稿应用后生成文件（`note_draft_create_and_apply`）。
 - 边界：基准笔记被改动后应用返回冲突，草稿保留且正文不被覆盖（`note_draft_conflict_keeps_draft`）。

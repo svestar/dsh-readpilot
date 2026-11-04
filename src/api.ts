@@ -1073,7 +1073,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     try {
       const draft = await store.create(found, {
         action: payload.action,
-        noteId: payload.noteId,
+        noteId: payload.noteId ?? payload.id,
         title: payload.title,
         kind: payload.kind,
         body: payload.body,

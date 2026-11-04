@@ -49,6 +49,22 @@ test('tools_read_bounded', async t => {
   assert.deepEqual([...registered.keys()].sort(), ['reader_books', 'reader_context', 'reader_memory', 'reader_note', 'reader_notes', 'reader_open', 'reader_read', 'reader_search'])
   const notes = await registered.get('reader_notes')!.execute({ action: 'index', book: state.books[0].title })
   assert.deepEqual(notes.notes, [])
+  const createdBook = await api.handleRpc('noteFiles', {
+    action: 'create',
+    bookId: state.books[0].id,
+    kind: 'book',
+    title: '整书',
+    body: '开头',
+  })
+  assert.equal(createdBook.ok, true)
+  const appended = await registered.get('reader_notes')!.execute({
+    action: 'append',
+    book: state.books[0].title,
+    id: 'book',
+    text: '后续',
+  })
+  assert.equal(appended.draft.noteId, 'book')
+  assert.equal(appended.draft.action, 'append')
   const memory = await registered.get('reader_memory')!.execute({ action: 'read', book: state.books[0].title })
   assert.equal(memory.effective, 'ask')
   assert.equal(memory.bookCard, '')
