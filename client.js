@@ -488,7 +488,7 @@ var __dshReaderBundle = (() => {
 
   // src/client/locale.ts
   var zh = {
-    panel: "ReadPilot",
+    panel: "智读",
     library: "书库",
     librarySubtitle: "整理、分类并继续阅读",
     categories: "分类",
