@@ -1,6 +1,8 @@
 # 智读 ReadPilot
 
-DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批注、可与 AI 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。每个书库注册为独立的 DSH 工作区。
+[![npm version](https://img.shields.io/npm/v/dsh-readpilot.svg)](https://www.npmjs.com/package/dsh-readpilot) · [GitHub](https://github.com/svestar/dsh-readpilot)
+
+DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批注、可与 AI 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。
 
 ## 功能
 
@@ -13,7 +15,11 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 
 ## 安装
 
-在 Plugins 或 `plugin_manager` 中安装本目录。安装前先执行 `pnpm install && pnpm run build`；安装后刷新，点“智读”，选择书库目录并“创建书库”。
+```bash
+npm install dsh-readpilot
+```
+
+在 DSH Plugins 或 `plugin_manager` 中安装 `dsh-readpilot`。安装后刷新，点“智读”，选择书库目录并“创建书库”。本地开发：`pnpm install && pnpm run build`，再加载目录。
 
 ## 开发
 
@@ -33,4 +39,4 @@ EPUB 保留 CSS/图片/字体但不执行脚本；PDF 不做 OCR，扫描版需�
 
 ## 许可证
 
-MIT
+[MIT](LICENSE)
