@@ -19,7 +19,7 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 npm install dsh-readpilot
 ```
 
-在 DSH Plugins 或 `plugin_manager` 中安装 `dsh-readpilot`。安装后刷新，点“智读”，选择书库目录并“创建书库”。本地开发：`pnpm install && pnpm run build`，再加载目录。
+兼容 DSH 0.2.2-rc.1–0.2.x（实测 0.2.2-rc.1）。在 DSH Plugins 或 `plugin_manager` 安装 `dsh-readpilot`；刷新后创建书库。开发：`pnpm install && pnpm run build`。
 
 ## 开发
 
@@ -27,7 +27,7 @@ npm install dsh-readpilot
 
 ## 结构
 
-Host 入口 `index.ts`，源码在 `src/`；Client 在 `src/client/`，构建产物为 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
+Host 入口 `index.ts`、`src/`；Client 在 `src/client/`，产物 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
 
 ## 数据
 
