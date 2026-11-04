@@ -11,6 +11,7 @@ import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
 import type { NoteFileStore } from './note-files.ts'
 import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
+import { buildReaderJumpUrl } from './jump-url.ts'
 import type { CompanionSettings } from './companion-settings.ts'
 import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
 import type { MemoryStore } from './memory-store.ts'
@@ -127,6 +128,7 @@ export interface SearchMatch {
   offset: number
   snippet: string
   locator: string
+  jumpUrl: string
 }
 
 export interface SearchResult {
@@ -581,6 +583,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
             offset: index,
             snippet: text.slice(start, end).replace(/\s+/g, ' ').trim(),
             locator: `${book.id}:${chapter.id}:${index}`,
+            jumpUrl: buildReaderJumpUrl(book.id, chapter.id, index),
           })
           if (matches.length >= maxResults) {
             truncated = true
@@ -620,9 +623,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       title: detail.book.title,
       author: detail.book.author,
       format: found.format,
-      toc: detail.toc.slice(0, 200),
+      toc: detail.toc.slice(0, 200).map(item => ({
+        ...item,
+        jumpUrl: buildReaderJumpUrl(found.id, item.id),
+      })),
       tocTruncated: detail.toc.length > 200,
-      progress: detail.progress,
+      progress: detail.progress?.chapterId
+        ? { ...detail.progress, jumpUrl: buildReaderJumpUrl(found.id, detail.progress.chapterId) }
+        : detail.progress,
     }
   }
 
@@ -646,9 +654,17 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       title: detail.book.title,
       author: detail.book.author,
       format: found.format,
-      progress: detail.progress,
-      toc: detail.toc.slice(0, 60),
+      progress: detail.progress?.chapterId
+        ? { ...detail.progress, jumpUrl: buildReaderJumpUrl(found.id, detail.progress.chapterId) }
+        : detail.progress,
+      toc: detail.toc.slice(0, 60).map(item => ({
+        ...item,
+        jumpUrl: buildReaderJumpUrl(found.id, item.id),
+      })),
       tocTruncated: detail.toc.length > 60,
+      jumpUrl: detail.progress?.chapterId
+        ? buildReaderJumpUrl(found.id, detail.progress.chapterId)
+        : null,
       notes: notes.slice(0, 10).map(note => ({
         id: note.id,
         chapterId: note.chapterId,
@@ -686,6 +702,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       nextOffset,
       hasMore: nextOffset < text.length,
       locator: `${found.id}:${target.id}:${start}`,
+      jumpUrl: buildReaderJumpUrl(found.id, target.id),
     }
   }
 

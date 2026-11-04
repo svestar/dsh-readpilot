@@ -29,3 +29,4 @@
 | `FTR-023` | 记忆 | `docs/features/FTR-023-memory.md` | `src/companion-settings.ts` | `tests/memory.test.ts` | active |
 | `FTR-024` | 笔记导出 | `docs/features/FTR-024-note-export.md` | `src/note-export.ts` | `tests/note-export.test.ts` | active |
 | `FTR-025` | 笔记历史 | `docs/features/FTR-025-note-history.md` | `src/note-files.ts` | `tests/note-history.test.ts` | active |
+| `FTR-026` | 对话页码跳转 | `docs/features/FTR-026-chat-jump.md` | `src/jump-url.ts` | `tests/chat-jump.test.ts` | active |

@@ -81,6 +81,7 @@ test('tools_read_bounded', async t => {
   assert.equal(context.title, 'long')
   assert.equal(context.format, 'txt')
   assert.ok(Array.isArray(context.toc))
+  assert.match(context.toc[0].jumpUrl, /dsh-readpilot\.invalid\/jump\?book=/)
   const read = registered.get('reader_read')!
   const value = await read.execute({ book: state.books[0].title, chapter: 'c001', limit: 300 })
   assert.equal(value.text.length, 300)

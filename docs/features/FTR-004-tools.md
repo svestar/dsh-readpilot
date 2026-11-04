@@ -27,7 +27,7 @@ Host 插件向 `ctx.tools` 注册八个全局工具：`reader_books` 列出书�
 
 ## 约束与失败行为
 
-工具依赖用户已配置书库；找不到书时返回 `{ error }`，不抛到工具层。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，超过上限的结果以 `truncated` 标记。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_memory` 只在记忆开启时写入；`ask` 模式生成待确认提议，`off` 模式拒绝更新。`reader_note` 仍按用户明确要求写短笔记。
+工具依赖用户已配置书库；找不到书时返回 `{ error }`，不抛到工具层。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，超过上限的结果以 `truncated` 标记。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 只在记忆开启时写入；`ask` 模式生成待确认提议，`off` 模式拒绝更新。`reader_note` 仍按用户明确要求写短笔记。
 
 ## 验收与测试
 

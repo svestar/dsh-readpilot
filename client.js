@@ -574,6 +574,9 @@ var __dshReaderBundle = (() => {
     paletteNight: "夜间",
     companion: "伴读",
     chatEmpty: "针对这本书提问，或在正文中选中文字后点“问伴读”。",
+    chatJumpNotFound: "没有在书中找到这段文字。",
+    chatJumpFailed: "跳转原文失败",
+    chatJumpOtherBook: "请先回到这本书再跳转。",
     chatPlaceholder: "针对这本书提问…",
     send: "发送",
     sending: "发送中…",
@@ -772,6 +775,9 @@ var __dshReaderBundle = (() => {
     paletteNight: "Night",
     companion: "Companion",
     chatEmpty: "Ask about this book, or select text and choose Ask companion.",
+    chatJumpNotFound: "No matching passage found in this book.",
+    chatJumpFailed: "Could not jump to the source text",
+    chatJumpOtherBook: "Open this book in the reader before jumping.",
     chatPlaceholder: "Ask about this book…",
     send: "Send",
     sending: "Sending…",
@@ -1026,6 +1032,8 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-readpilot-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
+.dsh-readpilot-page-jump{display:inline;margin:0;padding:0;border:0;background:none;color:var(--dsw-alias-brand-primary);font:inherit;line-height:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.dsh-readpilot-page-jump:hover{text-decoration-style:solid}
 .dsh-readpilot-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .dsh-readpilot-native-chat>[data-conversation-content]{flex:1;min-height:0;min-width:0}
 .dsh-readpilot-chat-fallback{flex:1;min-height:0;display:flex;flex-direction:column}
@@ -3098,6 +3106,74 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
+  // src/client/page-jump.ts
+  var RANGE_RE = /(?:PDF\s*)?第?\s*(\d{1,5})\s*(?:[–—~～-]|至|到)\s*(\d{1,5})\s*页/g;
+  var SINGLE_RE = /(?:PDF\s*)?第?\s*(\d{1,5})\s*页/g;
+  function overlaps(left, right) {
+    return left.index < right.index + right.length && right.index < left.index + left.length;
+  }
+  function findPageReferences(text) {
+    const ranges = [];
+    RANGE_RE.lastIndex = 0;
+    for (let match = RANGE_RE.exec(text); match; match = RANGE_RE.exec(text)) {
+      const start = Number(match[1]);
+      const end = Number(match[2]);
+      if (!Number.isInteger(start) || start <= 0) continue;
+      ranges.push({
+        start,
+        ...Number.isInteger(end) && end > 0 ? { end } : {},
+        text: match[0],
+        index: match.index,
+        length: match[0].length
+      });
+    }
+    const singles = [];
+    SINGLE_RE.lastIndex = 0;
+    for (let match = SINGLE_RE.exec(text); match; match = SINGLE_RE.exec(text)) {
+      const start = Number(match[1]);
+      if (!Number.isInteger(start) || start <= 0) continue;
+      const item = { start, text: match[0], index: match.index, length: match[0].length };
+      if (!ranges.some((range) => overlaps(range, item))) singles.push(item);
+    }
+    return [...ranges, ...singles].sort((left, right) => left.index - right.index);
+  }
+  var SKIP_SELECTOR = 'a,button,input,textarea,select,summary,code,pre,[contenteditable="true"],.dsh-readpilot-page-jump';
+  function linkifyPageReferences(root, onJump) {
+    if (typeof document === "undefined") return;
+    const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    const nodes = [];
+    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+      if (!node.nodeValue || !findPageReferences(node.nodeValue).length) continue;
+      const parent = node.parentElement;
+      if (parent?.closest(SKIP_SELECTOR)) continue;
+      nodes.push(node);
+    }
+    for (const node of nodes) {
+      const text = node.nodeValue ?? "";
+      const refs = findPageReferences(text);
+      if (refs.length === 0) continue;
+      const fragment = document.createDocumentFragment();
+      let cursor = 0;
+      for (const ref of refs) {
+        if (ref.index > cursor) fragment.appendChild(document.createTextNode(text.slice(cursor, ref.index)));
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "dsh-readpilot-page-jump";
+        button.textContent = ref.text;
+        button.title = `跳转到第 ${ref.start} 页`;
+        button.addEventListener("click", (event) => {
+          event.preventDefault();
+          event.stopPropagation();
+          onJump(ref.start);
+        });
+        fragment.appendChild(button);
+        cursor = ref.index + ref.length;
+      }
+      if (cursor < text.length) fragment.appendChild(document.createTextNode(text.slice(cursor)));
+      node.parentNode?.replaceChild(fragment, node);
+    }
+  }
+
   // src/client/views/chat-panel.ts
   function ChatPanel({
     t,
@@ -3110,6 +3186,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     memoryBody,
     chatBody,
     nativeChat,
+    onPageJump,
     chatError,
     chatCompose,
     chatWidth,
@@ -3121,10 +3198,31 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     resetResize,
     resizeKeyDown
   }) {
+    const panelRef = React.useRef(null);
+    React.useEffect(() => {
+      if (!chatOpen || !onPageJump) return;
+      const panel = panelRef.current;
+      if (!panel) return;
+      let frame = 0;
+      const process = () => {
+        frame = 0;
+        panel.querySelectorAll(".dsh-readpilot-chat-body, .dsh-readpilot-native-chat").forEach((root) => linkifyPageReferences(root, onPageJump));
+      };
+      const schedule = () => {
+        if (!frame) frame = requestAnimationFrame(process);
+      };
+      const observer = new MutationObserver(schedule);
+      observer.observe(panel, { childList: true, subtree: true, characterData: true });
+      schedule();
+      return () => {
+        observer.disconnect();
+        if (frame) cancelAnimationFrame(frame);
+      };
+    }, [chatOpen, chatTab, onPageJump]);
     if (!chatOpen) return null;
     return h(
       "aside",
-      { className: "dsh-readpilot-chat" },
+      { className: "dsh-readpilot-chat", ref: panelRef },
       h("div", {
         key: "resizer",
         className: "dsh-readpilot-chat-resizer",
@@ -3188,7 +3286,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         }, t("closeChat"))
       ),
       chatTab === "notes" ? notesBody : chatTab === "long" ? longNotesBody : chatTab === "memory" ? memoryBody : nativeChat ? h("div", { className: "dsh-readpilot-native-chat" }, nativeChat) : chatBody,
-      chatTab === "chat" && !nativeChat && chatError ? h("div", { className: "dsh-readpilot-chat-error" }, chatError) : null,
+      chatTab === "chat" && chatError ? h("div", { className: "dsh-readpilot-chat-error" }, chatError) : null,
       chatTab === "chat" && !nativeChat ? chatCompose : null
     );
   }
@@ -4030,6 +4128,81 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       toggleSearch,
       resetSearch
     };
+  }
+
+  // src/jump-url.ts
+  var READER_JUMP_ORIGIN = "https://dsh-readpilot.invalid";
+  var READER_JUMP_PATH = "/jump";
+  function parseReaderJumpUrl(value) {
+    let url;
+    try {
+      url = new URL(value);
+    } catch {
+      return null;
+    }
+    if (url.origin !== READER_JUMP_ORIGIN || url.pathname !== READER_JUMP_PATH) return null;
+    const bookId = url.searchParams.get("book");
+    const chapterId = url.searchParams.get("chapter");
+    if (!bookId || !chapterId) return null;
+    const rawOffset = url.searchParams.get("offset");
+    const offset = rawOffset != null && /^\d+$/.test(rawOffset) ? Number(rawOffset) : void 0;
+    const q = url.searchParams.get("q") || void 0;
+    return { bookId, chapterId, ...offset === void 0 ? {} : { offset }, ...q ? { q } : {} };
+  }
+
+  // src/client/hooks/use-chat-jump.ts
+  function useChatJump({
+    call,
+    screen,
+    t,
+    selectChapter,
+    setChatError,
+    setChatOpen
+  }) {
+    const jumpingRef = React.useRef(false);
+    const jumpToTarget = React.useCallback(async (target) => {
+      if (screen.kind !== "book" || jumpingRef.current) return;
+      if (target.bookId !== screen.detail.book.id) {
+        setChatError(t("chatJumpOtherBook"));
+        return;
+      }
+      jumpingRef.current = true;
+      setChatError("");
+      try {
+        let chapterId = target.chapterId;
+        let offset = target.offset;
+        if (offset === void 0 && target.q) {
+          const result = await call("search", { bookId: target.bookId, query: target.q, limit: 20 });
+          const match = result.matches.find((item) => item.chapterId === chapterId);
+          if (!match) {
+            setChatError(t("chatJumpNotFound"));
+            return;
+          }
+          chapterId = match.chapterId;
+          offset = match.offset;
+        }
+        await selectChapter(target.bookId, chapterId, { offset, flash: true });
+        if (typeof window !== "undefined" && window.innerWidth <= 1100) setChatOpen(false);
+      } catch (cause) {
+        setChatError(`${t("chatJumpFailed")}：${messageOf(cause)}`);
+      } finally {
+        jumpingRef.current = false;
+      }
+    }, [call, screen, selectChapter, setChatError, setChatOpen, t]);
+    React.useEffect(() => {
+      if (screen.kind !== "book" || typeof document === "undefined") return;
+      const onLinkClick = (event) => {
+        const anchor = event.target?.closest?.('a[href*="dsh-readpilot.invalid/jump"]');
+        if (!anchor) return;
+        const target = parseReaderJumpUrl(anchor.href);
+        if (!target) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        void jumpToTarget(target);
+      };
+      document.addEventListener("click", onLinkClick, true);
+      return () => document.removeEventListener("click", onLinkClick, true);
+    }, [jumpToTarget, screen.kind]);
   }
 
   // src/client/anchor.ts
@@ -5814,6 +5987,22 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           setBusy(false);
         }
       }, [screen, t, visualFor]);
+      const jumpToPage = React.useCallback((page) => {
+        if (screen.kind !== "book" || screen.detail.book.format !== "pdf") return;
+        const items = screen.detail.toc.filter((item) => typeof item.page === "number" && item.page > 0);
+        if (items.length === 0) return;
+        const target = items.filter((item) => item.page <= page).sort((left, right) => right.page - left.page)[0] ?? items[0];
+        void selectChapter(screen.detail.book.id, target.id, { flash: true });
+        if (typeof window !== "undefined" && window.innerWidth <= 1100) setChatOpen(false);
+      }, [screen, selectChapter, setChatOpen]);
+      useChatJump({
+        call,
+        screen,
+        t,
+        selectChapter,
+        setChatError,
+        setChatOpen
+      });
       const {
         searchOpen,
         setSearchOpen,
@@ -6142,6 +6331,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         memoryBody,
         chatBody,
         nativeChat,
+        onPageJump: format === "pdf" ? jumpToPage : null,
         chatError,
         chatCompose,
         chatWidth,

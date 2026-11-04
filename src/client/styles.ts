@@ -107,6 +107,8 @@ export const CSS = `
 .dsh-readpilot-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-readpilot-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
+.dsh-readpilot-page-jump{display:inline;margin:0;padding:0;border:0;background:none;color:var(--dsw-alias-brand-primary);font:inherit;line-height:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
+.dsh-readpilot-page-jump:hover{text-decoration-style:solid}
 .dsh-readpilot-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .dsh-readpilot-native-chat>[data-conversation-content]{flex:1;min-height:0;min-width:0}
 .dsh-readpilot-chat-fallback{flex:1;min-height:0;display:flex;flex-direction:column}

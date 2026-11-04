@@ -48,7 +48,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_open',
       description:
-        'Open one book and return metadata plus its table of contents. Use the returned chapter ids with reader_read. The book may be addressed by id or by title.',
+        'Open one book and return metadata plus its table of contents. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Use the returned chapter ids with reader_read. The book may be addressed by id or by title.',
       parameters: {
         type: 'object',
         properties: {
@@ -69,7 +69,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_context',
       description:
-        'Return the current or most recently read book, its chapter progress, TOC and recent notes. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
+        'Return the current or most recently read book, its chapter progress, TOC and recent notes. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
       parameters: {
         type: 'object',
         properties: {

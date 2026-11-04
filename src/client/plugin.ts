@@ -40,6 +40,7 @@ import { useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
 import { useSearch } from './hooks/use-search.ts'
+import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen } from './reader-screen.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
@@ -377,6 +378,26 @@ export function createPlugin(require: (name: string) => any) {
           setBusy(false)
         }
       }, [screen, t, visualFor])
+
+      const jumpToPage = React.useCallback((page: number) => {
+        if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf') return
+        const items = screen.detail.toc.filter(item => typeof item.page === 'number' && item.page! > 0)
+        if (items.length === 0) return
+        const target = items
+          .filter(item => item.page! <= page)
+          .sort((left, right) => right.page! - left.page!)[0] ?? items[0]
+        void selectChapter(screen.detail.book.id, target.id, { flash: true })
+        if (typeof window !== 'undefined' && window.innerWidth <= 1100) setChatOpen(false)
+      }, [screen, selectChapter, setChatOpen])
+
+      useChatJump({
+        call,
+        screen,
+        t,
+        selectChapter,
+        setChatError,
+        setChatOpen,
+      })
 
       const {
         searchOpen,
@@ -741,6 +762,7 @@ export function createPlugin(require: (name: string) => any) {
         memoryBody,
         chatBody,
         nativeChat,
+        onPageJump: format === 'pdf' ? jumpToPage : null,
         chatError,
         chatCompose,
         chatWidth,

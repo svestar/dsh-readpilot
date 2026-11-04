@@ -1,5 +1,6 @@
-import { h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
+import { linkifyPageReferences } from '../page-jump.ts'
 import type { TextFn } from '../types.ts'
 
 interface ChatPanelProps {
@@ -13,6 +14,7 @@ interface ChatPanelProps {
   memoryBody: any
   chatBody: any
   nativeChat?: any
+  onPageJump?: ((page: number) => void) | null
   chatError: string
   chatCompose: any
   chatWidth: number
@@ -36,6 +38,7 @@ export function ChatPanel({
   memoryBody,
   chatBody,
   nativeChat,
+  onPageJump,
   chatError,
   chatCompose,
   chatWidth,
@@ -47,8 +50,32 @@ export function ChatPanel({
   resetResize,
   resizeKeyDown,
 }: ChatPanelProps) {
+  const panelRef = React.useRef<HTMLElement | null>(null)
+
+  React.useEffect(() => {
+    if (!chatOpen || !onPageJump) return
+    const panel = panelRef.current
+    if (!panel) return
+    let frame = 0
+    const process = () => {
+      frame = 0
+      panel.querySelectorAll<HTMLElement>('.dsh-readpilot-chat-body, .dsh-readpilot-native-chat')
+        .forEach(root => linkifyPageReferences(root, onPageJump))
+    }
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(process)
+    }
+    const observer = new MutationObserver(schedule)
+    observer.observe(panel, { childList: true, subtree: true, characterData: true })
+    schedule()
+    return () => {
+      observer.disconnect()
+      if (frame) cancelAnimationFrame(frame)
+    }
+  }, [chatOpen, chatTab, onPageJump])
+
   if (!chatOpen) return null
-  return h('aside', { className: 'dsh-readpilot-chat' },
+  return h('aside', { className: 'dsh-readpilot-chat', ref: panelRef },
     h('div', {
       key: 'resizer',
       className: 'dsh-readpilot-chat-resizer',
@@ -114,7 +141,7 @@ export function ChatPanel({
           : nativeChat
             ? h('div', { className: 'dsh-readpilot-native-chat' }, nativeChat)
             : chatBody,
-    chatTab === 'chat' && !nativeChat && chatError
+    chatTab === 'chat' && chatError
       ? h('div', { className: 'dsh-readpilot-chat-error' }, chatError)
       : null,
     chatTab === 'chat' && !nativeChat ? chatCompose : null)

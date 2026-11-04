@@ -114,6 +114,7 @@ test('search_returns_locator', async t => {
   const result = await api.search({ bookId, query: '再见' })
   assert.equal(result.matches.length, 1)
   assert.match(result.matches[0].locator, /:c002:/)
+  assert.match(result.matches[0].jumpUrl, /dsh-readpilot\.invalid\/jump\?book=/)
   assert.equal(result.matches[0].chapterTitle, '第二章 继续')
 })
 
