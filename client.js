@@ -592,6 +592,12 @@ var __dshReaderBundle = (() => {
     delete: "删除",
     jump: "跳转",
     longNotes: "长笔记",
+    notesPageHint: "划线、批注与书签",
+    notesEmptyHint: "在正文中选中一段文字，就可以添加划线或笔记。",
+    longNotesPageHint: "整书与主题的 markdown 笔记",
+    allNotes: "全部笔记",
+    memoryPageHint: "伴读记住的偏好与阅读关系",
+    memorySettings: "记忆设置",
     bookNote: "整书笔记",
     newTopicNote: "新建主题笔记",
     noteKindTopic: "主题",
@@ -777,6 +783,12 @@ var __dshReaderBundle = (() => {
     delete: "Delete",
     jump: "Jump",
     longNotes: "Long notes",
+    notesPageHint: "Highlights, annotations and bookmarks",
+    notesEmptyHint: "Select text in the book to add a highlight or note.",
+    longNotesPageHint: "Markdown notes for the book and topics",
+    allNotes: "All notes",
+    memoryPageHint: "Preferences and reading relationship the companion remembers",
+    memorySettings: "Memory settings",
     bookNote: "Book note",
     newTopicNote: "New topic note",
     noteKindTopic: "Topic",
@@ -1170,6 +1182,68 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
 .dsh-readpilot-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-spacer{flex:1}
+.dsh-readpilot-page{flex:1;min-height:0;overflow:auto;padding:0 14px 24px;scroll-behavior:smooth}
+.dsh-readpilot-notes,.dsh-readpilot-long-notes,.dsh-readpilot-memory{padding:0 14px 24px;margin:0;border-bottom:0}
+.dsh-readpilot-page-content{display:flex;flex-direction:column;gap:10px}
+.dsh-readpilot-page-head{position:sticky;top:0;z-index:5;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;flex-wrap:wrap;margin:0 -14px 12px;padding:14px 14px 11px;border-bottom:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-bg-base) 92%,transparent);backdrop-filter:blur(10px)}
+.dsh-readpilot-page-heading{min-width:0;display:flex;flex-direction:column;gap:3px}
+.dsh-readpilot-page-title-row{display:flex;align-items:center;gap:7px;min-width:0}
+.dsh-readpilot-page-title-row h3{margin:0;font-size:15px;line-height:1.3;font-weight:650;letter-spacing:.01em}
+.dsh-readpilot-page-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;font-weight:600}
+.dsh-readpilot-page-subtitle{margin:0;color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.45}
+.dsh-readpilot-page-actions{display:flex;gap:5px;flex:none;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.dsh-readpilot-page-toolbar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:0 0 10px}
+.dsh-readpilot-pill,.dsh-readpilot-tool-btn{height:26px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:999px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:11.5px;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.dsh-readpilot-pill:hover,.dsh-readpilot-tool-btn:hover{background:var(--dsw-alias-bg-layer-2);border-color:var(--dsw-alias-brand-primary);color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-pill:disabled,.dsh-readpilot-tool-btn:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-card{border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);padding:11px}
+.dsh-readpilot-section-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px}
+.dsh-readpilot-section-head h4{margin:0;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}
+.dsh-readpilot-section-count{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10px}
+.dsh-readpilot-empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:220px;padding:30px 20px;text-align:center}
+.dsh-readpilot-empty-icon{display:grid;place-items:center;width:42px;height:42px;border-radius:14px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,var(--dsw-alias-bg-layer-2));color:var(--dsw-alias-brand-primary);font-size:20px;line-height:1}
+.dsh-readpilot-empty-title{font-size:13.5px;font-weight:600;line-height:1.4}
+.dsh-readpilot-empty-hint{max-width:250px;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.6}
+.dsh-readpilot-mark-section{margin-bottom:10px;padding:10px 11px}
+.dsh-readpilot-mark-section .dsh-readpilot-note{padding:10px 0}
+.dsh-readpilot-mark-section .dsh-readpilot-note:last-child{border-bottom:0}
+.dsh-readpilot-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}
+.dsh-readpilot-long-notes{gap:10px}
+.dsh-readpilot-long-notes .dsh-readpilot-note-context{background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-drafts{padding:10px 11px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 5%,var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 30%,var(--dsw-alias-border-l2))}
+.dsh-readpilot-draft{border-left:3px solid var(--dsw-alias-brand-primary);background:var(--dsw-alias-bg-base)}
+.dsh-readpilot-long-list{display:flex;flex-direction:column;gap:7px}
+.dsh-readpilot-long-note{padding:11px 12px;border-radius:10px;transition:border-color .15s,background .15s,transform .15s}
+.dsh-readpilot-long-note:hover{transform:translateY(-1px);border-color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-long-note[data-kind="book"]{background:linear-gradient(135deg,color-mix(in srgb,var(--dsw-alias-brand-primary) 8%,var(--dsw-alias-bg-base)),var(--dsw-alias-bg-base));border-color:color-mix(in srgb,var(--dsw-alias-brand-primary) 28%,var(--dsw-alias-border-l2))}
+.dsh-readpilot-editor-card{padding:12px;background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-editor-card .dsh-readpilot-long-editor-head input{height:32px}
+.dsh-readpilot-memory{gap:10px}
+.dsh-readpilot-memory-controls{display:flex;flex-direction:column;gap:10px;padding:11px}
+.dsh-readpilot-control-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:26px}
+.dsh-readpilot-control-label{flex:0 0 62px;color:var(--dsw-alias-label-secondary);font-size:11.5px}
+.dsh-readpilot-segmented{display:inline-flex;gap:2px;padding:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-segment{height:24px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:11.5px;cursor:pointer;transition:background .15s,color .15s}
+.dsh-readpilot-segment:hover{color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-segment[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.1)}
+.dsh-readpilot-segment:disabled{opacity:.5;cursor:default}
+.dsh-readpilot-status-pill{display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;font-weight:600;white-space:nowrap}
+.dsh-readpilot-status-pill[data-state="on"]{background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 14%,transparent);color:var(--dsw-alias-state-success-primary)}
+.dsh-readpilot-status-pill[data-state="ask"]{background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 14%,transparent);color:var(--dsw-alias-state-warn-primary)}
+.dsh-readpilot-status-pill[data-state="off"]{opacity:.8}
+.dsh-readpilot-icon-action{display:grid;place-items:center;width:26px;height:26px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-secondary);font:inherit;font-size:14px;cursor:pointer}
+.dsh-readpilot-icon-action:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-icon-action:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-memory-card{padding:11px;gap:8px}
+.dsh-readpilot-memory-card-title{font-size:12.5px;font-weight:600}
+.dsh-readpilot-memory-proposals{padding:11px;background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 5%,var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 28%,var(--dsw-alias-border-l2))}
+.dsh-readpilot-memory-hint{padding:0 2px;font-size:11.5px;line-height:1.6}
+.dsh-readpilot-chat-tabs{border:1px solid var(--dsw-alias-border-l2);padding:3px}
+.dsh-readpilot-chat-tab{transition:background .15s,color .15s;border-radius:6px}
+.dsh-readpilot-chat-tab:hover{background:color-mix(in srgb,var(--dsw-alias-bg-base) 70%,transparent)}
+.dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.dsh-readpilot-chat-tab:focus-visible,.dsh-readpilot-pill:focus-visible,.dsh-readpilot-tool-btn:focus-visible,.dsh-readpilot-segment:focus-visible,.dsh-readpilot-icon-action:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+@media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
 `;
@@ -1761,16 +1835,45 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     ];
   }
   function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
-    const hasMarks = notes.length + highlights.length + bookmarks.length > 0;
+    const total = notes.length + highlights.length + bookmarks.length;
+    const emptyState = (title, hint) => h(
+      "div",
+      { className: "dsh-readpilot-empty-state" },
+      h("div", { className: "dsh-readpilot-empty-icon" }, "✎"),
+      h("div", { className: "dsh-readpilot-empty-title" }, title),
+      hint ? h("div", { className: "dsh-readpilot-empty-hint" }, hint) : null
+    );
     return h(
       "div",
-      { className: "dsh-readpilot-notes" },
+      { className: "dsh-readpilot-notes dsh-readpilot-page" },
+      h(
+        "header",
+        { className: "dsh-readpilot-page-head" },
+        h(
+          "div",
+          { className: "dsh-readpilot-page-heading" },
+          h(
+            "div",
+            { className: "dsh-readpilot-page-title-row" },
+            h("h3", null, t("notes")),
+            h("span", { className: "dsh-readpilot-page-count" }, String(total))
+          ),
+          h("p", { className: "dsh-readpilot-page-subtitle" }, t("notesPageHint"))
+        )
+      ),
       notesError ? h("div", { className: "dsh-readpilot-chat-error" }, notesError) : null,
-      notesLoading && !hasMarks ? h("div", { className: "dsh-readpilot-chat-empty" }, t("loading")) : !hasMarks ? notesError ? null : h("div", { className: "dsh-readpilot-chat-empty" }, t("noteEmpty")) : [
+      notesLoading && total === 0 ? emptyState(t("loading"), "") : total === 0 ? notesError ? null : emptyState(t("noteEmpty"), t("notesEmptyHint")) : h(
+        "div",
+        { className: "dsh-readpilot-page-content" },
         highlights.length > 0 ? h(
           "section",
-          { key: "highlights", className: "dsh-readpilot-mark-section" },
-          h("h4", null, `${t("highlights")} · ${highlights.length}`),
+          { key: "highlights", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
+          h(
+            "div",
+            { className: "dsh-readpilot-section-head" },
+            h("h4", null, t("highlights")),
+            h("span", { className: "dsh-readpilot-section-count" }, String(highlights.length))
+          ),
           highlights.map((highlight) => h(
             "div",
             { key: highlight.id, className: "dsh-readpilot-note dsh-readpilot-mark-highlight" },
@@ -1795,8 +1898,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ) : null,
         notes.length > 0 ? h(
           "section",
-          { key: "notes", className: "dsh-readpilot-mark-section" },
-          h("h4", null, `${t("shortNotes")} · ${notes.length}`),
+          { key: "notes", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
+          h(
+            "div",
+            { className: "dsh-readpilot-section-head" },
+            h("h4", null, t("shortNotes")),
+            h("span", { className: "dsh-readpilot-section-count" }, String(notes.length))
+          ),
           notes.map((note) => h(
             "div",
             { key: note.id, className: "dsh-readpilot-note" },
@@ -1816,8 +1924,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         ) : null,
         bookmarks.length > 0 ? h(
           "section",
-          { key: "bookmarks", className: "dsh-readpilot-mark-section" },
-          h("h4", null, `${t("bookmarks")} · ${bookmarks.length}`),
+          { key: "bookmarks", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
+          h(
+            "div",
+            { className: "dsh-readpilot-section-head" },
+            h("h4", null, t("bookmarks")),
+            h("span", { className: "dsh-readpilot-section-count" }, String(bookmarks.length))
+          ),
           bookmarks.map((bookmark) => {
             const context = bookmarkContext(screen, bookmark.chapterId);
             const title = context.chapterTitle || bookmark.note || t("bookmark");
@@ -1839,7 +1952,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             );
           })
         ) : null
-      ]
+      )
     );
   }
   function SearchPanel({
@@ -1913,27 +2026,61 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   function LongNotes({ t, state, noteContext }) {
     const editing = Boolean(state.active || state.creating);
     const kind = state.active?.note.kind ?? state.createKind;
+    const emptyState = (title, hint) => h(
+      "div",
+      { className: "dsh-readpilot-empty-state" },
+      h("div", { className: "dsh-readpilot-empty-icon" }, "▤"),
+      h("div", { className: "dsh-readpilot-empty-title" }, title),
+      hint ? h("div", { className: "dsh-readpilot-empty-hint" }, hint) : null
+    );
     return h(
       "section",
-      { className: "dsh-readpilot-long-notes" },
+      { className: "dsh-readpilot-long-notes dsh-readpilot-page" },
       h(
-        "div",
-        { className: "dsh-readpilot-long-notes-head" },
-        h("h4", null, t("longNotes")),
+        "header",
+        { className: "dsh-readpilot-page-head dsh-readpilot-long-notes-head" },
+        h(
+          "div",
+          { className: "dsh-readpilot-page-heading" },
+          h(
+            "div",
+            { className: "dsh-readpilot-page-title-row" },
+            h("h3", null, t("longNotes")),
+            h("span", { className: "dsh-readpilot-page-count" }, String(state.notes.length))
+          ),
+          h("p", { className: "dsh-readpilot-page-subtitle" }, t("longNotesPageHint"))
+        ),
         editing ? null : h(
           "div",
-          { className: "dsh-readpilot-long-notes-actions" },
+          { className: "dsh-readpilot-page-actions" },
           h("button", {
             type: "button",
-            className: "dsh-readpilot-note-jump",
+            className: "dsh-readpilot-note-jump dsh-readpilot-pill",
             onClick: () => state.start("book")
           }, t("bookNote")),
           h("button", {
             type: "button",
-            className: "dsh-readpilot-note-jump",
+            className: "dsh-readpilot-note-jump dsh-readpilot-pill",
             onClick: () => state.start("topic")
           }, t("newTopicNote"))
         )
+      ),
+      h(
+        "div",
+        { className: "dsh-readpilot-page-toolbar" },
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-note-jump dsh-readpilot-tool-btn",
+          disabled: state.exporting,
+          onClick: () => void state.exportNotes(false)
+        }, t("exportNotes")),
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-note-jump dsh-readpilot-tool-btn",
+          disabled: state.exporting,
+          onClick: () => void state.exportNotes(true)
+        }, t("exportSave")),
+        state.exportStatus ? h("span", { className: "dsh-readpilot-long-hint" }, state.exportStatus) : null
       ),
       noteContext ? h(
         "button",
@@ -1963,8 +2110,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       ) : null,
       state.drafts.length > 0 ? h(
         "div",
-        { className: "dsh-readpilot-drafts" },
-        h("div", { className: "dsh-readpilot-drafts-head" }, t("noteDrafts")),
+        { className: "dsh-readpilot-card dsh-readpilot-drafts" },
+        h(
+          "div",
+          { className: "dsh-readpilot-section-head" },
+          h("h4", null, t("noteDrafts")),
+          h("span", { className: "dsh-readpilot-section-count" }, String(state.drafts.length))
+        ),
         state.drafts.map((draft) => {
           const lines = diffLines(draft.baseBody, draft.body);
           const added = lines.filter((line) => line.type === "add").length;
@@ -2011,27 +2163,10 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           );
         })
       ) : null,
-      h(
-        "div",
-        { className: "dsh-readpilot-long-notes-actions" },
-        h("button", {
-          type: "button",
-          className: "dsh-readpilot-note-jump",
-          disabled: state.exporting,
-          onClick: () => void state.exportNotes(false)
-        }, t("exportNotes")),
-        h("button", {
-          type: "button",
-          className: "dsh-readpilot-note-jump",
-          disabled: state.exporting,
-          onClick: () => void state.exportNotes(true)
-        }, t("exportSave")),
-        state.exportStatus ? h("span", { className: "dsh-readpilot-long-hint" }, state.exportStatus) : null
-      ),
       state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
       editing ? h(
         "div",
-        { className: "dsh-readpilot-long-editor" },
+        { className: "dsh-readpilot-card dsh-readpilot-long-editor dsh-readpilot-editor-card" },
         h(
           "div",
           { className: "dsh-readpilot-long-editor-head" },
@@ -2136,20 +2271,22 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h("summary", null, t("longNotePreview")),
           h(MarkdownMessage, { text: state.draft, prefix: "long-note" })
         )
-      ) : state.loading ? h("div", { className: "dsh-readpilot-chat-empty" }, t("loading")) : state.notes.length === 0 ? h(
-        "div",
-        { className: "dsh-readpilot-chat-empty" },
-        h("div", null, t("longNoteEmpty")),
-        h("div", { className: "dsh-readpilot-long-hint" }, t("longNotesHint"))
-      ) : h(
+      ) : state.loading ? emptyState(t("loading"), "") : state.notes.length === 0 ? emptyState(t("longNoteEmpty"), t("longNotesHint")) : h(
         "div",
         { className: "dsh-readpilot-long-list" },
+        h(
+          "div",
+          { className: "dsh-readpilot-list-head" },
+          h("span", null, t("allNotes")),
+          h("span", { className: "dsh-readpilot-section-count" }, String(state.notes.length))
+        ),
         state.notes.map((note) => h(
           "button",
           {
             key: note.id,
             type: "button",
             className: "dsh-readpilot-long-note",
+            "data-kind": note.kind,
             onClick: () => void state.open(note)
           },
           h(
@@ -2187,11 +2324,15 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   function cardEditor(t, scope, text, setText, history, props) {
     return h(
       "div",
-      { className: "dsh-readpilot-memory-card" },
+      { className: "dsh-readpilot-memory-card dsh-readpilot-card" },
       h(
         "div",
         { className: "dsh-readpilot-memory-card-head" },
-        h("span", null, scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")),
+        h(
+          "span",
+          { className: "dsh-readpilot-memory-card-title" },
+          scope === "book" ? t("memoryBookCard") : t("memoryReaderCard")
+        ),
         h(
           "span",
           { className: "dsh-readpilot-long-meta" },
@@ -2246,67 +2387,126 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       setBookDraft(status?.bookText ?? "");
       setReaderDraft(status?.readerText ?? "");
     }, [status?.bookText, status?.readerText]);
+    const emptyState = (title, hint) => h(
+      "div",
+      { className: "dsh-readpilot-empty-state" },
+      h("div", { className: "dsh-readpilot-empty-icon" }, "◍"),
+      h("div", { className: "dsh-readpilot-empty-title" }, title),
+      hint ? h("div", { className: "dsh-readpilot-empty-hint" }, hint) : null
+    );
+    const heading = h(
+      "header",
+      { className: "dsh-readpilot-page-head dsh-readpilot-memory-head" },
+      h(
+        "div",
+        { className: "dsh-readpilot-page-heading" },
+        h(
+          "div",
+          { className: "dsh-readpilot-page-title-row" },
+          h("h3", null, t("memory")),
+          status ? h("span", {
+            className: "dsh-readpilot-status-pill",
+            "data-state": status.effective
+          }, effectiveLabel(t, status.effective)) : null
+        ),
+        h("p", { className: "dsh-readpilot-page-subtitle" }, t("memoryPageHint"))
+      ),
+      h("button", {
+        type: "button",
+        className: "dsh-readpilot-icon-action",
+        title: t("refresh"),
+        "aria-label": t("refresh"),
+        disabled: props.busy,
+        onClick: props.onRefresh
+      }, "↻")
+    );
     if (!status && props.loading) {
       return h(
         "section",
-        { className: "dsh-readpilot-memory" },
-        h("div", { className: "dsh-readpilot-chat-empty" }, t("loading"))
+        { className: "dsh-readpilot-memory dsh-readpilot-page" },
+        heading,
+        emptyState(t("loading"), "")
       );
     }
     if (!status) {
       return h(
         "section",
-        { className: "dsh-readpilot-memory" },
+        { className: "dsh-readpilot-memory dsh-readpilot-page" },
+        heading,
         props.error ? h("div", { className: "dsh-readpilot-chat-error" }, props.error) : null,
-        h("button", { type: "button", className: "dsh-readpilot-note-jump", onClick: props.onRefresh }, t("memoryLoad"))
+        h(
+          "div",
+          { className: "dsh-readpilot-empty-state" },
+          h("div", { className: "dsh-readpilot-empty-icon" }, "◍"),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-chat-send",
+            onClick: props.onRefresh
+          }, t("memoryLoad"))
+        )
       );
     }
     return h(
       "section",
-      { className: "dsh-readpilot-memory" },
-      h(
-        "div",
-        { className: "dsh-readpilot-memory-head" },
-        h("h4", null, t("memory")),
-        h("button", {
-          type: "button",
-          className: "dsh-readpilot-note-jump",
-          disabled: props.busy,
-          onClick: props.onRefresh
-        }, t("refresh"))
-      ),
+      { className: "dsh-readpilot-memory dsh-readpilot-page" },
+      heading,
       props.error ? h("div", { className: "dsh-readpilot-chat-error" }, props.error) : null,
       h(
         "div",
-        { className: "dsh-readpilot-memory-modes" },
-        h("span", { className: "dsh-readpilot-long-meta" }, t("memoryDefaultMode")),
-        ["off", "ask", "on"].map((mode) => h("button", {
-          key: mode,
-          type: "button",
-          className: "dsh-readpilot-chat-tab",
-          "data-active": status.mode === mode ? "true" : "false",
-          disabled: props.busy,
-          onClick: () => props.onMode(mode)
-        }, modeLabel(t, mode)))
-      ),
-      h(
-        "div",
-        { className: "dsh-readpilot-memory-modes" },
-        h("span", { className: "dsh-readpilot-long-meta" }, t("memoryThisBook")),
-        ["inherit", "on", "off"].map((state) => h("button", {
-          key: state,
-          type: "button",
-          className: "dsh-readpilot-chat-tab",
-          "data-active": status.book === state ? "true" : "false",
-          disabled: props.busy,
-          onClick: () => props.onBookState(state)
-        }, bookStateLabel(t, state))),
-        h("span", { className: "dsh-readpilot-long-meta" }, `${t("memoryEffective")} ${effectiveLabel(t, status.effective)}`)
+        { className: "dsh-readpilot-card dsh-readpilot-memory-controls" },
+        h(
+          "div",
+          { className: "dsh-readpilot-section-head" },
+          h("h4", null, t("memorySettings"))
+        ),
+        h(
+          "div",
+          { className: "dsh-readpilot-control-row" },
+          h("span", { className: "dsh-readpilot-control-label" }, t("memoryDefaultMode")),
+          h(
+            "div",
+            { className: "dsh-readpilot-segmented" },
+            ["off", "ask", "on"].map((mode) => h("button", {
+              key: mode,
+              type: "button",
+              className: "dsh-readpilot-segment",
+              "data-active": status.mode === mode ? "true" : "false",
+              disabled: props.busy,
+              onClick: () => props.onMode(mode)
+            }, modeLabel(t, mode)))
+          )
+        ),
+        h(
+          "div",
+          { className: "dsh-readpilot-control-row" },
+          h("span", { className: "dsh-readpilot-control-label" }, t("memoryThisBook")),
+          h(
+            "div",
+            { className: "dsh-readpilot-segmented" },
+            ["inherit", "on", "off"].map((state) => h("button", {
+              key: state,
+              type: "button",
+              className: "dsh-readpilot-segment",
+              "data-active": status.book === state ? "true" : "false",
+              disabled: props.busy,
+              onClick: () => props.onBookState(state)
+            }, bookStateLabel(t, state)))
+          ),
+          h("span", {
+            className: "dsh-readpilot-status-pill",
+            "data-state": status.effective
+          }, `${t("memoryEffective")} ${effectiveLabel(t, status.effective)}`)
+        )
       ),
       status.proposals.length > 0 ? h(
         "div",
-        { className: "dsh-readpilot-memory-proposals" },
-        h("div", { className: "dsh-readpilot-drafts-head" }, t("memoryProposals")),
+        { className: "dsh-readpilot-card dsh-readpilot-memory-proposals" },
+        h(
+          "div",
+          { className: "dsh-readpilot-section-head" },
+          h("h4", null, t("memoryProposals")),
+          h("span", { className: "dsh-readpilot-section-count" }, String(status.proposals.length))
+        ),
         status.proposals.map((proposal) => h(
           "div",
           { key: proposal.id, className: "dsh-readpilot-draft" },
@@ -2346,7 +2546,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       ) : null,
       cardEditor(t, "book", bookDraft, setBookDraft, status.bookHistory, props),
       cardEditor(t, "reader", readerDraft, setReaderDraft, status.readerHistory, props),
-      h("div", { className: "dsh-readpilot-long-hint" }, t("memoryHint"))
+      h("div", { className: "dsh-readpilot-long-hint dsh-readpilot-memory-hint" }, t("memoryHint"))
     );
   }
 

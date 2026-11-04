@@ -13,22 +13,46 @@ interface LongNotesProps {
 export function LongNotes({ t, state, noteContext }: LongNotesProps) {
   const editing = Boolean(state.active || state.creating)
   const kind = state.active?.note.kind ?? state.createKind
-  return h('section', { className: 'dsh-readpilot-long-notes' },
-    h('div', { className: 'dsh-readpilot-long-notes-head' },
-      h('h4', null, t('longNotes')),
+  const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
+    h('div', { className: 'dsh-readpilot-empty-icon' }, '▤'),
+    h('div', { className: 'dsh-readpilot-empty-title' }, title),
+    hint ? h('div', { className: 'dsh-readpilot-empty-hint' }, hint) : null)
+  return h('section', { className: 'dsh-readpilot-long-notes dsh-readpilot-page' },
+    h('header', { className: 'dsh-readpilot-page-head dsh-readpilot-long-notes-head' },
+      h('div', { className: 'dsh-readpilot-page-heading' },
+        h('div', { className: 'dsh-readpilot-page-title-row' },
+          h('h3', null, t('longNotes')),
+          h('span', { className: 'dsh-readpilot-page-count' }, String(state.notes.length))),
+        h('p', { className: 'dsh-readpilot-page-subtitle' }, t('longNotesPageHint'))),
       editing
         ? null
-        : h('div', { className: 'dsh-readpilot-long-notes-actions' },
+        : h('div', { className: 'dsh-readpilot-page-actions' },
           h('button', {
             type: 'button',
-            className: 'dsh-readpilot-note-jump',
+            className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
             onClick: () => state.start('book'),
           }, t('bookNote')),
           h('button', {
             type: 'button',
-            className: 'dsh-readpilot-note-jump',
+            className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
             onClick: () => state.start('topic'),
           }, t('newTopicNote')))),
+    h('div', { className: 'dsh-readpilot-page-toolbar' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
+        disabled: state.exporting,
+        onClick: () => void state.exportNotes(false),
+      }, t('exportNotes')),
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
+        disabled: state.exporting,
+        onClick: () => void state.exportNotes(true),
+      }, t('exportSave')),
+      state.exportStatus
+        ? h('span', { className: 'dsh-readpilot-long-hint' }, state.exportStatus)
+        : null),
     noteContext
       ? h('button', {
         type: 'button',
@@ -51,8 +75,10 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
         : null)
       : null,
     state.drafts.length > 0
-      ? h('div', { className: 'dsh-readpilot-drafts' },
-        h('div', { className: 'dsh-readpilot-drafts-head' }, t('noteDrafts')),
+      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-drafts' },
+        h('div', { className: 'dsh-readpilot-section-head' },
+          h('h4', null, t('noteDrafts')),
+          h('span', { className: 'dsh-readpilot-section-count' }, String(state.drafts.length))),
         state.drafts.map(draft => {
           const lines = diffLines(draft.baseBody, draft.body)
           const added = lines.filter(line => line.type === 'add').length
@@ -88,25 +114,9 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
               }, t('rejectDraft'))))
         }))
       : null,
-    h('div', { className: 'dsh-readpilot-long-notes-actions' },
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-note-jump',
-        disabled: state.exporting,
-        onClick: () => void state.exportNotes(false),
-      }, t('exportNotes')),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-note-jump',
-        disabled: state.exporting,
-        onClick: () => void state.exportNotes(true),
-      }, t('exportSave')),
-      state.exportStatus
-        ? h('span', { className: 'dsh-readpilot-long-hint' }, state.exportStatus)
-        : null),
     state.error ? h('div', { className: 'dsh-readpilot-chat-error' }, state.error) : null,
     editing
-      ? h('div', { className: 'dsh-readpilot-long-editor' },
+      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-long-editor dsh-readpilot-editor-card' },
         h('div', { className: 'dsh-readpilot-long-editor-head' },
           h('input', {
             value: state.title,
@@ -200,16 +210,18 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
           h('summary', null, t('longNotePreview')),
           h(MarkdownMessage, { text: state.draft, prefix: 'long-note' })))
       : state.loading
-        ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('loading'))
+        ? emptyState(t('loading'), '')
         : state.notes.length === 0
-          ? h('div', { className: 'dsh-readpilot-chat-empty' },
-            h('div', null, t('longNoteEmpty')),
-            h('div', { className: 'dsh-readpilot-long-hint' }, t('longNotesHint')))
+          ? emptyState(t('longNoteEmpty'), t('longNotesHint'))
           : h('div', { className: 'dsh-readpilot-long-list' },
+            h('div', { className: 'dsh-readpilot-list-head' },
+              h('span', null, t('allNotes')),
+              h('span', { className: 'dsh-readpilot-section-count' }, String(state.notes.length))),
             state.notes.map(note => h('button', {
               key: note.id,
               type: 'button',
               className: 'dsh-readpilot-long-note',
+              'data-kind': note.kind,
               onClick: () => void state.open(note),
             },
             h('span', { className: 'dsh-readpilot-long-kind' },

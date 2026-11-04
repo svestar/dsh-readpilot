@@ -58,17 +58,29 @@ interface NotesBodyProps {
 }
 
 export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
-  const hasMarks = notes.length + highlights.length + bookmarks.length > 0
-  return h('div', { className: 'dsh-readpilot-notes' },
+  const total = notes.length + highlights.length + bookmarks.length
+  const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
+    h('div', { className: 'dsh-readpilot-empty-icon' }, '✎'),
+    h('div', { className: 'dsh-readpilot-empty-title' }, title),
+    hint ? h('div', { className: 'dsh-readpilot-empty-hint' }, hint) : null)
+  return h('div', { className: 'dsh-readpilot-notes dsh-readpilot-page' },
+    h('header', { className: 'dsh-readpilot-page-head' },
+      h('div', { className: 'dsh-readpilot-page-heading' },
+        h('div', { className: 'dsh-readpilot-page-title-row' },
+          h('h3', null, t('notes')),
+          h('span', { className: 'dsh-readpilot-page-count' }, String(total))),
+        h('p', { className: 'dsh-readpilot-page-subtitle' }, t('notesPageHint')))),
     notesError ? h('div', { className: 'dsh-readpilot-chat-error' }, notesError) : null,
-    notesLoading && !hasMarks
-      ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('loading'))
-      : !hasMarks
-        ? notesError ? null : h('div', { className: 'dsh-readpilot-chat-empty' }, t('noteEmpty'))
-        : [
+    notesLoading && total === 0
+      ? emptyState(t('loading'), '')
+      : total === 0
+        ? notesError ? null : emptyState(t('noteEmpty'), t('notesEmptyHint'))
+        : h('div', { className: 'dsh-readpilot-page-content' },
           highlights.length > 0
-            ? h('section', { key: 'highlights', className: 'dsh-readpilot-mark-section' },
-              h('h4', null, `${t('highlights')} · ${highlights.length}`),
+            ? h('section', { key: 'highlights', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+              h('div', { className: 'dsh-readpilot-section-head' },
+                h('h4', null, t('highlights')),
+                h('span', { className: 'dsh-readpilot-section-count' }, String(highlights.length))),
               highlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-readpilot-note dsh-readpilot-mark-highlight' },
                 h('button', {
                   type: 'button',
@@ -85,8 +97,10 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                 ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote }))))
             : null,
           notes.length > 0
-            ? h('section', { key: 'notes', className: 'dsh-readpilot-mark-section' },
-              h('h4', null, `${t('shortNotes')} · ${notes.length}`),
+            ? h('section', { key: 'notes', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+              h('div', { className: 'dsh-readpilot-section-head' },
+                h('h4', null, t('shortNotes')),
+                h('span', { className: 'dsh-readpilot-section-count' }, String(notes.length))),
               notes.map(note => h('div', { key: note.id, className: 'dsh-readpilot-note' },
                 h('button', {
                   type: 'button',
@@ -99,8 +113,10 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                 ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))
             : null,
           bookmarks.length > 0
-            ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-mark-section' },
-              h('h4', null, `${t('bookmarks')} · ${bookmarks.length}`),
+            ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+              h('div', { className: 'dsh-readpilot-section-head' },
+                h('h4', null, t('bookmarks')),
+                h('span', { className: 'dsh-readpilot-section-count' }, String(bookmarks.length))),
               bookmarks.map(bookmark => {
                 const context = bookmarkContext(screen, bookmark.chapterId)
                 const title = context.chapterTitle || bookmark.note || t('bookmark')
@@ -116,8 +132,7 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                   detail ? h('div', { className: 'dsh-readpilot-note-body' }, detail) : null),
                   ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))
               }))
-            : null,
-        ])
+            : null))
 }
 
 interface SearchPanelProps {
