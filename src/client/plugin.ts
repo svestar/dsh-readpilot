@@ -36,6 +36,7 @@ import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useNotes } from './hooks/use-notes.ts'
+import { currentReaderScreen, rememberReaderScreen } from './reader-screen.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -104,7 +105,20 @@ export function createPlugin(require: (name: string) => any) {
     function ReaderPanel(props: { t?: TextFn; SessionProvider?: any; renderSlot?: any }) {
       const t: TextFn = props.t ?? boundText
       const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null)
-      const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
+      const [screenState, setScreenState] = React.useState<Screen>(currentReaderScreen)
+      const setScreen = React.useCallback((next: Screen | ((previous: Screen) => Screen)) => {
+        if (typeof next === 'function') {
+          setScreenState(previous => {
+            const value = next(previous)
+            rememberReaderScreen(value)
+            return value
+          })
+          return
+        }
+        rememberReaderScreen(next)
+        setScreenState(next)
+      }, [])
+      const screen = screenState
       const [readingMode, setReadingMode] = React.useState<ReaderMode>('scroll')
       const [pageLayout, setPageLayout] = React.useState<PageLayout>('single')
       const [error, setError] = React.useState('')

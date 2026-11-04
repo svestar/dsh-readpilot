@@ -3,7 +3,7 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/views/native-companion.ts`（`NativeCompanion`、`createNativeChatBoundary`）；`src/client/views/chat-panel.ts`（`ChatPanel`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/plugin.ts`（`ReaderPanel`、`createPlugin`）；`src/client/helpers.ts`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/views/chat-content.ts`（`ChatBody`、`ChatCompose`）
+- **代码：** `src/client/views/native-companion.ts`（`NativeCompanion`、`createNativeChatBoundary`）；`src/client/views/chat-panel.ts`（`ChatPanel`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/plugin.ts`（`ReaderPanel`、`createPlugin`）；`src/client/reader-screen.ts`（`currentReaderScreen`、`rememberReaderScreen`）；`src/client/helpers.ts`（`foldTranscript`、`clampChatWidth`、`parseMarkdownBlocks`）；`src/client/views/chat-content.ts`（`ChatBody`、`ChatCompose`）
 - **测试：** `tests/client-chat.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为
@@ -22,7 +22,7 @@
 
 ## 约束与失败行为
 
-`main` 面板注册声明 `dsh-readpilot.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 退回现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度 360–640px，默认 420px，按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。
+`main` 面板注册声明 `dsh-readpilot.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 退回现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度 360–640px，默认 420px，按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。切换 DSH 页面后重新进入阅读面板时，会恢复上次的书与章节；只有主动回到书库或关闭书籍才显示书库。
 
 ## 验收与测试
 
@@ -30,3 +30,4 @@
 - 边界：缺少 Factory 时伴读子组件返回传入的 fallback，由外层退回折叠（`native_companion_falls_back_without_factory`）。
 - 正常路径：折叠仍只保留真实用户输入与助手文本（`fold_transcript_keeps_text`、`fold_transcript_skips_non_text`、`fold_transcript_skips_context_messages`）。
 - 边界：宽度夹取到 360–640px，非法值回退 420px（`clamp_chat_width_bounds`）。
+- 正常路径：切换页面后重新挂载阅读面板，仍恢复上次的书/章节画面（`reader_screen_cache_remembers_last_screen`）。

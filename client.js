@@ -3976,6 +3976,15 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     };
   }
 
+  // src/client/reader-screen.ts
+  var lastScreen = { kind: "library" };
+  function currentReaderScreen() {
+    return lastScreen;
+  }
+  function rememberReaderScreen(screen) {
+    lastScreen = screen;
+  }
+
   // src/client/hooks/use-long-notes.ts
   function useLongNotes({ call, t, activeBookId, notesTabActive }) {
     const [notes, setNotes] = React.useState([]);
@@ -5082,7 +5091,20 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     function ReaderPanel(props) {
       const t = props.t ?? boundText;
       const [snapshot, setSnapshot] = React.useState(null);
-      const [screen, setScreen] = React.useState({ kind: "library" });
+      const [screenState, setScreenState] = React.useState(currentReaderScreen);
+      const setScreen = React.useCallback((next) => {
+        if (typeof next === "function") {
+          setScreenState((previous) => {
+            const value = next(previous);
+            rememberReaderScreen(value);
+            return value;
+          });
+          return;
+        }
+        rememberReaderScreen(next);
+        setScreenState(next);
+      }, []);
+      const screen = screenState;
       const [readingMode, setReadingMode] = React.useState("scroll");
       const [pageLayout, setPageLayout] = React.useState("single");
       const [error, setError] = React.useState("");

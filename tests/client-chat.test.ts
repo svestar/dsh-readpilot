@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { currentReaderScreen, rememberReaderScreen } from '../src/client/reader-screen.ts'
 
 const globalAny = globalThis as any
 
@@ -154,6 +155,24 @@ test('native_companion_falls_back_without_factory', () => {
     fallback: 'fallback',
   })
   assert.equal(element, 'fallback')
+})
+
+test('reader_screen_cache_remembers_last_screen', () => {
+  rememberReaderScreen({ kind: 'library' })
+  assert.deepEqual(currentReaderScreen(), { kind: 'library' })
+
+  const screen = {
+    kind: 'book',
+    detail: {
+      book: { id: 'b1', title: 'Book', format: 'txt' },
+      toc: [],
+      progress: null,
+    },
+    content: { chapterId: 'c1', title: 'One', blocks: [] },
+  } as any
+  rememberReaderScreen(screen)
+  assert.equal(currentReaderScreen(), screen)
+  rememberReaderScreen({ kind: 'library' })
 })
 
 test('diff_lines_add_and_remove', () => {
