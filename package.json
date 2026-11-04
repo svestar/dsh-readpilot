@@ -1,13 +1,30 @@
 {
   "name": "dsh-readpilot",
   "version": "0.2.1",
-  "private": true,
   "description": "AI-assisted reading for DeepSeek Harness: TXT, Markdown, EPUB and PDF with a companion session, notes, memory and export.",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
   "engines": {
     "node": ">=22.18"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/svestar/dsh-readpilot.git"
+  },
+  "homepage": "https://github.com/svestar/dsh-readpilot#readme",
+  "bugs": {
+    "url": "https://github.com/svestar/dsh-readpilot/issues"
+  },
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "reader",
+    "epub",
+    "pdf",
+    "ai"
+  ],
+  "author": "svestar",
   "dependencies": {
     "@napi-rs/canvas": "^1.1.0",
     "htmlparser2": "^10.1.0",
@@ -28,8 +45,13 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "dsh": {
     "bundle": {
       "patch": "./cordis.patch.yml"

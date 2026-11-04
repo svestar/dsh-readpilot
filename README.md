@@ -30,3 +30,7 @@ Host 入口 `index.ts`，源码在 `src/`；Client 在 `src/client/`，构建产
 ## 限制
 
 EPUB 保留 CSS/图片/字体但不执行脚本；PDF 不做 OCR，扫描版需自带文本层；双栏、页眉页脚可能影响文本层对齐；检索为字面量扫描。单本默认 100 MB，扫描深度 3 层、最多 2000 个文件；原生伴读依赖 DSH Conversation Factory，失败退回折叠。
+
+## 许可证
+
+MIT
