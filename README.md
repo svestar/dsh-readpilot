@@ -1,30 +1,32 @@
-# 智读
+# 智读 ReadPilot
 
-DSH Web GUI 的 AI 辅助阅读插件。书库是用户指定的本机目录；配置后该目录会注册为独立的 DSH 工作区，每本书的伴读会话都保留在该工作区。
+DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批注、可与 AI 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。每个书库注册为独立的 DSH 工作区。
 
-## 当前能力
+## 功能
 
-- 书库：扫描 `.txt`、`.md`、`.epub`、`.pdf`；EPUB 按 spine 解析，PDF 抽取文本层并渲染页面。支持最近阅读、标签、书名/标签搜索与排序。
-- 阅读：四种格式都支持分页；PDF 恒为分页，其余可切滚动/分页；支持单/双页、翻页、目录、进度、搜索、笔记；五色划线、批注与书签，引文可高亮跳转；配色跟随 DSH 或五种主题。
-- 长笔记：右栏“长笔记”可看整书/主题，存于 `notes/`，编辑用外部编辑器；短笔记仍走 JSON。
-- 笔记上下文：按书开启“让伴读知道本书笔记”，注入笔记与批注。
-- 笔记草稿：伴读写笔记默认先看 diff，可在长笔记页开启自动应用。
-- 记忆与导出：按书记忆（关/询问/开），可导出、恢复历史。
-- 伴读：右侧栏嵌入原生会话，与 Chat 共享会话，使用原生 Composer、工具卡、推理与审批；不支持 Factory 或渲染失败时退回折叠。宽度可拖动，窄屏为抽屉；选段“解释/总结/翻译”只预填输入框，不自动发送。会话就绪后切到只读沙箱。
-- 工具：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`；阅读纪律写入书库 `AGENTS.md`（管理块），只对该书库会话生效。
+- **书库**：扫描四种格式，最近阅读、标签、书名/标签检索与排序。
+- **阅读**：默认分页单页，可切滚动/双页；目录、进度、书内检索、五色划线、批注、书签与引文跳转；配色跟随 DSH 或五种主题。
+- **AI 伴读**：每本书一个原生会话，与 Chat 共享工具、推理与审批；Composer 可选模型/思考强度；选段“问伴读”带入引用；只读沙箱。
+- **笔记**：长笔记存 `notes/`，用外部编辑器修改；草稿先看 diff，可开自动应用；按书注入笔记上下文；历史可恢复、删除、清空。
+- **记忆与导出**：按书记忆（关/询问/开）；笔记导出 Markdown。
+- **工具**：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`；阅读纪律写入书库 `AGENTS.md`。
 
-## 安装与首次使用
+## 安装
 
-通过 Plugins 或 `plugin_manager` 安装本目录；先执行 `pnpm install && pnpm run build`，生成 `dist/` 与 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`、`htmlparser2`。安装后刷新，点“阅读”，选择书库目录并点“创建书库”。
+在 Plugins 或 `plugin_manager` 中安装本目录。安装前先执行 `pnpm install && pnpm run build`；安装后刷新，点“智读”，选择书库目录并“创建书库”。
 
 ## 开发
 
-Host 与 Client 源码都是 TypeScript（`index.ts`、`src/**/*.ts`），需要 Node 22.18+。`pnpm run build` 清理 `dist/` 后用 tsc 生成 Host、esbuild 生成 `client.js`；只改 Client 可用 `pnpm run build:client`。类型检查用 `pnpm run typecheck`，测试用 `pnpm test`（先重建 `client.js`）。
+需要 Node 22.18+。`pnpm run build` 生成 Host 与 `client.js`；只改客户端用 `pnpm run build:client`；`pnpm run typecheck` 做类型检查，`pnpm test` 跑测试。文档门禁用 `python scripts/check_docs.py`。
+
+## 结构
+
+Host 入口 `index.ts`，源码在 `src/`；Client 在 `src/client/`，构建产物为 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
 
 ## 数据
 
-书库原文件不复制。设置、进度、会话与解析缓存位于 `$DSH_HOME/dsh-readpilot/`；EPUB 解压资源在 `assets/`，PDF 图片在 `cache/pages/`；解析缓存按路径 id 与修改时间失效。
+原书不复制。设置、进度、会话与解析缓存位于 `$DSH_HOME/dsh-readpilot/`；EPUB 资源在 `assets/`，PDF 页面在 `cache/pages/`。
 
 ## 限制
 
-EPUB 不执行原书脚本，但保留 CSS/图片/字体；PDF 用页面图片 + 文本层，不做 OCR，扫描版需要自带文本层；双栏、连字和页眉页脚可能影响文本层与页面图像的重合。书内检索是字面量扫描，不是全文索引。单本默认 100 MB，书库扫描深度 3 层、最多 2000 个文件。原生伴读依赖 DSH 的 Conversation Factory 契约，升级后需复核，失败会退回折叠。
+EPUB 保留 CSS/图片/字体但不执行脚本；PDF 不做 OCR，扫描版需自带文本层；双栏、页眉页脚可能影响文本层对齐；检索为字面量扫描。单本默认 100 MB，扫描深度 3 层、最多 2000 个文件；原生伴读依赖 DSH Conversation Factory，失败退回折叠。
