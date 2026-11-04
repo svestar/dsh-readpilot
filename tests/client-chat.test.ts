@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { currentReaderScreen, rememberReaderScreen } from '../src/client/reader-screen.ts'
+import { isMissingSessionError } from '../src/client/session-recovery.ts'
 
 const globalAny = globalThis as any
 
@@ -183,4 +184,11 @@ test('diff_lines_add_and_remove', () => {
     ['add', 'x'],
     ['same', 'c'],
   ])
+})
+
+test('missing_session_errors_are_detected', () => {
+  assert.equal(isMissingSessionError(new Error('session is archived')), true)
+  assert.equal(isMissingSessionError(new Error('unknown session: abc')), true)
+  assert.equal(isMissingSessionError(new Error('会话已归档')), true)
+  assert.equal(isMissingSessionError(new Error('network timeout')), false)
 })

@@ -574,6 +574,7 @@ var __dshReaderBundle = (() => {
     paletteNight: "夜间",
     companion: "伴读",
     chatEmpty: "针对这本书提问，或在正文中选中文字后点“问伴读”。",
+    chatSessionLost: "伴读会话已归档或不存在；发送消息会自动新建会话。",
     chatJumpNotFound: "没有在书中找到这段文字。",
     chatJumpFailed: "跳转原文失败",
     chatJumpOtherBook: "请先回到这本书再跳转。",
@@ -775,6 +776,7 @@ var __dshReaderBundle = (() => {
     paletteNight: "Night",
     companion: "Companion",
     chatEmpty: "Ask about this book, or select text and choose Ask companion.",
+    chatSessionLost: "The companion session was archived or no longer exists; sending a message will create a new one.",
     chatJumpNotFound: "No matching passage found in this book.",
     chatJumpFailed: "Could not jump to the source text",
     chatJumpOtherBook: "Open this book in the reader before jumping.",
@@ -3667,6 +3669,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     );
   }
 
+  // src/client/session-recovery.ts
+  function isMissingSessionError(error) {
+    const text = messageOf(error).toLowerCase();
+    return /archiv|not.?found|unknown session|no such session|does not exist|closed|deleted|missing|已归档|归档|不存在|已删除|已关闭|找不到.{0,8}会话/.test(text);
+  }
+
   // src/client/hooks/use-companion.ts
   function useCompanion({
     runtime,
@@ -3675,7 +3683,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     screen,
     workspaceId,
     activeSessionId,
-    rememberSession
+    rememberSession,
+    forgetSession
   }) {
     const [chatOpen, setChatOpen] = React.useState(() => typeof window !== "undefined" ? window.innerWidth > 1100 : true);
     const [chatWidth, setChatWidth] = React.useState(readChatWidth);
@@ -3712,6 +3721,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setEntries([]);
       setHasMore(false);
     }, [disposeChat]);
+    const invalidateSession = React.useCallback((bookId) => {
+      setChatError(t("chatSessionLost"));
+      forgetSession(bookId);
+      void call("session", { bookId, sessionId: null }).catch(() => {
+      });
+    }, [call, forgetSession, t]);
     const bindSession = React.useCallback((sessionId) => {
       if (!sessionId) {
         releaseChat();
@@ -3724,7 +3739,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       try {
         reference = runtime.sessions.retain(sessionId, { source: "controllerOperation" });
       } catch (error) {
-        setChatError(`${t("loadFailed")}：${messageOf(error)}`);
+        if (isMissingSessionError(error) && screen.kind === "book") {
+          releaseChat();
+          invalidateSession(screen.detail.book.id);
+        } else {
+          setChatError(`${t("loadFailed")}：${messageOf(error)}`);
+        }
         return null;
       }
       const source = reference.binding.eventSource;
@@ -3744,11 +3764,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         });
       }).catch((error) => {
         if (chatRef.current === record) {
-          setChatError(`${t("loadFailed")}：${messageOf(error)}`);
+          if (isMissingSessionError(error) && screen.kind === "book") {
+            releaseChat();
+            invalidateSession(screen.detail.book.id);
+          } else {
+            setChatError(`${t("loadFailed")}：${messageOf(error)}`);
+          }
         }
       });
       return reference;
-    }, [releaseChat, runtime, t, call]);
+    }, [releaseChat, runtime, t, call, screen, invalidateSession]);
     React.useEffect(() => {
       if (!activeSessionId) {
         releaseChat();
@@ -3802,21 +3827,27 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (!reference) throw new Error(t("loadFailed"));
         return reference;
       };
+      const runPrompt = async (reference) => {
+        await reference.ready;
+        const result = await reference.binding.session.prompt([{ type: "text", text }], "queue");
+        if (result && result.ok === false) {
+          throw new Error(result.error?.message ?? t("sendFailed"));
+        }
+      };
       try {
         let reference = chatRef.current?.reference;
         if (!reference) reference = await createSession();
         try {
-          await reference.ready;
-        } catch {
+          await runPrompt(reference);
+        } catch (error) {
+          if (!isMissingSessionError(error)) throw error;
           await call("session", { bookId: book.id, sessionId: null }).catch(() => {
           });
+          forgetSession(book.id);
           releaseChat();
           reference = await createSession();
-          await reference.ready;
-        }
-        const result = await reference.binding.session.prompt([{ type: "text", text }], "queue");
-        if (result && result.ok === false) {
-          throw new Error(result.error?.message ?? t("sendFailed"));
+          setChatError("");
+          await runPrompt(reference);
         }
         setDraft("");
       } catch (error) {
@@ -3824,7 +3855,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       } finally {
         setSending(false);
       }
-    }, [draft, sending, screen, workspaceId, rememberSession, bindSession, releaseChat, runtime, call, t]);
+    }, [draft, sending, screen, workspaceId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t]);
     const loadEarlier = React.useCallback(async () => {
       const reference = chatRef.current?.reference;
       if (!reference || loadingEarlier) return;
@@ -5818,6 +5849,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           }
         } : previous);
       }, []);
+      const forgetSession = React.useCallback((bookId) => {
+        setSnapshot((previous) => {
+          if (!previous?.sessions?.[bookId]) return previous;
+          const sessions = { ...previous.sessions };
+          delete sessions[bookId];
+          return { ...previous, sessions };
+        });
+      }, []);
       const activeBookId = screen.kind === "book" ? screen.detail.book.id : null;
       const activeSessionId = activeBookId && snapshot ? snapshot.sessions?.[activeBookId]?.sessionId ?? null : null;
       const workspaceId = snapshot?.settings?.workspaceId ?? null;
@@ -5846,7 +5885,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         hasMore,
         loadingEarlier,
         chatBinding
-      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession });
+      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession });
       const nativeInputRef = React.useRef(null);
       const handleNativeReady = React.useCallback((value) => {
         nativeInputRef.current = value;

@@ -7,6 +7,7 @@ import {
   readChatWidth,
   saveChatWidth,
 } from '../helpers.ts'
+import { isMissingSessionError } from '../session-recovery.ts'
 import type { CallRpc, ChatMessage, Screen, TextFn } from '../types.ts'
 
 interface ChatBinding {
@@ -23,6 +24,7 @@ interface CompanionOptions {
   workspaceId: string | null
   activeSessionId: string | null
   rememberSession: (bookId: string, sessionId: string) => void
+  forgetSession: (bookId: string) => void
 }
 
 export function useCompanion({
@@ -33,6 +35,7 @@ export function useCompanion({
   workspaceId,
   activeSessionId,
   rememberSession,
+  forgetSession,
 }: CompanionOptions) {
   const [chatOpen, setChatOpen] = React.useState<boolean>(() => (typeof window !== 'undefined' ? window.innerWidth > 1100 : true))
   const [chatWidth, setChatWidth] = React.useState<number>(readChatWidth)
@@ -74,6 +77,12 @@ export function useCompanion({
     setHasMore(false)
   }, [disposeChat])
 
+  const invalidateSession = React.useCallback((bookId: string) => {
+    setChatError(t('chatSessionLost'))
+    forgetSession(bookId)
+    void call('session', { bookId, sessionId: null }).catch(() => {})
+  }, [call, forgetSession, t])
+
   const bindSession = React.useCallback((sessionId: string | null) => {
     if (!sessionId) {
       releaseChat()
@@ -86,7 +95,12 @@ export function useCompanion({
     try {
       reference = runtime.sessions.retain(sessionId, { source: 'controllerOperation' })
     } catch (error) {
-      setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+      if (isMissingSessionError(error) && screen.kind === 'book') {
+        releaseChat()
+        invalidateSession(screen.detail.book.id)
+      } else {
+        setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+      }
       return null
     }
     const source = reference.binding.eventSource
@@ -105,11 +119,16 @@ export function useCompanion({
       void call('companionPolicy', { sessionId }).catch(() => {})
     }).catch((error: unknown) => {
       if (chatRef.current === record) {
-        setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+        if (isMissingSessionError(error) && screen.kind === 'book') {
+          releaseChat()
+          invalidateSession(screen.detail.book.id)
+        } else {
+          setChatError(`${t('loadFailed')}：${messageOf(error)}`)
+        }
       }
     })
     return reference
-  }, [releaseChat, runtime, t, call])
+  }, [releaseChat, runtime, t, call, screen, invalidateSession])
 
   React.useEffect(() => {
     if (!activeSessionId) {
@@ -170,20 +189,27 @@ export function useCompanion({
       return reference
     }
 
+    const runPrompt = async (reference: any) => {
+      await reference.ready
+      const result = await reference.binding.session.prompt([{ type: 'text', text }], 'queue')
+      if (result && result.ok === false) {
+        throw new Error(result.error?.message ?? t('sendFailed'))
+      }
+    }
+
     try {
       let reference = chatRef.current?.reference
       if (!reference) reference = await createSession()
       try {
-        await reference.ready
-      } catch {
+        await runPrompt(reference)
+      } catch (error) {
+        if (!isMissingSessionError(error)) throw error
         await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
+        forgetSession(book.id)
         releaseChat()
         reference = await createSession()
-        await reference.ready
-      }
-      const result = await reference.binding.session.prompt([{ type: 'text', text }], 'queue')
-      if (result && result.ok === false) {
-        throw new Error(result.error?.message ?? t('sendFailed'))
+        setChatError('')
+        await runPrompt(reference)
       }
       setDraft('')
     } catch (error) {
@@ -191,7 +217,7 @@ export function useCompanion({
     } finally {
       setSending(false)
     }
-  }, [draft, sending, screen, workspaceId, rememberSession, bindSession, releaseChat, runtime, call, t])
+  }, [draft, sending, screen, workspaceId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t])
 
   const loadEarlier = React.useCallback(async () => {
     const reference = chatRef.current?.reference

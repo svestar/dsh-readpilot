@@ -191,6 +191,15 @@ export function createPlugin(require: (name: string) => any) {
           : previous)
       }, [])
 
+      const forgetSession = React.useCallback((bookId: string) => {
+        setSnapshot(previous => {
+          if (!previous?.sessions?.[bookId]) return previous
+          const sessions = { ...previous.sessions }
+          delete sessions[bookId]
+          return { ...previous, sessions }
+        })
+      }, [])
+
       const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
       const activeSessionId = activeBookId && snapshot
         ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
@@ -222,7 +231,7 @@ export function createPlugin(require: (name: string) => any) {
         hasMore,
         loadingEarlier,
         chatBinding,
-      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession })
+      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession })
 
       const nativeInputRef = React.useRef<any>(null)
       const handleNativeReady = React.useCallback((value: any) => {
