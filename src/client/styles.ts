@@ -370,6 +370,17 @@ export const CSS = `
 .dsh-readpilot-chat-tab:hover{background:color-mix(in srgb,var(--dsw-alias-bg-base) 70%,transparent)}
 .dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .dsh-readpilot-chat-tab:focus-visible,.dsh-readpilot-pill:focus-visible,.dsh-readpilot-tool-btn:focus-visible,.dsh-readpilot-segment:focus-visible,.dsh-readpilot-icon-action:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-create-card{display:flex;flex-direction:column;gap:8px}
+.dsh-readpilot-create-card input{width:100%;box-sizing:border-box;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-readpilot-create-card input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-preview-card{display:flex;flex-direction:column;gap:10px}
+.dsh-readpilot-preview-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dsh-readpilot-preview-head h4{flex:1;min-width:0;margin:0;font-size:15px;line-height:1.45;font-weight:650;word-break:break-word}
+.dsh-readpilot-preview-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:9px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-preview-body{max-height:58vh;overflow:auto;padding:2px 1px 4px;font-size:13px;line-height:1.7}
+.dsh-readpilot-preview-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
+.dsh-readpilot-preview-card .dsh-readpilot-history{margin-top:2px}
+.dsh-readpilot-preview-card .dsh-readpilot-long-hint{padding-top:0}
 @media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}

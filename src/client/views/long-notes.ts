@@ -11,8 +11,7 @@ interface LongNotesProps {
 }
 
 export function LongNotes({ t, state, noteContext }: LongNotesProps) {
-  const editing = Boolean(state.active || state.creating)
-  const kind = state.active?.note.kind ?? state.createKind
+  const showActions = !state.active && !state.creating
   const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
     h('div', { className: 'dsh-readpilot-empty-icon' }, '▤'),
     h('div', { className: 'dsh-readpilot-empty-title' }, title),
@@ -24,19 +23,19 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
           h('h3', null, t('longNotes')),
           h('span', { className: 'dsh-readpilot-page-count' }, String(state.notes.length))),
         h('p', { className: 'dsh-readpilot-page-subtitle' }, t('longNotesPageHint'))),
-      editing
-        ? null
-        : h('div', { className: 'dsh-readpilot-page-actions' },
+      showActions
+        ? h('div', { className: 'dsh-readpilot-page-actions' },
           h('button', {
             type: 'button',
             className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
-            onClick: () => state.start('book'),
+            onClick: () => state.beginCreate('book'),
           }, t('bookNote')),
           h('button', {
             type: 'button',
             className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
-            onClick: () => state.start('topic'),
-          }, t('newTopicNote')))),
+            onClick: () => state.beginCreate('topic'),
+          }, t('newTopicNote')))
+        : null),
     h('div', { className: 'dsh-readpilot-page-toolbar' },
       h('button', {
         type: 'button',
@@ -115,118 +114,111 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
         }))
       : null,
     state.error ? h('div', { className: 'dsh-readpilot-chat-error' }, state.error) : null,
-    editing
-      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-long-editor dsh-readpilot-editor-card' },
-        h('div', { className: 'dsh-readpilot-long-editor-head' },
-          h('input', {
-            value: state.title,
-            placeholder: t('longNoteTitle'),
-            spellCheck: false,
-            onChange: (event: any) => state.setTitle(event.target.value),
-          }),
-          h('span', { className: 'dsh-readpilot-long-kind' },
-            kind === 'book' ? t('bookNote') : t('noteKindTopic'))),
-        h('textarea', {
-          value: state.draft,
-          placeholder: t('notePlaceholder'),
-          rows: 10,
+    state.creating
+      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-create-card' },
+        h('div', { className: 'dsh-readpilot-section-head' },
+          h('h4', null, state.createKind === 'book' ? t('bookNote') : t('newTopicNote'))),
+        h('input', {
+          value: state.title,
+          placeholder: t('longNoteTitle'),
           spellCheck: false,
-          onChange: (event: any) => state.setDraft(event.target.value),
-          onKeyDown: (event: any) => {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 's') {
-              event.preventDefault()
-              void state.save()
-            }
-          },
+          onChange: (event: any) => state.setTitle(event.target.value),
         }),
-        state.conflict
-          ? h('div', { className: 'dsh-readpilot-long-conflict' },
-            h('span', null, t('longNoteConflict')),
-            h('button', {
-              type: 'button',
-              className: 'dsh-readpilot-note-jump',
-              onClick: () => void state.reload(),
-            }, t('reload')))
-          : null,
         h('div', { className: 'dsh-readpilot-long-editor-actions' },
           h('button', {
             type: 'button',
             className: 'dsh-readpilot-chat-send',
-            disabled: state.saving || !state.draft.trim(),
-            onClick: () => void state.save(),
-          }, state.saving ? t('noteSaving') : t('save')),
+            disabled: state.saving || !state.title.trim(),
+            onClick: () => void state.create(),
+          }, state.saving ? t('noteSaving') : t('createNote')),
           h('button', {
             type: 'button',
             className: 'dsh-readpilot-note-jump',
-            onClick: state.cancel,
-          }, t('cancel')),
-          state.active
-            ? h('button', {
+            onClick: state.cancelCreate,
+          }, t('cancel'))))
+      : state.active
+        ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-preview-card' },
+          h('div', { className: 'dsh-readpilot-preview-head' },
+            h('span', { className: 'dsh-readpilot-long-kind' },
+              state.active.note.kind === 'book' ? t('bookNote') : t('noteKindTopic')),
+            h('h4', null, state.active.note.title),
+            h('span', { className: 'dsh-readpilot-long-meta' },
+              `${formatSize(state.active.note.size)} · ${new Date(state.active.note.updatedAt).toLocaleDateString()}`)),
+          h('div', { className: 'dsh-readpilot-preview-actions' },
+            h('button', {
               type: 'button',
-              className: 'dsh-readpilot-note-delete',
+              className: 'dsh-readpilot-chat-send',
+              disabled: state.externalBusy,
+              title: t('openExternalHint'),
+              onClick: () => void state.openExternal(),
+            }, t('openExternal')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-note-jump',
               disabled: state.saving,
-              onClick: () => void state.remove(),
-            }, t('delete'))
-            : null,
-          state.active
-            ? h('button', {
+              onClick: () => void state.reload(),
+            }, t('refresh')),
+            h('button', {
               type: 'button',
               className: 'dsh-readpilot-note-jump',
               disabled: state.historyBusy,
               onClick: state.toggleHistory,
-            }, t('history'))
-            : null,
-          state.active
-            ? h('button', {
+            }, t('history')),
+            h('button', {
               type: 'button',
-              className: 'dsh-readpilot-note-jump',
-              disabled: state.externalBusy,
-              title: t('openExternalHint'),
-              onClick: () => void state.openExternal(),
-            }, t('openExternal'))
-            : null),
-        state.active && state.historyOpen
-          ? h('div', { className: 'dsh-readpilot-history' },
-            h('div', { className: 'dsh-readpilot-drafts-head' }, t('history')),
-            state.history.length === 0
-              ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('historyEmpty'))
-              : state.history.map(entry => h('div', { key: entry.id, className: 'dsh-readpilot-history-row' },
-                h('span', { className: 'dsh-readpilot-long-meta' }, new Date(entry.createdAt).toLocaleString()),
-                h('span', { className: 'dsh-readpilot-long-meta' },
-                  `${entry.characters} ${t('noteContextChars')}`),
-                h('button', {
-                  type: 'button',
-                  className: 'dsh-readpilot-note-jump',
-                  disabled: state.historyBusy,
-                  onClick: () => void state.restoreHistory(entry),
-                }, t('historyRestore')))),
+              className: 'dsh-readpilot-note-delete',
+              disabled: state.saving,
+              onClick: () => void state.remove(),
+            }, t('delete')),
             h('button', {
               type: 'button',
               className: 'dsh-readpilot-note-jump',
-              onClick: state.toggleHistory,
-            }, t('historyClose')))
-          : null,
-        h('details', { className: 'dsh-readpilot-long-preview' },
-          h('summary', null, t('longNotePreview')),
-          h(MarkdownMessage, { text: state.draft, prefix: 'long-note' })))
-      : state.loading
-        ? emptyState(t('loading'), '')
-        : state.notes.length === 0
-          ? emptyState(t('longNoteEmpty'), t('longNotesHint'))
-          : h('div', { className: 'dsh-readpilot-long-list' },
-            h('div', { className: 'dsh-readpilot-list-head' },
-              h('span', null, t('allNotes')),
-              h('span', { className: 'dsh-readpilot-section-count' }, String(state.notes.length))),
-            state.notes.map(note => h('button', {
-              key: note.id,
-              type: 'button',
-              className: 'dsh-readpilot-long-note',
-              'data-kind': note.kind,
-              onClick: () => void state.open(note),
-            },
-            h('span', { className: 'dsh-readpilot-long-kind' },
-              note.kind === 'book' ? t('bookNote') : t('noteKindTopic')),
-            h('span', { className: 'dsh-readpilot-long-title' }, note.title),
-            h('span', { className: 'dsh-readpilot-long-meta' },
-              `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`)))))
+              onClick: state.close,
+            }, t('backToNotes'))),
+          h('div', { className: 'dsh-readpilot-preview-body' },
+            h(MarkdownMessage, { text: state.active.body, prefix: 'long-note' })),
+          state.historyOpen
+            ? h('div', { className: 'dsh-readpilot-history' },
+              h('div', { className: 'dsh-readpilot-section-head' },
+                h('h4', null, t('history')),
+                h('span', { className: 'dsh-readpilot-section-count' }, String(state.history.length))),
+              state.history.length === 0
+                ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('historyEmpty'))
+                : state.history.map(entry => h('div', { key: entry.id, className: 'dsh-readpilot-history-row' },
+                  h('span', { className: 'dsh-readpilot-long-meta' }, new Date(entry.createdAt).toLocaleString()),
+                  h('span', { className: 'dsh-readpilot-long-meta' },
+                    `${entry.characters} ${t('noteContextChars')}`),
+                  h('button', {
+                    type: 'button',
+                    className: 'dsh-readpilot-note-jump',
+                    disabled: state.historyBusy,
+                    onClick: () => void state.restoreHistory(entry),
+                  }, t('historyRestore')))),
+              h('button', {
+                type: 'button',
+                className: 'dsh-readpilot-note-jump',
+                onClick: state.toggleHistory,
+              }, t('historyClose')))
+            : null,
+          h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')))
+        : state.loading
+          ? emptyState(t('loading'), '')
+          : state.notes.length === 0
+            ? emptyState(t('longNoteEmpty'), t('longNotesHint'))
+            : h('div', { className: 'dsh-readpilot-long-list' },
+              h('div', { className: 'dsh-readpilot-list-head' },
+                h('span', null, t('allNotes')),
+                h('span', { className: 'dsh-readpilot-section-count' }, String(state.notes.length))),
+              state.notes.map(note => h('button', {
+                key: note.id,
+                type: 'button',
+                className: 'dsh-readpilot-long-note',
+                'data-kind': note.kind,
+                onClick: () => void state.open(note),
+              },
+              h('span', { className: 'dsh-readpilot-long-kind' },
+                note.kind === 'book' ? t('bookNote') : t('noteKindTopic')),
+              h('span', { className: 'dsh-readpilot-long-title' }, note.title),
+              h('span', { className: 'dsh-readpilot-long-meta' },
+                `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`)))))
 }

@@ -595,6 +595,8 @@ var __dshReaderBundle = (() => {
     notesPageHint: "划线、批注与书签",
     notesEmptyHint: "在正文中选中一段文字，就可以添加划线或笔记。",
     longNotesPageHint: "整书与主题的 markdown 笔记",
+    createNote: "创建并打开",
+    backToNotes: "返回列表",
     allNotes: "全部笔记",
     memoryPageHint: "伴读记住的偏好与阅读关系",
     memorySettings: "记忆设置",
@@ -634,7 +636,7 @@ var __dshReaderBundle = (() => {
     exportFailed: "导出失败",
     openExternal: "外部编辑器",
     openExternalFailed: "打开外部编辑器失败",
-    openExternalHint: "用系统默认应用打开当前笔记文件；未保存的修改请先保存。",
+    openExternalHint: "用系统默认应用打开当前笔记文件；保存后回到预览会自动刷新。",
     exportSaved: "已保存",
     memory: "记忆",
     memoryLoad: "加载记忆",
@@ -786,6 +788,8 @@ var __dshReaderBundle = (() => {
     notesPageHint: "Highlights, annotations and bookmarks",
     notesEmptyHint: "Select text in the book to add a highlight or note.",
     longNotesPageHint: "Markdown notes for the book and topics",
+    createNote: "Create and open",
+    backToNotes: "Back to list",
     allNotes: "All notes",
     memoryPageHint: "Preferences and reading relationship the companion remembers",
     memorySettings: "Memory settings",
@@ -825,7 +829,7 @@ var __dshReaderBundle = (() => {
     exportFailed: "Export failed",
     openExternal: "External editor",
     openExternalFailed: "Could not open the external editor",
-    openExternalHint: "Open the current note file in the system default app; save unsaved changes first.",
+    openExternalHint: "Open the current note file in the system default app; the preview refreshes when you return.",
     exportSaved: "Saved",
     memory: "Memory",
     memoryLoad: "Load memory",
@@ -1243,6 +1247,17 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-chat-tab:hover{background:color-mix(in srgb,var(--dsw-alias-bg-base) 70%,transparent)}
 .dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .dsh-readpilot-chat-tab:focus-visible,.dsh-readpilot-pill:focus-visible,.dsh-readpilot-tool-btn:focus-visible,.dsh-readpilot-segment:focus-visible,.dsh-readpilot-icon-action:focus-visible{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-create-card{display:flex;flex-direction:column;gap:8px}
+.dsh-readpilot-create-card input{width:100%;box-sizing:border-box;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:13px}
+.dsh-readpilot-create-card input:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-preview-card{display:flex;flex-direction:column;gap:10px}
+.dsh-readpilot-preview-head{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dsh-readpilot-preview-head h4{flex:1;min-width:0;margin:0;font-size:15px;line-height:1.45;font-weight:650;word-break:break-word}
+.dsh-readpilot-preview-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding-bottom:9px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-preview-body{max-height:58vh;overflow:auto;padding:2px 1px 4px;font-size:13px;line-height:1.7}
+.dsh-readpilot-preview-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
+.dsh-readpilot-preview-card .dsh-readpilot-history{margin-top:2px}
+.dsh-readpilot-preview-card .dsh-readpilot-long-hint{padding-top:0}
 @media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
@@ -2024,8 +2039,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
 
   // src/client/views/long-notes.ts
   function LongNotes({ t, state, noteContext }) {
-    const editing = Boolean(state.active || state.creating);
-    const kind = state.active?.note.kind ?? state.createKind;
+    const showActions = !state.active && !state.creating;
     const emptyState = (title, hint) => h(
       "div",
       { className: "dsh-readpilot-empty-state" },
@@ -2050,20 +2064,20 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           ),
           h("p", { className: "dsh-readpilot-page-subtitle" }, t("longNotesPageHint"))
         ),
-        editing ? null : h(
+        showActions ? h(
           "div",
           { className: "dsh-readpilot-page-actions" },
           h("button", {
             type: "button",
             className: "dsh-readpilot-note-jump dsh-readpilot-pill",
-            onClick: () => state.start("book")
+            onClick: () => state.beginCreate("book")
           }, t("bookNote")),
           h("button", {
             type: "button",
             className: "dsh-readpilot-note-jump dsh-readpilot-pill",
-            onClick: () => state.start("topic")
+            onClick: () => state.beginCreate("topic")
           }, t("newTopicNote"))
-        )
+        ) : null
       ),
       h(
         "div",
@@ -2164,85 +2178,101 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         })
       ) : null,
       state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
-      editing ? h(
+      state.creating ? h(
         "div",
-        { className: "dsh-readpilot-card dsh-readpilot-long-editor dsh-readpilot-editor-card" },
+        { className: "dsh-readpilot-card dsh-readpilot-create-card" },
         h(
           "div",
-          { className: "dsh-readpilot-long-editor-head" },
-          h("input", {
-            value: state.title,
-            placeholder: t("longNoteTitle"),
-            spellCheck: false,
-            onChange: (event) => state.setTitle(event.target.value)
-          }),
-          h(
-            "span",
-            { className: "dsh-readpilot-long-kind" },
-            kind === "book" ? t("bookNote") : t("noteKindTopic")
-          )
+          { className: "dsh-readpilot-section-head" },
+          h("h4", null, state.createKind === "book" ? t("bookNote") : t("newTopicNote"))
         ),
-        h("textarea", {
-          value: state.draft,
-          placeholder: t("notePlaceholder"),
-          rows: 10,
+        h("input", {
+          value: state.title,
+          placeholder: t("longNoteTitle"),
           spellCheck: false,
-          onChange: (event) => state.setDraft(event.target.value),
-          onKeyDown: (event) => {
-            if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
-              event.preventDefault();
-              void state.save();
-            }
-          }
+          onChange: (event) => state.setTitle(event.target.value)
         }),
-        state.conflict ? h(
-          "div",
-          { className: "dsh-readpilot-long-conflict" },
-          h("span", null, t("longNoteConflict")),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-jump",
-            onClick: () => void state.reload()
-          }, t("reload"))
-        ) : null,
         h(
           "div",
           { className: "dsh-readpilot-long-editor-actions" },
           h("button", {
             type: "button",
             className: "dsh-readpilot-chat-send",
-            disabled: state.saving || !state.draft.trim(),
-            onClick: () => void state.save()
-          }, state.saving ? t("noteSaving") : t("save")),
+            disabled: state.saving || !state.title.trim(),
+            onClick: () => void state.create()
+          }, state.saving ? t("noteSaving") : t("createNote")),
           h("button", {
             type: "button",
             className: "dsh-readpilot-note-jump",
-            onClick: state.cancel
-          }, t("cancel")),
-          state.active ? h("button", {
+            onClick: state.cancelCreate
+          }, t("cancel"))
+        )
+      ) : state.active ? h(
+        "div",
+        { className: "dsh-readpilot-card dsh-readpilot-preview-card" },
+        h(
+          "div",
+          { className: "dsh-readpilot-preview-head" },
+          h(
+            "span",
+            { className: "dsh-readpilot-long-kind" },
+            state.active.note.kind === "book" ? t("bookNote") : t("noteKindTopic")
+          ),
+          h("h4", null, state.active.note.title),
+          h(
+            "span",
+            { className: "dsh-readpilot-long-meta" },
+            `${formatSize(state.active.note.size)} · ${new Date(state.active.note.updatedAt).toLocaleDateString()}`
+          )
+        ),
+        h(
+          "div",
+          { className: "dsh-readpilot-preview-actions" },
+          h("button", {
             type: "button",
-            className: "dsh-readpilot-note-delete",
+            className: "dsh-readpilot-chat-send",
+            disabled: state.externalBusy,
+            title: t("openExternalHint"),
+            onClick: () => void state.openExternal()
+          }, t("openExternal")),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-note-jump",
             disabled: state.saving,
-            onClick: () => void state.remove()
-          }, t("delete")) : null,
-          state.active ? h("button", {
+            onClick: () => void state.reload()
+          }, t("refresh")),
+          h("button", {
             type: "button",
             className: "dsh-readpilot-note-jump",
             disabled: state.historyBusy,
             onClick: state.toggleHistory
-          }, t("history")) : null,
-          state.active ? h("button", {
+          }, t("history")),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-note-delete",
+            disabled: state.saving,
+            onClick: () => void state.remove()
+          }, t("delete")),
+          h("button", {
             type: "button",
             className: "dsh-readpilot-note-jump",
-            disabled: state.externalBusy,
-            title: t("openExternalHint"),
-            onClick: () => void state.openExternal()
-          }, t("openExternal")) : null
+            onClick: state.close
+          }, t("backToNotes"))
         ),
-        state.active && state.historyOpen ? h(
+        h(
+          "div",
+          { className: "dsh-readpilot-preview-body" },
+          h(MarkdownMessage, { text: state.active.body, prefix: "long-note" })
+        ),
+        state.historyOpen ? h(
           "div",
           { className: "dsh-readpilot-history" },
-          h("div", { className: "dsh-readpilot-drafts-head" }, t("history")),
+          h(
+            "div",
+            { className: "dsh-readpilot-section-head" },
+            h("h4", null, t("history")),
+            h("span", { className: "dsh-readpilot-section-count" }, String(state.history.length))
+          ),
           state.history.length === 0 ? h("div", { className: "dsh-readpilot-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
             "div",
             { key: entry.id, className: "dsh-readpilot-history-row" },
@@ -2265,12 +2295,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             onClick: state.toggleHistory
           }, t("historyClose"))
         ) : null,
-        h(
-          "details",
-          { className: "dsh-readpilot-long-preview" },
-          h("summary", null, t("longNotePreview")),
-          h(MarkdownMessage, { text: state.draft, prefix: "long-note" })
-        )
+        h("div", { className: "dsh-readpilot-long-hint" }, t("openExternalHint"))
       ) : state.loading ? emptyState(t("loading"), "") : state.notes.length === 0 ? emptyState(t("longNoteEmpty"), t("longNotesHint")) : h(
         "div",
         { className: "dsh-readpilot-long-list" },
@@ -4191,12 +4216,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [loading, setLoading] = React.useState(false);
     const [error, setError] = React.useState("");
     const [active, setActive] = React.useState(null);
-    const [draft, setDraft] = React.useState("");
     const [title, setTitle] = React.useState("");
     const [creating, setCreating] = React.useState(false);
     const [createKind, setCreateKind] = React.useState("topic");
     const [saving, setSaving] = React.useState(false);
-    const [conflict, setConflict] = React.useState(false);
     const [drafts, setDrafts] = React.useState([]);
     const [draftBusyId, setDraftBusyId] = React.useState(null);
     const [history, setHistory] = React.useState([]);
@@ -4255,11 +4278,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setLoading(false);
       setError("");
       setActive(null);
-      setDraft("");
       setTitle("");
       setCreating(false);
       setSaving(false);
-      setConflict(false);
       setDrafts([]);
       setDraftBusyId(null);
       setHistory([]);
@@ -4290,14 +4311,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const request = readRef.current + 1;
       readRef.current = request;
       setError("");
-      setConflict(false);
       try {
         const value = await call("noteFiles", { action: "read", bookId, id: note.id });
         if (readRef.current !== request || bookRef.current !== bookId) return;
         setActive({ note: value.note, body: value.body, hash: value.hash });
-        setDraft(value.body);
-        setTitle(value.note.title);
         setCreating(false);
+        setTitle("");
         setHistory([]);
         setHistoryOpen(false);
         setExportStatus("");
@@ -4307,7 +4326,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }
       }
     }, [activeBookId, call, t]);
-    const start = React.useCallback((kind) => {
+    React.useEffect(() => {
+      if (typeof window === "undefined") return;
+      const onFocus = () => {
+        if (active) void open(active.note);
+        void load();
+      };
+      window.addEventListener("focus", onFocus);
+      return () => window.removeEventListener("focus", onFocus);
+    }, [active, load, open]);
+    const beginCreate = React.useCallback((kind) => {
       if (kind === "book") {
         const existing = notes.find((note) => note.kind === "book");
         if (existing) {
@@ -4319,15 +4347,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setActive(null);
       setCreating(true);
       setCreateKind(kind);
-      setConflict(false);
       setError("");
       setHistory([]);
       setHistoryOpen(false);
       setExportStatus("");
       setTitle(kind === "book" ? t("bookNote") : "");
-      setDraft("");
     }, [notes, open, t]);
-    const save = React.useCallback(async () => {
+    const create2 = React.useCallback(async () => {
       if (!activeBookId || saving) return;
       const bookId = activeBookId;
       const wantedTitle = title.trim();
@@ -4337,52 +4363,44 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
       setSaving(true);
       setError("");
-      setConflict(false);
       try {
-        if (creating) {
-          const value = await call("noteFiles", {
-            action: "create",
-            bookId,
-            title: wantedTitle,
-            kind: createKind,
-            body: draft
-          });
-          if (bookRef.current !== bookId) return;
-          setActive({ note: value.note, body: value.body, hash: value.hash });
-          setDraft(value.body);
-          setTitle(value.note.title);
-          setCreating(false);
-        } else if (active) {
-          const value = await call("noteFiles", {
-            action: "write",
-            bookId,
-            id: active.note.id,
-            title: wantedTitle,
-            body: draft,
-            baseHash: active.hash
-          });
-          if (bookRef.current !== bookId) return;
-          setActive({ note: value.note, body: value.body, hash: value.hash });
-          setDraft(value.body);
-          setTitle(value.note.title);
-        }
-        await load();
-      } catch (cause) {
+        const value = await call("noteFiles", {
+          action: "create",
+          bookId,
+          title: wantedTitle,
+          kind: createKind,
+          body: `# ${wantedTitle}
+`
+        });
         if (bookRef.current !== bookId) return;
-        if (cause?.code === "note-conflict") setConflict(true);
-        else setError(`${t("noteSaveFailed")}：${messageOf(cause)}`);
+        setActive({ note: value.note, body: value.body, hash: value.hash });
+        setCreating(false);
+        setTitle("");
+        await load();
+        if (bookRef.current !== bookId) return;
+        await call("openNoteFile", { bookId, id: value.note.id });
+      } catch (cause) {
+        if (bookRef.current === bookId) {
+          const code = cause?.code;
+          setError(code === "open-failed" ? `${t("openExternalFailed")}：${messageOf(cause)}` : `${t("noteSaveFailed")}：${messageOf(cause)}`);
+        }
       } finally {
         setSaving(false);
       }
-    }, [active, activeBookId, call, createKind, creating, draft, load, saving, t, title]);
-    const cancel = React.useCallback(() => {
+    }, [activeBookId, call, createKind, load, saving, t, title]);
+    const cancelCreate = React.useCallback(() => {
+      setCreating(false);
+      setTitle("");
+      setError("");
+    }, []);
+    const close = React.useCallback(() => {
       readRef.current += 1;
       setActive(null);
       setCreating(false);
-      setDraft("");
       setTitle("");
       setError("");
-      setConflict(false);
+      setHistory([]);
+      setHistoryOpen(false);
     }, []);
     const remove = React.useCallback(async () => {
       if (!activeBookId || !active) return;
@@ -4394,9 +4412,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         await call("noteFiles", { action: "remove", bookId, id: active.note.id });
         if (bookRef.current !== bookId) return;
         setActive(null);
-        setDraft("");
-        setTitle("");
         setCreating(false);
+        setTitle("");
         await load();
       } catch (cause) {
         if (bookRef.current === bookId) {
@@ -4420,12 +4437,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         if (bookRef.current !== bookId) return;
         await loadDrafts();
         await load();
+        if (active && item.noteId === active.note.id) await open(active.note);
       } catch (cause) {
         if (bookRef.current === bookId) setError(`${t("draftActionFailed")}：${messageOf(cause)}`);
       } finally {
         setDraftBusyId(null);
       }
-    }, [activeBookId, call, draftBusyId, load, loadDrafts, t]);
+    }, [activeBookId, call, draftBusyId, load, loadDrafts, open, active, t]);
     const rejectDraft = React.useCallback(async (item) => {
       if (!activeBookId || draftBusyId) return;
       const bookId = activeBookId;
@@ -4477,8 +4495,6 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         });
         if (bookRef.current !== bookId) return;
         setActive({ note: value.note, body: value.body, hash: value.hash });
-        setDraft(value.body);
-        setTitle(value.note.title);
         await loadHistory();
         await load();
       } catch (cause) {
@@ -4487,16 +4503,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setHistoryBusy(false);
       }
     }, [active, activeBookId, call, historyBusy, load, loadHistory, t]);
-    const exportNotes = React.useCallback(async (save2) => {
+    const exportNotes = React.useCallback(async (save) => {
       if (!activeBookId || exporting) return;
       const bookId = activeBookId;
       setExporting(true);
       setExportStatus("");
       setError("");
       try {
-        const value = await call("exportNotes", { bookId, save: save2 });
+        const value = await call("exportNotes", { bookId, save });
         if (bookRef.current !== bookId) return;
-        if (save2) {
+        if (save) {
           setExportStatus(value.path ? `${t("exportSaved")}：${value.path}` : t("exportSaved"));
         } else {
           downloadText(value.fileName, value.markdown);
@@ -4525,11 +4541,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       loading,
       error,
       active,
-      draft,
       title,
       creating,
       saving,
-      conflict,
       createKind,
       drafts,
       draftBusyId,
@@ -4539,12 +4553,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       exporting,
       exportStatus,
       externalBusy,
-      setDraft,
       setTitle,
       open,
-      start,
-      save,
-      cancel,
+      beginCreate,
+      create: create2,
+      cancelCreate,
+      close,
       remove,
       reload,
       applyDraft,
