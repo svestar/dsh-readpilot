@@ -558,9 +558,7 @@ var __dshReaderBundle = (() => {
     unsupported: "暂不支持",
     unsupportedHint: "这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。",
     unread: "未读",
-    explain: "解释",
-    summarize: "总结",
-    translate: "翻译",
+    askCompanion: "问伴读",
     loadFailed: "加载失败",
     configureFailed: "创建书库失败",
     retry: "重试",
@@ -575,7 +573,7 @@ var __dshReaderBundle = (() => {
     paletteGreen: "护眼绿",
     paletteNight: "夜间",
     companion: "伴读",
-    chatEmpty: "针对这本书提问，或在正文中选中文字后使用“解释 / 总结 / 翻译”。",
+    chatEmpty: "针对这本书提问，或在正文中选中文字后点“问伴读”。",
     chatPlaceholder: "针对这本书提问…",
     send: "发送",
     sending: "发送中…",
@@ -588,9 +586,6 @@ var __dshReaderBundle = (() => {
     resizeChat: "调整伴读栏宽度",
     chatDisabled: "先在设置中创建书库工作区。",
     sendFailed: "发送失败",
-    explainPrompt: "请解释这段文字。",
-    summarizePrompt: "请总结这段文字。",
-    translatePrompt: "请把这段文字翻译成中文。",
     search: "搜索",
     searchPlaceholder: "搜索本书…",
     searching: "搜索中…",
@@ -761,9 +756,7 @@ var __dshReaderBundle = (() => {
     unsupported: "Not supported",
     unsupportedHint: "This book cannot be opened yet; check whether the file is damaged or the PDF has no extractable text layer.",
     unread: "Unread",
-    explain: "Explain",
-    summarize: "Summarize",
-    translate: "Translate",
+    askCompanion: "Ask companion",
     loadFailed: "Could not load",
     configureFailed: "Could not create the library",
     retry: "Retry",
@@ -778,7 +771,7 @@ var __dshReaderBundle = (() => {
     paletteGreen: "Green",
     paletteNight: "Night",
     companion: "Companion",
-    chatEmpty: "Ask about this book, or select text and use Explain / Summarize / Translate.",
+    chatEmpty: "Ask about this book, or select text and choose Ask companion.",
     chatPlaceholder: "Ask about this book…",
     send: "Send",
     sending: "Sending…",
@@ -791,9 +784,6 @@ var __dshReaderBundle = (() => {
     resizeChat: "Resize companion panel",
     chatDisabled: "Create a library workspace in Settings first.",
     sendFailed: "Could not send",
-    explainPrompt: "Please explain this passage.",
-    summarizePrompt: "Please summarize this passage.",
-    translatePrompt: "Please translate this passage into Chinese.",
     search: "Search",
     searchPlaceholder: "Search this book…",
     searching: "Searching…",
@@ -3296,7 +3286,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
 
   // src/client/views/selection-note.ts
   var COLORS = ["yellow", "green", "blue", "pink", "purple"];
-  function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }) {
+  function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }) {
     if (!selection) return null;
     return h(
       "div",
@@ -3318,9 +3308,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           onClick: () => onHighlight(color)
         }))
       ),
-      h("button", { type: "button", onClick: () => prefill("explain") }, t("explain")),
-      h("button", { type: "button", onClick: () => prefill("summarize") }, t("summarize")),
-      h("button", { type: "button", onClick: () => prefill("translate") }, t("translate")),
+      h("button", { type: "button", onClick: onAsk }, t("askCompanion")),
       selection.blockIndex == null ? null : h("button", { type: "button", onClick: () => onNote() }, t("noteAction"))
     );
   }
@@ -6008,21 +5996,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           setError(messageOf(cause));
         }
       }, []);
-      const prefill = React.useCallback((kind) => {
+      const askCompanion = React.useCallback(() => {
         if (!selection || screen.kind !== "book") return;
         window.getSelection()?.removeAllRanges();
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
-        const question = {
-          explain: t("explainPrompt"),
-          summarize: t("summarizePrompt"),
-          translate: t("translatePrompt")
-        }[kind];
         const quote = selection.text.split("\n").map((line) => `> ${line}`).join("\n");
         const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。
 
 ${quote}
 
-${question}`;
+`;
         const nativeInput = nativeInputRef.current?.inputActions;
         let prefilledNative = false;
         if (nativeInput && typeof nativeInput.setDraft === "function") {
@@ -6040,7 +6023,7 @@ ${question}`;
         setChatTab("chat");
         setChatError("");
         requestAnimationFrame(() => chatInputRef.current?.focus());
-      }, [selection, screen, t]);
+      }, [selection, screen]);
       const onContentMouseUp = React.useCallback(() => {
         const active = window.getSelection();
         const container = contentRef.current;
@@ -6383,7 +6366,7 @@ ${question}`;
         h(SelectionToolbar, {
           t,
           selection,
-          prefill,
+          onAsk: askCompanion,
           onNote: () => openNoteEditor(),
           onHighlight: (color) => void addHighlight(color)
         }),

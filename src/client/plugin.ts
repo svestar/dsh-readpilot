@@ -585,17 +585,12 @@ export function createPlugin(require: (name: string) => any) {
         }
       }, [])
 
-      const prefill = React.useCallback((kind: 'explain' | 'summarize' | 'translate') => {
+      const askCompanion = React.useCallback(() => {
         if (!selection || screen.kind !== 'book') return
         window.getSelection()?.removeAllRanges()
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
-        const question = {
-          explain: t('explainPrompt'),
-          summarize: t('summarizePrompt'),
-          translate: t('translatePrompt'),
-        }[kind]
         const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
-        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n${question}`
+        const text = `我在读《${screen.detail.book.title}》的《${screen.content.title}》。\n\n${quote}\n\n`
         const nativeInput = nativeInputRef.current?.inputActions
         let prefilledNative = false
         if (nativeInput && typeof nativeInput.setDraft === 'function') {
@@ -613,7 +608,7 @@ export function createPlugin(require: (name: string) => any) {
         setChatTab('chat')
         setChatError('')
         requestAnimationFrame(() => chatInputRef.current?.focus())
-      }, [selection, screen, t])
+      }, [selection, screen])
 
       const onContentMouseUp = React.useCallback(() => {
         const active = window.getSelection()
@@ -983,7 +978,7 @@ export function createPlugin(require: (name: string) => any) {
         h(SelectionToolbar, {
           t,
           selection,
-          prefill,
+          onAsk: askCompanion,
           onNote: () => openNoteEditor(),
           onHighlight: (color: string) => void addHighlight(color),
         }),

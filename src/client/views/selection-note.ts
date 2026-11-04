@@ -7,12 +7,12 @@ const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']
 interface SelectionToolbarProps {
   t: TextFn
   selection: Selection | null
-  prefill: (kind: 'explain' | 'summarize' | 'translate') => void
+  onAsk: () => void
   onNote: () => void
   onHighlight: (color: string) => void
 }
 
-export function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }: SelectionToolbarProps) {
+export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: SelectionToolbarProps) {
   if (!selection) return null
   return h('div', {
     className: 'dsh-readpilot-selection',
@@ -31,9 +31,7 @@ export function SelectionToolbar({ t, selection, prefill, onNote, onHighlight }:
         'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         onClick: () => onHighlight(color),
       }))),
-  h('button', { type: 'button', onClick: () => prefill('explain') }, t('explain')),
-  h('button', { type: 'button', onClick: () => prefill('summarize') }, t('summarize')),
-  h('button', { type: 'button', onClick: () => prefill('translate') }, t('translate')),
+  h('button', { type: 'button', onClick: onAsk }, t('askCompanion')),
   selection.blockIndex == null
     ? null
     : h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')))
