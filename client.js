@@ -75,6 +75,10 @@ var __dshReaderBundle = (() => {
   }
   var CHAT_WIDTH_KEY = "dsh-readpilot.chat-width";
   var READER_PALETTE_KEY = "dsh-readpilot.palette";
+  var READING_MODE_KEY = "dsh-readpilot.reading-mode";
+  var PAGE_LAYOUT_KEY = "dsh-readpilot.page-layout";
+  var DEFAULT_READING_MODE = "paged";
+  var DEFAULT_PAGE_LAYOUT = "single";
   var READER_PALETTE_IDS = ["auto", "light", "dark", "sepia", "green", "night"];
   var READER_PALETTES = {
     auto: {
@@ -146,6 +150,34 @@ var __dshReaderBundle = (() => {
   function savePaletteId(id) {
     try {
       window.localStorage.setItem(READER_PALETTE_KEY, id);
+    } catch {
+    }
+  }
+  function readReadingMode() {
+    try {
+      const value = window.localStorage.getItem(READING_MODE_KEY);
+      return value === "scroll" || value === "paged" ? value : DEFAULT_READING_MODE;
+    } catch {
+      return DEFAULT_READING_MODE;
+    }
+  }
+  function saveReadingMode(mode) {
+    try {
+      window.localStorage.setItem(READING_MODE_KEY, mode);
+    } catch {
+    }
+  }
+  function readPageLayout() {
+    try {
+      const value = window.localStorage.getItem(PAGE_LAYOUT_KEY);
+      return value === "single" || value === "double" ? value : DEFAULT_PAGE_LAYOUT;
+    } catch {
+      return DEFAULT_PAGE_LAYOUT;
+    }
+  }
+  function savePageLayout(layout) {
+    try {
+      window.localStorage.setItem(PAGE_LAYOUT_KEY, layout);
     } catch {
     }
   }
@@ -5571,8 +5603,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setScreenState(next);
       }, []);
       const screen = screenState;
-      const [readingMode, setReadingMode] = React.useState("scroll");
-      const [pageLayout, setPageLayout] = React.useState("single");
+      const [readingMode, setReadingMode] = React.useState(readReadingMode);
+      const [pageLayout, setPageLayout] = React.useState(readPageLayout);
       const [error, setError] = React.useState("");
       const [busy, setBusy] = React.useState(false);
       const [tocOpen, setTocOpen] = React.useState(true);
@@ -5602,6 +5634,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setPaletteId(id);
         savePaletteId(id);
       }, []);
+      React.useEffect(() => {
+        saveReadingMode(readingMode);
+      }, [readingMode]);
+      React.useEffect(() => {
+        savePageLayout(pageLayout);
+      }, [pageLayout]);
       const setBookTags = React.useCallback(async (book, tags) => {
         const result = await call("setBookTags", { bookId: book.id, tags });
         setSnapshot((previous) => previous ? { ...previous, tags: { ...previous.tags, [book.id]: result.tags } } : previous);
@@ -5743,8 +5781,6 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         pendingScrollRef.current = null;
         try {
           const detail = await call("open", { bookId: book.id });
-          setReadingMode(detail.book.format === "pdf" ? "paged" : "scroll");
-          setPageLayout("single");
           if (!detail.supported) {
             setScreen({ kind: "unsupported", book: detail.book });
             return;

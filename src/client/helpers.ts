@@ -1,5 +1,6 @@
 import type { NoteRecord } from '../notes.ts'
 import type { ChatMessage } from './types.ts'
+import type { PageLayout, ReaderMode } from './paging.ts'
 
 export function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
@@ -60,6 +61,10 @@ export function foldTranscript(entries: readonly any[] | null | undefined): Chat
 
 export const CHAT_WIDTH_KEY = 'dsh-readpilot.chat-width'
 export const READER_PALETTE_KEY = 'dsh-readpilot.palette'
+export const READING_MODE_KEY = 'dsh-readpilot.reading-mode'
+export const PAGE_LAYOUT_KEY = 'dsh-readpilot.page-layout'
+export const DEFAULT_READING_MODE: ReaderMode = 'paged'
+export const DEFAULT_PAGE_LAYOUT: PageLayout = 'single'
 
 export interface ReaderPalette {
   id: string
@@ -148,6 +153,40 @@ export function savePaletteId(id: string): void {
     window.localStorage.setItem(READER_PALETTE_KEY, id)
   } catch {
     // Palette persistence is best effort.
+  }
+}
+
+export function readReadingMode(): ReaderMode {
+  try {
+    const value = window.localStorage.getItem(READING_MODE_KEY)
+    return value === 'scroll' || value === 'paged' ? value : DEFAULT_READING_MODE
+  } catch {
+    return DEFAULT_READING_MODE
+  }
+}
+
+export function saveReadingMode(mode: ReaderMode): void {
+  try {
+    window.localStorage.setItem(READING_MODE_KEY, mode)
+  } catch {
+    // Reading-mode persistence is best effort.
+  }
+}
+
+export function readPageLayout(): PageLayout {
+  try {
+    const value = window.localStorage.getItem(PAGE_LAYOUT_KEY)
+    return value === 'single' || value === 'double' ? value : DEFAULT_PAGE_LAYOUT
+  } catch {
+    return DEFAULT_PAGE_LAYOUT
+  }
+}
+
+export function savePageLayout(layout: PageLayout): void {
+  try {
+    window.localStorage.setItem(PAGE_LAYOUT_KEY, layout)
+  } catch {
+    // Page-layout persistence is best effort.
   }
 }
 

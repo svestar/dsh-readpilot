@@ -10,9 +10,13 @@ import {
   foldTranscript,
   messageOf,
   parseMarkdownBlocks,
+  readPageLayout,
   readPaletteId,
+  readReadingMode,
   resolveReaderPalette,
+  savePageLayout,
   savePaletteId,
+  saveReadingMode,
 } from './helpers.ts'
 
 import { zh, en } from './locale.ts'
@@ -120,8 +124,8 @@ export function createPlugin(require: (name: string) => any) {
         setScreenState(next)
       }, [])
       const screen = screenState
-      const [readingMode, setReadingMode] = React.useState<ReaderMode>('scroll')
-      const [pageLayout, setPageLayout] = React.useState<PageLayout>('single')
+      const [readingMode, setReadingMode] = React.useState<ReaderMode>(readReadingMode)
+      const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)
       const [error, setError] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [tocOpen, setTocOpen] = React.useState(true)
@@ -153,6 +157,14 @@ export function createPlugin(require: (name: string) => any) {
         setPaletteId(id)
         savePaletteId(id)
       }, [])
+
+      React.useEffect(() => {
+        saveReadingMode(readingMode)
+      }, [readingMode])
+
+      React.useEffect(() => {
+        savePageLayout(pageLayout)
+      }, [pageLayout])
 
       const setBookTags = React.useCallback(async (book: ClientBook, tags: string[]) => {
         const result = await call('setBookTags', { bookId: book.id, tags })
@@ -314,8 +326,6 @@ export function createPlugin(require: (name: string) => any) {
         pendingScrollRef.current = null
         try {
           const detail = await call('open', { bookId: book.id })
-          setReadingMode(detail.book.format === 'pdf' ? 'paged' : 'scroll')
-          setPageLayout('single')
           if (!detail.supported) {
             setScreen({ kind: 'unsupported', book: detail.book })
             return

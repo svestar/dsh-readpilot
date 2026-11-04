@@ -128,10 +128,11 @@ test('client_assembly_renders_library_and_text_reader', async () => {
   harness.reset()
   const readerClasses = collectClasses(main({ t: (key: string) => key }))
   assert.ok(readerClasses.includes('dsh-readpilot-reader'), readerClasses.join(','))
-  assert.ok(readerClasses.includes('dsh-readpilot-reader-inner'))
+  assert.ok(readerClasses.some(value => value.includes('dsh-readpilot-reader-inner')))
+  assert.ok(readerClasses.some(value => value.includes('dsh-readpilot-paged-inner')))
 })
 
-test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
+test('client_assembly_renders_reader_bar_for_default_paged_text', async () => {
   const harness = createHarness()
   harness.state.snapshot = {
     settings: { libraryDir: 'E:/Books', workspaceId: 'w1' },
@@ -154,7 +155,8 @@ test('client_assembly_renders_reader_bar_for_text_scroll', async () => {
   assert.ok(classes.includes('dsh-readpilot-main'), classes.join(','))
   assert.ok(classes.includes('dsh-readpilot-bar'), classes.join(','))
   assert.ok(classes.includes('dsh-readpilot-reader'), classes.join(','))
-  assert.ok(classes.includes('dsh-readpilot-reader-inner'), classes.join(','))
+  assert.ok(classes.some(value => value.includes('dsh-readpilot-reader-inner')), classes.join(','))
+  assert.ok(classes.some(value => value.includes('dsh-readpilot-paged-inner')), classes.join(','))
 })
 
 test('client_assembly_declares_session_companion_slot', async () => {

@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import type { TestContext } from 'node:test'
 import {
   PAGE_ASPECT,
   PAGE_GAP,
@@ -11,6 +12,16 @@ import {
   pageStep,
   pageWidthForHeight,
 } from '../src/client/paging.ts'
+import {
+  DEFAULT_PAGE_LAYOUT,
+  DEFAULT_READING_MODE,
+  PAGE_LAYOUT_KEY,
+  READING_MODE_KEY,
+  readPageLayout,
+  readReadingMode,
+  savePageLayout,
+  saveReadingMode,
+} from '../src/client/helpers.ts'
 
 test('columns_for_layouts', () => {
   assert.equal(columnsFor('single'), 1)
@@ -206,4 +217,49 @@ test('page_span_invalid_inputs', () => {
   assert.equal(pageSpanWidth(800, 'double', NaN), 0)
   assert.equal(pageSpanWidth(800, 'double', Infinity), 0)
   assert.equal(pageSpanWidth(0, 'double', 20), 0)
+})
+
+function installStorage(t: TestContext): Map<string, string> {
+  const values = new Map<string, string>()
+  const previous = (globalThis as any).window
+  ;(globalThis as any).window = {
+    localStorage: {
+      getItem(key: string) {
+        return values.get(key) ?? null
+      },
+      setItem(key: string, value: string) {
+        values.set(key, String(value))
+      },
+    },
+  }
+  t.after(() => {
+    if (previous === undefined) delete (globalThis as any).window
+    else (globalThis as any).window = previous
+  })
+  return values
+}
+
+test('reading_preferences_default_single_paged', () => {
+  assert.equal(DEFAULT_READING_MODE, 'paged')
+  assert.equal(DEFAULT_PAGE_LAYOUT, 'single')
+  assert.equal(readReadingMode(), 'paged')
+  assert.equal(readPageLayout(), 'single')
+})
+
+test('reading_preferences_are_global_and_validate_values', t => {
+  const values = installStorage(t)
+  assert.equal(readReadingMode(), 'paged')
+  assert.equal(readPageLayout(), 'single')
+
+  saveReadingMode('scroll')
+  savePageLayout('double')
+  assert.equal(values.get(READING_MODE_KEY), 'scroll')
+  assert.equal(values.get(PAGE_LAYOUT_KEY), 'double')
+  assert.equal(readReadingMode(), 'scroll')
+  assert.equal(readPageLayout(), 'double')
+
+  values.set(READING_MODE_KEY, 'bogus')
+  values.set(PAGE_LAYOUT_KEY, 'bogus')
+  assert.equal(readReadingMode(), 'paged')
+  assert.equal(readPageLayout(), 'single')
 })
