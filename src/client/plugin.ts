@@ -24,6 +24,7 @@ import { PanelIcon, Setup } from './views/panels.ts'
 import { Library } from './views/library-view.ts'
 import { NotesBody, SearchPanel } from './views/notes-search.ts'
 import { LongNotes } from './views/long-notes.ts'
+import { DraftNotice } from './views/draft-notice.ts'
 import { MemoryPanel } from './views/memory-panel.ts'
 import { VisualReader } from './views/visual-reader.ts'
 import { ChatPanel } from './views/chat-panel.ts'
@@ -227,7 +228,7 @@ export function createPlugin(require: (name: string) => any) {
         }).catch(() => {})
       }, [activeSessionId, screen, call])
 
-      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'long' })
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatOpen })
       const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'memory' })
 
       const [noteContextBusy, setNoteContextBusy] = React.useState(false)
@@ -961,7 +962,8 @@ export function createPlugin(require: (name: string) => any) {
           deleteNote,
           closeNoteEditor,
           saveNote,
-        }))
+        }),
+        h(DraftNotice, { t, state: longNotes }))
     }
 
     function ReaderPanelWithBoundary(props: any) {

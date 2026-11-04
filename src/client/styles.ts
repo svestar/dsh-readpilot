@@ -381,7 +381,23 @@ export const CSS = `
 .dsh-readpilot-preview-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
 .dsh-readpilot-preview-card .dsh-readpilot-history{margin-top:2px}
 .dsh-readpilot-preview-card .dsh-readpilot-long-hint{padding-top:0}
-@media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
+.dsh-readpilot-modal-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.32);backdrop-filter:blur(3px);animation:dsh-readpilot-fade-in .14s ease-out}
+.dsh-readpilot-modal{width:min(760px,100%);max-height:min(84vh,820px);display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2);border-radius:16px;background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);box-shadow:0 24px 70px rgba(0,0,0,.32);overflow:hidden;animation:dsh-readpilot-pop-in .16s ease-out}
+.dsh-readpilot-modal-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-modal-title{min-width:0;display:flex;flex-direction:column;gap:4px}
+.dsh-readpilot-modal-title h3{margin:0;font-size:16px;line-height:1.4;font-weight:650;word-break:break-word}
+.dsh-readpilot-modal-meta{color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.45}
+.dsh-readpilot-modal-actions{flex:none;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-modal-body{flex:1;min-height:0;overflow:auto;padding:16px 18px 20px;font-size:13px;line-height:1.7;overscroll-behavior:contain}
+.dsh-readpilot-modal-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
+.dsh-readpilot-modal-diff{max-height:none;margin:0}
+.dsh-readpilot-modal .dsh-readpilot-long-hint{padding:8px 0 0}
+.dsh-readpilot-modal .dsh-readpilot-chat-error{margin:10px 18px 0}
+.dsh-readpilot-modal .dsh-readpilot-history{margin-top:14px}
+@keyframes dsh-readpilot-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes dsh-readpilot-pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+@media (max-width:760px){.dsh-readpilot-modal-overlay{padding:10px}.dsh-readpilot-modal{max-height:88vh;border-radius:13px}.dsh-readpilot-modal-head{padding:13px 14px 10px}.dsh-readpilot-modal-actions{padding:9px 14px}.dsh-readpilot-modal-body{padding:13px 14px 16px}}
+@media (prefers-reduced-motion:reduce){.dsh-readpilot-modal-overlay,.dsh-readpilot-modal{animation:none}}{.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
 `

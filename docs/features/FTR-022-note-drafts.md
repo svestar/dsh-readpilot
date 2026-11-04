@@ -3,12 +3,12 @@
 - **ID：** FTR-022
 - **名称：** 笔记草稿
 - **状态：** active
-- **代码：** `src/note-drafts.ts`（`createNoteDraftStore`）；`src/api.ts`（`noteDrafts`、`noteDraftCreate`、`toolNoteFiles`）；`src/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/helpers.ts`（`diffLines`）
+- **代码：** `src/note-drafts.ts`（`createNoteDraftStore`）；`src/api.ts`（`noteDrafts`、`noteDraftCreate`、`toolNoteFiles`）；`src/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/draft-notice.ts`（`DraftNotice`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/helpers.ts`（`diffLines`）
 - **测试：** `tests/note-drafts.test.ts`；`tests/api.test.ts`
 
 ## 行为
 
-伴读通过 `reader_notes` 工具查看/读取长笔记（`index`、`read`），或在用户明确要求时生成草稿（`create`、`write`、`append`）。草稿保存在 `$DSH_HOME/dsh-readpilot/drafts/<bookId>/<draftId>.json`，包含目标笔记、标题、基准正文、新正文和 `baseHash`；工具只返回草稿，不修改 `notes/` 文件。长笔记标签在激活时每 4 秒拉取一次草稿；每张草稿显示新增/删除行数、行级 diff（最多 80 行）和“应用 / 拒绝”。应用时 Host 用 `baseHash` 检查冲突，通过 `create`/`write` 落盘并写历史，成功后删除草稿；冲突时草稿保留，笔记不变。拒绝只删除草稿。应用后若“让伴读知道本书笔记”已开启，会重建笔记上下文。
+伴读通过 `reader_notes` 工具查看/读取长笔记（`index`、`read`），或在用户明确要求时生成草稿（`create`、`write`、`append`）。草稿保存在 `$DSH_HOME/dsh-readpilot/drafts/<bookId>/<draftId>.json`，包含目标笔记、标题、基准正文、新正文和 `baseHash`；工具只返回草稿，不修改 `notes/` 文件。阅读面板打开时每 4 秒拉取草稿；伴读生成新草稿会自动弹出预览窗口，长笔记页也保留草稿卡片。窗口和卡片显示新增/删除行数、行级 diff（最多 80 行）和“应用 / 拒绝”。应用时 Host 用 `baseHash` 检查冲突，通过 `create`/`write` 落盘并写历史，成功后删除草稿；冲突时草稿保留，笔记不变。拒绝只删除草稿。应用后若“让伴读知道本书笔记”已开启，会重建笔记上下文。
 
 `reader_notes` 的写操作只在用户明确要求时使用，提示词要求伴读生成草稿后提醒用户在笔记面板确认，不能声称已保存。伴读会话是只读的，通用文件工具不能直接写笔记；应用是唯一落盘路径，历史与恢复见 [FTR-025](FTR-025-note-history.md)。
 

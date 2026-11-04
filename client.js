@@ -552,6 +552,7 @@ var __dshReaderBundle = (() => {
     you: "你",
     assistant: "伴读",
     closeChat: "收起伴读",
+    close: "关闭",
     resizeChat: "调整伴读栏宽度",
     chatDisabled: "先在设置中创建书库工作区。",
     sendFailed: "发送失败",
@@ -745,6 +746,7 @@ var __dshReaderBundle = (() => {
     you: "You",
     assistant: "Companion",
     closeChat: "Hide companion",
+    close: "Close",
     resizeChat: "Resize companion panel",
     chatDisabled: "Create a library workspace in Settings first.",
     sendFailed: "Could not send",
@@ -1258,7 +1260,23 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-preview-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
 .dsh-readpilot-preview-card .dsh-readpilot-history{margin-top:2px}
 .dsh-readpilot-preview-card .dsh-readpilot-long-hint{padding-top:0}
-@media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
+.dsh-readpilot-modal-overlay{position:fixed;inset:0;z-index:70;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(0,0,0,.32);backdrop-filter:blur(3px);animation:dsh-readpilot-fade-in .14s ease-out}
+.dsh-readpilot-modal{width:min(760px,100%);max-height:min(84vh,820px);display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2);border-radius:16px;background:var(--dsw-alias-bg-overlay);color:var(--dsw-alias-label-primary);box-shadow:0 24px 70px rgba(0,0,0,.32);overflow:hidden;animation:dsh-readpilot-pop-in .16s ease-out}
+.dsh-readpilot-modal-head{flex:none;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:16px 18px 12px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-modal-title{min-width:0;display:flex;flex-direction:column;gap:4px}
+.dsh-readpilot-modal-title h3{margin:0;font-size:16px;line-height:1.4;font-weight:650;word-break:break-word}
+.dsh-readpilot-modal-meta{color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.45}
+.dsh-readpilot-modal-actions{flex:none;display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-modal-body{flex:1;min-height:0;overflow:auto;padding:16px 18px 20px;font-size:13px;line-height:1.7;overscroll-behavior:contain}
+.dsh-readpilot-modal-body .dsh-readpilot-md{max-width:none;padding-left:0;border-left:0}
+.dsh-readpilot-modal-diff{max-height:none;margin:0}
+.dsh-readpilot-modal .dsh-readpilot-long-hint{padding:8px 0 0}
+.dsh-readpilot-modal .dsh-readpilot-chat-error{margin:10px 18px 0}
+.dsh-readpilot-modal .dsh-readpilot-history{margin-top:14px}
+@keyframes dsh-readpilot-fade-in{from{opacity:0}to{opacity:1}}
+@keyframes dsh-readpilot-pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
+@media (max-width:760px){.dsh-readpilot-modal-overlay{padding:10px}.dsh-readpilot-modal{max-height:88vh;border-radius:13px}.dsh-readpilot-modal-head{padding:13px 14px 10px}.dsh-readpilot-modal-actions{padding:9px 14px}.dsh-readpilot-modal-body{padding:13px 14px 16px}}
+@media (prefers-reduced-motion:reduce){.dsh-readpilot-modal-overlay,.dsh-readpilot-modal{animation:none}}{.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
 @media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
 `;
@@ -2037,9 +2055,102 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     );
   }
 
+  // src/client/views/modal.ts
+  function ModalShell({ t, title, meta, onClose, children }) {
+    return h(
+      "div",
+      {
+        className: "dsh-readpilot-modal-overlay",
+        role: "presentation",
+        onClick: onClose
+      },
+      h(
+        "div",
+        {
+          className: "dsh-readpilot-modal",
+          role: "dialog",
+          "aria-modal": "true",
+          "aria-label": title,
+          onClick: (event) => event.stopPropagation()
+        },
+        h(
+          "div",
+          { className: "dsh-readpilot-modal-head" },
+          h(
+            "div",
+            { className: "dsh-readpilot-modal-title" },
+            h("h3", null, title),
+            meta ? h("span", { className: "dsh-readpilot-modal-meta" }, meta) : null
+          ),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-icon-action",
+            title: t("close"),
+            "aria-label": t("close"),
+            onClick: onClose
+          }, "×")
+        ),
+        ...children
+      )
+    );
+  }
+
   // src/client/views/long-notes.ts
+  function historyView(t, state) {
+    return h(
+      "div",
+      { className: "dsh-readpilot-history" },
+      h(
+        "div",
+        { className: "dsh-readpilot-section-head" },
+        h("h4", null, t("history")),
+        h("span", { className: "dsh-readpilot-section-count" }, String(state.history.length))
+      ),
+      state.history.length === 0 ? h("div", { className: "dsh-readpilot-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
+        "div",
+        { key: entry.id, className: "dsh-readpilot-history-row" },
+        h("span", { className: "dsh-readpilot-long-meta" }, new Date(entry.createdAt).toLocaleString()),
+        h(
+          "span",
+          { className: "dsh-readpilot-long-meta" },
+          `${entry.characters} ${t("noteContextChars")}`
+        ),
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-note-jump",
+          disabled: state.historyBusy,
+          onClick: () => void state.restoreHistory(entry)
+        }, t("historyRestore"))
+      )),
+      h("button", {
+        type: "button",
+        className: "dsh-readpilot-note-jump",
+        onClick: state.toggleHistory
+      }, t("historyClose"))
+    );
+  }
   function LongNotes({ t, state, noteContext }) {
+    const [previewOpen, setPreviewOpen] = React.useState(false);
     const showActions = !state.active && !state.creating;
+    React.useEffect(() => {
+      setPreviewOpen(Boolean(state.active));
+    }, [state.active]);
+    React.useEffect(() => {
+      if (!previewOpen || typeof document === "undefined" || !document.body) return;
+      const previous = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = previous;
+      };
+    }, [previewOpen]);
+    React.useEffect(() => {
+      if (!previewOpen) return;
+      const onKeyDown = (event) => {
+        if (event.key === "Escape") state.close();
+      };
+      window.addEventListener("keydown", onKeyDown);
+      return () => window.removeEventListener("keydown", onKeyDown);
+    }, [previewOpen, state.close]);
     const emptyState = (title, hint) => h(
       "div",
       { className: "dsh-readpilot-empty-state" },
@@ -2047,6 +2158,52 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h("div", { className: "dsh-readpilot-empty-title" }, title),
       hint ? h("div", { className: "dsh-readpilot-empty-hint" }, hint) : null
     );
+    const draftsCard = state.drafts.length > 0 ? h(
+      "div",
+      { className: "dsh-readpilot-card dsh-readpilot-drafts" },
+      h(
+        "div",
+        { className: "dsh-readpilot-section-head" },
+        h("h4", null, t("noteDrafts")),
+        h("span", { className: "dsh-readpilot-section-count" }, String(state.drafts.length))
+      ),
+      state.drafts.map((draft) => {
+        const lines = diffLines(draft.baseBody, draft.body);
+        const added = lines.filter((line) => line.type === "add").length;
+        const removed = lines.filter((line) => line.type === "del").length;
+        return h(
+          "div",
+          { key: draft.id, className: "dsh-readpilot-draft" },
+          h(
+            "div",
+            { className: "dsh-readpilot-draft-head" },
+            h(
+              "span",
+              { className: "dsh-readpilot-long-kind" },
+              draft.action === "create" ? t("draftCreate") : draft.action === "append" ? t("draftAppend") : t("draftEdit")
+            ),
+            h("span", { className: "dsh-readpilot-long-title" }, draft.title),
+            h("span", { className: "dsh-readpilot-long-meta" }, `+${added} −${removed}`)
+          ),
+          h(
+            "div",
+            { className: "dsh-readpilot-long-editor-actions" },
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-chat-send",
+              disabled: state.draftBusyId === draft.id,
+              onClick: () => void state.applyDraft(draft)
+            }, t("applyDraft")),
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-note-jump",
+              disabled: state.draftBusyId === draft.id,
+              onClick: () => void state.rejectDraft(draft)
+            }, t("rejectDraft"))
+          )
+        );
+      })
+    ) : null;
     return h(
       "section",
       { className: "dsh-readpilot-long-notes dsh-readpilot-page" },
@@ -2122,61 +2279,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           `${noteContext.characters} ${t("noteContextChars")}`
         ) : null
       ) : null,
-      state.drafts.length > 0 ? h(
-        "div",
-        { className: "dsh-readpilot-card dsh-readpilot-drafts" },
-        h(
-          "div",
-          { className: "dsh-readpilot-section-head" },
-          h("h4", null, t("noteDrafts")),
-          h("span", { className: "dsh-readpilot-section-count" }, String(state.drafts.length))
-        ),
-        state.drafts.map((draft) => {
-          const lines = diffLines(draft.baseBody, draft.body);
-          const added = lines.filter((line) => line.type === "add").length;
-          const removed = lines.filter((line) => line.type === "del").length;
-          return h(
-            "div",
-            { key: draft.id, className: "dsh-readpilot-draft" },
-            h(
-              "div",
-              { className: "dsh-readpilot-draft-head" },
-              h(
-                "span",
-                { className: "dsh-readpilot-long-kind" },
-                draft.action === "create" ? t("draftCreate") : draft.action === "append" ? t("draftAppend") : t("draftEdit")
-              ),
-              h("span", { className: "dsh-readpilot-long-title" }, draft.title),
-              h("span", { className: "dsh-readpilot-long-meta" }, `+${added} −${removed}`)
-            ),
-            h(
-              "pre",
-              { className: "dsh-readpilot-diff" },
-              lines.slice(0, 80).map((line, index) => h("div", {
-                key: `${draft.id}-${index}`,
-                className: `dsh-readpilot-diff-line dsh-readpilot-diff-${line.type}`
-              }, `${line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}${line.text}`))
-            ),
-            lines.length > 80 ? h("div", { className: "dsh-readpilot-long-hint" }, t("draftDiffTruncated")) : null,
-            h(
-              "div",
-              { className: "dsh-readpilot-long-editor-actions" },
-              h("button", {
-                type: "button",
-                className: "dsh-readpilot-chat-send",
-                disabled: state.draftBusyId === draft.id,
-                onClick: () => void state.applyDraft(draft)
-              }, t("applyDraft")),
-              h("button", {
-                type: "button",
-                className: "dsh-readpilot-note-jump",
-                disabled: state.draftBusyId === draft.id,
-                onClick: () => void state.rejectDraft(draft)
-              }, t("rejectDraft"))
-            )
-          );
-        })
-      ) : null,
+      draftsCard,
       state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
       state.creating ? h(
         "div",
@@ -2207,95 +2310,6 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             onClick: state.cancelCreate
           }, t("cancel"))
         )
-      ) : state.active ? h(
-        "div",
-        { className: "dsh-readpilot-card dsh-readpilot-preview-card" },
-        h(
-          "div",
-          { className: "dsh-readpilot-preview-head" },
-          h(
-            "span",
-            { className: "dsh-readpilot-long-kind" },
-            state.active.note.kind === "book" ? t("bookNote") : t("noteKindTopic")
-          ),
-          h("h4", null, state.active.note.title),
-          h(
-            "span",
-            { className: "dsh-readpilot-long-meta" },
-            `${formatSize(state.active.note.size)} · ${new Date(state.active.note.updatedAt).toLocaleDateString()}`
-          )
-        ),
-        h(
-          "div",
-          { className: "dsh-readpilot-preview-actions" },
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-chat-send",
-            disabled: state.externalBusy,
-            title: t("openExternalHint"),
-            onClick: () => void state.openExternal()
-          }, t("openExternal")),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-jump",
-            disabled: state.saving,
-            onClick: () => void state.reload()
-          }, t("refresh")),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-jump",
-            disabled: state.historyBusy,
-            onClick: state.toggleHistory
-          }, t("history")),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-delete",
-            disabled: state.saving,
-            onClick: () => void state.remove()
-          }, t("delete")),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-jump",
-            onClick: state.close
-          }, t("backToNotes"))
-        ),
-        h(
-          "div",
-          { className: "dsh-readpilot-preview-body" },
-          h(MarkdownMessage, { text: state.active.body, prefix: "long-note" })
-        ),
-        state.historyOpen ? h(
-          "div",
-          { className: "dsh-readpilot-history" },
-          h(
-            "div",
-            { className: "dsh-readpilot-section-head" },
-            h("h4", null, t("history")),
-            h("span", { className: "dsh-readpilot-section-count" }, String(state.history.length))
-          ),
-          state.history.length === 0 ? h("div", { className: "dsh-readpilot-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
-            "div",
-            { key: entry.id, className: "dsh-readpilot-history-row" },
-            h("span", { className: "dsh-readpilot-long-meta" }, new Date(entry.createdAt).toLocaleString()),
-            h(
-              "span",
-              { className: "dsh-readpilot-long-meta" },
-              `${entry.characters} ${t("noteContextChars")}`
-            ),
-            h("button", {
-              type: "button",
-              className: "dsh-readpilot-note-jump",
-              disabled: state.historyBusy,
-              onClick: () => void state.restoreHistory(entry)
-            }, t("historyRestore"))
-          )),
-          h("button", {
-            type: "button",
-            className: "dsh-readpilot-note-jump",
-            onClick: state.toggleHistory
-          }, t("historyClose"))
-        ) : null,
-        h("div", { className: "dsh-readpilot-long-hint" }, t("openExternalHint"))
       ) : state.loading ? emptyState(t("loading"), "") : state.notes.length === 0 ? emptyState(t("longNoteEmpty"), t("longNotesHint")) : h(
         "div",
         { className: "dsh-readpilot-long-list" },
@@ -2326,8 +2340,138 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`
           )
         ))
-      )
+      ),
+      previewOpen && state.active ? h(ModalShell, {
+        t,
+        title: state.active.note.title,
+        meta: `${state.active.note.kind === "book" ? t("bookNote") : t("noteKindTopic")} · ${formatSize(state.active.note.size)} · ${new Date(state.active.note.updatedAt).toLocaleDateString()}`,
+        onClose: () => state.close(),
+        children: [
+          state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
+          h(
+            "div",
+            { className: "dsh-readpilot-modal-actions" },
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-chat-send",
+              disabled: state.externalBusy,
+              title: t("openExternalHint"),
+              onClick: () => void state.openExternal()
+            }, t("openExternal")),
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-note-jump",
+              disabled: state.saving,
+              onClick: () => void state.reload()
+            }, t("refresh")),
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-note-jump",
+              disabled: state.historyBusy,
+              onClick: state.toggleHistory
+            }, t("history")),
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-note-delete",
+              disabled: state.saving,
+              onClick: () => void state.remove()
+            }, t("delete")),
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-note-jump",
+              onClick: state.close
+            }, t("backToNotes"))
+          ),
+          h(
+            "div",
+            { className: "dsh-readpilot-modal-body" },
+            h(MarkdownMessage, { text: state.active.body, prefix: "long-note" }),
+            state.historyOpen ? historyView(t, state) : null
+          ),
+          h("div", { className: "dsh-readpilot-long-hint" }, t("openExternalHint"))
+        ]
+      }) : null
     );
+  }
+
+  // src/client/views/draft-notice.ts
+  var seenDraftIds = /* @__PURE__ */ new Set();
+  function DraftNotice({ t, state }) {
+    const [draftId, setDraftId] = React.useState(null);
+    const draft = state.drafts.find((item) => item.id === draftId) ?? null;
+    React.useEffect(() => {
+      if (state.active || state.creating) {
+        setDraftId(null);
+        return;
+      }
+      if (draftId) return;
+      const unseen = state.drafts.filter((item) => !seenDraftIds.has(item.id));
+      if (unseen.length === 0) return;
+      for (const item of unseen) seenDraftIds.add(item.id);
+      setDraftId(unseen[0].id);
+    }, [state.drafts, state.active, state.creating, draftId]);
+    React.useEffect(() => {
+      if (draftId && !state.drafts.some((item) => item.id === draftId)) setDraftId(null);
+    }, [state.drafts, draftId]);
+    React.useEffect(() => {
+      if (!draft) return;
+      if (typeof document === "undefined" || !document.body) return;
+      const previous = document.body.style.overflow;
+      document.body.style.overflow = "hidden";
+      return () => {
+        document.body.style.overflow = previous;
+      };
+    }, [draft]);
+    React.useEffect(() => {
+      if (!draft) return;
+      const onKeyDown = (event) => {
+        if (event.key === "Escape") setDraftId(null);
+      };
+      window.addEventListener("keydown", onKeyDown);
+      return () => window.removeEventListener("keydown", onKeyDown);
+    }, [draft]);
+    if (!draft) return null;
+    const lines = diffLines(draft.baseBody, draft.body);
+    const added = lines.filter((line) => line.type === "add").length;
+    const removed = lines.filter((line) => line.type === "del").length;
+    return h(ModalShell, {
+      t,
+      title: draft.title,
+      meta: `${draft.action === "create" ? t("draftCreate") : draft.action === "append" ? t("draftAppend") : t("draftEdit")} · +${added} −${removed}`,
+      onClose: () => setDraftId(null),
+      children: [
+        state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
+        h(
+          "div",
+          { className: "dsh-readpilot-modal-actions" },
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-chat-send",
+            disabled: state.draftBusyId === draft.id,
+            onClick: () => void state.applyDraft(draft)
+          }, t("applyDraft")),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-note-jump",
+            disabled: state.draftBusyId === draft.id,
+            onClick: () => void state.rejectDraft(draft)
+          }, t("rejectDraft"))
+        ),
+        h(
+          "div",
+          { className: "dsh-readpilot-modal-body" },
+          h(
+            "pre",
+            { className: "dsh-readpilot-diff dsh-readpilot-modal-diff" },
+            lines.slice(0, 80).map((line, index) => h("div", {
+              key: `${draft.id}-${index}`,
+              className: `dsh-readpilot-diff-line dsh-readpilot-diff-${line.type}`
+            }, `${line.type === "add" ? "+ " : line.type === "del" ? "- " : "  "}${line.text}`))
+          ),
+          lines.length > 80 ? h("div", { className: "dsh-readpilot-long-hint" }, t("draftDiffTruncated")) : null
+        )
+      ]
+    });
   }
 
   // src/client/views/memory-panel.ts
@@ -4433,17 +4577,19 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       setDraftBusyId(item.id);
       setError("");
       try {
-        await call("noteDrafts", { action: "apply", bookId, draftId: item.id });
+        const value = await call("noteDrafts", { action: "apply", bookId, draftId: item.id });
         if (bookRef.current !== bookId) return;
+        setActive({ note: value.note, body: value.body, hash: value.hash });
+        setCreating(false);
+        setTitle("");
         await loadDrafts();
         await load();
-        if (active && item.noteId === active.note.id) await open(active.note);
       } catch (cause) {
         if (bookRef.current === bookId) setError(`${t("draftActionFailed")}：${messageOf(cause)}`);
       } finally {
         setDraftBusyId(null);
       }
-    }, [activeBookId, call, draftBusyId, load, loadDrafts, open, active, t]);
+    }, [activeBookId, call, draftBusyId, load, loadDrafts, t]);
     const rejectDraft = React.useCallback(async (item) => {
       if (!activeBookId || draftBusyId) return;
       const bookId = activeBookId;
@@ -5413,7 +5559,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         }).catch(() => {
         });
       }, [activeSessionId, screen, call]);
-      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === "long" });
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatOpen });
       const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === "memory" });
       const [noteContextBusy, setNoteContextBusy] = React.useState(false);
       const [noteContextCharacters, setNoteContextCharacters] = React.useState(0);
@@ -6087,7 +6233,8 @@ ${question}`;
           deleteNote,
           closeNoteEditor,
           saveNote
-        })
+        }),
+        h(DraftNotice, { t, state: longNotes })
       );
     }
     function ReaderPanelWithBoundary(props) {

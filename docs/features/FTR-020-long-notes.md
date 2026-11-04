@@ -3,14 +3,14 @@
 - **ID：** FTR-020
 - **名称：** 长笔记
 - **状态：** active
-- **代码：** `src/note-files.ts`（`createNoteFileStore`、`parseFrontMatter`、`serializeNote`）；`src/api.ts`（`handleNoteFiles`、`openNoteFile`）；`src/library.ts`（`scanLibrary`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/long-notes.ts`（`LongNotes`）
+- **代码：** `src/note-files.ts`（`createNoteFileStore`、`parseFrontMatter`、`serializeNote`）；`src/api.ts`（`handleNoteFiles`、`openNoteFile`）；`src/library.ts`（`scanLibrary`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/views/modal.ts`（`ModalShell`）
 - **测试：** `tests/note-files.test.ts`；`tests/api.test.ts`
 
 ## 行为
 
 长笔记保存在书库工作区的可见目录 `<library>/notes/`。首次创建时写入 `.dsh-readpilot-notes` 标记；`scanLibrary` 只在标记存在时跳过名为 `notes` 的目录，避免把普通书目录误当成笔记。每本书一个子目录 `<书名 slug>-<bookId 前 8 位>`，目录内的 `.book.json` 记录 `bookId`；`book.md` 固定为整书笔记，其余 `.md` 都是主题笔记。笔记使用 front-matter 记录 `id/kind/title/bookId/created/updated`，不生成 `index.md`，索引由 Host 扫描目录与 front-matter 在内存构建。
 
-右栏“长笔记”标签显示整书笔记按钮、新建主题笔记按钮、笔记列表；点开后显示只读预览，编辑通过“外部编辑器”打开文件。新建整书/主题笔记时先在面板输入标题，创建后立即打开外部编辑器。预览页提供刷新、历史、删除和返回列表。划线、批注、书签与短笔记仍走 FTR-008/FTR-018 的 JSON 存储，显示在“笔记”标签。
+右栏“长笔记”标签显示整书笔记按钮、新建主题笔记按钮、笔记列表；点开后弹出只读预览窗口，编辑通过“外部编辑器”打开文件。新建整书/主题笔记时先在面板输入标题，创建后立即打开外部编辑器。预览窗口提供刷新、历史、删除和返回列表。划线、批注、书签与短笔记仍走 FTR-008/FTR-018 的 JSON 存储，显示在“笔记”标签。
 
 ## 接口与代码映射
 

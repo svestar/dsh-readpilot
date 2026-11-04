@@ -285,17 +285,19 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setDraftBusyId(item.id)
     setError('')
     try {
-      await call('noteDrafts', { action: 'apply', bookId, draftId: item.id })
+      const value = await call('noteDrafts', { action: 'apply', bookId, draftId: item.id })
       if (bookRef.current !== bookId) return
+      setActive({ note: value.note, body: value.body, hash: value.hash })
+      setCreating(false)
+      setTitle('')
       await loadDrafts()
       await load()
-      if (active && item.noteId === active.note.id) await open(active.note)
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause)}`)
     } finally {
       setDraftBusyId(null)
     }
-  }, [activeBookId, call, draftBusyId, load, loadDrafts, open, active, t])
+  }, [activeBookId, call, draftBusyId, load, loadDrafts, t])
 
   const rejectDraft = React.useCallback(async (item: NoteDraft) => {
     if (!activeBookId || draftBusyId) return
