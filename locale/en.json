@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "Reader",
-    "description": "Read TXT, Markdown, EPUB and PDF books in a dedicated panel, with an AI companion session per book."
+    "title": "ReadPilot",
+    "description": "AI-assisted reading for TXT, Markdown, EPUB and PDF, with a native companion session per book; highlights, long notes, memory and export included."
   }
 }

@@ -488,7 +488,7 @@ var __dshReaderBundle = (() => {
 
   // src/client/locale.ts
   var zh = {
-    panel: "阅读",
+    panel: "ReadPilot",
     library: "书库",
     librarySubtitle: "整理、分类并继续阅读",
     categories: "分类",
@@ -691,7 +691,7 @@ var __dshReaderBundle = (() => {
     zoomIn: "放大"
   };
   var en = {
-    panel: "Reader",
+    panel: "ReadPilot",
     library: "Library",
     librarySubtitle: "Organize, tag and continue reading",
     categories: "Categories",

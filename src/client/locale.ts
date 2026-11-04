@@ -1,5 +1,5 @@
 export const zh = {
-      panel: '阅读',
+      panel: 'ReadPilot',
       library: '书库',
       librarySubtitle: '整理、分类并继续阅读',
       categories: '分类',
@@ -202,7 +202,7 @@ export const zh = {
       zoomIn: '放大',
     }
 export const en = {
-      panel: 'Reader',
+      panel: 'ReadPilot',
       library: 'Library',
       librarySubtitle: 'Organize, tag and continue reading',
       categories: 'Categories',

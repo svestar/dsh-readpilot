@@ -1,6 +1,6 @@
 {
   "meta": {
-    "title": "阅读器",
-    "description": "在独立面板中阅读 TXT、Markdown、EPUB 与 PDF 电子书，每本书都有独立的 AI 伴读会话。"
+    "title": "ReadPilot",
+    "description": "AI 辅助阅读 TXT、Markdown、EPUB 与 PDF，每本书一个原生伴读会话；支持划线批注、长笔记、记忆与导出。"
   }
 }
