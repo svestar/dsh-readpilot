@@ -140,3 +140,23 @@ test('note_history_respects_max_history', async t => {
   const newest = await store.readHistory(book, created.note.id, history[0].id)
   assert.match(newest.body, /版本 4/)
 })
+
+test('note_history_remove_and_clear', async t => {
+  const root = await makeRoot(t)
+  const store = createNoteFileStore(root)
+
+  const created = await store.create(book, { title: '清理', body: '版本 1' })
+  await pause()
+  await store.write(book, created.note.id, { body: '版本 2' })
+  await pause()
+  await store.write(book, created.note.id, { body: '版本 3' })
+
+  const history = await store.listHistory(book, created.note.id)
+  assert.equal(history.length, 2)
+  assert.equal(await store.removeHistory(book, created.note.id, history[0].id), true)
+  assert.equal((await store.listHistory(book, created.note.id)).length, 1)
+  assert.equal(await store.removeHistory(book, created.note.id, '1234567890123-abcdef.md'), false)
+  assert.equal(await store.clearHistory(book, created.note.id), 1)
+  assert.equal((await store.listHistory(book, created.note.id)).length, 0)
+  assert.match((await store.read(book, created.note.id)).body, /版本 3/)
+})

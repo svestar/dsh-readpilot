@@ -197,7 +197,14 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
                 noteId: result.draft.noteId ?? null,
                 characters: result.draft.body.length,
               },
-              message: '草稿已创建，等待用户在笔记面板确认。',
+              applied: result.autoApplied === true,
+              note: result.note ?? null,
+              error: result.error,
+              message: result.autoApplied
+                ? '笔记已自动应用。'
+                : result.error
+                  ? `草稿已创建，但自动应用失败：${result.error}。请在长笔记页确认。`
+                  : '草稿已创建，等待用户在笔记面板确认。',
             }
           }
           return { error: `未知操作：${String(action)}` }

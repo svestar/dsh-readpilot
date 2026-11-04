@@ -44,6 +44,8 @@ export interface LongNotesState {
   rejectDraft: (draft: NoteDraft) => Promise<void>
   toggleHistory: () => void
   restoreHistory: (entry: LongNoteHistory) => Promise<void>
+  removeHistory: (entry: LongNoteHistory) => Promise<void>
+  clearHistory: () => Promise<void>
   exportNotes: (save: boolean) => Promise<void>
   openExternal: () => Promise<void>
 }
@@ -363,6 +365,49 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     }
   }, [active, activeBookId, call, historyBusy, load, loadHistory, t])
 
+  const removeHistory = React.useCallback(async (entry: LongNoteHistory) => {
+    if (!activeBookId || !active || historyBusy) return
+    const bookId = activeBookId
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
+      && !window.confirm(t('historyDeleteConfirm'))) return
+    setHistoryBusy(true)
+    setError('')
+    try {
+      await call('noteFiles', {
+        action: 'historyRemove',
+        bookId,
+        id: active.note.id,
+        historyId: entry.id,
+      })
+      if (bookRef.current === bookId) await loadHistory()
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause)}`)
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [active, activeBookId, call, historyBusy, loadHistory, t])
+
+  const clearHistory = React.useCallback(async () => {
+    if (!activeBookId || !active || historyBusy) return
+    const bookId = activeBookId
+    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
+      && !window.confirm(t('historyClearConfirm'))) return
+    setHistoryBusy(true)
+    setError('')
+    try {
+      await call('noteFiles', {
+        action: 'historyClear',
+        bookId,
+        id: active.note.id,
+      })
+      if (bookRef.current === bookId) await loadHistory()
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause)}`)
+    } finally {
+      setHistoryBusy(false)
+    }
+  }, [active, activeBookId, call, historyBusy, loadHistory, t])
+
   const exportNotes = React.useCallback(async (save: boolean) => {
     if (!activeBookId || exporting) return
     const bookId = activeBookId
@@ -427,6 +472,8 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     rejectDraft,
     toggleHistory,
     restoreHistory,
+    removeHistory,
+    clearHistory,
     exportNotes,
     openExternal,
   }

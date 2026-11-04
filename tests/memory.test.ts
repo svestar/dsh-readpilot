@@ -16,7 +16,7 @@ async function makeDataDir(t: TestContext): Promise<string> {
 }
 
 function settings(mode: MemoryMode, books: Record<string, BookMemoryState> = {}): CompanionSettings {
-  return { notes: {}, memory: { mode, books } }
+  return { notes: {}, memory: { mode, books }, autoApplyNotes: false }
 }
 
 test('memory_settings_defaults', async t => {
@@ -24,6 +24,7 @@ test('memory_settings_defaults', async t => {
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: {},
     memory: { mode: 'ask', books: {} },
+    autoApplyNotes: false,
   })
 })
 
@@ -33,6 +34,7 @@ test('memory_settings_migrates_notes_only_file', async t => {
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: { abc: true },
     memory: { mode: 'ask', books: {} },
+    autoApplyNotes: false,
   })
 })
 
@@ -44,16 +46,19 @@ test('memory_settings_validation_and_corrupt_file', async t => {
       mode: 'sometimes',
       books: { one: 'on', two: 'maybe', 'bad id': 'off', three: true, four: 'inherit' },
     },
+    autoApplyNotes: true,
   }))
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: { good: true, off: false },
     memory: { mode: 'ask', books: { one: 'on', four: 'inherit' } },
+    autoApplyNotes: true,
   })
 
   await writeFile(join(dir, 'companion.json'), '{ not json')
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: {},
     memory: { mode: 'ask', books: {} },
+    autoApplyNotes: false,
   })
 })
 
@@ -62,6 +67,7 @@ test('memory_settings_save_roundtrip', async t => {
   const value: CompanionSettings = {
     notes: { abc: true },
     memory: { mode: 'off', books: { abc: 'off', def: 'on' } },
+    autoApplyNotes: true,
   }
   await saveCompanionSettings(dir, value)
   assert.deepEqual(await loadCompanionSettings(dir), value)

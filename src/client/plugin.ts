@@ -246,7 +246,11 @@ export function createPlugin(require: (name: string) => any) {
             const notes = { ...(previous.companion?.notes ?? {}) }
             if (result.enabled) notes[bookId] = true
             else delete notes[bookId]
-            const companion = previous.companion ?? { notes: {}, memory: { mode: 'ask' as const, books: {} } }
+            const companion = previous.companion ?? {
+              notes: {},
+              memory: { mode: 'ask' as const, books: {} },
+              autoApplyNotes: false,
+            }
             return { ...previous, companion: { ...companion, notes } }
           })
           setNoteContextCharacters(result.characters)
@@ -266,6 +270,31 @@ export function createPlugin(require: (name: string) => any) {
         busy: noteContextBusy,
         characters: noteContextCharacters,
         toggle: toggleNoteContext,
+      }
+
+      const autoApplyNotes = Boolean(snapshot?.companion?.autoApplyNotes)
+      const [autoApplyBusy, setAutoApplyBusy] = React.useState(false)
+      const toggleAutoApply = React.useCallback(async () => {
+        setAutoApplyBusy(true)
+        setError('')
+        try {
+          const result = await call('setAutoApplyNotes', { enabled: !autoApplyNotes })
+          setSnapshot(previous => previous
+            ? {
+              ...previous,
+              companion: { ...previous.companion, autoApplyNotes: result.enabled },
+            }
+            : previous)
+        } catch (cause) {
+          setError(`${t('autoApplyNotesFailed')}：${messageOf(cause)}`)
+        } finally {
+          setAutoApplyBusy(false)
+        }
+      }, [autoApplyNotes, call, t])
+      const autoApply = {
+        enabled: autoApplyNotes,
+        busy: autoApplyBusy,
+        toggle: toggleAutoApply,
       }
 
       const visualFor = React.useCallback((detail: BookDetail, item: TocItem | undefined): Visual | null => {
@@ -664,7 +693,7 @@ export function createPlugin(require: (name: string) => any) {
         deleteNote,
       })
 
-      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext })
+      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext, autoApply })
       const memoryBody = h(MemoryPanel, {
         t,
         status: memory.status,

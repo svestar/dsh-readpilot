@@ -400,6 +400,9 @@ export const CSS = `
 .dsh-readpilot-modal .dsh-readpilot-long-hint{padding:10px 20px 14px;border-top:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font-size:11.5px}
 .dsh-readpilot-modal .dsh-readpilot-chat-error{margin:12px 20px 0}
 .dsh-readpilot-modal .dsh-readpilot-history{margin-top:16px}
+.dsh-readpilot-modal-body .dsh-readpilot-history{max-height:none;overflow:visible;padding:0;border:0;background:transparent}
+.dsh-readpilot-history-summary{display:flex;align-items:center;gap:8px}
+.dsh-readpilot-history .dsh-readpilot-section-head{margin-bottom:10px}
 .dsh-readpilot-modal-body .dsh-readpilot-history{margin-top:16px;padding-top:12px;border-top:1px solid var(--dsw-alias-border-l2)}
 @keyframes dsh-readpilot-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes dsh-readpilot-pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}

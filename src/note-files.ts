@@ -337,6 +337,8 @@ export interface NoteFileStore {
   listHistory(book: NoteBookRef, noteId: string): Promise<NoteHistoryEntry[]>
   readHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<{ id: string; body: string; content: string; createdAt: number; characters: number }>
   restoreHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<NoteFileContent>
+  removeHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<boolean>
+  clearHistory(book: NoteBookRef, noteId: string): Promise<number>
 }
 
 export function createNoteFileStore(root: string, options: NoteFileStoreOptions = {}): NoteFileStore {
@@ -532,7 +534,36 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     return read(book, note.id)
   }
 
-  return { list, read, create, write, remove, listHistory, readHistory, restoreHistory }
+  async function removeHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<boolean> {
+    const { dir, note } = await requireNote(book, assertNoteId(noteId))
+    const historyDir = historyDirOf(dir, note.id)
+    const id = assertHistoryId(historyId)
+    const path = join(historyDir, id)
+    assertInside(historyDir, path)
+    try {
+      await readFile(path, 'utf8')
+    } catch {
+      return false
+    }
+    await rm(path, { force: true })
+    return true
+  }
+
+  async function clearHistory(book: NoteBookRef, noteId: string): Promise<number> {
+    const { dir, note } = await requireNote(book, assertNoteId(noteId))
+    const historyDir = historyDirOf(dir, note.id)
+    let names: string[]
+    try {
+      names = await readdir(historyDir)
+    } catch {
+      return 0
+    }
+    const ids = names.filter(name => HISTORY_ID_PATTERN.test(name))
+    await Promise.all(ids.map(name => rm(join(historyDir, name), { force: true })))
+    return ids.length
+  }
+
+  return { list, read, create, write, remove, listHistory, readHistory, restoreHistory, removeHistory, clearHistory }
 }
 
 async function writeHistory(dir: string, id: string, raw: string, maxHistory: number): Promise<void> {

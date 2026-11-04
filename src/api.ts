@@ -166,12 +166,19 @@ export interface ReaderApi {
   setCompanionContext(payload?: any): Promise<{ sessionId: string; characters: number }>
   companionContextOf(sessionId: unknown): string
   setNoteContext(payload?: any): Promise<{ bookId: string; enabled: boolean; characters: number }>
+  setAutoApplyNotes(payload?: { enabled?: unknown }): Promise<{ enabled: boolean }>
   notesContextFor(sessionId: unknown): string
   memory(payload?: any): Promise<any>
   memoryTool(payload?: any): Promise<any>
   memoryContextFor(sessionId: unknown): string
   noteDrafts(payload?: any): Promise<any>
-  noteDraftCreate(payload?: any): Promise<{ draft: NoteDraftRecord }>
+  noteDraftCreate(payload?: any): Promise<{
+    draft: NoteDraftRecord
+    autoApplied?: boolean
+    note?: { id: string; title: string }
+    characters?: number
+    error?: string
+  }>
   toolNoteFiles(payload?: any): Promise<any>
   openNoteFile(payload?: any): Promise<{ opened: boolean; path: string }>
   exportNotes(payload?: any): Promise<{ markdown: string; fileName: string; path?: string }>
@@ -222,7 +229,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const companionContexts = new Map<string, { text: string; updatedAt: number }>()
   const companionReadings = new Map<string, { bookId: string; title: string; chapter: string; updatedAt: number }>()
   const notesContextCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
-  let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'ask', books: {} } }
+  let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'ask', books: {} }, autoApplyNotes: false }
   const memoryStore: MemoryStore = createMemoryStore(dataDir)
   const memoryProposalStore: MemoryProposalStore = createMemoryProposalStore(dataDir)
   const memoryCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
@@ -828,6 +835,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return { bookId: book.id, enabled, characters }
   }
 
+  async function setAutoApplyNotes({ enabled }: any = {}): Promise<{ enabled: boolean }> {
+    if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
+    companionSettings = await loadCompanionSettings(dataDir)
+    companionSettings = { ...companionSettings, autoApplyNotes: enabled }
+    await saveCompanionSettings(dataDir, companionSettings)
+    return { enabled }
+  }
+
   function notesContextFor(sessionId: unknown): string {
     if (typeof sessionId !== 'string' || !sessionId) return ''
     const reading = companionReadings.get(sessionId)
@@ -1065,10 +1080,17 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
   }
 
-  async function noteDraftCreate(payload: any = {}): Promise<{ draft: NoteDraftRecord }> {
+  async function noteDraftCreate(payload: any = {}): Promise<{
+    draft: NoteDraftRecord
+    autoApplied?: boolean
+    note?: { id: string; title: string }
+    characters?: number
+    error?: string
+  }> {
     const books = await libraryBooks()
     const found = findBookByKey(books, payload.book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(payload.book)}`)
+    companionSettings = await loadCompanionSettings(dataDir)
     const store = await ensureNoteDraftStore()
     try {
       const draft = await store.create(found, {
@@ -1079,7 +1101,23 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         body: payload.body,
         text: payload.text,
       })
-      return { draft }
+      if (!companionSettings.autoApplyNotes) return { draft }
+      try {
+        const content = await store.apply(found, draft.id)
+        if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
+        return {
+          draft,
+          autoApplied: true,
+          note: { id: content.note.id, title: content.note.title },
+          characters: content.body.length,
+        }
+      } catch (error) {
+        return {
+          draft,
+          autoApplied: false,
+          error: error instanceof Error ? error.message : String(error),
+        }
+      }
     } catch (error) {
       if (error instanceof NoteDraftError) throw new ReaderError(error.code, error.message)
       if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
@@ -1220,6 +1258,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
         return result
       }
+      if (payload.action === 'historyRemove') {
+        return { removed: await store.removeHistory(book, String(payload.id ?? ''), String(payload.historyId ?? '')) }
+      }
+      if (payload.action === 'historyClear') {
+        return { cleared: await store.clearHistory(book, String(payload.id ?? '')) }
+      }
       throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
     } catch (error) {
       if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
@@ -1292,6 +1336,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       companionPolicy: setCompanionPolicy,
       companionContext: setCompanionContext,
       setNoteContext,
+      setAutoApplyNotes,
       memory,
       search,
       notes: handleNotes,
@@ -1328,6 +1373,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     setCompanionContext,
     companionContextOf,
     setNoteContext,
+    setAutoApplyNotes,
     notesContextFor,
     memory,
     memoryTool,

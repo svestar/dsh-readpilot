@@ -2,7 +2,7 @@ import { React, h } from '../runtime.ts'
 import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
 import { ModalShell } from './modal.ts'
-import type { NoteContextToggle, TextFn } from '../types.ts'
+import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../types.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
 import type { LongNoteHistory } from '../types.ts'
 
@@ -10,13 +10,21 @@ interface LongNotesProps {
   t: TextFn
   state: LongNotesState
   noteContext?: NoteContextToggle
+  autoApply?: NoteAutoApplyToggle
 }
 
 function historyView(t: TextFn, state: LongNotesState) {
   return h('div', { className: 'dsh-readpilot-history' },
     h('div', { className: 'dsh-readpilot-section-head' },
-      h('h4', null, t('history')),
-      h('span', { className: 'dsh-readpilot-section-count' }, String(state.history.length))),
+      h('div', { className: 'dsh-readpilot-history-summary' },
+        h('h4', null, t('history')),
+        h('span', { className: 'dsh-readpilot-section-count' }, String(state.history.length))),
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-delete',
+        disabled: state.historyBusy || state.history.length === 0,
+        onClick: () => void state.clearHistory(),
+      }, t('historyClear'))),
     state.history.length === 0
       ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('historyEmpty'))
       : state.history.map((entry: LongNoteHistory) => h('div', { key: entry.id, className: 'dsh-readpilot-history-row' },
@@ -28,7 +36,13 @@ function historyView(t: TextFn, state: LongNotesState) {
           className: 'dsh-readpilot-note-jump',
           disabled: state.historyBusy,
           onClick: () => void state.restoreHistory(entry),
-        }, t('historyRestore')))),
+        }, t('historyRestore')),
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-note-delete',
+          disabled: state.historyBusy,
+          onClick: () => void state.removeHistory(entry),
+        }, t('historyDelete')))),
     h('button', {
       type: 'button',
       className: 'dsh-readpilot-note-jump',
@@ -36,7 +50,7 @@ function historyView(t: TextFn, state: LongNotesState) {
     }, t('historyClose')))
 }
 
-export function LongNotes({ t, state, noteContext }: LongNotesProps) {
+export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) {
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const showActions = !state.active && !state.creating
 
@@ -155,6 +169,23 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
           `${noteContext.characters} ${t('noteContextChars')}`)
         : null)
       : null,
+    autoApply
+      ? h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-context dsh-readpilot-note-auto',
+        'data-on': autoApply.enabled ? 'true' : 'false',
+        disabled: autoApply.busy,
+        title: t('autoApplyNotesHint'),
+        onClick: autoApply.toggle,
+      },
+      h('span', {
+        className: 'dsh-readpilot-note-context-switch',
+        'data-on': autoApply.enabled ? 'true' : 'false',
+      }),
+      h('span', { className: 'dsh-readpilot-note-context-label' }, t('autoApplyNotes')),
+      h('span', { className: 'dsh-readpilot-note-context-state' },
+        autoApply.enabled ? t('autoApplyNotesOn') : t('autoApplyNotesOff')))
+      : null,
     draftsCard,
     state.error ? h('div', { className: 'dsh-readpilot-chat-error' }, state.error) : null,
     state.creating
@@ -239,9 +270,12 @@ export function LongNotes({ t, state, noteContext }: LongNotesProps) {
               onClick: state.close,
             }, t('backToNotes'))),
           h('div', { className: 'dsh-readpilot-modal-body' },
-            h(MarkdownMessage, { text: state.active.body, prefix: 'long-note' }),
-            state.historyOpen ? historyView(t, state) : null),
-          h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
+            state.historyOpen
+              ? historyView(t, state)
+              : h(MarkdownMessage, { text: state.active.body, prefix: 'long-note' })),
+          state.historyOpen
+            ? null
+            : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
         ],
       })
       : null

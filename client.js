@@ -618,6 +618,11 @@ var __dshReaderBundle = (() => {
     noteContextHint: "开启后，本书的长笔记与有批注的划线会进入伴读上下文。",
     noteContextFailed: "笔记上下文切换失败",
     noteContextChars: "字",
+    autoApplyNotes: "自动应用伴读笔记",
+    autoApplyNotesOn: "已开启",
+    autoApplyNotesOff: "未开启",
+    autoApplyNotesHint: "全局开关：开启后伴读写笔记会直接保存，不再弹窗确认；每次修改仍会写入历史。",
+    autoApplyNotesFailed: "自动应用开关切换失败",
     noteDrafts: "待确认的笔记草稿",
     draftCreate: "新建",
     draftAppend: "追加",
@@ -629,6 +634,10 @@ var __dshReaderBundle = (() => {
     history: "历史",
     historyEmpty: "还没有历史版本。",
     historyRestore: "恢复",
+    historyDelete: "删除",
+    historyClear: "清空历史",
+    historyDeleteConfirm: "删除这条历史记录？",
+    historyClearConfirm: "清空这篇笔记的全部历史记录？",
     historyRestoreConfirm: "恢复到这个版本？当前内容会先存入历史。",
     historyFailed: "历史操作失败",
     historyClose: "收起",
@@ -812,6 +821,11 @@ var __dshReaderBundle = (() => {
     noteContextHint: "When on, this book's long notes and annotated highlights enter the companion context.",
     noteContextFailed: "Could not change the notes context",
     noteContextChars: "chars",
+    autoApplyNotes: "Auto-apply companion notes",
+    autoApplyNotesOn: "On",
+    autoApplyNotesOff: "Off",
+    autoApplyNotesHint: "Global switch: when on, the companion saves note edits directly without a confirmation dialog; every change still writes history.",
+    autoApplyNotesFailed: "Could not change the auto-apply switch",
     noteDrafts: "Pending drafts",
     draftCreate: "Create",
     draftAppend: "Append",
@@ -823,6 +837,10 @@ var __dshReaderBundle = (() => {
     history: "History",
     historyEmpty: "No history yet.",
     historyRestore: "Restore",
+    historyDelete: "Delete",
+    historyClear: "Clear history",
+    historyDeleteConfirm: "Delete this history entry?",
+    historyClearConfirm: "Clear all history for this note?",
     historyRestoreConfirm: "Restore this version? The current content is saved to history first.",
     historyFailed: "History action failed",
     historyClose: "Close",
@@ -1279,6 +1297,9 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-modal .dsh-readpilot-long-hint{padding:10px 20px 14px;border-top:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font-size:11.5px}
 .dsh-readpilot-modal .dsh-readpilot-chat-error{margin:12px 20px 0}
 .dsh-readpilot-modal .dsh-readpilot-history{margin-top:16px}
+.dsh-readpilot-modal-body .dsh-readpilot-history{max-height:none;overflow:visible;padding:0;border:0;background:transparent}
+.dsh-readpilot-history-summary{display:flex;align-items:center;gap:8px}
+.dsh-readpilot-history .dsh-readpilot-section-head{margin-bottom:10px}
 .dsh-readpilot-modal-body .dsh-readpilot-history{margin-top:16px;padding-top:12px;border-top:1px solid var(--dsw-alias-border-l2)}
 @keyframes dsh-readpilot-fade-in{from{opacity:0}to{opacity:1}}
 @keyframes dsh-readpilot-pop-in{from{opacity:0;transform:translateY(6px) scale(.985)}to{opacity:1;transform:none}}
@@ -2111,8 +2132,18 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h(
         "div",
         { className: "dsh-readpilot-section-head" },
-        h("h4", null, t("history")),
-        h("span", { className: "dsh-readpilot-section-count" }, String(state.history.length))
+        h(
+          "div",
+          { className: "dsh-readpilot-history-summary" },
+          h("h4", null, t("history")),
+          h("span", { className: "dsh-readpilot-section-count" }, String(state.history.length))
+        ),
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-note-delete",
+          disabled: state.historyBusy || state.history.length === 0,
+          onClick: () => void state.clearHistory()
+        }, t("historyClear"))
       ),
       state.history.length === 0 ? h("div", { className: "dsh-readpilot-chat-empty" }, t("historyEmpty")) : state.history.map((entry) => h(
         "div",
@@ -2128,7 +2159,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           className: "dsh-readpilot-note-jump",
           disabled: state.historyBusy,
           onClick: () => void state.restoreHistory(entry)
-        }, t("historyRestore"))
+        }, t("historyRestore")),
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-note-delete",
+          disabled: state.historyBusy,
+          onClick: () => void state.removeHistory(entry)
+        }, t("historyDelete"))
       )),
       h("button", {
         type: "button",
@@ -2137,7 +2174,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, t("historyClose"))
     );
   }
-  function LongNotes({ t, state, noteContext }) {
+  function LongNotes({ t, state, noteContext, autoApply }) {
     const [previewOpen, setPreviewOpen] = React.useState(false);
     const showActions = !state.active && !state.creating;
     React.useEffect(() => {
@@ -2287,6 +2324,27 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           `${noteContext.characters} ${t("noteContextChars")}`
         ) : null
       ) : null,
+      autoApply ? h(
+        "button",
+        {
+          type: "button",
+          className: "dsh-readpilot-note-context dsh-readpilot-note-auto",
+          "data-on": autoApply.enabled ? "true" : "false",
+          disabled: autoApply.busy,
+          title: t("autoApplyNotesHint"),
+          onClick: autoApply.toggle
+        },
+        h("span", {
+          className: "dsh-readpilot-note-context-switch",
+          "data-on": autoApply.enabled ? "true" : "false"
+        }),
+        h("span", { className: "dsh-readpilot-note-context-label" }, t("autoApplyNotes")),
+        h(
+          "span",
+          { className: "dsh-readpilot-note-context-state" },
+          autoApply.enabled ? t("autoApplyNotesOn") : t("autoApplyNotesOff")
+        )
+      ) : null,
       draftsCard,
       state.error ? h("div", { className: "dsh-readpilot-chat-error" }, state.error) : null,
       state.creating ? h(
@@ -2393,10 +2451,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h(
             "div",
             { className: "dsh-readpilot-modal-body" },
-            h(MarkdownMessage, { text: state.active.body, prefix: "long-note" }),
-            state.historyOpen ? historyView(t, state) : null
+            state.historyOpen ? historyView(t, state) : h(MarkdownMessage, { text: state.active.body, prefix: "long-note" })
           ),
-          h("div", { className: "dsh-readpilot-long-hint" }, t("openExternalHint"))
+          state.historyOpen ? null : h("div", { className: "dsh-readpilot-long-hint" }, t("openExternalHint"))
         ]
       }) : null
     );
@@ -4657,6 +4714,45 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setHistoryBusy(false);
       }
     }, [active, activeBookId, call, historyBusy, load, loadHistory, t]);
+    const removeHistory = React.useCallback(async (entry) => {
+      if (!activeBookId || !active || historyBusy) return;
+      const bookId = activeBookId;
+      if (typeof window !== "undefined" && typeof window.confirm === "function" && !window.confirm(t("historyDeleteConfirm"))) return;
+      setHistoryBusy(true);
+      setError("");
+      try {
+        await call("noteFiles", {
+          action: "historyRemove",
+          bookId,
+          id: active.note.id,
+          historyId: entry.id
+        });
+        if (bookRef.current === bookId) await loadHistory();
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("historyFailed")}：${messageOf(cause)}`);
+      } finally {
+        setHistoryBusy(false);
+      }
+    }, [active, activeBookId, call, historyBusy, loadHistory, t]);
+    const clearHistory = React.useCallback(async () => {
+      if (!activeBookId || !active || historyBusy) return;
+      const bookId = activeBookId;
+      if (typeof window !== "undefined" && typeof window.confirm === "function" && !window.confirm(t("historyClearConfirm"))) return;
+      setHistoryBusy(true);
+      setError("");
+      try {
+        await call("noteFiles", {
+          action: "historyClear",
+          bookId,
+          id: active.note.id
+        });
+        if (bookRef.current === bookId) await loadHistory();
+      } catch (cause) {
+        if (bookRef.current === bookId) setError(`${t("historyFailed")}：${messageOf(cause)}`);
+      } finally {
+        setHistoryBusy(false);
+      }
+    }, [active, activeBookId, call, historyBusy, loadHistory, t]);
     const exportNotes = React.useCallback(async (save) => {
       if (!activeBookId || exporting) return;
       const bookId = activeBookId;
@@ -4719,6 +4815,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       rejectDraft,
       toggleHistory,
       restoreHistory,
+      removeHistory,
+      clearHistory,
       exportNotes,
       openExternal
     };
@@ -5584,7 +5682,11 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             const notes2 = { ...previous.companion?.notes ?? {} };
             if (result.enabled) notes2[bookId] = true;
             else delete notes2[bookId];
-            const companion = previous.companion ?? { notes: {}, memory: { mode: "ask", books: {} } };
+            const companion = previous.companion ?? {
+              notes: {},
+              memory: { mode: "ask", books: {} },
+              autoApplyNotes: false
+            };
             return { ...previous, companion: { ...companion, notes: notes2 } };
           });
           setNoteContextCharacters(result.characters);
@@ -5602,6 +5704,28 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         busy: noteContextBusy,
         characters: noteContextCharacters,
         toggle: toggleNoteContext
+      };
+      const autoApplyNotes = Boolean(snapshot?.companion?.autoApplyNotes);
+      const [autoApplyBusy, setAutoApplyBusy] = React.useState(false);
+      const toggleAutoApply = React.useCallback(async () => {
+        setAutoApplyBusy(true);
+        setError("");
+        try {
+          const result = await call("setAutoApplyNotes", { enabled: !autoApplyNotes });
+          setSnapshot((previous) => previous ? {
+            ...previous,
+            companion: { ...previous.companion, autoApplyNotes: result.enabled }
+          } : previous);
+        } catch (cause) {
+          setError(`${t("autoApplyNotesFailed")}：${messageOf(cause)}`);
+        } finally {
+          setAutoApplyBusy(false);
+        }
+      }, [autoApplyNotes, call, t]);
+      const autoApply = {
+        enabled: autoApplyNotes,
+        busy: autoApplyBusy,
+        toggle: toggleAutoApply
       };
       const visualFor = React.useCallback((detail, item) => {
         if (!detail || !item) return null;
@@ -5960,7 +6084,7 @@ ${question}`;
         noteDeletingId,
         deleteNote
       });
-      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext });
+      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext, autoApply });
       const memoryBody = h(MemoryPanel, {
         t,
         status: memory.status,

@@ -70,6 +70,12 @@ export interface NoteContextToggle {
   toggle: () => void
 }
 
+export interface NoteAutoApplyToggle {
+  enabled: boolean
+  busy: boolean
+  toggle: () => void
+}
+
 export interface NoteEditor {
   noteId?: string
   kind: string

@@ -6,16 +6,16 @@ DSH Web GUI 的 AI 辅助阅读插件。书库是用户指定的本机目录；�
 
 - 书库：扫描 `.txt`、`.md`、`.epub`、`.pdf`；EPUB 按 spine 解析，PDF 抽取文本层并渲染页面。支持最近阅读、标签、书名/标签搜索与排序。
 - 阅读：四种格式都支持分页；PDF 恒为分页，其余可切滚动/分页；支持单/双页、翻页、目录、进度、搜索、笔记；五色划线、批注与书签，引文可高亮跳转；配色跟随 DSH 或五种主题。
-- 长笔记：右栏“长笔记”可看整书/主题，存于 `notes/`，编辑走外部编辑器；短笔记仍走 JSON。
+- 长笔记：右栏“长笔记”可看整书/主题，存于 `notes/`，编辑用外部编辑器；短笔记仍走 JSON。
 - 笔记上下文：按书开启“让伴读知道本书笔记”，注入笔记与批注。
-- 笔记草稿：伴读写笔记只生成草稿，应用前看 diff。
-- 记忆与导出：按书记忆（关/询问/开），笔记可导出、恢复历史。
+- 笔记草稿：伴读写笔记默认先看 diff，可在长笔记页开启自动应用。
+- 记忆与导出：按书记忆（关/询问/开），可导出、恢复历史。
 - 伴读：右侧栏嵌入原生会话，与 Chat 共享会话，使用原生 Composer、工具卡、推理与审批；不支持 Factory 或渲染失败时退回折叠。宽度可拖动，窄屏为抽屉；选段“解释/总结/翻译”只预填输入框，不自动发送。会话就绪后切到只读沙箱。
 - 工具：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`；阅读纪律写入书库 `AGENTS.md`（管理块），只对该书库会话生效。
 
 ## 安装与首次使用
 
-通过 Plugins 或 `plugin_manager` 安装本目录；先执行 `pnpm install && pnpm run build`，生成 `dist/` 与 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`、`htmlparser2`。安装后刷新，在左侧栏点“阅读”，选择书库目录并点“创建书库”。
+通过 Plugins 或 `plugin_manager` 安装本目录；先执行 `pnpm install && pnpm run build`，生成 `dist/` 与 `client.js`。Host 依赖 `jszip`、`linkedom`、`pdfjs-dist`、`@napi-rs/canvas`、`htmlparser2`。安装后刷新，点“阅读”，选择书库目录并点“创建书库”。
 
 ## 开发
 

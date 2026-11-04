@@ -12,6 +12,7 @@ export interface CompanionMemorySettings {
 export interface CompanionSettings {
   notes: Record<string, boolean>
   memory: CompanionMemorySettings
+  autoApplyNotes: boolean
 }
 
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
@@ -55,10 +56,14 @@ export async function loadCompanionSettings(dataDir: string): Promise<CompanionS
     value = await readJson<unknown>(companionSettingsPath(dataDir), {})
   } catch {
     // 损坏的配置文件按默认值处理，避免阅读器因单个文件无法解析而不可用。
-    return { notes: {}, memory: { mode: 'ask', books: {} } }
+    return { notes: {}, memory: { mode: 'ask', books: {} }, autoApplyNotes: false }
   }
   const record = value && typeof value === 'object' ? value as Record<string, unknown> : {}
-  return { notes: notesOf(record.notes), memory: memoryOf(record.memory) }
+  return {
+    notes: notesOf(record.notes),
+    memory: memoryOf(record.memory),
+    autoApplyNotes: record.autoApplyNotes === true,
+  }
 }
 
 export async function saveCompanionSettings(dataDir: string, value: CompanionSettings): Promise<void> {

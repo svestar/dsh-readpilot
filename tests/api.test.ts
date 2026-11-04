@@ -394,6 +394,23 @@ test('export_notes_rpc', async t => {
   assert.match(exported.value.fileName, /阅读笔记\.md$/)
 })
 
+test('note_auto_apply_rpc', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  assert.equal((await api.state()).companion?.autoApplyNotes, false)
+
+  const enabled = await api.setAutoApplyNotes({ enabled: true })
+  assert.equal(enabled.enabled, true)
+  await api.handleRpc('noteFiles', { action: 'create', bookId, kind: 'book', title: '整书', body: '开头' })
+  const result = await api.noteDraftCreate({ book: bookId, action: 'append', id: 'book', text: '追加' })
+  assert.equal(result.autoApplied, true)
+  assert.equal(result.note?.id, 'book')
+  const read = await api.handleRpc('noteFiles', { action: 'read', bookId, id: 'book' })
+  assert.match(read.value.body, /追加/)
+})
+
 test('open_note_file_rejects_invalid_note', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

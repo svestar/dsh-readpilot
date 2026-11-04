@@ -85,6 +85,19 @@ export interface NoteFilesRestorePayload {
   historyId: string
 }
 
+export interface NoteFilesHistoryRemovePayload {
+  action: 'historyRemove'
+  bookId: string
+  id: string
+  historyId: string
+}
+
+export interface NoteFilesHistoryClearPayload {
+  action: 'historyClear'
+  bookId: string
+  id: string
+}
+
 export interface ExportNotesPayload {
   bookId: string
   save?: boolean
@@ -131,6 +144,14 @@ export interface SetNoteContextResult {
   bookId: string
   enabled: boolean
   characters: number
+}
+
+export interface SetAutoApplyNotesPayload {
+  enabled: boolean
+}
+
+export interface SetAutoApplyNotesResult {
+  enabled: boolean
 }
 
 export interface NoteDraftsListPayload {
@@ -221,10 +242,13 @@ export interface CallRpc {
   (endpoint: 'noteFiles', payload: NoteFilesRemovePayload): Promise<{ deleted: boolean }>
   (endpoint: 'noteFiles', payload: NoteFilesHistoryPayload): Promise<{ history: NoteHistoryEntry[] }>
   (endpoint: 'noteFiles', payload: NoteFilesRestorePayload): Promise<NoteFileContentResult>
+  (endpoint: 'noteFiles', payload: NoteFilesHistoryRemovePayload): Promise<{ removed: boolean }>
+  (endpoint: 'noteFiles', payload: NoteFilesHistoryClearPayload): Promise<{ cleared: number }>
   (endpoint: 'exportNotes', payload: ExportNotesPayload): Promise<ExportNotesResult>
   (endpoint: 'openNoteFile', payload: OpenNoteFilePayload): Promise<OpenNoteFileResult>
   (endpoint: 'memory', payload: MemoryPayload): Promise<any>
   (endpoint: 'setNoteContext', payload: SetNoteContextPayload): Promise<SetNoteContextResult>
+  (endpoint: 'setAutoApplyNotes', payload: SetAutoApplyNotesPayload): Promise<SetAutoApplyNotesResult>
   (endpoint: 'noteDrafts', payload: NoteDraftsListPayload): Promise<{ drafts: NoteDraftRecord[] }>
   (endpoint: 'noteDrafts', payload: NoteDraftsApplyPayload): Promise<NoteFileContentResult>
   (endpoint: 'noteDrafts', payload: NoteDraftsRejectPayload): Promise<{ rejected: boolean }>

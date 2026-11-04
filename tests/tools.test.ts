@@ -65,6 +65,15 @@ test('tools_read_bounded', async t => {
   })
   assert.equal(appended.draft.noteId, 'book')
   assert.equal(appended.draft.action, 'append')
+  await api.setAutoApplyNotes({ enabled: true })
+  const autoApplied = await registered.get('reader_notes')!.execute({
+    action: 'append',
+    book: state.books[0].title,
+    id: 'book',
+    text: '自动应用',
+  })
+  assert.equal(autoApplied.applied, true)
+  await api.setAutoApplyNotes({ enabled: false })
   const memory = await registered.get('reader_memory')!.execute({ action: 'read', book: state.books[0].title })
   assert.equal(memory.effective, 'ask')
   assert.equal(memory.bookCard, '')
