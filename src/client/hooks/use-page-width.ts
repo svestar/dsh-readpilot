@@ -50,11 +50,17 @@ export function usePageWidth({ enabled, containerRef }: PageWidthOptions): numbe
     }
     view?.addEventListener('resize', schedule)
     schedule()
+    // A restored panel can mount before the layout has a usable height; retry a few
+    // times so the page width does not stay at 0 and let the text fill the screen.
+    const timers = [80, 240, 600, 1200].map(delay => view?.setTimeout(schedule, delay))
 
     return () => {
       if (rafId && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rafId)
       observer?.disconnect()
       view?.removeEventListener('resize', schedule)
+      for (const timer of timers) {
+        if (timer !== undefined) view?.clearTimeout(timer)
+      }
     }
   }, [enabled, containerRef])
 

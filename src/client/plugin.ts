@@ -502,6 +502,7 @@ export function createPlugin(require: (name: string) => any) {
         layout: pageLayout,
         screen,
         fontSize,
+        pageWidth: textPageWidth,
         selectChapter,
       })
 
@@ -971,6 +972,7 @@ export function createPlugin(require: (name: string) => any) {
             h('div', { className: 'dsh-readpilot-note-layer', ref: noteLayerRef }))))
           : h('div', {
             className: 'dsh-readpilot-reader',
+            'data-paged': 'false',
             ref: contentRef,
             style: { fontSize },
             onMouseUp: onContentMouseUp,

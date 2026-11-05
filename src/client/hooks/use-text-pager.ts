@@ -16,6 +16,7 @@ export interface TextPagerOptions {
   layout: PageLayout
   screen: Screen
   fontSize: number
+  pageWidth?: number
   selectChapter: SelectChapter
 }
 
@@ -33,7 +34,7 @@ export interface TextPager {
   goPage: (delta: number) => void
 }
 
-export function useTextPager({ enabled, layout, screen, fontSize, selectChapter }: TextPagerOptions): TextPager {
+export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, selectChapter }: TextPagerOptions): TextPager {
   const [page, setPage] = React.useState(0)
   const [pageCount, setPageCount] = React.useState(1)
   const [pageTotal, setPageTotal] = React.useState(1)
@@ -117,13 +118,19 @@ export function useTextPager({ enabled, layout, screen, fontSize, selectChapter 
     }
     view?.addEventListener('resize', schedule)
     schedule()
+    // A restored panel may measure before the page width settles; retry so the
+    // page count does not stick at 1 when the frame shrinks to the A4 column.
+    const timers = [80, 240, 600, 1200].map(delay => view?.setTimeout(schedule, delay))
 
     return () => {
       if (rafId && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rafId)
       observer?.disconnect()
       view?.removeEventListener('resize', schedule)
+      for (const timer of timers) {
+        if (timer !== undefined) view?.clearTimeout(timer)
+      }
     }
-  }, [active, chapterId, fontSize, layout])
+  }, [active, chapterId, fontSize, layout, pageWidth])
 
   React.useEffect(() => {
     const fromScroll = scrollPageRef.current === page

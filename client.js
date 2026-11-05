@@ -1277,7 +1277,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-search-snippet{color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6;white-space:pre-wrap;word-break:break-word}
 .dsh-readpilot-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
 .dsh-readpilot-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
-.dsh-readpilot-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-readpilot-reader{min-height:0;overflow:auto;padding:28px 56px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
 .dsh-readpilot-visual{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
 .dsh-readpilot-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
 .dsh-readpilot-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
@@ -1299,6 +1299,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-readpilot-visual-error .dsh-readpilot-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
 .dsh-readpilot-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-readpilot-reader[data-paged="false"] .dsh-readpilot-reader-inner{padding-left:28px;padding-right:28px}
 .dsh-readpilot-main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .dsh-readpilot-main>.dsh-readpilot-reader{flex:1;min-height:0}
 .dsh-readpilot-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
@@ -1476,7 +1477,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 @media (prefers-reduced-motion:reduce){.dsh-readpilot-modal-overlay,.dsh-readpilot-modal{animation:none}}
 @media (prefers-reduced-motion:reduce){.dsh-readpilot-long-note,.dsh-readpilot-pill,.dsh-readpilot-tool-btn,.dsh-readpilot-segment{transition:none}.dsh-readpilot-long-note:hover{transform:none}}
 @media (max-width:1100px){.dsh-readpilot-book{grid-template-columns:230px minmax(0,1fr)!important}.dsh-readpilot-book[data-toc="false"]{grid-template-columns:minmax(0,1fr)!important}.dsh-readpilot-chat{position:absolute;top:0;right:0;bottom:0;width:min(420px,92%);z-index:20;box-shadow:-8px 0 30px rgba(0,0,0,.24)}.dsh-readpilot-chat-resizer{display:none}.dsh-readpilot-chat-backdrop{display:block;position:absolute;inset:0;z-index:19;border:0;padding:0;background:rgba(0,0,0,.18)}}
-@media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 18px 80px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
+@media (max-width:760px){.dsh-readpilot-book{grid-template-columns:1fr!important}.dsh-readpilot-toc{display:none}.dsh-readpilot-reader{padding:20px 22px 80px}.dsh-readpilot-reader[data-paged="false"] .dsh-readpilot-reader-inner{padding-left:16px;padding-right:16px}.dsh-readpilot-bar{padding:6px 10px;gap:6px}.dsh-readpilot-bar-title{order:3;flex:1 0 100%}.dsh-readpilot-bar-controls{margin-left:auto}.dsh-readpilot-page-frame{padding:18px 16px}.dsh-readpilot-pdf-spread{gap:8px}}
 `;
 
   // src/client/runtime.ts
@@ -5554,7 +5555,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
 
   // src/client/hooks/use-text-pager.ts
   var WHEEL_THRESHOLD = 40;
-  function useTextPager({ enabled, layout, screen, fontSize, selectChapter }) {
+  function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, selectChapter }) {
     const [page, setPage] = React.useState(0);
     const [pageCount, setPageCount] = React.useState(1);
     const [pageTotal, setPageTotal] = React.useState(1);
@@ -5631,12 +5632,16 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
       view?.addEventListener("resize", schedule);
       schedule();
+      const timers = [80, 240, 600, 1200].map((delay) => view?.setTimeout(schedule, delay));
       return () => {
         if (rafId && typeof cancelAnimationFrame === "function") cancelAnimationFrame(rafId);
         observer?.disconnect();
         view?.removeEventListener("resize", schedule);
+        for (const timer of timers) {
+          if (timer !== void 0) view?.clearTimeout(timer);
+        }
       };
-    }, [active, chapterId, fontSize, layout]);
+    }, [active, chapterId, fontSize, layout, pageWidth]);
     React.useEffect(() => {
       const fromScroll = scrollPageRef.current === page;
       scrollPageRef.current = null;
@@ -5766,10 +5771,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }
       view?.addEventListener("resize", schedule);
       schedule();
+      const timers = [80, 240, 600, 1200].map((delay) => view?.setTimeout(schedule, delay));
       return () => {
         if (rafId && typeof cancelAnimationFrame === "function") cancelAnimationFrame(rafId);
         observer?.disconnect();
         view?.removeEventListener("resize", schedule);
+        for (const timer of timers) {
+          if (timer !== void 0) view?.clearTimeout(timer);
+        }
       };
     }, [enabled, containerRef]);
     return enabled ? width : 0;
@@ -6563,6 +6572,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         layout: pageLayout,
         screen,
         fontSize,
+        pageWidth: textPageWidth,
         selectChapter
       });
       const activeChapterId = screen.kind === "book" ? visual?.kind === "pdf" ? screen.detail.toc.find((item) => item.page === visual.page)?.id ?? screen.content.chapterId : screen.content.chapterId : "";
@@ -6987,6 +6997,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         "div",
         {
           className: "dsh-readpilot-reader",
+          "data-paged": "false",
           ref: contentRef,
           style: { fontSize },
           onMouseUp: onContentMouseUp
