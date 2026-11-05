@@ -6,12 +6,12 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 
 ## 功能
 
-- **书库**：扫描四种格式，封面、状态评分、标签、检索与排序。
-- **阅读**：默认分页单页，可切滚动/双页；目录、进度、书内检索、五色划线、批注、书签与跳转；批注按章节/颜色筛选；快捷键翻页与搜索；配色跟随 DSH 或六种主题。
-- **AI 伴读**：每本书一个原生会话，共享 Chat 工具、推理与审批；Composer 可选模型/强度；选段问伴读带引用，PDF 页码可点；只读沙箱。
-- **笔记**：长笔记存 `notes/`，可用外部编辑器；草稿先看 diff，可开自动应用；按书注入笔记上下文；历史可恢复/删除/清空。
+- **书库**：扫描四种格式，封面（可关）、状态评分、标签、检索与排序。
+- **阅读**：分页/滚动/双页；目录、进度、检索、五色划线、批注、书签与跳转；批注按章节/颜色筛选；快捷键翻页与搜索；配色跟随 DSH 或含毛玻璃在内的六种主题，毛玻璃模糊可调。
+- **AI 伴读**：每本书一个原生会话，共享 Chat 工具、推理与审批；Composer 可选模型/强度；选段问伴读带引用，PDF 页码可点；只读沙箱；会话失效自动重建。
+- **笔记**：长笔记存 `notes/`，可用外部编辑器；草稿先看 diff，可自动应用；按书注入笔记上下文；历史可恢复/删除/清空。
 - **记忆与导出**：记忆（关/询问/开）；导出 Markdown。
-- **工具**：`reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`；阅读纪律写入书库 `AGENTS.md`。
+- **工具**：`reader_books/context/open/read/search/note/notes/memory` 八个；阅读纪律写入书库 `AGENTS.md`。
 
 ## 安装
 
@@ -19,15 +19,15 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 npm install dsh-readpilot
 ```
 
-兼容 DSH 0.2.2-rc.1–0.2.x。在 DSH Plugins 或 `plugin_manager` 安装 `dsh-readpilot`；刷新后创建书库。开发：`pnpm install && pnpm run build`。
+兼容 DSH 0.2.2-rc.1–0.2.x。在 DSH Plugins 或 `plugin_manager` 安装 `dsh-readpilot`；刷新后创建书库。
 
 ## 开发
 
-需要 Node 22.18+。`pnpm run build` 生成 Host 与 `client.js`；只改客户端用 `pnpm run build:client`；`pnpm run typecheck` 做类型检查，`pnpm test` 跑测试。文档门禁用 `python scripts/check_docs.py`。
+需要 Node 22.18+。`pnpm run build` 生成 Host 与 `client.js`；`pnpm test` 跑测试；`pnpm run typecheck` 类型检查；`python scripts/check_docs.py` 检查文档。
 
 ## 结构
 
-Host 入口 `index.ts`、`src/`；Client 在 `src/client/`，产物 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
+Host 在 `index.ts`、`src/`；Client 在 `src/client/`，产物 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
 
 ## 数据
 
