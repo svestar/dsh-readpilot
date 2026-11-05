@@ -296,6 +296,15 @@ export const CSS = `
 .dsh-readpilot-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
 .dsh-readpilot-note-colors{display:flex;gap:8px;margin:0 0 10px}
 .dsh-readpilot-mark-section{margin-bottom:14px}
+.dsh-readpilot-mark-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.dsh-readpilot-color-filters{display:flex;align-items:center;gap:6px}
+.dsh-readpilot-color-filter{width:18px;height:18px;padding:0;border:2px solid transparent;border-radius:50%;cursor:pointer;opacity:.55;transition:opacity .12s ease}
+.dsh-readpilot-color-filter[data-active="true"]{opacity:1;border-color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-color-filter.dsh-readpilot-color-yellow{background:#facc15}
+.dsh-readpilot-color-filter.dsh-readpilot-color-green{background:#4ade80}
+.dsh-readpilot-color-filter.dsh-readpilot-color-blue{background:#60a5fa}
+.dsh-readpilot-color-filter.dsh-readpilot-color-pink{background:#f472b6}
+.dsh-readpilot-color-filter.dsh-readpilot-color-purple{background:#c084fc}
 .dsh-readpilot-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .dsh-readpilot-mark-bookmark .dsh-readpilot-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}

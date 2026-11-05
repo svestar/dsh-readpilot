@@ -609,6 +609,8 @@ var __dshReaderBundle = (() => {
     noteAction: "笔记",
     marks: "标记",
     highlights: "划线",
+    filterChapter: "按章节筛选",
+    allChapters: "全部章节",
     highlight: "划线",
     highlightYellow: "黄色",
     highlightGreen: "绿色",
@@ -818,6 +820,8 @@ var __dshReaderBundle = (() => {
     noteAction: "Note",
     marks: "Marks",
     highlights: "Highlights",
+    filterChapter: "Filter by chapter",
+    allChapters: "All chapters",
     highlight: "Highlight",
     highlightYellow: "Yellow",
     highlightGreen: "Green",
@@ -1237,6 +1241,15 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-color-dot{display:inline-block;width:8px;height:8px;margin-right:5px;border-radius:50%;vertical-align:middle}
 .dsh-readpilot-note-colors{display:flex;gap:8px;margin:0 0 10px}
 .dsh-readpilot-mark-section{margin-bottom:14px}
+.dsh-readpilot-mark-filters{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
+.dsh-readpilot-color-filters{display:flex;align-items:center;gap:6px}
+.dsh-readpilot-color-filter{width:18px;height:18px;padding:0;border:2px solid transparent;border-radius:50%;cursor:pointer;opacity:.55;transition:opacity .12s ease}
+.dsh-readpilot-color-filter[data-active="true"]{opacity:1;border-color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-color-filter.dsh-readpilot-color-yellow{background:#facc15}
+.dsh-readpilot-color-filter.dsh-readpilot-color-green{background:#4ade80}
+.dsh-readpilot-color-filter.dsh-readpilot-color-blue{background:#60a5fa}
+.dsh-readpilot-color-filter.dsh-readpilot-color-pink{background:#f472b6}
+.dsh-readpilot-color-filter.dsh-readpilot-color-purple{background:#c084fc}
 .dsh-readpilot-mark-section h4{margin:0 0 6px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
 .dsh-readpilot-mark-bookmark .dsh-readpilot-note-body{font-size:11px;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-chapter-title{margin:0 0 22px;font-size:22px;line-height:1.35;font-weight:650}
@@ -2022,6 +2035,34 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     };
   }
 
+  // src/client/mark-filters.ts
+  var HIGHLIGHT_COLORS = ["yellow", "green", "blue", "pink", "purple"];
+  function filterMarks(marks, filter = {}) {
+    const chapterId = filter.chapterId ?? null;
+    const color = filter.color ?? null;
+    if (!chapterId && !color) return marks.slice();
+    return marks.filter((mark) => {
+      if (chapterId && mark.chapterId !== chapterId) return false;
+      if (color && !(mark.kind === "highlight" && (mark.color ?? "yellow") === color)) return false;
+      return true;
+    });
+  }
+  function markChapterIds(marks) {
+    const ids = [];
+    for (const mark of marks) {
+      if (mark.chapterId && !ids.includes(mark.chapterId)) ids.push(mark.chapterId);
+    }
+    return ids;
+  }
+  function markColors(marks) {
+    const used = /* @__PURE__ */ new Set();
+    for (const mark of marks) {
+      if (mark.kind !== "highlight") continue;
+      used.add(mark.color ?? "yellow");
+    }
+    return HIGHLIGHT_COLORS.filter((color) => used.has(color));
+  }
+
   // src/client/views/notes-search.ts
   function chapterTitleOf(screen, chapterId) {
     return screen.kind === "book" ? screen.detail.toc.find((item) => item.id === chapterId)?.title : "";
@@ -2044,8 +2085,30 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, noteDeletingId === item.id ? t("loading") : t("delete"))
     ];
   }
+  function colorLabel(t, color) {
+    const key = `highlight${color.slice(0, 1).toUpperCase()}${color.slice(1)}`;
+    return t(key);
+  }
   function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }) {
-    const total = notes.length + highlights.length + bookmarks.length;
+    const [chapterFilter, setChapterFilter] = React.useState("all");
+    const [colorFilter, setColorFilter] = React.useState("all");
+    const allMarks = [...highlights, ...notes, ...bookmarks];
+    const chapterIds = markChapterIds(allMarks);
+    const colors = markColors(allMarks);
+    const chapterTitles = screen.kind === "book" ? screen.detail.toc.filter((item) => chapterIds.includes(item.id)) : [];
+    const chapterOptions = [
+      ...chapterTitles.map((item) => ({ id: item.id, title: item.title })),
+      ...chapterIds.filter((id) => !chapterTitles.some((item) => item.id === id)).map((id) => ({ id, title: id }))
+    ];
+    const filter = {
+      chapterId: chapterFilter === "all" ? null : chapterFilter,
+      color: colorFilter === "all" ? null : colorFilter
+    };
+    const visibleHighlights = filterMarks(highlights, filter);
+    const visibleNotes = filterMarks(notes, filter);
+    const visibleBookmarks = filterMarks(bookmarks, filter);
+    const total = visibleHighlights.length + visibleNotes.length + visibleBookmarks.length;
+    const allTotal = allMarks.length;
     const emptyState = (title, hint) => h(
       "div",
       { className: "dsh-readpilot-empty-state" },
@@ -2066,25 +2129,53 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             "div",
             { className: "dsh-readpilot-page-title-row" },
             h("h3", null, t("notes")),
-            h("span", { className: "dsh-readpilot-page-count" }, String(total))
+            h("span", { className: "dsh-readpilot-page-count" }, total === allTotal ? String(total) : `${total} / ${allTotal}`)
           ),
           h("p", { className: "dsh-readpilot-page-subtitle" }, t("notesPageHint"))
         )
       ),
+      allTotal > 0 ? h(
+        "div",
+        { className: "dsh-readpilot-mark-filters" },
+        chapterOptions.length > 1 ? h(
+          "select",
+          {
+            className: "dsh-readpilot-palette-select",
+            value: chapterFilter,
+            "aria-label": t("filterChapter"),
+            onChange: (event) => setChapterFilter(event.target.value)
+          },
+          h("option", { value: "all" }, t("allChapters")),
+          chapterOptions.map((item) => h("option", { key: item.id, value: item.id }, item.title))
+        ) : null,
+        colors.length > 0 ? h(
+          "div",
+          { className: "dsh-readpilot-color-filters" },
+          colors.map((color) => h("button", {
+            key: color,
+            type: "button",
+            className: `dsh-readpilot-color-filter dsh-readpilot-color-${color}`,
+            "data-active": colorFilter === color ? "true" : "false",
+            title: colorLabel(t, color),
+            "aria-label": colorLabel(t, color),
+            onClick: () => setColorFilter((previous) => previous === color ? "all" : color)
+          }))
+        ) : null
+      ) : null,
       notesError ? h("div", { className: "dsh-readpilot-chat-error" }, notesError) : null,
-      notesLoading && total === 0 ? emptyState(t("loading"), "") : total === 0 ? notesError ? null : emptyState(t("noteEmpty"), t("notesEmptyHint")) : h(
+      notesLoading && total === 0 ? emptyState(t("loading"), "") : allTotal === 0 ? notesError ? null : emptyState(t("noteEmpty"), t("notesEmptyHint")) : total === 0 ? emptyState(t("noMatches"), "") : h(
         "div",
         { className: "dsh-readpilot-page-content" },
-        highlights.length > 0 ? h(
+        visibleHighlights.length > 0 ? h(
           "section",
           { key: "highlights", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
           h(
             "div",
             { className: "dsh-readpilot-section-head" },
             h("h4", null, t("highlights")),
-            h("span", { className: "dsh-readpilot-section-count" }, String(highlights.length))
+            h("span", { className: "dsh-readpilot-section-count" }, String(visibleHighlights.length))
           ),
-          highlights.map((highlight) => h(
+          visibleHighlights.map((highlight) => h(
             "div",
             { key: highlight.id, className: "dsh-readpilot-note dsh-readpilot-mark-highlight" },
             h(
@@ -2106,16 +2197,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote })
           ))
         ) : null,
-        notes.length > 0 ? h(
+        visibleNotes.length > 0 ? h(
           "section",
           { key: "notes", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
           h(
             "div",
             { className: "dsh-readpilot-section-head" },
             h("h4", null, t("shortNotes")),
-            h("span", { className: "dsh-readpilot-section-count" }, String(notes.length))
+            h("span", { className: "dsh-readpilot-section-count" }, String(visibleNotes.length))
           ),
-          notes.map((note) => h(
+          visibleNotes.map((note) => h(
             "div",
             { key: note.id, className: "dsh-readpilot-note" },
             h(
@@ -2132,16 +2223,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote })
           ))
         ) : null,
-        bookmarks.length > 0 ? h(
+        visibleBookmarks.length > 0 ? h(
           "section",
           { key: "bookmarks", className: "dsh-readpilot-card dsh-readpilot-mark-section" },
           h(
             "div",
             { className: "dsh-readpilot-section-head" },
             h("h4", null, t("bookmarks")),
-            h("span", { className: "dsh-readpilot-section-count" }, String(bookmarks.length))
+            h("span", { className: "dsh-readpilot-section-count" }, String(visibleBookmarks.length))
           ),
-          bookmarks.map((bookmark) => {
+          visibleBookmarks.map((bookmark) => {
             const context = bookmarkContext(screen, bookmark.chapterId);
             const title = context.chapterTitle || bookmark.note || t("bookmark");
             const detail = bookmark.annotation || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : "");

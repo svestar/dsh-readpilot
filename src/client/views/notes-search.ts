@@ -1,5 +1,6 @@
-import { h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import { bookmarkContext } from '../bookmark-label.ts'
+import { filterMarks, markChapterIds, markColors } from '../mark-filters.ts'
 import type { StateSetter } from '../runtime.ts'
 import type {
   MutableRef,
@@ -57,8 +58,35 @@ interface NotesBodyProps {
   deleteNote: (note: NoteRef) => Promise<void> | void
 }
 
+function colorLabel(t: TextFn, color: string): string {
+  const key = `highlight${color.slice(0, 1).toUpperCase()}${color.slice(1)}`
+  return t(key)
+}
+
 export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
-  const total = notes.length + highlights.length + bookmarks.length
+  const [chapterFilter, setChapterFilter] = React.useState('all')
+  const [colorFilter, setColorFilter] = React.useState('all')
+  const allMarks = [...highlights, ...notes, ...bookmarks]
+  const chapterIds = markChapterIds(allMarks)
+  const colors = markColors(allMarks)
+  const chapterTitles = screen.kind === 'book'
+    ? screen.detail.toc.filter(item => chapterIds.includes(item.id))
+    : []
+  const chapterOptions = [
+    ...chapterTitles.map(item => ({ id: item.id, title: item.title })),
+    ...chapterIds
+      .filter(id => !chapterTitles.some(item => item.id === id))
+      .map(id => ({ id, title: id })),
+  ]
+  const filter = {
+    chapterId: chapterFilter === 'all' ? null : chapterFilter,
+    color: colorFilter === 'all' ? null : colorFilter,
+  }
+  const visibleHighlights = filterMarks(highlights, filter)
+  const visibleNotes = filterMarks(notes, filter)
+  const visibleBookmarks = filterMarks(bookmarks, filter)
+  const total = visibleHighlights.length + visibleNotes.length + visibleBookmarks.length
+  const allTotal = allMarks.length
   const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
     h('div', { className: 'dsh-readpilot-empty-icon' }, '✎'),
     h('div', { className: 'dsh-readpilot-empty-title' }, title),
@@ -68,71 +96,98 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
       h('div', { className: 'dsh-readpilot-page-heading' },
         h('div', { className: 'dsh-readpilot-page-title-row' },
           h('h3', null, t('notes')),
-          h('span', { className: 'dsh-readpilot-page-count' }, String(total))),
+          h('span', { className: 'dsh-readpilot-page-count' }, total === allTotal ? String(total) : `${total} / ${allTotal}`)),
         h('p', { className: 'dsh-readpilot-page-subtitle' }, t('notesPageHint')))),
+    allTotal > 0
+      ? h('div', { className: 'dsh-readpilot-mark-filters' },
+        chapterOptions.length > 1
+          ? h('select', {
+            className: 'dsh-readpilot-palette-select',
+            value: chapterFilter,
+            'aria-label': t('filterChapter'),
+            onChange: (event: any) => setChapterFilter(event.target.value),
+          },
+          h('option', { value: 'all' }, t('allChapters')),
+          chapterOptions.map(item => h('option', { key: item.id, value: item.id }, item.title)))
+          : null,
+        colors.length > 0
+          ? h('div', { className: 'dsh-readpilot-color-filters' },
+            colors.map(color => h('button', {
+              key: color,
+              type: 'button',
+              className: `dsh-readpilot-color-filter dsh-readpilot-color-${color}`,
+              'data-active': colorFilter === color ? 'true' : 'false',
+              title: colorLabel(t, color),
+              'aria-label': colorLabel(t, color),
+              onClick: () => setColorFilter(previous => (previous === color ? 'all' : color)),
+            })))
+          : null)
+      : null,
     notesError ? h('div', { className: 'dsh-readpilot-chat-error' }, notesError) : null,
     notesLoading && total === 0
       ? emptyState(t('loading'), '')
-      : total === 0
+      : allTotal === 0
         ? notesError ? null : emptyState(t('noteEmpty'), t('notesEmptyHint'))
-        : h('div', { className: 'dsh-readpilot-page-content' },
-          highlights.length > 0
-            ? h('section', { key: 'highlights', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
-              h('div', { className: 'dsh-readpilot-section-head' },
-                h('h4', null, t('highlights')),
-                h('span', { className: 'dsh-readpilot-section-count' }, String(highlights.length))),
-              highlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-readpilot-note dsh-readpilot-mark-highlight' },
-                h('button', {
-                  type: 'button',
-                  className: 'dsh-readpilot-note-main',
-                  onClick: () => openNote(highlight),
-                },
-                h('div', { className: 'dsh-readpilot-note-chapter' },
-                  h('span', { className: `dsh-readpilot-color-dot dsh-readpilot-color-${highlight.color ?? 'yellow'}` }),
-                  chapterTitleOf(screen, highlight.chapterId) || t('reading')),
-                h('div', { className: 'dsh-readpilot-note-quote' }, highlight.quote),
-                highlight.annotation
-                  ? h('div', { className: 'dsh-readpilot-note-body' }, highlight.annotation)
-                  : null),
-                ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote }))))
-            : null,
-          notes.length > 0
-            ? h('section', { key: 'notes', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
-              h('div', { className: 'dsh-readpilot-section-head' },
-                h('h4', null, t('shortNotes')),
-                h('span', { className: 'dsh-readpilot-section-count' }, String(notes.length))),
-              notes.map(note => h('div', { key: note.id, className: 'dsh-readpilot-note' },
-                h('button', {
-                  type: 'button',
-                  className: 'dsh-readpilot-note-main',
-                  onClick: () => openNote(note),
-                },
-                h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
-                note.quote ? h('div', { className: 'dsh-readpilot-note-quote' }, note.quote) : null,
-                h('div', { className: 'dsh-readpilot-note-body' }, note.note)),
-                ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))
-            : null,
-          bookmarks.length > 0
-            ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
-              h('div', { className: 'dsh-readpilot-section-head' },
-                h('h4', null, t('bookmarks')),
-                h('span', { className: 'dsh-readpilot-section-count' }, String(bookmarks.length))),
-              bookmarks.map(bookmark => {
-                const context = bookmarkContext(screen, bookmark.chapterId)
-                const title = context.chapterTitle || bookmark.note || t('bookmark')
-                const detail = bookmark.annotation
-                  || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
-                return h('div', { key: bookmark.id, className: 'dsh-readpilot-note dsh-readpilot-mark-bookmark' },
+        : total === 0
+          ? emptyState(t('noMatches'), '')
+          : h('div', { className: 'dsh-readpilot-page-content' },
+            visibleHighlights.length > 0
+              ? h('section', { key: 'highlights', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+                h('div', { className: 'dsh-readpilot-section-head' },
+                  h('h4', null, t('highlights')),
+                  h('span', { className: 'dsh-readpilot-section-count' }, String(visibleHighlights.length))),
+                visibleHighlights.map(highlight => h('div', { key: highlight.id, className: 'dsh-readpilot-note dsh-readpilot-mark-highlight' },
                   h('button', {
                     type: 'button',
                     className: 'dsh-readpilot-note-main',
-                    onClick: () => openNote(bookmark),
+                    onClick: () => openNote(highlight),
                   },
-                  h('div', { className: 'dsh-readpilot-note-chapter' }, title),
-                  detail ? h('div', { className: 'dsh-readpilot-note-body' }, detail) : null),
-                  ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))
-              }))
-            : null))
+                  h('div', { className: 'dsh-readpilot-note-chapter' },
+                    h('span', { className: `dsh-readpilot-color-dot dsh-readpilot-color-${highlight.color ?? 'yellow'}` }),
+                    chapterTitleOf(screen, highlight.chapterId) || t('reading')),
+                  h('div', { className: 'dsh-readpilot-note-quote' }, highlight.quote),
+                  highlight.annotation
+                    ? h('div', { className: 'dsh-readpilot-note-body' }, highlight.annotation)
+                    : null),
+                  ...markActions({ t, item: highlight, noteDeletingId, deleteNote, openNote }))))
+              : null,
+            visibleNotes.length > 0
+              ? h('section', { key: 'notes', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+                h('div', { className: 'dsh-readpilot-section-head' },
+                  h('h4', null, t('shortNotes')),
+                  h('span', { className: 'dsh-readpilot-section-count' }, String(visibleNotes.length))),
+                visibleNotes.map(note => h('div', { key: note.id, className: 'dsh-readpilot-note' },
+                  h('button', {
+                    type: 'button',
+                    className: 'dsh-readpilot-note-main',
+                    onClick: () => openNote(note),
+                  },
+                  h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
+                  note.quote ? h('div', { className: 'dsh-readpilot-note-quote' }, note.quote) : null,
+                  h('div', { className: 'dsh-readpilot-note-body' }, note.note)),
+                  ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))
+              : null,
+            visibleBookmarks.length > 0
+              ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
+                h('div', { className: 'dsh-readpilot-section-head' },
+                  h('h4', null, t('bookmarks')),
+                  h('span', { className: 'dsh-readpilot-section-count' }, String(visibleBookmarks.length))),
+                visibleBookmarks.map(bookmark => {
+                  const context = bookmarkContext(screen, bookmark.chapterId)
+                  const title = context.chapterTitle || bookmark.note || t('bookmark')
+                  const detail = bookmark.annotation
+                    || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
+                  return h('div', { key: bookmark.id, className: 'dsh-readpilot-note dsh-readpilot-mark-bookmark' },
+                    h('button', {
+                      type: 'button',
+                      className: 'dsh-readpilot-note-main',
+                      onClick: () => openNote(bookmark),
+                    },
+                    h('div', { className: 'dsh-readpilot-note-chapter' }, title),
+                    detail ? h('div', { className: 'dsh-readpilot-note-body' }, detail) : null),
+                    ...markActions({ t, item: bookmark, noteDeletingId, deleteNote, openNote }))
+                }))
+              : null))
 }
 
 interface SearchPanelProps {
