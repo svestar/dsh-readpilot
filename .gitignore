@@ -5,3 +5,4 @@ node_modules/
 .uv-cache/
 .acl-repair/
 dist/
+client.js
