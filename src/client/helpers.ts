@@ -64,6 +64,17 @@ export const READER_PALETTE_KEY = 'dsh-readpilot.palette'
 export const READING_MODE_KEY = 'dsh-readpilot.reading-mode'
 export const PAGE_LAYOUT_KEY = 'dsh-readpilot.page-layout'
 export const COVERS_ENABLED_KEY = 'dsh-readpilot.covers'
+export const GLASS_BLUR_KEY = 'dsh-readpilot.glass-blur'
+export const DEFAULT_GLASS_BLUR = 25
+export const MAX_GLASS_BLUR = 80
+
+/** Clamp a user-provided blur to 0–80 px; missing or invalid values fall back to the default. */
+export function normalizeGlassBlur(value: unknown): number {
+  if (value === null || value === undefined || value === '') return DEFAULT_GLASS_BLUR
+  const blur = Number(value)
+  if (!Number.isFinite(blur)) return DEFAULT_GLASS_BLUR
+  return Math.round(Math.min(MAX_GLASS_BLUR, Math.max(0, blur)))
+}
 export const DEFAULT_READING_MODE: ReaderMode = 'paged'
 export const DEFAULT_PAGE_LAYOUT: PageLayout = 'single'
 
@@ -77,7 +88,7 @@ export interface ReaderPalette {
   highlight: string
 }
 
-export const READER_PALETTE_IDS: readonly string[] = ['auto', 'light', 'dark', 'sepia', 'green', 'night']
+export const READER_PALETTE_IDS: readonly string[] = ['auto', 'light', 'dark', 'sepia', 'green', 'night', 'glass']
 
 export const READER_PALETTES: Record<string, ReaderPalette> = {
   auto: {
@@ -133,6 +144,15 @@ export const READER_PALETTES: Record<string, ReaderPalette> = {
     border: '#24242b',
     selection: 'rgba(90,140,220,.35)',
     highlight: 'rgba(200,160,60,.35)',
+  },
+  glass: {
+    id: 'glass',
+    bg: 'var(--dsh-readpilot-surface)',
+    fg: 'var(--dsw-alias-label-primary)',
+    muted: 'var(--dsw-alias-label-secondary)',
+    border: 'var(--dsw-alias-border-l2)',
+    selection: 'rgba(64,128,255,.22)',
+    highlight: 'rgba(245,197,66,.42)',
   },
 }
 
@@ -190,6 +210,22 @@ export function saveCoversEnabled(enabled: boolean): void {
   }
 }
 
+export function readGlassBlur(): number {
+  try {
+    return normalizeGlassBlur(window.localStorage.getItem(GLASS_BLUR_KEY))
+  } catch {
+    return DEFAULT_GLASS_BLUR
+  }
+}
+
+export function saveGlassBlur(blur: number): void {
+  try {
+    window.localStorage.setItem(GLASS_BLUR_KEY, String(normalizeGlassBlur(blur)))
+  } catch {
+    // Blur preference persistence is best effort.
+  }
+}
+
 export function readPageLayout(): PageLayout {
   try {
     const value = window.localStorage.getItem(PAGE_LAYOUT_KEY)
@@ -208,21 +244,30 @@ export function savePageLayout(layout: PageLayout): void {
 }
 
 export function paletteCssColors(palette: ReaderPalette): { bg: string; fg: string; selection: string; highlight: string } {
-  if (palette.id !== 'auto') {
-    return { bg: palette.bg, fg: palette.fg, selection: palette.selection, highlight: palette.highlight }
-  }
   let css: CSSStyleDeclaration | null = null
   try {
     css = getComputedStyle(document.documentElement)
   } catch {
     css = null
   }
-  const bg = css?.getPropertyValue('--dsw-alias-bg-base').trim() ?? ''
-  const fg = css?.getPropertyValue('--dsw-alias-label-primary').trim() ?? ''
   const dark = window.matchMedia?.('(prefers-color-scheme: dark)')?.matches ?? true
+  const label = css?.getPropertyValue('--dsw-alias-label-primary').trim() ?? ''
+  if (palette.id === 'glass') {
+    const base = css?.getPropertyValue('--dsw-alias-bg-base').trim() ?? ''
+    return {
+      bg: base || (dark ? '#1b1b22' : '#ffffff'),
+      fg: label || (dark ? '#e6e6ea' : '#1f2328'),
+      selection: palette.selection,
+      highlight: palette.highlight,
+    }
+  }
+  if (palette.id !== 'auto') {
+    return { bg: palette.bg, fg: palette.fg, selection: palette.selection, highlight: palette.highlight }
+  }
+  const bg = css?.getPropertyValue('--dsw-alias-bg-base').trim() ?? ''
   return {
     bg: bg || (dark ? '#1b1b22' : '#ffffff'),
-    fg: fg || (dark ? '#e6e6ea' : '#1f2328'),
+    fg: label || (dark ? '#e6e6ea' : '#1f2328'),
     selection: palette.selection,
     highlight: palette.highlight,
   }

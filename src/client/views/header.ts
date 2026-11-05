@@ -10,6 +10,8 @@ interface HeaderProps {
   onBack: () => void
   paletteId: string
   onChangePalette: (id: string) => void
+  glassBlur: number
+  onChangeGlassBlur: (value: number) => void
   searchOpen: boolean
   onToggleSearch: () => void
   onToggleChat: () => void
@@ -27,6 +29,8 @@ export function Header({
   onBack,
   paletteId,
   onChangePalette,
+  glassBlur,
+  onChangeGlassBlur,
   searchOpen,
   onToggleSearch,
   onToggleChat,
@@ -49,6 +53,20 @@ export function Header({
         h('div', { className: 'dsh-readpilot-title' }, title),
         subtitle ? h('div', { className: 'dsh-readpilot-subtitle' }, subtitle) : null)),
     h('div', { className: 'dsh-readpilot-header-actions' },
+      screen.kind === 'book' && paletteId === 'glass'
+        ? h('label', { className: 'dsh-readpilot-blur-control', title: t('blur') },
+          h('span', null, t('blur')),
+          h('input', {
+            type: 'range',
+            min: 0,
+            max: 80,
+            step: 1,
+            value: glassBlur,
+            'aria-label': t('blur'),
+            onChange: (event: any) => onChangeGlassBlur(Number(event.target.value)),
+          }),
+          h('span', { className: 'dsh-readpilot-blur-value' }, `${glassBlur}px`))
+        : null,
       screen.kind === 'book'
         ? h('select', {
           className: 'dsh-readpilot-palette-select',

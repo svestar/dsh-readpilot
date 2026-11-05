@@ -12,6 +12,10 @@ import {
   parseMarkdownBlocks,
   readPageLayout,
   readPaletteId,
+  readGlassBlur,
+  saveGlassBlur,
+  normalizeGlassBlur,
+  DEFAULT_GLASS_BLUR,
   readReadingMode,
   resolveReaderPalette,
   savePageLayout,
@@ -132,6 +136,7 @@ export function createPlugin(require: (name: string) => any) {
       const [fontSize, setFontSize] = React.useState(17)
       const [selection, setSelection] = React.useState<Selection | null>(null)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
+      const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const isTextFormat = format === 'txt' || format === 'md'
@@ -151,6 +156,10 @@ export function createPlugin(require: (name: string) => any) {
           setBusy(false)
         }
       }, [t])
+
+      React.useEffect(() => {
+        saveGlassBlur(glassBlur)
+      }, [glassBlur])
 
       const changePalette = React.useCallback((id: string) => {
         if (!READER_PALETTES[id]) return
@@ -1001,6 +1010,7 @@ export function createPlugin(require: (name: string) => any) {
 
       return h('div', {
         className: 'dsh-readpilot-panel',
+        'data-palette': palette.id,
         style: {
           '--reader-bg': palette.bg,
           '--reader-fg': palette.fg,
@@ -1008,6 +1018,7 @@ export function createPlugin(require: (name: string) => any) {
           '--reader-border': palette.border,
           '--reader-selection': palette.selection,
           '--reader-highlight': palette.highlight,
+          '--reader-glass-blur': `${glassBlur}px`,
         },
       },
         h(Header, {
@@ -1018,6 +1029,8 @@ export function createPlugin(require: (name: string) => any) {
           onBack: backToLibrary,
           paletteId,
           onChangePalette: changePalette,
+          glassBlur,
+          onChangeGlassBlur: setGlassBlur,
           searchOpen,
           onToggleSearch: toggleSearch,
           onToggleChat: () => setChatOpen(previous => !previous),
@@ -1103,6 +1116,8 @@ export function createPlugin(require: (name: string) => any) {
       READER_PALETTE_IDS,
       READER_PALETTES,
       resolveReaderPalette,
+      normalizeGlassBlur,
+      DEFAULT_GLASS_BLUR,
       findNoteOccurrence,
       apply(ctx: any) {
         runtime = ctx

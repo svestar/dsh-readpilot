@@ -23,7 +23,7 @@ await import('../client.js')
 const plugin = globalAny.__readerRegistration.factory(() => ({ createElement: () => null }))
 
 test('resolve_reader_palette_defaults', () => {
-  assert.deepEqual(plugin.READER_PALETTE_IDS, ['auto', 'light', 'dark', 'sepia', 'green', 'night'])
+  assert.deepEqual(plugin.READER_PALETTE_IDS, ['auto', 'light', 'dark', 'sepia', 'green', 'night', 'glass'])
   const auto = plugin.resolveReaderPalette('auto')
   assert.equal(auto.id, 'auto')
   assert.equal(auto.bg, 'var(--dsw-alias-bg-base)')
@@ -44,4 +44,14 @@ test('resolve_reader_palette_fallback', () => {
   const fallback = plugin.resolveReaderPalette('not-a-palette')
   assert.equal(fallback.id, 'auto')
   assert.equal(fallback, plugin.READER_PALETTES.auto)
+})
+test('glass_blur_is_clamped', () => {
+  assert.equal(plugin.normalizeGlassBlur(undefined), plugin.DEFAULT_GLASS_BLUR)
+  assert.equal(plugin.normalizeGlassBlur(null), plugin.DEFAULT_GLASS_BLUR)
+  assert.equal(plugin.normalizeGlassBlur(''), plugin.DEFAULT_GLASS_BLUR)
+  assert.equal(plugin.normalizeGlassBlur('36'), 36)
+  assert.equal(plugin.normalizeGlassBlur(12.6), 13)
+  assert.equal(plugin.normalizeGlassBlur(200), 80)
+  assert.equal(plugin.normalizeGlassBlur(-5), 0)
+  assert.equal(plugin.normalizeGlassBlur('abc'), plugin.DEFAULT_GLASS_BLUR)
 })

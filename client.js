@@ -78,9 +78,18 @@ var __dshReaderBundle = (() => {
   var READING_MODE_KEY = "dsh-readpilot.reading-mode";
   var PAGE_LAYOUT_KEY = "dsh-readpilot.page-layout";
   var COVERS_ENABLED_KEY = "dsh-readpilot.covers";
+  var GLASS_BLUR_KEY = "dsh-readpilot.glass-blur";
+  var DEFAULT_GLASS_BLUR = 25;
+  var MAX_GLASS_BLUR = 80;
+  function normalizeGlassBlur(value) {
+    if (value === null || value === void 0 || value === "") return DEFAULT_GLASS_BLUR;
+    const blur = Number(value);
+    if (!Number.isFinite(blur)) return DEFAULT_GLASS_BLUR;
+    return Math.round(Math.min(MAX_GLASS_BLUR, Math.max(0, blur)));
+  }
   var DEFAULT_READING_MODE = "paged";
   var DEFAULT_PAGE_LAYOUT = "single";
-  var READER_PALETTE_IDS = ["auto", "light", "dark", "sepia", "green", "night"];
+  var READER_PALETTE_IDS = ["auto", "light", "dark", "sepia", "green", "night", "glass"];
   var READER_PALETTES = {
     auto: {
       id: "auto",
@@ -135,6 +144,15 @@ var __dshReaderBundle = (() => {
       border: "#24242b",
       selection: "rgba(90,140,220,.35)",
       highlight: "rgba(200,160,60,.35)"
+    },
+    glass: {
+      id: "glass",
+      bg: "var(--dsh-readpilot-surface)",
+      fg: "var(--dsw-alias-label-primary)",
+      muted: "var(--dsw-alias-label-secondary)",
+      border: "var(--dsw-alias-border-l2)",
+      selection: "rgba(64,128,255,.22)",
+      highlight: "rgba(245,197,66,.42)"
     }
   };
   function resolveReaderPalette(id) {
@@ -181,6 +199,19 @@ var __dshReaderBundle = (() => {
     } catch {
     }
   }
+  function readGlassBlur() {
+    try {
+      return normalizeGlassBlur(window.localStorage.getItem(GLASS_BLUR_KEY));
+    } catch {
+      return DEFAULT_GLASS_BLUR;
+    }
+  }
+  function saveGlassBlur(blur) {
+    try {
+      window.localStorage.setItem(GLASS_BLUR_KEY, String(normalizeGlassBlur(blur)));
+    } catch {
+    }
+  }
   function readPageLayout() {
     try {
       const value = window.localStorage.getItem(PAGE_LAYOUT_KEY);
@@ -196,21 +227,30 @@ var __dshReaderBundle = (() => {
     }
   }
   function paletteCssColors(palette) {
-    if (palette.id !== "auto") {
-      return { bg: palette.bg, fg: palette.fg, selection: palette.selection, highlight: palette.highlight };
-    }
     let css = null;
     try {
       css = getComputedStyle(document.documentElement);
     } catch {
       css = null;
     }
-    const bg = css?.getPropertyValue("--dsw-alias-bg-base").trim() ?? "";
-    const fg = css?.getPropertyValue("--dsw-alias-label-primary").trim() ?? "";
     const dark = window.matchMedia?.("(prefers-color-scheme: dark)")?.matches ?? true;
+    const label = css?.getPropertyValue("--dsw-alias-label-primary").trim() ?? "";
+    if (palette.id === "glass") {
+      const base = css?.getPropertyValue("--dsw-alias-bg-base").trim() ?? "";
+      return {
+        bg: base || (dark ? "#1b1b22" : "#ffffff"),
+        fg: label || (dark ? "#e6e6ea" : "#1f2328"),
+        selection: palette.selection,
+        highlight: palette.highlight
+      };
+    }
+    if (palette.id !== "auto") {
+      return { bg: palette.bg, fg: palette.fg, selection: palette.selection, highlight: palette.highlight };
+    }
+    const bg = css?.getPropertyValue("--dsw-alias-bg-base").trim() ?? "";
     return {
       bg: bg || (dark ? "#1b1b22" : "#ffffff"),
-      fg: fg || (dark ? "#e6e6ea" : "#1f2328"),
+      fg: label || (dark ? "#e6e6ea" : "#1f2328"),
       selection: palette.selection,
       highlight: palette.highlight
     };
@@ -595,6 +635,8 @@ var __dshReaderBundle = (() => {
     paletteSepia: "羊皮纸",
     paletteGreen: "护眼绿",
     paletteNight: "夜间",
+    paletteGlass: "毛玻璃",
+    blur: "模糊",
     companion: "伴读",
     chatEmpty: "针对这本书提问，或在正文中选中文字后点“问伴读”。",
     chatSessionLost: "伴读会话已归档或不存在；发送消息会自动新建会话。",
@@ -808,6 +850,8 @@ var __dshReaderBundle = (() => {
     paletteSepia: "Sepia",
     paletteGreen: "Green",
     paletteNight: "Night",
+    paletteGlass: "Frosted glass",
+    blur: "Blur",
     companion: "Companion",
     chatEmpty: "Ask about this book, or select text and choose Ask companion.",
     chatSessionLost: "The companion session was archived or no longer exists; sending a message will create a new one.",
@@ -962,7 +1006,16 @@ var __dshReaderBundle = (() => {
 
   // src/client/styles.ts
   var CSS = `
-.dsh-readpilot-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-size:14px}
+.dsh-readpilot-panel{height:100%;min-height:0;display:flex;flex-direction:column;background:transparent;color:var(--dsw-alias-label-primary);font-size:14px}
+.dsh-readpilot-library{background:rgba(240,243,248,.5);box-shadow:inset 0 0 0 1px rgba(15,23,42,.05);-webkit-backdrop-filter:blur(4px) saturate(130%);backdrop-filter:blur(4px) saturate(130%)}
+body[data-ds-dark-theme] .dsh-readpilot-library{background:rgba(0,0,0,.50);box-shadow:inset 0 0 0 1px rgba(255,255,255,.05)}
+.dsh-readpilot-setup{background:rgba(240,243,248,.5)}
+body[data-ds-dark-theme] .dsh-readpilot-setup{background:rgba(0,0,0,.50)}
+.dsh-readpilot-book{background:var(--dsw-alias-bg-base)}
+.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-reader{background:var(--reader-bg);-webkit-backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%);backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%)}
+.dsh-readpilot-panel{--dsh-readpilot-surface:rgba(240,243,248,.5)}
+body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0,.5)}
+.dsh-readpilot-panel[data-palette="auto"] .dsh-readpilot-reader,.dsh-readpilot-panel[data-palette="auto"] .dsh-readpilot-visual{background:var(--dsh-readpilot-surface)}
 .dsh-readpilot-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-header-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .dsh-readpilot-header-actions{display:flex;align-items:center;gap:6px;flex:none}
@@ -1232,6 +1285,9 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-epub-bar{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px}
 .dsh-readpilot-epub-title{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
 .dsh-readpilot-palette-select{height:28px;max-width:112px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-blur-control{display:flex;align-items:center;gap:6px;color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-blur-control input[type="range"]{width:84px;accent-color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-blur-value{min-width:34px;text-align:right;font-variant-numeric:tabular-nums}
 .dsh-readpilot-pdf-page{position:relative;margin:0 auto;flex:none;background:#fff;box-shadow:0 4px 24px rgba(0,0,0,.22)}
 .dsh-readpilot-pdf-page img{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none}
 .dsh-readpilot-pdf-text{position:absolute;inset:0;overflow:hidden;line-height:1;z-index:1}
@@ -3628,6 +3684,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     onBack,
     paletteId,
     onChangePalette,
+    glassBlur,
+    onChangeGlassBlur,
     searchOpen,
     onToggleSearch,
     onToggleChat,
@@ -3658,6 +3716,21 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       h(
         "div",
         { className: "dsh-readpilot-header-actions" },
+        screen.kind === "book" && paletteId === "glass" ? h(
+          "label",
+          { className: "dsh-readpilot-blur-control", title: t("blur") },
+          h("span", null, t("blur")),
+          h("input", {
+            type: "range",
+            min: 0,
+            max: 80,
+            step: 1,
+            value: glassBlur,
+            "aria-label": t("blur"),
+            onChange: (event) => onChangeGlassBlur(Number(event.target.value))
+          }),
+          h("span", { className: "dsh-readpilot-blur-value" }, `${glassBlur}px`)
+        ) : null,
         screen.kind === "book" ? h("select", {
           className: "dsh-readpilot-palette-select",
           value: paletteId,
@@ -6169,6 +6242,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const [fontSize, setFontSize] = React.useState(17);
       const [selection, setSelection] = React.useState(null);
       const [paletteId, setPaletteId] = React.useState(readPaletteId);
+      const [glassBlur, setGlassBlur] = React.useState(readGlassBlur);
       const palette = resolveReaderPalette(paletteId);
       const format = screen.kind === "book" ? screen.detail.book.format : null;
       const isTextFormat = format === "txt" || format === "md";
@@ -6187,6 +6261,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           setBusy(false);
         }
       }, [t]);
+      React.useEffect(() => {
+        saveGlassBlur(glassBlur);
+      }, [glassBlur]);
       const changePalette = React.useCallback((id) => {
         if (!READER_PALETTES[id]) return;
         setPaletteId(id);
@@ -6954,13 +7031,15 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         "div",
         {
           className: "dsh-readpilot-panel",
+          "data-palette": palette.id,
           style: {
             "--reader-bg": palette.bg,
             "--reader-fg": palette.fg,
             "--reader-muted": palette.muted,
             "--reader-border": palette.border,
             "--reader-selection": palette.selection,
-            "--reader-highlight": palette.highlight
+            "--reader-highlight": palette.highlight,
+            "--reader-glass-blur": `${glassBlur}px`
           }
         },
         h(Header, {
@@ -6971,6 +7050,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           onBack: backToLibrary,
           paletteId,
           onChangePalette: changePalette,
+          glassBlur,
+          onChangeGlassBlur: setGlassBlur,
           searchOpen,
           onToggleSearch: toggleSearch,
           onToggleChat: () => setChatOpen((previous) => !previous),
@@ -7048,6 +7129,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       READER_PALETTE_IDS,
       READER_PALETTES,
       resolveReaderPalette,
+      normalizeGlassBlur,
+      DEFAULT_GLASS_BLUR,
       findNoteOccurrence,
       apply(ctx) {
         runtime = ctx;
