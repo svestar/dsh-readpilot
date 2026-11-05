@@ -4,7 +4,12 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/api.ts'
-import { registerTools } from '../src/tools.ts'
+import { losslessJson, registerTools } from '../src/tools.ts'
+
+/** DSH only accepts tool results that survive a JSON round trip. */
+function assertLossless(value: unknown) {
+  assert.deepEqual(JSON.parse(JSON.stringify(value)), value)
+}
 
 function fakeContext(tools: any) {
   const workspaces: any[] = []
@@ -65,6 +70,8 @@ test('tools_read_bounded', async t => {
   })
   assert.equal(appended.draft.noteId, 'book')
   assert.equal(appended.draft.action, 'append')
+  assertLossless(appended)
+  assert.equal('error' in appended, false)
   await api.setAutoApplyNotes({ enabled: true })
   const autoApplied = await registered.get('reader_notes')!.execute({
     action: 'append',
@@ -73,15 +80,18 @@ test('tools_read_bounded', async t => {
     text: '自动应用',
   })
   assert.equal(autoApplied.applied, true)
+  assertLossless(autoApplied)
   await api.setAutoApplyNotes({ enabled: false })
   const memory = await registered.get('reader_memory')!.execute({ action: 'read', book: state.books[0].title })
   assert.equal(memory.effective, 'ask')
   assert.equal(memory.bookCard, '')
+  assertLossless(memory)
   const context = await registered.get('reader_context')!.execute({ book: state.books[0].title })
   assert.equal(context.title, 'long')
   assert.equal(context.format, 'txt')
   assert.ok(Array.isArray(context.toc))
   assert.match(context.toc[0].jumpUrl, /dsh-readpilot\.invalid\/jump\?book=/)
+  assertLossless(context)
   const read = registered.get('reader_read')!
   const value = await read.execute({ book: state.books[0].title, chapter: 'c001', limit: 300 })
   assert.equal(value.text.length, 300)
@@ -97,12 +107,22 @@ test('tools_read_bounded', async t => {
     note: '我的想法',
   })
   assert.match(added.note.id, /^note-/)
+  assertLossless(added)
   const listed = await noteTool.execute({ action: 'list', book: state.books[0].title })
   assert.equal(listed.notes.length, 1)
   assert.equal(listed.notes[0].note, '我的想法')
+  assertLossless(listed)
 
   const books = await registered.get('reader_books')!.execute({})
   assert.equal(books.books.length, 1)
+  assertLossless(books)
   dispose()
   assert.equal(registered.size, 0)
+})
+
+test('tool_values_are_lossless_json', () => {
+  assert.deepEqual(
+    losslessJson({ kept: 1, dropped: undefined, nested: [1, undefined, Number.NaN], zero: -0 }),
+    { kept: 1, nested: [1, null, null], zero: 0 },
+  )
 })

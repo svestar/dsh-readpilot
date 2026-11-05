@@ -3,7 +3,7 @@
 - **ID：** FTR-004
 - **名称：** Agent 工具
 - **状态：** active
-- **代码：** `src/tools.ts`（`registerTools`、`reader_notes`、`reader_memory`）；`src/api.ts`（`toolBooks`、`toolOpen`、`toolContext`、`toolRead`、`toolSearch`、`toolNote`、`toolNoteFiles`、`noteDraftCreate`、`memoryTool`）
+- **代码：** `src/tools.ts`（`registerTools`、`losslessJson`、`reader_notes`、`reader_memory`）；`src/api.ts`（`toolBooks`、`toolOpen`、`toolContext`、`toolRead`、`toolSearch`、`toolNote`、`toolNoteFiles`、`noteDraftCreate`、`memoryTool`）
 - **测试：** `tests/tools.test.ts`
 
 ## 行为
@@ -24,12 +24,14 @@ Host 插件向 `ctx.tools` 注册八个全局工具：`reader_books` 列出书�
 | `toolNoteFiles` | `src/api.ts:toolNoteFiles` | 工具侧的 list/read 长笔记 |
 | `noteDraftCreate` | `src/api.ts:noteDraftCreate` | 工具侧生成草稿；自动应用开启时立即应用 |
 | `memoryTool` | `src/api.ts:memoryTool` | 工具侧读取/更新/忘记记忆 |
+| `losslessJson` | `src/tools.ts:losslessJson` | 注册前把结果归一为无损 JSON |
 
 ## 约束与失败行为
 
-工具依赖用户已配置书库；找不到书时返回 `{ error }`，不抛到工具层。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，超过上限的结果以 `truncated` 标记。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 只在记忆开启时写入；`ask` 模式生成待确认提议，`off` 模式拒绝更新。`reader_note` 仍按用户明确要求写短笔记。
+工具依赖用户已配置书库；找不到书时返回 `{ error }`，不抛到工具层。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，超过上限的结果以 `truncated` 标记。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 只在记忆开启时写入；`ask` 模式生成待确认提议，`off` 模式拒绝更新。`reader_note` 仍按用户明确要求写短笔记。工具结果在返回前归一为无损 JSON：丢弃 `undefined` 字段，非有限数与 `-0` 分别转成 `null` 与 `0`，否则 DSH 会以 invalid output 拒绝整次调用。
 
 ## 验收与测试
 
 - 正常路径：`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符（`tools_read_bounded`）。
 - 正常路径：工具列表包含 `reader_notes` 与 `reader_memory`，空书库下 index 返回空、memory read 返回默认 `ask`（`tools_read_bounded`）。
+- 边界：工具结果丢弃 `undefined`，数组中的空位转 `null`，可无损 JSON 往返（`tool_values_are_lossless_json`）。
