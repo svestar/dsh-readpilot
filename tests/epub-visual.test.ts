@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
 import { createEpubVisual } from '../src/visual/epub.ts'
+import { visualForChapter } from '../src/client/reader-screen.ts'
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
@@ -98,4 +99,14 @@ test('epub_visual_asset_urls_and_path_guard', async t => {
     () => visual.readAsset({ bookId: 'book1', filePath, path: '../secret.txt' }),
     /invalid EPUB path|escapes/,
   )
+})
+
+test('visual_target_restores_epub_frame', () => {
+  const detail = {
+    book: { format: 'epub' },
+    toc: [{ id: 'e1', title: '一章', href: 'text/ch1.xhtml' }, { id: 'e2', title: '无链接' }],
+  } as any
+  assert.deepEqual(visualForChapter(detail, 'e1'), { kind: 'epub', href: 'text/ch1.xhtml' })
+  assert.equal(visualForChapter(detail, 'e2'), null)
+  assert.equal(visualForChapter(detail, undefined), null)
 })

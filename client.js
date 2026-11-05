@@ -4642,6 +4642,20 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
   function rememberReaderScreen(screen) {
     lastScreen = screen;
   }
+  function visualForItem(detail, item) {
+    if (!detail || !item) return null;
+    if (detail.book.format === "pdf") {
+      return { kind: "pdf", page: Number.isInteger(item.page) ? item.page : 1, scale: 1.5 };
+    }
+    if (detail.book.format === "epub" && typeof item.href === "string" && item.href) {
+      return { kind: "epub", href: item.href };
+    }
+    return null;
+  }
+  function visualForChapter(detail, chapterId) {
+    if (!detail || !chapterId) return null;
+    return visualForItem(detail, detail.toc.find((item) => item.id === chapterId));
+  }
 
   // src/client/hooks/use-long-notes.ts
   function useLongNotes({ call, t, activeBookId, notesTabActive }) {
@@ -5965,16 +5979,6 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         busy: autoApplyBusy,
         toggle: toggleAutoApply
       };
-      const visualFor = React.useCallback((detail, item) => {
-        if (!detail || !item) return null;
-        if (detail.book.format === "pdf") {
-          return { kind: "pdf", page: Number.isInteger(item.page) ? item.page : 1, scale: 1.5 };
-        }
-        if (detail.book.format === "epub" && typeof item.href === "string" && item.href) {
-          return { kind: "epub", href: item.href };
-        }
-        return null;
-      }, []);
       const openBook = React.useCallback(async (book) => {
         setBusy(true);
         setError("");
@@ -5991,14 +5995,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
             return;
           }
           const content = await call("chapter", { bookId: book.id, chapterId: target.id });
-          setVisual(visualFor(detail, target));
+          setVisual(visualForItem(detail, target));
           setScreen({ kind: "book", detail, content });
         } catch (cause) {
           setError(`${t("loadFailed")}：${messageOf(cause)}`);
         } finally {
           setBusy(false);
         }
-      }, [t, visualFor]);
+      }, [t]);
       const selectChapter = React.useCallback(async (bookId, chapterId, target) => {
         setSelection(null);
         setBusy(true);
@@ -6012,8 +6016,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           } : null;
           setScreen((previous) => previous.kind === "book" ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content } : previous);
           if (screen.kind === "book") {
-            const item = screen.detail.toc.find((entry) => entry.id === chapterId);
-            setVisual(visualFor(screen.detail, item));
+            setVisual(visualForChapter(screen.detail, chapterId));
           }
           const toc2 = screen.kind === "book" ? screen.detail.toc : [];
           const index = toc2.findIndex((item) => item.id === chapterId);
@@ -6025,7 +6028,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         } finally {
           setBusy(false);
         }
-      }, [screen, t, visualFor]);
+      }, [screen, t]);
       const jumpToPage = React.useCallback((page) => {
         if (screen.kind !== "book" || screen.detail.book.format !== "pdf") return;
         const items = screen.detail.toc.filter((item) => typeof item.page === "number" && item.page > 0);
@@ -6095,6 +6098,10 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         readingMode: effectiveMode,
         layout: pageLayout
       });
+      React.useEffect(() => {
+        if (screen.kind !== "book" || visual) return;
+        setVisual(visualForChapter(screen.detail, screen.content.chapterId));
+      }, [screen, setVisual, visual]);
       const textPageWidth = usePageWidth({
         enabled: isTextFormat,
         containerRef: contentRef

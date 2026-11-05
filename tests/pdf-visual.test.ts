@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createPdfPageRenderer } from '../src/visual/pdf.ts'
 import { parsePdf } from '../src/formats/pdf.ts'
+import { visualForChapter } from '../src/client/reader-screen.ts'
 
 function makePdf(text: string) {
   const stream = `BT /F1 24 Tf 100 700 Td (${text}) Tj ET`
@@ -116,4 +117,15 @@ test('parse_pdf_outline_hierarchy', async () => {
     { title: 'Chapter One', level: 0, page: 1 },
     { title: 'Section A', level: 1, page: 2 },
   ])
+})
+
+test('visual_target_restores_pdf_page', () => {
+  const detail = {
+    book: { format: 'pdf' },
+    toc: [{ id: 'c1', title: '第一章', page: 12 }, { id: 'c2', title: '无页码' }],
+  } as any
+  assert.deepEqual(visualForChapter(detail, 'c1'), { kind: 'pdf', page: 12, scale: 1.5 })
+  assert.deepEqual(visualForChapter(detail, 'c2'), { kind: 'pdf', page: 1, scale: 1.5 })
+  assert.equal(visualForChapter(detail, 'missing'), null)
+  assert.equal(visualForChapter({ ...detail, book: { format: 'txt' } }, 'c1'), null)
 })

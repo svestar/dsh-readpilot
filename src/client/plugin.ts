@@ -42,7 +42,7 @@ import { NativeCompanion, createNativeChatBoundary } from './views/native-compan
 import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
-import { currentReaderScreen, rememberReaderScreen } from './reader-screen.ts'
+import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -51,7 +51,6 @@ import { useVisual } from './hooks/use-visual.ts'
 import { columnsFor, pageSpanWidth } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 import type {
-  BookDetail,
   ClientBook,
   PendingScroll,
   Screen,
@@ -59,7 +58,6 @@ import type {
   Snapshot,
   TextFn,
   TocItem,
-  Visual,
 } from './types.ts'
 import type { CallRpc } from '../rpc.ts'
 
@@ -319,17 +317,6 @@ export function createPlugin(require: (name: string) => any) {
         toggle: toggleAutoApply,
       }
 
-      const visualFor = React.useCallback((detail: BookDetail, item: TocItem | undefined): Visual | null => {
-        if (!detail || !item) return null
-        if (detail.book.format === 'pdf') {
-          return { kind: 'pdf', page: Number.isInteger(item.page) ? item.page! : 1, scale: 1.5 }
-        }
-        if (detail.book.format === 'epub' && typeof item.href === 'string' && item.href) {
-          return { kind: 'epub', href: item.href }
-        }
-        return null
-      }, [])
-
       const openBook = React.useCallback(async (book: ClientBook) => {
         setBusy(true)
         setError('')
@@ -346,14 +333,14 @@ export function createPlugin(require: (name: string) => any) {
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
-          setVisual(visualFor(detail, target))
+          setVisual(visualForItem(detail, target))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
           setBusy(false)
         }
-      }, [t, visualFor])
+      }, [t])
 
       const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: { blockIndex?: number; offset?: number; flash?: boolean }) => {
         setSelection(null)
@@ -374,8 +361,7 @@ export function createPlugin(require: (name: string) => any) {
             ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
             : previous)
           if (screen.kind === 'book') {
-            const item = screen.detail.toc.find(entry => entry.id === chapterId)
-            setVisual(visualFor(screen.detail, item))
+            setVisual(visualForChapter(screen.detail, chapterId))
           }
           const toc = screen.kind === 'book' ? screen.detail.toc : []
           const index = toc.findIndex(item => item.id === chapterId)
@@ -386,7 +372,7 @@ export function createPlugin(require: (name: string) => any) {
         } finally {
           setBusy(false)
         }
-      }, [screen, t, visualFor])
+      }, [screen, t])
 
       const jumpToPage = React.useCallback((page: number) => {
         if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf') return
@@ -463,6 +449,13 @@ export function createPlugin(require: (name: string) => any) {
         readingMode: effectiveMode,
         layout: pageLayout,
       })
+
+      // The panel remounts when switching DSH pages; restored screens must rebuild
+      // the visual state or a PDF reader falls back to the text pager.
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || visual) return
+        setVisual(visualForChapter(screen.detail, screen.content.chapterId))
+      }, [screen, setVisual, visual])
 
       const textPageWidth = usePageWidth({
         enabled: isTextFormat,

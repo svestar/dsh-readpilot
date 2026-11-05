@@ -8,7 +8,7 @@
 
 ## 行为
 
-打开 EPUB 时，Host 把资源解压到 `$DSH_HOME/dsh-readpilot/assets/<bookId>/`，按 OPF 解析目录与 spine。Client 用 iframe 加载 `/api/dsh-readpilot/epub-doc`，Host 返回清洗后的章节 XHTML，并把 CSS、图片、字体 URL 改写为 `/api/dsh-readpilot/epub-asset`，因此原书 CSS/图片/字体得以保留。打开时默认滚动阅读；共享工具栏可切到分页，分页在 iframe 内按一或两栏排版，并用滚轮或按钮翻页，章节边界切到相邻章节。滚动与单页分页时 iframe 采用按阅读区内容高度推导的 A4 页宽并水平居中；双页分页的 iframe 跨度为 `2 × A4 页宽 + 40px`，居中并在窄屏用 `max-width: 100%` 夹取。iframe 宽度变化后分页重新测量栏宽与页数。目录点击切换 iframe；滚动模式下上一章/下一章切换章节。父页面读取 iframe 选区，选段可预填伴读或建笔记。搜索/笔记点击切换到对应章节，笔记在 iframe 内高亮并滚动定位。分页布局、页码与滚轮行为见 [FTR-019](FTR-019-paged-reading.md)。
+打开 EPUB 时，Host 把资源解压到 `$DSH_HOME/dsh-readpilot/assets/<bookId>/`，按 OPF 解析目录与 spine。Client 用 iframe 加载 `/api/dsh-readpilot/epub-doc`，Host 返回清洗后的章节 XHTML，并把 CSS、图片、字体 URL 改写为 `/api/dsh-readpilot/epub-asset`，因此原书 CSS/图片/字体得以保留。打开时默认滚动阅读；共享工具栏可切到分页，分页在 iframe 内按一或两栏排版，并用滚轮或按钮翻页，章节边界切到相邻章节。滚动与单页分页时 iframe 采用按阅读区内容高度推导的 A4 页宽并水平居中；双页分页的 iframe 跨度为 `2 × A4 页宽 + 40px`，居中并在窄屏用 `max-width: 100%` 夹取。iframe 宽度变化后分页重新测量栏宽与页数。目录点击切换 iframe；滚动模式下上一章/下一章切换章节。父页面读取 iframe 选区，选段可预填伴读或建笔记。搜索/笔记点击切换到对应章节，笔记在 iframe 内高亮并滚动定位。分页布局、页码与滚轮行为见 [FTR-019](FTR-019-paged-reading.md)。面板重新挂载（例如切到其他 DSH 页面再返回）时，按恢复的当前章节重建 iframe，不会退回纯文本阅读。
 
 ## 接口与代码映射
 
@@ -31,3 +31,4 @@ iframe 使用 `sandbox="allow-same-origin"`，不启用 `allow-scripts`；原书
 - 正常路径：解压 EPUB 后得到标题、作者与 spine href（`epub_visual_prepare_spine`）。
 - 安全：章节 HTML 中的 script/onclick 被移除，图片与章节链接被改写（`epub_visual_sanitizes_document`）。
 - 正常路径/边界：CSS 内 `url()` 改写为资源路由，图片字节可读取，`../` 路径被拒绝（`epub_visual_asset_urls_and_path_guard`）。
+- 正常路径：按章节恢复 EPUB 的 iframe 目标，无 href 时返回空（`visual_target_restores_epub_frame`）。
