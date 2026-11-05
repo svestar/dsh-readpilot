@@ -7,6 +7,7 @@ import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
 import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
+import { createLimiter } from './limit.ts'
 import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
 import type { NoteFileStore } from './note-files.ts'
@@ -45,6 +46,8 @@ const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
 const PDF_COVER_SCALE = 0.5
+const MAX_CONCURRENT_COVERS = 4
+const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
 const MAX_SEARCH_BOOKS = 20
 
 export interface ReaderContext {
@@ -1351,17 +1354,19 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   async function cover({ bookId }: any = {}): Promise<{ bytes: Buffer; contentType: string }> {
     const book = await resolveBook(bookId)
-    if (book.format === 'epub') {
-      const visual = await getEpubVisual()
-      const result = await visual.cover({ bookId: book.id, filePath: book.path })
-      if (!result) throw new ReaderError('no-cover', '这本书没有封面')
-      return result
-    }
-    if (book.format === 'pdf') {
-      const page = await pdfPage({ bookId: book.id, page: 1, scale: PDF_COVER_SCALE })
-      return { bytes: page.png, contentType: page.contentType }
-    }
-    throw new ReaderError('no-cover', '这本书没有封面')
+    return coverLimit(async () => {
+      if (book.format === 'epub') {
+        const visual = await getEpubVisual()
+        const result = await visual.cover({ bookId: book.id, filePath: book.path })
+        if (!result) throw new ReaderError('no-cover', '这本书没有封面')
+        return result
+      }
+      if (book.format === 'pdf') {
+        const page = await pdfPage({ bookId: book.id, page: 1, scale: PDF_COVER_SCALE })
+        return { bytes: page.png, contentType: page.contentType }
+      }
+      throw new ReaderError('no-cover', '这本书没有封面')
+    })
   }
 
   async function epubDocument({ bookId, href }: any = {}): Promise<EpubDocumentResult> {

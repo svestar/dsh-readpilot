@@ -63,6 +63,7 @@ export const CHAT_WIDTH_KEY = 'dsh-readpilot.chat-width'
 export const READER_PALETTE_KEY = 'dsh-readpilot.palette'
 export const READING_MODE_KEY = 'dsh-readpilot.reading-mode'
 export const PAGE_LAYOUT_KEY = 'dsh-readpilot.page-layout'
+export const COVERS_ENABLED_KEY = 'dsh-readpilot.covers'
 export const DEFAULT_READING_MODE: ReaderMode = 'paged'
 export const DEFAULT_PAGE_LAYOUT: PageLayout = 'single'
 
@@ -170,6 +171,22 @@ export function saveReadingMode(mode: ReaderMode): void {
     window.localStorage.setItem(READING_MODE_KEY, mode)
   } catch {
     // Reading-mode persistence is best effort.
+  }
+}
+
+export function readCoversEnabled(): boolean {
+  try {
+    return window.localStorage.getItem(COVERS_ENABLED_KEY) !== 'off'
+  } catch {
+    return true
+  }
+}
+
+export function saveCoversEnabled(enabled: boolean): void {
+  try {
+    window.localStorage.setItem(COVERS_ENABLED_KEY, enabled ? 'on' : 'off')
+  } catch {
+    // Cover preference persistence is best effort.
   }
 }
 

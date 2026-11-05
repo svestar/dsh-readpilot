@@ -1,5 +1,5 @@
 import { React, h } from '../runtime.ts'
-import { formatSize } from '../helpers.ts'
+import { formatSize, readCoversEnabled, saveCoversEnabled } from '../helpers.ts'
 import {
   bookRating,
   bookStatus,
@@ -199,13 +199,15 @@ interface BookCardProps {
   tags: string[]
   status: string | null
   rating: number
+  showCover: boolean
   onOpen: (book: ClientBook) => void
   onEditTags: (book: ClientBook) => void
 }
 
-function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCardProps) {
+function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags }: BookCardProps) {
   const label = statusLabel(t, status)
-  const [coverFailed, setCoverFailed] = React.useState(false)
+  const [coverState, setCoverState] = React.useState<'loading' | 'ready' | 'error'>('loading')
+  const showImage = showCover && coverState !== 'error'
   return h('div', {
     className: 'dsh-readpilot-book-card',
     'data-format': book.format,
@@ -215,8 +217,8 @@ function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCar
     className: 'dsh-readpilot-book-open',
     onClick: () => onOpen(book),
   },
-  h('div', { className: 'dsh-readpilot-book-cover' },
-    coverFailed
+  h('div', { className: 'dsh-readpilot-book-cover', 'data-cover': coverState },
+    !showImage
       ? h('div', { className: 'dsh-readpilot-book-cover-fallback' },
         h('span', { className: 'dsh-readpilot-book-format' }, book.format.toUpperCase()),
         h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title))
@@ -225,8 +227,17 @@ function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCar
         src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
         alt: '',
         loading: 'lazy',
-        onError: () => setCoverFailed(true),
-      })),
+        decoding: 'async',
+        onLoad: () => setCoverState('ready'),
+        onError: () => setCoverState('error'),
+      }),
+    showCover && coverState === 'loading'
+      ? h('span', {
+        className: 'dsh-readpilot-book-cover-spinner',
+        role: 'status',
+        'aria-label': t('loading'),
+      })
+      : null),
   h('div', { className: 'dsh-readpilot-book-info' },
     h('div', { className: 'dsh-readpilot-book-title' }, book.title),
     h('div', { className: 'dsh-readpilot-book-meta' },
@@ -272,6 +283,13 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
   const [category, setCategory] = React.useState('all')
   const [query, setQuery] = React.useState('')
   const [sort, setSort] = React.useState('recent')
+  const [coversEnabled, setCoversEnabled] = React.useState(readCoversEnabled)
+  const toggleCovers = React.useCallback(() => {
+    setCoversEnabled(previous => {
+      saveCoversEnabled(!previous)
+      return !previous
+    })
+  }, [])
   const [tagEditor, setTagEditor] = React.useState<{ book: ClientBook; initialTags: string[] } | null>(null)
   const counts = React.useMemo(() => categoryCounts(books, tags, statuses), [books, tags, statuses])
   const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags])
@@ -342,7 +360,14 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
         h('option', { value: 'recent' }, t('sortRecent')),
         h('option', { value: 'title' }, t('sortTitle')),
         h('option', { value: 'size' }, t('sortSize')),
-        h('option', { value: 'added' }, t('sortAdded')))),
+        h('option', { value: 'added' }, t('sortAdded'))),
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-cover-toggle',
+          'data-active': coversEnabled ? 'true' : 'false',
+          title: coversEnabled ? t('hideCovers') : t('showCovers'),
+          onClick: toggleCovers,
+        }, coversEnabled ? t('hideCovers') : t('showCovers'))),
       books.length === 0
         ? h('div', { className: 'dsh-readpilot-empty' },
           h('h2', null, t('empty')),
@@ -362,6 +387,7 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
                   tags: bookTags(book.id, tags),
                   status: bookStatus(book.id, statuses),
                   rating: bookRating(book.id, ratings),
+                  showCover: coversEnabled,
                   onOpen,
                   onEditTags: (entry: ClientBook) => setTagEditor({
                     book: entry,

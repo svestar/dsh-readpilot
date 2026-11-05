@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
 import { createReaderApi } from '../src/api.ts'
+import { createLimiter } from '../src/limit.ts'
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
@@ -100,4 +101,38 @@ test('cover_reads_epub_and_pdf', async t => {
   assert.equal(pdfCover.bytes.subarray(0, 4).toString('hex'), '89504e47')
 
   await assert.rejects(() => api.cover({ bookId: txt.id }), /封面/)
+})
+function deferred() {
+  let resolve!: () => void
+  const promise = new Promise<void>(done => { resolve = done })
+  return { promise, resolve }
+}
+
+test('limiter_caps_concurrency', async () => {
+  const run = createLimiter(2)
+  let active = 0
+  let peak = 0
+  const gates = [deferred(), deferred(), deferred(), deferred()]
+  const tasks = gates.map(gate => run(async () => {
+    active += 1
+    peak = Math.max(peak, active)
+    await gate.promise
+    active -= 1
+    return true
+  }))
+
+  await new Promise(resolve => setTimeout(resolve, 0))
+  assert.equal(peak, 2)
+  assert.equal(active, 2)
+
+  for (const gate of gates) gate.resolve()
+  assert.deepEqual(await Promise.all(tasks), [true, true, true, true])
+  assert.equal(peak, 2)
+  assert.equal(active, 0)
+})
+
+test('limiter_releases_slot_after_failure', async () => {
+  const run = createLimiter(1)
+  await assert.rejects(() => run(async () => { throw new Error('boom') }), /boom/)
+  assert.equal(await run(async () => 'next'), 'next')
 })

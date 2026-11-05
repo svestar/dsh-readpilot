@@ -77,6 +77,7 @@ var __dshReaderBundle = (() => {
   var READER_PALETTE_KEY = "dsh-readpilot.palette";
   var READING_MODE_KEY = "dsh-readpilot.reading-mode";
   var PAGE_LAYOUT_KEY = "dsh-readpilot.page-layout";
+  var COVERS_ENABLED_KEY = "dsh-readpilot.covers";
   var DEFAULT_READING_MODE = "paged";
   var DEFAULT_PAGE_LAYOUT = "single";
   var READER_PALETTE_IDS = ["auto", "light", "dark", "sepia", "green", "night"];
@@ -164,6 +165,19 @@ var __dshReaderBundle = (() => {
   function saveReadingMode(mode) {
     try {
       window.localStorage.setItem(READING_MODE_KEY, mode);
+    } catch {
+    }
+  }
+  function readCoversEnabled() {
+    try {
+      return window.localStorage.getItem(COVERS_ENABLED_KEY) !== "off";
+    } catch {
+      return true;
+    }
+  }
+  function saveCoversEnabled(enabled) {
+    try {
+      window.localStorage.setItem(COVERS_ENABLED_KEY, enabled ? "on" : "off");
     } catch {
     }
   }
@@ -535,6 +549,8 @@ var __dshReaderBundle = (() => {
     noTags: "还没有标签",
     tagTooLong: "标签不能超过 24 个字符",
     searchLibrary: "搜索书名或标签…",
+    showCovers: "显示封面",
+    hideCovers: "隐藏封面",
     sortBy: "排序",
     sortRecent: "最近阅读",
     sortTitle: "书名",
@@ -746,6 +762,8 @@ var __dshReaderBundle = (() => {
     noTags: "No tags yet",
     tagTooLong: "Tags cannot exceed 24 characters",
     searchLibrary: "Search title or tag…",
+    showCovers: "Show covers",
+    hideCovers: "Hide covers",
     sortBy: "Sort",
     sortRecent: "Recently read",
     sortTitle: "Title",
@@ -987,6 +1005,9 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-library-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px}
 .dsh-readpilot-library-search{flex:1;min-width:120px;height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
 .dsh-readpilot-library-search:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
+.dsh-readpilot-cover-toggle{height:32px;padding:0 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.dsh-readpilot-cover-toggle:hover{color:var(--dsw-alias-label-primary);border-color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-cover-toggle[data-active="false"]{opacity:.7}
 .dsh-readpilot-library-scroll{flex:1;min-height:0;overflow:auto;padding-right:4px}
 .dsh-readpilot-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
 .dsh-readpilot-section-head h3{margin:0;font-size:13px;font-weight:650}
@@ -1002,6 +1023,10 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
 .dsh-readpilot-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
 .dsh-readpilot-book-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px;box-sizing:border-box}
+.dsh-readpilot-book-cover-spinner{position:absolute;width:18px;height:18px;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:dsh-readpilot-cover-spin .8s linear infinite}
+.dsh-readpilot-book-cover[data-cover="ready"] .dsh-readpilot-book-cover-img{animation:dsh-readpilot-cover-fade .2s ease}
+@keyframes dsh-readpilot-cover-spin{to{transform:rotate(360deg)}}
+@keyframes dsh-readpilot-cover-fade{from{opacity:0}to{opacity:1}}
 .dsh-readpilot-book-cover-fallback{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;width:100%;height:100%}
 .dsh-readpilot-book-info{flex:1;padding:8px 10px 2px}
 .dsh-readpilot-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
@@ -1851,9 +1876,10 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       )
     );
   }
-  function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }) {
+  function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags }) {
     const label = statusLabel(t, status);
-    const [coverFailed, setCoverFailed] = React.useState(false);
+    const [coverState, setCoverState] = React.useState("loading");
+    const showImage = showCover && coverState !== "error";
     return h(
       "div",
       {
@@ -1869,8 +1895,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         },
         h(
           "div",
-          { className: "dsh-readpilot-book-cover" },
-          coverFailed ? h(
+          { className: "dsh-readpilot-book-cover", "data-cover": coverState },
+          !showImage ? h(
             "div",
             { className: "dsh-readpilot-book-cover-fallback" },
             h("span", { className: "dsh-readpilot-book-format" }, book.format.toUpperCase()),
@@ -1880,8 +1906,15 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
             alt: "",
             loading: "lazy",
-            onError: () => setCoverFailed(true)
-          })
+            decoding: "async",
+            onLoad: () => setCoverState("ready"),
+            onError: () => setCoverState("error")
+          }),
+          showCover && coverState === "loading" ? h("span", {
+            className: "dsh-readpilot-book-cover-spinner",
+            role: "status",
+            "aria-label": t("loading")
+          }) : null
         ),
         h(
           "div",
@@ -1928,6 +1961,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     const [category, setCategory] = React.useState("all");
     const [query, setQuery] = React.useState("");
     const [sort, setSort] = React.useState("recent");
+    const [coversEnabled, setCoversEnabled] = React.useState(readCoversEnabled);
+    const toggleCovers = React.useCallback(() => {
+      setCoversEnabled((previous) => {
+        saveCoversEnabled(!previous);
+        return !previous;
+      });
+    }, []);
     const [tagEditor, setTagEditor] = React.useState(null);
     const counts = React.useMemo(() => categoryCounts(books, tags, statuses), [books, tags, statuses]);
     const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags]);
@@ -2006,7 +2046,14 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             h("option", { value: "title" }, t("sortTitle")),
             h("option", { value: "size" }, t("sortSize")),
             h("option", { value: "added" }, t("sortAdded"))
-          )
+          ),
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-cover-toggle",
+            "data-active": coversEnabled ? "true" : "false",
+            title: coversEnabled ? t("hideCovers") : t("showCovers"),
+            onClick: toggleCovers
+          }, coversEnabled ? t("hideCovers") : t("showCovers"))
         ),
         books.length === 0 ? h(
           "div",
@@ -2035,6 +2082,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
                 tags: bookTags(book.id, tags),
                 status: bookStatus(book.id, statuses),
                 rating: bookRating(book.id, ratings),
+                showCover: coversEnabled,
                 onOpen,
                 onEditTags: (entry) => setTagEditor({
                   book: entry,
