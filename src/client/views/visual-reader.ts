@@ -21,6 +21,7 @@ interface VisualReaderProps {
   visual: Visual | null
   screen: Screen
   pageViews: PageView[]
+  loadedView: { bookId: string; page: number } | null
   layout: PageLayout
   readingMode?: ReaderMode
   stepPdfPage: (delta: number) => void
@@ -32,8 +33,27 @@ interface VisualReaderProps {
   epubFrameRef: MutableRef<HTMLIFrameElement | null>
 }
 
-function renderPdfTextItems(pageView: PageView) {
-  let offset = 0
+/** Keep the previous page visible until the next PNG has decoded, so paging does not blink. */
+function PdfPageImage({ src, alt }: { src: string; alt: string }) {
+  const [shown, setShown] = React.useState(src)
+  React.useEffect(() => {
+    if (src === shown) return
+    let cancelled = false
+    const image = new Image()
+    const settle = () => {
+      if (!cancelled) setShown(src)
+    }
+    image.onload = settle
+    image.onerror = settle
+    image.src = src
+    return () => {
+      cancelled = true
+    }
+  }, [shown, src])
+  return h('img', { src: shown, alt, draggable: false })
+}
+
+function renderPdfTextItems(pageView: PageView) {  let offset = 0
   return (pageView.textItems ?? []).map((item, index) => {
     const start = offset
     offset += item.text.length
@@ -57,6 +77,7 @@ export function VisualReader({
   visual,
   screen,
   pageViews,
+  loadedView,
   layout,
   readingMode = 'paged',
   stepPdfPage,
@@ -177,55 +198,59 @@ export function VisualReader({
   if (!visual) return null
   if (screen.kind !== 'book') return null
   if (visual.kind === 'pdf') {
+    const bookId = screen.detail.book.id
+    const loadedPage = loadedView && loadedView.bookId === bookId ? loadedView.page : null
     return h('div', {
       className: 'dsh-readpilot-visual',
       'data-paged': 'true',
       'data-layout': layout,
       ref: containerRef,
     },
-    visualLoading
-      ? h('div', { className: 'dsh-readpilot-muted' }, t('loading'))
-      : visualError
-        ? h('div', { className: 'dsh-readpilot-visual-error' },
-          h('div', null, visualError),
-          h('div', { className: 'dsh-readpilot-reader-inner' },
-            renderBlocks(screen.content.blocks, screen.content.chapterId)))
-        : pageViews.length > 0
-          ? h('div', { className: 'dsh-readpilot-pdf-spread', ref: spreadRef },
-            pageViews.map((view, index) => h('div', {
-              key: `pdf-page-${visual.page + index}`,
-              className: 'dsh-readpilot-pdf-slot',
-              style: {
-                width: view.width * pdfFit,
-                height: view.height * pdfFit,
-                flex: 'none',
-                position: 'relative',
-              },
+    visualError
+      ? h('div', { className: 'dsh-readpilot-visual-error' },
+        h('div', null, visualError),
+        h('div', { className: 'dsh-readpilot-reader-inner' },
+          renderBlocks(screen.content.blocks, screen.content.chapterId)))
+      : loadedPage !== null && pageViews.length > 0
+        ? h('div', { className: 'dsh-readpilot-pdf-spread', ref: spreadRef },
+          pageViews.map((view, index) => h('div', {
+            key: `pdf-slot-${index}`,
+            className: 'dsh-readpilot-pdf-slot',
+            style: {
+              width: view.width * pdfFit,
+              height: view.height * pdfFit,
+              flex: 'none',
+              position: 'relative',
             },
-            h('div', {
-              className: 'dsh-readpilot-pdf-page',
-              'data-page': visual.page + index,
-              style: {
-                width: view.width,
-                height: view.height,
-                transform: `scale(${pdfFit})`,
-                transformOrigin: '0 0',
-              },
+          },
+          h('div', {
+            className: 'dsh-readpilot-pdf-page',
+            'data-page': loadedPage + index,
+            style: {
+              width: view.width,
+              height: view.height,
+              transform: `scale(${pdfFit})`,
+              transformOrigin: '0 0',
             },
-            h('img', {
-              src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
-              alt: screen.content.title,
-              draggable: false,
-            }),
-            h('div', {
-              className: 'dsh-readpilot-pdf-text',
-              onMouseUp: index === 0 ? onPdfMouseUp : undefined,
-            }, renderPdfTextItems(view)),
-            h('div', {
-              className: 'dsh-readpilot-note-layer',
-              ref: index === 0 ? noteLayerRef : undefined,
-            })))))
-          : null)
+          },
+          h(PdfPageImage, {
+            src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(bookId)}&page=${loadedPage + index}&scale=${visual.scale}`,
+            alt: screen.content.title,
+          }),
+          h('div', {
+            className: 'dsh-readpilot-pdf-text',
+            onMouseUp: index === 0 ? onPdfMouseUp : undefined,
+          }, renderPdfTextItems(view)),
+          h('div', {
+            className: 'dsh-readpilot-note-layer',
+            ref: index === 0 ? noteLayerRef : undefined,
+          })))))
+        : visualLoading
+          ? h('div', { className: 'dsh-readpilot-muted' }, t('loading'))
+          : null,
+    visualLoading && loadedPage !== null && !visualError
+      ? h('div', { className: 'dsh-readpilot-visual-loading' }, t('loading'))
+      : null)
   }
   return h('div', {
     className: 'dsh-readpilot-visual',

@@ -73,6 +73,7 @@ export function useVisual({
   const [visual, setVisual] = React.useState<Visual | null>(null)
   const [pageView, setPageView] = React.useState<PageView | null>(null)
   const [pageViews, setPageViews] = React.useState<PageView[]>([])
+  const [loadedView, setLoadedView] = React.useState<{ bookId: string; page: number } | null>(null)
   const [pdfPageCount, setPdfPageCount] = React.useState(0)
   const [pageInput, setPageInput] = React.useState('1')
   const [visualLoading, setVisualLoading] = React.useState(false)
@@ -106,6 +107,7 @@ export function useVisual({
       setPageView(null)
       setPageViews([])
       setPdfPageCount(0)
+      setLoadedView(null)
       return
     }
     let cancelled = false
@@ -128,6 +130,7 @@ export function useVisual({
       setPageView(first)
       setPdfPageCount(first.pageCount)
       setPageInput(String(page))
+      setLoadedView({ bookId, page })
     }
     void load()
       .catch((cause: unknown) => {
@@ -135,6 +138,7 @@ export function useVisual({
         setPageView(null)
         setPageViews([])
         setPdfPageCount(0)
+        setLoadedView(null)
         setVisualError(`${t('loadFailed')}：${messageOf(cause)}`)
       })
       .finally(() => {
@@ -433,6 +437,7 @@ export function useVisual({
     pageView,
     setPageView,
     pageViews,
+    loadedView,
     pdfPageCount,
     pageInput,
     setPageInput,

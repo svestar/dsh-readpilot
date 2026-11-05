@@ -255,7 +255,7 @@ export const CSS = `
 .dsh-readpilot-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
 .dsh-readpilot-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 .dsh-readpilot-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
-.dsh-readpilot-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
+.dsh-readpilot-visual{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
 .dsh-readpilot-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
 .dsh-readpilot-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
 .dsh-readpilot-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
@@ -269,6 +269,7 @@ export const CSS = `
 .dsh-readpilot-pdf-text-item::selection{background:var(--reader-selection,rgba(64,128,255,.35));color:transparent}
 .dsh-readpilot-reader ::selection{background:var(--reader-selection,rgba(64,128,255,.30))}
 .dsh-readpilot-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
+.dsh-readpilot-visual-loading{position:absolute;top:10px;right:16px;z-index:4;padding:2px 8px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:11px;pointer-events:none}
 .dsh-readpilot-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-readpilot-visual-error .dsh-readpilot-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
 .dsh-readpilot-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}

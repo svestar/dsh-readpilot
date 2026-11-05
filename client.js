@@ -1200,7 +1200,7 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-search-hint{padding:10px 2px 2px;color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.6}
 .dsh-readpilot-search-hint[data-error="true"]{color:var(--dsw-alias-state-error-primary)}
 .dsh-readpilot-reader{min-height:0;overflow:auto;padding:28px 40px 90px;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
-.dsh-readpilot-visual{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
+.dsh-readpilot-visual{position:relative;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;overflow:auto;padding:12px 20px 50px;background:var(--reader-bg,var(--dsw-alias-bg-base))}
 .dsh-readpilot-visual-bar{flex:none;display:flex;align-items:center;gap:8px;justify-content:center;flex-wrap:wrap;padding:2px 0}
 .dsh-readpilot-page-input{width:56px;height:28px;padding:0 6px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;text-align:center}
 .dsh-readpilot-page-total{color:var(--dsw-alias-label-secondary);font-size:12px}
@@ -1214,6 +1214,7 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-pdf-text-item::selection{background:var(--reader-selection,rgba(64,128,255,.35));color:transparent}
 .dsh-readpilot-reader ::selection{background:var(--reader-selection,rgba(64,128,255,.30))}
 .dsh-readpilot-epub-frame{flex:1;min-height:70vh;width:100%;border:0;background:#fff;border-radius:6px}
+.dsh-readpilot-visual-loading{position:absolute;top:10px;right:16px;z-index:4;padding:2px 8px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:11px;pointer-events:none}
 .dsh-readpilot-visual-error{display:flex;flex-direction:column;gap:16px;padding:20px;color:var(--dsw-alias-state-error-primary);font-size:13px}
 .dsh-readpilot-visual-error .dsh-readpilot-reader-inner{color:var(--dsw-alias-label-primary);max-width:760px;margin:0 auto}
 .dsh-readpilot-reader-inner{position:relative;box-sizing:border-box;max-width:760px;margin:0 auto;line-height:1.9;color:var(--reader-fg,var(--dsw-alias-label-primary))}
@@ -3143,6 +3144,24 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       height: element.clientHeight - paddingY
     };
   }
+  function PdfPageImage({ src, alt }) {
+    const [shown, setShown] = React.useState(src);
+    React.useEffect(() => {
+      if (src === shown) return;
+      let cancelled = false;
+      const image = new Image();
+      const settle = () => {
+        if (!cancelled) setShown(src);
+      };
+      image.onload = settle;
+      image.onerror = settle;
+      image.src = src;
+      return () => {
+        cancelled = true;
+      };
+    }, [shown, src]);
+    return h("img", { src: shown, alt, draggable: false });
+  }
   function renderPdfTextItems(pageView) {
     let offset = 0;
     return (pageView.textItems ?? []).map((item, index) => {
@@ -3167,6 +3186,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     visual,
     screen,
     pageViews,
+    loadedView,
     layout,
     readingMode = "paged",
     stepPdfPage,
@@ -3281,6 +3301,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     if (!visual) return null;
     if (screen.kind !== "book") return null;
     if (visual.kind === "pdf") {
+      const bookId = screen.detail.book.id;
+      const loadedPage = loadedView && loadedView.bookId === bookId ? loadedView.page : null;
       return h(
         "div",
         {
@@ -3289,7 +3311,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           "data-layout": layout,
           ref: containerRef
         },
-        visualLoading ? h("div", { className: "dsh-readpilot-muted" }, t("loading")) : visualError ? h(
+        visualError ? h(
           "div",
           { className: "dsh-readpilot-visual-error" },
           h("div", null, visualError),
@@ -3298,13 +3320,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             { className: "dsh-readpilot-reader-inner" },
             renderBlocks(screen.content.blocks, screen.content.chapterId)
           )
-        ) : pageViews.length > 0 ? h(
+        ) : loadedPage !== null && pageViews.length > 0 ? h(
           "div",
           { className: "dsh-readpilot-pdf-spread", ref: spreadRef },
           pageViews.map((view, index) => h(
             "div",
             {
-              key: `pdf-page-${visual.page + index}`,
+              key: `pdf-slot-${index}`,
               className: "dsh-readpilot-pdf-slot",
               style: {
                 width: view.width * pdfFit,
@@ -3317,7 +3339,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
               "div",
               {
                 className: "dsh-readpilot-pdf-page",
-                "data-page": visual.page + index,
+                "data-page": loadedPage + index,
                 style: {
                   width: view.width,
                   height: view.height,
@@ -3325,10 +3347,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
                   transformOrigin: "0 0"
                 }
               },
-              h("img", {
-                src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(screen.detail.book.id)}&page=${visual.page + index}&scale=${visual.scale}`,
-                alt: screen.content.title,
-                draggable: false
+              h(PdfPageImage, {
+                src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(bookId)}&page=${loadedPage + index}&scale=${visual.scale}`,
+                alt: screen.content.title
               }),
               h("div", {
                 className: "dsh-readpilot-pdf-text",
@@ -3340,7 +3361,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
               })
             )
           ))
-        ) : null
+        ) : visualLoading ? h("div", { className: "dsh-readpilot-muted" }, t("loading")) : null,
+        visualLoading && loadedPage !== null && !visualError ? h("div", { className: "dsh-readpilot-visual-loading" }, t("loading")) : null
       );
     }
     return h(
@@ -5676,6 +5698,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     const [visual, setVisual] = React.useState(null);
     const [pageView, setPageView] = React.useState(null);
     const [pageViews, setPageViews] = React.useState([]);
+    const [loadedView, setLoadedView] = React.useState(null);
     const [pdfPageCount, setPdfPageCount] = React.useState(0);
     const [pageInput, setPageInput] = React.useState("1");
     const [visualLoading, setVisualLoading] = React.useState(false);
@@ -5705,6 +5728,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setPageView(null);
         setPageViews([]);
         setPdfPageCount(0);
+        setLoadedView(null);
         return;
       }
       let cancelled = false;
@@ -5727,12 +5751,14 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setPageView(first);
         setPdfPageCount(first.pageCount);
         setPageInput(String(page));
+        setLoadedView({ bookId, page });
       };
       void load().catch((cause) => {
         if (cancelled) return;
         setPageView(null);
         setPageViews([]);
         setPdfPageCount(0);
+        setLoadedView(null);
         setVisualError(`${t("loadFailed")}：${messageOf(cause)}`);
       }).finally(() => {
         if (!cancelled) setVisualLoading(false);
@@ -6007,6 +6033,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       pageView,
       setPageView,
       pageViews,
+      loadedView,
       pdfPageCount,
       pageInput,
       setPageInput,
@@ -6367,6 +6394,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         pageView,
         setPageView,
         pageViews,
+        loadedView,
         pdfPageCount,
         pageInput,
         setPageInput,
@@ -6792,6 +6820,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         visual,
         screen,
         pageViews,
+        loadedView,
         layout: pageLayout,
         readingMode: effectiveMode,
         stepPdfPage,
