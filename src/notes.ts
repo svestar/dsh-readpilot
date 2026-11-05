@@ -1,6 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
 import { readJson, writeJson } from './fsjson.ts'
+import { enqueueWrite } from './write-queue.ts'
 
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const MAX_TEXT_LENGTH = 4000
@@ -212,34 +213,40 @@ export function createNotesStore(dataDir: string): NotesStore {
         createdAt: now,
         updatedAt: now,
       }
-      const notes = await readNotes(path)
-      notes.unshift(record)
-      await writeJson(path, notes)
-      return record
+      return enqueueWrite(path, async () => {
+        const notes = await readNotes(path)
+        notes.unshift(record)
+        await writeJson(path, notes)
+        return record
+      })
     },
 
     async update(bookId, noteId, patch) {
       const path = notesPath(dataDir, bookId)
       assertNoteId(noteId)
       const changes = validatePatch(patch)
-      const notes = await readNotes(path)
-      const index = notes.findIndex(note => note.id === noteId)
-      if (index === -1) throw new Error(`note not found: ${noteId}`)
-      const updated: NoteRecord = { ...notes[index], ...changes, updatedAt: Date.now() }
-      notes[index] = updated
-      await writeJson(path, notes)
-      return updated
+      return enqueueWrite(path, async () => {
+        const notes = await readNotes(path)
+        const index = notes.findIndex(note => note.id === noteId)
+        if (index === -1) throw new Error(`note not found: ${noteId}`)
+        const updated: NoteRecord = { ...notes[index], ...changes, updatedAt: Date.now() }
+        notes[index] = updated
+        await writeJson(path, notes)
+        return updated
+      })
     },
 
     async remove(bookId, noteId) {
       const path = notesPath(dataDir, bookId)
       assertNoteId(noteId)
-      const notes = await readNotes(path)
-      const index = notes.findIndex(note => note.id === noteId)
-      if (index === -1) return false
-      notes.splice(index, 1)
-      await writeJson(path, notes)
-      return true
+      return enqueueWrite(path, async () => {
+        const notes = await readNotes(path)
+        const index = notes.findIndex(note => note.id === noteId)
+        if (index === -1) return false
+        notes.splice(index, 1)
+        await writeJson(path, notes)
+        return true
+      })
     },
   }
 }

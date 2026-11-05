@@ -8,6 +8,7 @@ import { findBookByKey, scanLibrary } from './library.ts'
 import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
 import { createLimiter } from './limit.ts'
+import { enqueueWrite } from './write-queue.ts'
 import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
 import type { NoteFileStore } from './note-files.ts'
@@ -141,6 +142,9 @@ export interface SearchResult {
   matches: SearchMatch[]
   truncated: boolean
   query: string
+  booksScanned: number
+  booksTotal: number
+  unreadable: boolean
 }
 
 export interface PageViewResult {
@@ -483,17 +487,19 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       throw new ReaderError('invalid-progress', '进度需要 bookId 与 chapterId')
     }
     const book = await resolveBook(bookId)
-    const progress = await loadProgress(dataDir)
     const numericPercent = Number(percent)
-    progress[book.id] = {
-      chapterId,
-      chapterTitle: typeof chapterTitle === 'string' ? chapterTitle : '',
-      ...(Number.isFinite(numericPercent)
-        ? { percent: Math.max(0, Math.min(100, numericPercent)) }
-        : {}),
-      updatedAt: Date.now(),
-    }
-    await saveProgress(dataDir, progress)
+    await enqueueWrite(`progress:${dataDir}`, async () => {
+      const progress = await loadProgress(dataDir)
+      progress[book.id] = {
+        chapterId,
+        chapterTitle: typeof chapterTitle === 'string' ? chapterTitle : '',
+        ...(Number.isFinite(numericPercent)
+          ? { percent: Math.max(0, Math.min(100, numericPercent)) }
+          : {}),
+        updatedAt: Date.now(),
+      }
+      await saveProgress(dataDir, progress)
+    })
     return { bookId: book.id, chapterId }
   }
 
@@ -504,13 +510,15 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     if (sessionId != null && typeof sessionId !== 'string') {
       throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
     }
-    const sessions = await loadSessions(dataDir)
-    if (sessionId) {
-      sessions[bookId] = { sessionId, updatedAt: Date.now() }
-    } else {
-      delete sessions[bookId]
-    }
-    await saveSessions(dataDir, sessions)
+    await enqueueWrite(`sessions:${dataDir}`, async () => {
+      const sessions = await loadSessions(dataDir)
+      if (sessionId) {
+        sessions[bookId] = { sessionId, updatedAt: Date.now() }
+      } else {
+        delete sessions[bookId]
+      }
+      await saveSessions(dataDir, sessions)
+    })
     return { bookId, sessionId: sessionId ?? null }
   }
 
@@ -585,11 +593,13 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const wanted = query.trim()
     const lowered = wanted.toLowerCase()
     const maxResults = Math.min(positiveInteger(limit, 20), 50)
-    const books = bookId
-      ? [await resolveBook(bookId)]
-      : (await libraryBooks()).filter(book => book.supported).slice(0, MAX_SEARCH_BOOKS)
+    const scoped = typeof bookId === 'string' && bookId.length > 0
+    const supported = (scoped ? [await resolveBook(bookId)] : await libraryBooks())
+      .filter(book => book.supported)
+    const books = scoped ? supported : supported.slice(0, MAX_SEARCH_BOOKS)
     const matches: SearchMatch[] = []
-    let truncated = false
+    let limited = false
+    let unreadable = false
 
     for (const book of books) {
       if (!book.supported) continue
@@ -597,6 +607,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       try {
         parsed = await ensureParsed(book)
       } catch {
+        unreadable = true
         continue
       }
       for (const chapter of parsed.chapters) {
@@ -619,7 +630,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
             jumpUrl: buildReaderJumpUrl(book.id, chapter.id, index),
           })
           if (matches.length >= maxResults) {
-            truncated = true
+            limited = true
             break
           }
           from = index + Math.max(wanted.length, 1)
@@ -628,7 +639,14 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       }
       if (matches.length >= maxResults) break
     }
-    return { matches, truncated, query: wanted }
+    return {
+      matches,
+      truncated: limited || books.length < supported.length,
+      query: wanted,
+      booksScanned: books.length,
+      booksTotal: supported.length,
+      unreadable,
+    }
   }
 
   async function toolBooks(): Promise<any> {

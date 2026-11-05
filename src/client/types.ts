@@ -96,6 +96,9 @@ export interface NoteRef {
 export interface SearchResults {
   matches: SearchMatch[]
   truncated: boolean
+  booksScanned: number
+  booksTotal: number
+  unreadable: boolean
 }
 
 export interface ChatMessage {

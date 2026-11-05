@@ -1,5 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
+import { enqueueWrite } from './write-queue.ts'
 
 const MAX_TAGS = 20
 const MAX_TAG_LENGTH = 24
@@ -134,29 +135,35 @@ export function createLibraryMetaStore(dataDir: string): LibraryMetaStore {
     async setTags(bookId, tags) {
       const id = normalizeBookId(bookId)
       const normalized = normalizeTags(tags)
-      const meta = await read()
-      if (normalized.length > 0) meta.tags[id] = normalized
-      else delete meta.tags[id]
-      await write(meta)
-      return normalized
+      return enqueueWrite(filePath, async () => {
+        const meta = await read()
+        if (normalized.length > 0) meta.tags[id] = normalized
+        else delete meta.tags[id]
+        await write(meta)
+        return normalized
+      })
     },
     async setStatus(bookId, status) {
       const id = normalizeBookId(bookId)
       const normalized = normalizeReadStatus(status)
-      const meta = await read()
-      if (normalized) meta.status[id] = normalized
-      else delete meta.status[id]
-      await write(meta)
-      return normalized
+      return enqueueWrite(filePath, async () => {
+        const meta = await read()
+        if (normalized) meta.status[id] = normalized
+        else delete meta.status[id]
+        await write(meta)
+        return normalized
+      })
     },
     async setRating(bookId, rating) {
       const id = normalizeBookId(bookId)
       const normalized = normalizeRating(rating)
-      const meta = await read()
-      if (normalized !== null) meta.rating[id] = normalized
-      else delete meta.rating[id]
-      await write(meta)
-      return normalized
+      return enqueueWrite(filePath, async () => {
+        const meta = await read()
+        if (normalized !== null) meta.rating[id] = normalized
+        else delete meta.rating[id]
+        await write(meta)
+        return normalized
+      })
     },
   }
 }

@@ -113,9 +113,36 @@ test('search_returns_locator', async t => {
 
   const result = await api.search({ bookId, query: '再见' })
   assert.equal(result.matches.length, 1)
+  assert.equal(result.booksScanned, 1)
+  assert.equal(result.booksTotal, 1)
+  assert.equal(result.truncated, false)
   assert.match(result.matches[0].locator, /:c002:/)
   assert.match(result.matches[0].jumpUrl, /dsh-readpilot\.invalid\/jump\?book=/)
   assert.equal(result.matches[0].chapterTitle, '第二章 继续')
+})
+
+test('library_search_reports_scan_scope', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  t.after(() => rm(root, { recursive: true, force: true }))
+  for (let index = 1; index <= 21; index += 1) {
+    await writeFile(
+      join(library, `book-${String(index).padStart(2, '0')}.txt`),
+      `第一章 开始\n\n唯一关键词 ${index}`,
+      'utf8',
+    )
+  }
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library })
+
+  const result = await api.search({ query: '唯一关键词', limit: 50 })
+  assert.equal(result.booksTotal, 21)
+  assert.equal(result.booksScanned, 20)
+  assert.equal(result.matches.length, 20)
+  assert.equal(result.truncated, true)
+  assert.equal(result.unreadable, false)
 })
 
 test('rpc_envelope_dispatches', async t => {

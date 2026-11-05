@@ -134,3 +134,10 @@ test('data_survives_store_recreation', async t => {
   const notes = await reopened.list('book-a')
   assert.deepEqual(notes.map(note => note.id), [created.id])
 })
+test('concurrent_adds_keep_every_note', async t => {
+  const { store } = await tempStore(t)
+  await Promise.all(Array.from({ length: 5 }, (_, index) => store.add('book-a', sample({ note: `note-${index}` }))))
+  const notes = await store.list('book-a')
+  assert.equal(notes.length, 5)
+  assert.deepEqual(notes.map(note => note.note).sort(), ['note-0', 'note-1', 'note-2', 'note-3', 'note-4'])
+})

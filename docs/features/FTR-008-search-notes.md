@@ -21,13 +21,15 @@
 | `useSearch` | `src/client/hooks/use-search.ts:useSearch` | 搜索状态、提交、关闭与重置 |
 | `SearchPanel` / `NotesBody` | `src/client/views/notes-search.ts:SearchPanel`；`src/client/views/notes-search.ts:NotesBody` | 搜索结果列表与笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合搜索、笔记与阅读布局 |
+| `enqueueWrite` | `src/write-queue.ts:enqueueWrite` | 同一文件的读改写串行执行 |
 
 ## 约束与失败行为
 
-笔记只写自己的数据目录；`bookId` 只允许 `[A-Za-z0-9_-]{1,64}`，防止路径穿越；`quote`/`note` 各不超过 4000 字符，`blockIndex`/`offset` 为非负整数。搜索保持字面量匹配，最多 50 条；无命中返回空列表。笔记不存在时删除返回 `false`，更新报错；文件损坏或非数组时报错而不是静默清空。笔记跳转依赖章节内容加载完成，加载失败时保留当前阅读位置并显示错误。
+同一笔记文件的读-改-写按路径串行（`enqueueWrite`），并发新增或更新不会互相覆盖，见 [ADR-013](../decisions/ADR-013-write-serialization.md)。笔记只写自己的数据目录；`bookId` 只允许 `[A-Za-z0-9_-]{1,64}`，防止路径穿越；`quote`/`note` 各不超过 4000 字符，`blockIndex`/`offset` 为非负整数。搜索保持字面量匹配，最多 50 条；全库检索最多扫描 20 本书，结果带 `booksScanned`/`booksTotal`，被上限截断或解析失败时分别标记 `truncated`/`unreadable`，不再静默漏结果。笔记不存在时删除返回 `false`，更新报错；文件损坏或非数组时报错而不是静默清空。笔记跳转依赖章节内容加载完成，加载失败时保留当前阅读位置并显示错误。
 
 ## 验收与测试
 
 - 正常路径：新建笔记会写入对应书籍的文件，并包含 id、章节、块、偏移与时间戳（`add_creates_record_on_disk`）。
 - 正常路径：列表按创建时间倒序，更新与删除后数据同步（`list_returns_newest_first`、`update_changes_note_and_quote_only`）。
 - 边界：不同书籍的笔记互相隔离（`books_are_isolated`）。
+- 边界：并发新增 5 条笔记后仍保留全部记录，不出现覆盖（concurrent_adds_keep_every_note）。

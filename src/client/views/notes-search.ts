@@ -254,18 +254,23 @@ export function SearchPanel({
         ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searching'))
         : searchResults === null
           ? null
-          : searchResults.matches.length === 0
-            ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchEmpty'))
-            : h('div', { className: 'dsh-readpilot-search-list' },
-              searchResults.matches.map((match, index) => h('button', {
-                key: `${match.chapterId}:${match.offset}:${index}`,
-                type: 'button',
-                className: 'dsh-readpilot-search-result',
-                onClick: () => openSearchMatch(match),
-              },
-              h('div', { className: 'dsh-readpilot-search-chapter' }, match.chapterTitle),
-              h('div', { className: 'dsh-readpilot-search-snippet' }, match.snippet))),
-              searchResults.truncated
-                ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchTruncated'))
-                : null))
+          : h('div', null,
+            searchResults.matches.length === 0
+              ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchEmpty'))
+              : h('div', { className: 'dsh-readpilot-search-list' },
+                searchResults.matches.map((match, index) => h('button', {
+                  key: `${match.chapterId}:${match.offset}:${index}`,
+                  type: 'button',
+                  className: 'dsh-readpilot-search-result',
+                  onClick: () => openSearchMatch(match),
+                },
+                h('div', { className: 'dsh-readpilot-search-chapter' }, match.chapterTitle),
+                h('div', { className: 'dsh-readpilot-search-snippet' }, match.snippet)))),
+            searchResults.truncated
+              ? h('div', { className: 'dsh-readpilot-search-hint' },
+                `${t('searchTruncated')}（${searchResults.booksScanned}/${searchResults.booksTotal}）`)
+              : null,
+            searchResults.unreadable
+              ? h('div', { className: 'dsh-readpilot-search-hint' }, t('searchUnreadable'))
+              : null))
 }
