@@ -8,7 +8,7 @@
 
 ## 行为
 
-书库卡片按需加载真实封面。EPUB 在解压后的 OPF 中依次识别封面：`metadata` 中的 `<meta name="cover">` 指向的图片项、manifest 中 `properties` 含 `cover-image` 的图片项、`guide` 中 `type="cover"` 的图片项；命中后读取已解压资源字节。PDF 渲染第 1 页作为封面，缩放 0.5，复用 `cache/pages` 的页面缓存。TXT、Markdown 或识别不到封面时返回 404，卡片保留渐变底色与书名。客户端用 `loading="lazy"` 的图片元素发起请求，加载失败后本次会话不再重试该卡。封面只影响书库展示，不改变书籍文件。
+书库卡片按需加载真实封面。EPUB 在解压后的 OPF 中依次识别封面：`metadata` 中的 `<meta name="cover">` 指向的图片项、manifest 中 `properties` 含 `cover-image` 的图片项、`guide` 中 `type="cover"` 的图片项；命中后读取已解压资源字节。PDF 渲染第 1 页作为封面，缩放 0.5，复用 `cache/pages` 的页面缓存。封面在固定高度的封面框内按原始比例完整显示（`object-fit: contain`），不裁剪、不叠加书名与格式文字；只有取不到封面时才显示格式与书名的渐变块。TXT、Markdown 或识别不到封面时返回 404。客户端用 `loading="lazy"` 的图片元素发起请求，加载失败后本次会话不再重试该卡。封面只影响书库展示，不改变书籍文件。
 
 ## 接口与代码映射
 

@@ -76,7 +76,7 @@ function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating
   }
 
   return h('div', {
-    className: 'dsh-readpilot-note-overlay',
+    className: 'dsh-readpilot-book-overlay',
     onMouseDown: (event: any) => {
       if (event.target === event.currentTarget) onClose()
     },
@@ -206,34 +206,39 @@ function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCar
   },
   h('div', { className: 'dsh-readpilot-book-cover' },
     coverFailed
-      ? null
+      ? h('div', { className: 'dsh-readpilot-book-cover-fallback' },
+        h('span', { className: 'dsh-readpilot-book-format' }, book.format.toUpperCase()),
+        h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title))
       : h('img', {
         className: 'dsh-readpilot-book-cover-img',
         src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
         alt: '',
         loading: 'lazy',
         onError: () => setCoverFailed(true),
-      }),
-    h('span', { className: 'dsh-readpilot-book-format' }, book.format.toUpperCase()),
-    h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title)),
+      })),
   h('div', { className: 'dsh-readpilot-book-info' },
     h('div', { className: 'dsh-readpilot-book-title' }, book.title),
     h('div', { className: 'dsh-readpilot-book-meta' },
+      h('span', { className: 'dsh-readpilot-book-format-chip' }, book.format.toUpperCase()),
       h('span', null, formatSize(book.size)),
-      h('span', null, book.progress ? book.progress.chapterTitle || t('reading') : t('unread')),
-      label ? h('span', { className: 'dsh-readpilot-book-status', 'data-status': status ?? '' }, label) : null,
-      rating > 0 ? h('span', { className: 'dsh-readpilot-book-rating', title: `${rating}/5` }, '★'.repeat(rating)) : null),
+      h('span', { className: 'dsh-readpilot-book-progress' }, book.progress ? book.progress.chapterTitle || t('reading') : t('unread'))),
+    label || rating > 0
+      ? h('div', { className: 'dsh-readpilot-book-badges' },
+        label ? h('span', { className: 'dsh-readpilot-book-status', 'data-status': status ?? '' }, label) : null,
+        rating > 0 ? h('span', { className: 'dsh-readpilot-book-rating', title: `${rating}/5` }, '★'.repeat(rating)) : null)
+      : null,
     tags.length > 0
       ? h('div', { className: 'dsh-readpilot-book-tags' },
         tags.slice(0, 3).map(tag => h('span', { key: tag, className: 'dsh-readpilot-book-tag' }, tag)),
         tags.length > 3 ? h('span', { className: 'dsh-readpilot-book-tag' }, `+${tags.length - 3}`) : null)
       : null)),
-  h('button', {
-    type: 'button',
-    className: 'dsh-readpilot-book-tag-edit',
-    title: t('editTags'),
-    onClick: () => onEditTags(book),
-  }, t('tags')))
+  h('div', { className: 'dsh-readpilot-book-actions' },
+    h('button', {
+      type: 'button',
+      className: 'dsh-readpilot-book-tag-edit',
+      title: t('editTags'),
+      onClick: () => onEditTags(book),
+    }, t('tags'))))
 }
 
 interface LibraryProps {

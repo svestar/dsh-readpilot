@@ -981,7 +981,7 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-badge{display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:11px}
 .dsh-readpilot-empty{max-width:460px;margin:60px auto;text-align:center;color:var(--dsw-alias-label-secondary);line-height:1.7}
 .dsh-readpilot-empty h2{margin:0 0 8px;font-size:16px;color:var(--dsw-alias-label-primary)}
-.dsh-readpilot-library{flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}
+.dsh-readpilot-library{position:relative;flex:1;min-height:0;display:grid;grid-template-columns:190px minmax(0,1fr);overflow:hidden}
 .dsh-readpilot-library-side{min-height:0;overflow:auto;padding:16px 10px 28px;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-library-side-title{padding:10px 8px 5px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:600;letter-spacing:.04em}
 .dsh-readpilot-library-category{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;text-align:left;cursor:pointer}
@@ -1000,29 +1000,33 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-section-head h3{margin:0;font-size:13px;font-weight:650}
 .dsh-readpilot-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
 .dsh-readpilot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
-.dsh-readpilot-book-card{position:relative;min-width:0}
-.dsh-readpilot-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
-.dsh-readpilot-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
-.dsh-readpilot-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff;overflow:hidden}
+.dsh-readpilot-book-card{position:relative;min-width:0;display:flex;flex-direction:column;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+.dsh-readpilot-book-card:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
+.dsh-readpilot-book-open{display:block;width:100%;padding:0;border:0;background:transparent;color:inherit;text-align:left;font:inherit;cursor:pointer}
+.dsh-readpilot-book-cover{position:relative;display:flex;align-items:center;justify-content:center;height:150px;padding:8px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff;overflow:hidden}
 .dsh-readpilot-book-card[data-format="md"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#5b7a73,#344d47)}
 .dsh-readpilot-book-card[data-format="epub"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#6b6a86,#42415a)}
 .dsh-readpilot-book-card[data-format="pdf"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#8a735c,#4d3f33)}
 .dsh-readpilot-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
 .dsh-readpilot-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
-.dsh-readpilot-book-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.dsh-readpilot-book-cover:has(.dsh-readpilot-book-cover-img)::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.58))}
-.dsh-readpilot-book-cover>*{position:relative;z-index:1}
-.dsh-readpilot-book-info{padding:9px 10px 10px}
+.dsh-readpilot-book-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;padding:6px;box-sizing:border-box}
+.dsh-readpilot-book-cover-fallback{display:flex;flex-direction:column;justify-content:space-between;align-items:flex-start;width:100%;height:100%}
+.dsh-readpilot-book-info{padding:8px 10px 2px}
 .dsh-readpilot-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
-.dsh-readpilot-book-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px}
-.dsh-readpilot-book-meta span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:65%}
+.dsh-readpilot-book-meta{display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px;min-width:0}
+.dsh-readpilot-book-meta span{white-space:nowrap}
+.dsh-readpilot-book-format-chip{padding:0 4px;border-radius:3px;background:var(--dsw-alias-bg-layer-2);font-size:9px;font-weight:700;letter-spacing:.06em}
+.dsh-readpilot-book-progress{overflow:hidden;text-overflow:ellipsis;min-width:0;max-width:100%}
+.dsh-readpilot-book-badges{display:flex;align-items:center;gap:6px;margin-top:5px}
 .dsh-readpilot-book-reading{margin-top:6px;color:var(--dsw-alias-brand-primary);font-size:10px;font-weight:600}
 .dsh-readpilot-book-tags{display:flex;gap:4px;margin-top:6px;overflow:hidden}
 .dsh-readpilot-book-tag{max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;padding:1px 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:9px}
-.dsh-readpilot-book-tag-edit{position:absolute;top:7px;right:7px;padding:2px 6px;border:0;border-radius:5px;background:rgba(0,0,0,.35);color:#fff;font:inherit;font-size:9px;cursor:pointer;opacity:0;transition:opacity .14s ease}
-.dsh-readpilot-book-card:hover .dsh-readpilot-book-tag-edit,.dsh-readpilot-book-tag-edit:focus{opacity:1}
+.dsh-readpilot-book-actions{display:flex;justify-content:flex-end;padding:0 8px 8px}
+.dsh-readpilot-book-tag-edit{padding:2px 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:10px;cursor:pointer}
+.dsh-readpilot-book-tag-edit:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-library-empty{padding:36px 12px;color:var(--dsw-alias-label-secondary);font-size:12px;text-align:center}
-.dsh-readpilot-tag-dialog{width:min(480px,94vw)}
+.dsh-readpilot-book-overlay{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.28)}
+.dsh-readpilot-tag-dialog{width:min(480px,94vw);max-height:100%;overflow:auto}
 .dsh-readpilot-tag-book{margin-bottom:10px;color:var(--dsw-alias-label-secondary);font-size:12px}
 .dsh-readpilot-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
 .dsh-readpilot-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
@@ -1699,7 +1703,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     return h(
       "div",
       {
-        className: "dsh-readpilot-note-overlay",
+        className: "dsh-readpilot-book-overlay",
         onMouseDown: (event) => {
           if (event.target === event.currentTarget) onClose();
         }
@@ -1845,15 +1849,18 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         h(
           "div",
           { className: "dsh-readpilot-book-cover" },
-          coverFailed ? null : h("img", {
+          coverFailed ? h(
+            "div",
+            { className: "dsh-readpilot-book-cover-fallback" },
+            h("span", { className: "dsh-readpilot-book-format" }, book.format.toUpperCase()),
+            h("span", { className: "dsh-readpilot-book-cover-title" }, book.title)
+          ) : h("img", {
             className: "dsh-readpilot-book-cover-img",
             src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
             alt: "",
             loading: "lazy",
             onError: () => setCoverFailed(true)
-          }),
-          h("span", { className: "dsh-readpilot-book-format" }, book.format.toUpperCase()),
-          h("span", { className: "dsh-readpilot-book-cover-title" }, book.title)
+          })
         ),
         h(
           "div",
@@ -1862,11 +1869,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           h(
             "div",
             { className: "dsh-readpilot-book-meta" },
+            h("span", { className: "dsh-readpilot-book-format-chip" }, book.format.toUpperCase()),
             h("span", null, formatSize(book.size)),
-            h("span", null, book.progress ? book.progress.chapterTitle || t("reading") : t("unread")),
+            h("span", { className: "dsh-readpilot-book-progress" }, book.progress ? book.progress.chapterTitle || t("reading") : t("unread"))
+          ),
+          label || rating > 0 ? h(
+            "div",
+            { className: "dsh-readpilot-book-badges" },
             label ? h("span", { className: "dsh-readpilot-book-status", "data-status": status ?? "" }, label) : null,
             rating > 0 ? h("span", { className: "dsh-readpilot-book-rating", title: `${rating}/5` }, "★".repeat(rating)) : null
-          ),
+          ) : null,
           tags.length > 0 ? h(
             "div",
             { className: "dsh-readpilot-book-tags" },
@@ -1875,12 +1887,16 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           ) : null
         )
       ),
-      h("button", {
-        type: "button",
-        className: "dsh-readpilot-book-tag-edit",
-        title: t("editTags"),
-        onClick: () => onEditTags(book)
-      }, t("tags"))
+      h(
+        "div",
+        { className: "dsh-readpilot-book-actions" },
+        h("button", {
+          type: "button",
+          className: "dsh-readpilot-book-tag-edit",
+          title: t("editTags"),
+          onClick: () => onEditTags(book)
+        }, t("tags"))
+      )
     );
   }
   function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating }) {
