@@ -173,6 +173,30 @@ export function createPlugin(require: (name: string) => any) {
         return result.tags
       }, [])
 
+      const setBookStatus = React.useCallback(async (book: ClientBook, status: string | null) => {
+        const result = await call('setBookStatus', { bookId: book.id, status })
+        setSnapshot(previous => {
+          if (!previous) return previous
+          const statuses = { ...previous.status }
+          if (result.status) statuses[book.id] = result.status as any
+          else delete statuses[book.id]
+          return { ...previous, status: statuses }
+        })
+        return result.status
+      }, [])
+
+      const setBookRating = React.useCallback(async (book: ClientBook, rating: number) => {
+        const result = await call('setBookRating', { bookId: book.id, rating: rating > 0 ? rating : null })
+        setSnapshot(previous => {
+          if (!previous) return previous
+          const ratings = { ...previous.rating }
+          if (result.rating !== null) ratings[book.id] = result.rating
+          else delete ratings[book.id]
+          return { ...previous, rating: ratings }
+        })
+        return result.rating
+      }, [])
+
       React.useEffect(() => {
         void refresh()
       }, [refresh])
@@ -988,6 +1012,8 @@ export function createPlugin(require: (name: string) => any) {
                 onRefresh: refresh,
                 onSettings: openSetup,
                 onSetTags: setBookTags,
+                onSetStatus: setBookStatus,
+                onSetRating: setBookRating,
               })
               : screen.kind === 'unsupported'
                 ? h('div', { className: 'dsh-readpilot-empty' },

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createLibraryMetaStore, normalizeTags } from '../src/library-meta.ts'
+import { createLibraryMetaStore, normalizeRating, normalizeReadStatus, normalizeTags } from '../src/library-meta.ts'
 import {
   categoryCounts,
   filterBooks,
@@ -22,11 +22,11 @@ test('library_meta_set_list_remove', async t => {
   t.after(() => rm(root, { recursive: true, force: true }))
   const store = createLibraryMetaStore(root)
   await store.setTags('book1', ['技术', '技术', '待读'])
-  assert.deepEqual(await store.list(), { tags: { book1: ['技术', '待读'] } })
+  assert.deepEqual(await store.list(), { tags: { book1: ['技术', '待读'] }, status: {}, rating: {} })
   await store.setTags('book1', [])
-  assert.deepEqual(await store.list(), { tags: {} })
+  assert.deepEqual(await store.list(), { tags: {}, status: {}, rating: {} })
   const file = JSON.parse(await readFile(join(root, 'library-meta.json'), 'utf8'))
-  assert.deepEqual(file, { tags: {} })
+  assert.deepEqual(file, { tags: {}, status: {}, rating: {} })
 })
 
 test('library_meta_corrupt_file_falls_back', async t => {
@@ -34,9 +34,9 @@ test('library_meta_corrupt_file_falls_back', async t => {
   t.after(() => rm(root, { recursive: true, force: true }))
   await writeFile(join(root, 'library-meta.json'), '{not-json', 'utf8')
   const store = createLibraryMetaStore(root)
-  assert.deepEqual(await store.list(), { tags: {} })
+  assert.deepEqual(await store.list(), { tags: {}, status: {}, rating: {} })
   await store.setTags('book1', ['技术'])
-  assert.deepEqual(await store.list(), { tags: { book1: ['技术'] } })
+  assert.deepEqual(await store.list(), { tags: { book1: ['技术'] }, status: {}, rating: {} })
 })
 
 const books = [
@@ -66,4 +66,34 @@ test('library_sort_and_counts', () => {
   assert.equal(counts.recent, 2)
   assert.equal(counts.unread, 1)
   assert.equal(counts.formats.epub, 1)
+})
+test('library_meta_status_and_rating', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-meta-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const store = createLibraryMetaStore(root)
+  await store.setStatus('book1', 'done')
+  await store.setRating('book1', 4)
+  assert.deepEqual(await store.list(), { tags: {}, status: { book1: 'done' }, rating: { book1: 4 } })
+  await store.setStatus('book1', null)
+  await store.setRating('book1', null)
+  assert.deepEqual(await store.list(), { tags: {}, status: {}, rating: {} })
+})
+
+test('status_and_rating_validation', () => {
+  assert.equal(normalizeReadStatus('want'), 'want')
+  assert.equal(normalizeReadStatus(undefined), null)
+  assert.throws(() => normalizeReadStatus('finished'), /want/)
+  assert.equal(normalizeRating(5), 5)
+  assert.equal(normalizeRating(null), null)
+  assert.throws(() => normalizeRating(0), /1–5/)
+  assert.throws(() => normalizeRating(6), /1–5/)
+  assert.throws(() => normalizeRating(2.5), /1–5/)
+})
+
+test('library_status_filter_and_counts', () => {
+  const statuses = { b1: 'done', b2: 'want' }
+  assert.deepEqual(filterBooks(books, tags, { category: 'done', status: statuses }).map(book => book.id), ['b1'])
+  assert.equal(categoryCounts(books, tags, statuses).done, 1)
+  const counts = categoryCounts(books, tags)
+  assert.equal(counts.done, 0)
 })

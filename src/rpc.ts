@@ -255,4 +255,6 @@ export interface CallRpc {
   (endpoint: 'pageView', payload: PageViewPayload): Promise<PageViewResult>
   (endpoint: 'libraryMeta'): Promise<LibraryMeta>
   (endpoint: 'setBookTags', payload: { bookId: string; tags: string[] }): Promise<{ bookId: string; tags: string[] }>
+  (endpoint: 'setBookStatus', payload: { bookId: string; status: string | null }): Promise<{ bookId: string; status: string | null }>
+  (endpoint: 'setBookRating', payload: { bookId: string; rating: number | null }): Promise<{ bookId: string; rating: number | null }>
 }

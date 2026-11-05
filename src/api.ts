@@ -5,7 +5,7 @@ import type { Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
-import type { LibraryMeta, TagMap } from './library-meta.ts'
+import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
 import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
@@ -98,6 +98,8 @@ export interface ReaderState {
   progress: ProgressMap
   sessions: SessionMap
   tags: TagMap
+  status: StatusMap
+  rating: RatingMap
   companion: CompanionSettings
 }
 
@@ -187,6 +189,8 @@ export interface ReaderApi {
   search(payload?: any): Promise<SearchResult>
   libraryMeta(): Promise<LibraryMeta>
   setBookTags(payload?: { bookId?: unknown; tags?: unknown }): Promise<{ bookId: string; tags: string[] }>
+  setBookStatus(payload?: { bookId?: unknown; status?: unknown }): Promise<{ bookId: string; status: ReadStatus | null }>
+  setBookRating(payload?: { bookId?: unknown; rating?: unknown }): Promise<{ bookId: string; rating: number | null }>
   toolBooks(): Promise<any>
   toolOpen(payload?: any): Promise<any>
   toolContext(payload?: any): Promise<any>
@@ -300,6 +304,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       progress,
       sessions,
       tags: meta.tags,
+      status: meta.status,
+      rating: meta.rating,
       companion,
     }
   }
@@ -348,6 +354,28 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       throw new ReaderError('invalid-tags', error instanceof Error ? error.message : String(error))
     }
     return { bookId: book.id, tags: normalized }
+  }
+
+  async function setBookStatus({ bookId, status }: { bookId?: unknown; status?: unknown } = {}): Promise<{ bookId: string; status: ReadStatus | null }> {
+    const book = await resolveBook(bookId)
+    let normalized: ReadStatus | null
+    try {
+      normalized = await libraryMetaStore.setStatus(book.id, status)
+    } catch (error) {
+      throw new ReaderError('invalid-status', error instanceof Error ? error.message : String(error))
+    }
+    return { bookId: book.id, status: normalized }
+  }
+
+  async function setBookRating({ bookId, rating }: { bookId?: unknown; rating?: unknown } = {}): Promise<{ bookId: string; rating: number | null }> {
+    const book = await resolveBook(bookId)
+    let normalized: number | null
+    try {
+      normalized = await libraryMetaStore.setRating(book.id, rating)
+    } catch (error) {
+      throw new ReaderError('invalid-rating', error instanceof Error ? error.message : String(error))
+    }
+    return { bookId: book.id, rating: normalized }
   }
 
   async function resolveBook(bookId: unknown): Promise<Book> {
@@ -1364,6 +1392,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       pageView,
       libraryMeta,
       setBookTags,
+      setBookStatus,
+      setBookRating,
     }
     const handler = handlers[endpoint]
     if (!handler) {
@@ -1403,6 +1433,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     search,
     libraryMeta,
     setBookTags,
+    setBookStatus,
+    setBookRating,
     toolBooks,
     toolOpen,
     toolContext,

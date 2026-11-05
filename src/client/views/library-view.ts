@@ -1,6 +1,8 @@
 import { React, h } from '../runtime.ts'
 import { formatSize } from '../helpers.ts'
 import {
+  bookRating,
+  bookStatus,
   bookTags,
   categoryCounts,
   filterBooks,
@@ -13,19 +15,32 @@ import type {
 } from '../types.ts'
 
 const FORMATS = ['txt', 'md', 'epub', 'pdf']
+const STATUSES = ['want', 'reading', 'done'] as const
+const RATINGS = [1, 2, 3, 4, 5]
+
+function statusLabel(t: TextFn, status: string | null): string {
+  if (status === 'want') return t('statusWant')
+  if (status === 'reading') return t('statusReading')
+  if (status === 'done') return t('statusDone')
+  return ''
+}
 
 interface TagDialogProps {
   t: TextFn
   book: ClientBook
   initialTags: string[]
   allTags: string[]
+  initialStatus: string | null
+  initialRating: number
   onClose: () => void
-  onSave: (tags: string[]) => Promise<void> | void
+  onSave: (tags: string[], status: string | null, rating: number) => Promise<void> | void
 }
 
-function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialogProps) {
+function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating, onClose, onSave }: TagDialogProps) {
   const [draft, setDraft] = React.useState('')
   const [tags, setTags] = React.useState<string[]>(() => initialTags.slice())
+  const [status, setStatus] = React.useState<string | null>(initialStatus)
+  const [rating, setRating] = React.useState(initialRating)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState('')
   const inputRef = React.useRef<HTMLInputElement | null>(null)
@@ -51,7 +66,7 @@ function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialog
     setSaving(true)
     setError('')
     try {
-      await onSave(tags)
+      await onSave(tags, status, rating)
       onClose()
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause))
@@ -70,9 +85,9 @@ function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialog
     className: 'dsh-readpilot-note-dialog dsh-readpilot-tag-dialog',
     role: 'dialog',
     'aria-modal': 'true',
-    'aria-label': t('editTags'),
+    'aria-label': t('editBook'),
   },
-  h('h3', null, t('editTags')),
+  h('h3', null, t('editBook')),
   h('div', { className: 'dsh-readpilot-tag-book' }, book.title),
   h('div', { className: 'dsh-readpilot-tag-list' },
     tags.length === 0
@@ -117,6 +132,40 @@ function TagDialog({ t, book, initialTags, allTags, onClose, onSave }: TagDialog
           onClick: () => add(tag),
         }, `+ ${tag}`)))
     : null,
+  h('div', { className: 'dsh-readpilot-meta-field' },
+    h('span', { className: 'dsh-readpilot-meta-label' }, t('readStatus')),
+    h('div', { className: 'dsh-readpilot-meta-options' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-status-option',
+        'data-active': status === null ? 'true' : 'false',
+        onClick: () => setStatus(null),
+      }, t('statusNone')),
+      STATUSES.map(value => h('button', {
+        key: value,
+        type: 'button',
+        className: 'dsh-readpilot-status-option',
+        'data-active': status === value ? 'true' : 'false',
+        onClick: () => setStatus(value),
+      }, statusLabel(t, value))))),
+  h('div', { className: 'dsh-readpilot-meta-field' },
+    h('span', { className: 'dsh-readpilot-meta-label' }, t('rating')),
+    h('div', { className: 'dsh-readpilot-meta-options' },
+      RATINGS.map(value => h('button', {
+        key: value,
+        type: 'button',
+        className: 'dsh-readpilot-rating-star',
+        'data-active': rating >= value ? 'true' : 'false',
+        'aria-label': `${value}`,
+        onClick: () => setRating(previous => (previous === value ? 0 : value)),
+      }, '★')),
+      rating > 0
+        ? h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary dsh-readpilot-rating-clear',
+          onClick: () => setRating(0),
+        }, t('clear'))
+        : null)),
   error ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, error) : null,
   h('div', { className: 'dsh-readpilot-note-dialog-actions' },
     h('button', {
@@ -137,11 +186,14 @@ interface BookCardProps {
   t: TextFn
   book: ClientBook
   tags: string[]
+  status: string | null
+  rating: number
   onOpen: (book: ClientBook) => void
   onEditTags: (book: ClientBook) => void
 }
 
-function BookCard({ t, book, tags, onOpen, onEditTags }: BookCardProps) {
+function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCardProps) {
+  const label = statusLabel(t, status)
   return h('div', {
     className: 'dsh-readpilot-book-card',
     'data-format': book.format,
@@ -158,7 +210,9 @@ function BookCard({ t, book, tags, onOpen, onEditTags }: BookCardProps) {
     h('div', { className: 'dsh-readpilot-book-title' }, book.title),
     h('div', { className: 'dsh-readpilot-book-meta' },
       h('span', null, formatSize(book.size)),
-      h('span', null, book.progress ? book.progress.chapterTitle || t('reading') : t('unread'))),
+      h('span', null, book.progress ? book.progress.chapterTitle || t('reading') : t('unread')),
+      label ? h('span', { className: 'dsh-readpilot-book-status', 'data-status': status ?? '' }, label) : null,
+      rating > 0 ? h('span', { className: 'dsh-readpilot-book-rating', title: `${rating}/5` }, '★'.repeat(rating)) : null),
     tags.length > 0
       ? h('div', { className: 'dsh-readpilot-book-tags' },
         tags.slice(0, 3).map(tag => h('span', { key: tag, className: 'dsh-readpilot-book-tag' }, tag)),
@@ -180,20 +234,24 @@ interface LibraryProps {
   onRefresh: () => void | Promise<void>
   onSettings: () => void
   onSetTags: (book: ClientBook, tags: string[]) => Promise<string[]>
+  onSetStatus: (book: ClientBook, status: string | null) => Promise<string | null>
+  onSetRating: (book: ClientBook, rating: number) => Promise<number | null>
 }
 
-export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags }: LibraryProps) {
+export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating }: LibraryProps) {
   const books = snapshot.books
   const tags = snapshot.tags ?? {}
+  const statuses = snapshot.status ?? {}
+  const ratings = snapshot.rating ?? {}
   const [category, setCategory] = React.useState('all')
   const [query, setQuery] = React.useState('')
   const [sort, setSort] = React.useState('recent')
   const [tagEditor, setTagEditor] = React.useState<{ book: ClientBook; initialTags: string[] } | null>(null)
-  const counts = React.useMemo(() => categoryCounts(books, tags), [books, tags])
+  const counts = React.useMemo(() => categoryCounts(books, tags, statuses), [books, tags, statuses])
   const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags])
   const visible = React.useMemo(
-    () => filterBooks(books, tags, { category, query, sort }),
-    [books, tags, category, query, sort],
+    () => filterBooks(books, tags, { category, query, sort, status: statuses }),
+    [books, tags, statuses, category, query, sort],
   )
   const categoryTitle = category === 'all'
     ? t('allBooks')
@@ -205,7 +263,9 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
           ? t('recentReading')
           : category === 'unread'
             ? t('unread')
-            : t('inProgress')
+            : category === 'done'
+              ? t('statusDone')
+              : t('inProgress')
 
   const categoryButton = (key: string, label: string, count?: number) => h('button', {
     key,
@@ -223,6 +283,7 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
       categoryButton('all', t('allBooks'), counts.all),
       categoryButton('recent', t('recentReading'), counts.recent),
       categoryButton('reading', t('inProgress'), counts.reading),
+      categoryButton('done', t('statusDone'), counts.done),
       categoryButton('unread', t('unread'), counts.unread),
       h('div', { className: 'dsh-readpilot-library-side-title' }, t('formats')),
       FORMATS.map(format => categoryButton(`format:${format}`, format.toUpperCase(), counts.formats[format])),
@@ -273,6 +334,8 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
                   t,
                   book,
                   tags: bookTags(book.id, tags),
+                  status: bookStatus(book.id, statuses),
+                  rating: bookRating(book.id, ratings),
                   onOpen,
                   onEditTags: (entry: ClientBook) => setTagEditor({
                     book: entry,
@@ -285,9 +348,17 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
         book: tagEditor.book,
         initialTags: tagEditor.initialTags,
         allTags: tagStats.map(item => item.tag),
+        initialStatus: bookStatus(tagEditor.book.id, statuses),
+        initialRating: bookRating(tagEditor.book.id, ratings),
         onClose: () => setTagEditor(null),
-        onSave: async (nextTags: string[]) => {
+        onSave: async (nextTags: string[], nextStatus: string | null, nextRating: number) => {
           await onSetTags(tagEditor.book, nextTags)
+          if (nextStatus !== bookStatus(tagEditor.book.id, statuses)) {
+            await onSetStatus(tagEditor.book, nextStatus)
+          }
+          if (nextRating !== bookRating(tagEditor.book.id, ratings)) {
+            await onSetRating(tagEditor.book, nextRating)
+          }
           setTagEditor(null)
         },
       })

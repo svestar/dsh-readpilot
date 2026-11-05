@@ -71,6 +71,17 @@ export const CSS = `
 .dsh-readpilot-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
 .dsh-readpilot-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
 .dsh-readpilot-tag-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer}
+.dsh-readpilot-meta-field{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dsh-readpilot-meta-label{flex:0 0 56px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-readpilot-meta-options{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dsh-readpilot-status-option{padding:3px 9px;border:0;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-readpilot-status-option[data-active="true"]{background:var(--dsw-alias-brand-primary);color:#fff}
+.dsh-readpilot-rating-star{padding:0 2px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font-size:18px;line-height:1;cursor:pointer;opacity:.45}
+.dsh-readpilot-rating-star[data-active="true"]{color:#e0a53a;opacity:1}
+.dsh-readpilot-rating-clear{margin-left:4px;padding:2px 8px;font-size:11px}
+.dsh-readpilot-book-status{padding:0 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:9px;white-space:nowrap}
+.dsh-readpilot-book-status[data-status="done"]{color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-book-rating{color:#e0a53a;font-size:10px;letter-spacing:.5px;white-space:nowrap}
 .dsh-readpilot-tag-remove:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-error-primary)}
 .dsh-readpilot-tag-input-row{display:flex;gap:8px}
 .dsh-readpilot-tag-input-row input{flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}

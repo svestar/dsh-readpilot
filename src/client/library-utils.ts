@@ -10,11 +10,14 @@ export interface LibraryBook {
 }
 
 export type TagMap = Record<string, string[]>
+export type StatusMap = Record<string, string>
+export type RatingMap = Record<string, number>
 
 export interface FilterOptions {
   category?: string
   query?: unknown
   sort?: string
+  status?: StatusMap | null
 }
 
 export interface CategoryCounts {
@@ -22,12 +25,23 @@ export interface CategoryCounts {
   recent: number
   unread: number
   reading: number
+  done: number
   formats: Record<string, number>
 }
 
 export function bookTags(bookId: string, tags: TagMap | null | undefined): string[] {
   const list = tags?.[bookId]
   return Array.isArray(list) ? list : []
+}
+
+export function bookStatus(bookId: string, status: StatusMap | null | undefined): string | null {
+  const value = status?.[bookId]
+  return value === 'want' || value === 'reading' || value === 'done' ? value : null
+}
+
+export function bookRating(bookId: string, rating: RatingMap | null | undefined): number {
+  const value = rating?.[bookId]
+  return typeof value === 'number' && Number.isInteger(value) && value >= 1 && value <= 5 ? value : 0
 }
 
 export function tagCatalogue(books: readonly LibraryBook[], tags: TagMap | null | undefined): Array<{ tag: string; count: number }> {
@@ -61,6 +75,7 @@ export function filterBooks<T extends LibraryBook>(
     if (category === 'recent' && !book.progress) return false
     if (category === 'unread' && book.progress) return false
     if (category === 'reading' && !book.progress) return false
+    if (category === 'done' && bookStatus(book.id, options.status) !== 'done') return false
     if (category.startsWith('format:') && book.format !== category.slice(7)) return false
     if (category.startsWith('tag:')) {
       const tag = category.slice(4)
@@ -82,12 +97,13 @@ export function filterBooks<T extends LibraryBook>(
   return sorted
 }
 
-export function categoryCounts(books: readonly LibraryBook[], tags: TagMap | null | undefined): CategoryCounts {
+export function categoryCounts(books: readonly LibraryBook[], tags: TagMap | null | undefined, status?: StatusMap | null): CategoryCounts {
   return {
     all: books.length,
     recent: books.filter(book => book.progress).length,
     unread: books.filter(book => !book.progress).length,
     reading: books.filter(book => book.progress).length,
+    done: books.filter(book => bookStatus(book.id, status) === 'done').length,
     formats: ['txt', 'md', 'epub', 'pdf'].reduce<Record<string, number>>((counts, format) => {
       counts[format] = books.filter(book => book.format === format).length
       return counts

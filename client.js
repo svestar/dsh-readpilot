@@ -558,6 +558,13 @@ var __dshReaderBundle = (() => {
     unsupported: "暂不支持",
     unsupportedHint: "这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。",
     unread: "未读",
+    readStatus: "阅读状态",
+    statusNone: "未标记",
+    statusWant: "想读",
+    statusReading: "在读",
+    statusDone: "已读完",
+    rating: "评分",
+    editBook: "书籍信息",
     askCompanion: "问伴读",
     loadFailed: "加载失败",
     configureFailed: "创建书库失败",
@@ -760,6 +767,13 @@ var __dshReaderBundle = (() => {
     unsupported: "Not supported",
     unsupportedHint: "This book cannot be opened yet; check whether the file is damaged or the PDF has no extractable text layer.",
     unread: "Unread",
+    readStatus: "Status",
+    statusNone: "Unmarked",
+    statusWant: "Want to read",
+    statusReading: "Reading",
+    statusDone: "Finished",
+    rating: "Rating",
+    editBook: "Book details",
     askCompanion: "Ask companion",
     loadFailed: "Could not load",
     configureFailed: "Could not create the library",
@@ -998,6 +1012,17 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-tag-list{display:flex;flex-wrap:wrap;gap:6px;min-height:28px;margin-bottom:10px}
 .dsh-readpilot-tag-chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 8px;border-radius:6px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-size:11px}
 .dsh-readpilot-tag-remove{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;padding:0;border:0;border-radius:4px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;cursor:pointer}
+.dsh-readpilot-meta-field{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.dsh-readpilot-meta-label{flex:0 0 56px;color:var(--dsw-alias-label-secondary);font-size:12px}
+.dsh-readpilot-meta-options{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.dsh-readpilot-status-option{padding:3px 9px;border:0;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
+.dsh-readpilot-status-option[data-active="true"]{background:var(--dsw-alias-brand-primary);color:#fff}
+.dsh-readpilot-rating-star{padding:0 2px;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font-size:18px;line-height:1;cursor:pointer;opacity:.45}
+.dsh-readpilot-rating-star[data-active="true"]{color:#e0a53a;opacity:1}
+.dsh-readpilot-rating-clear{margin-left:4px;padding:2px 8px;font-size:11px}
+.dsh-readpilot-book-status{padding:0 5px;border-radius:4px;background:var(--dsw-alias-bg-layer-2);font-size:9px;white-space:nowrap}
+.dsh-readpilot-book-status[data-status="done"]{color:var(--dsw-alias-brand-primary)}
+.dsh-readpilot-book-rating{color:#e0a53a;font-size:10px;letter-spacing:.5px;white-space:nowrap}
 .dsh-readpilot-tag-remove:hover{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-state-error-primary)}
 .dsh-readpilot-tag-input-row{display:flex;gap:8px}
 .dsh-readpilot-tag-input-row input{flex:1;min-width:0;height:32px;padding:0 9px;border:1px solid var(--dsw-alias-border-l2);border-radius:7px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:12px}
@@ -1535,6 +1560,14 @@ var __dshReaderBundle = (() => {
     const list = tags?.[bookId];
     return Array.isArray(list) ? list : [];
   }
+  function bookStatus(bookId, status) {
+    const value = status?.[bookId];
+    return value === "want" || value === "reading" || value === "done" ? value : null;
+  }
+  function bookRating(bookId, rating) {
+    const value = rating?.[bookId];
+    return typeof value === "number" && Number.isInteger(value) && value >= 1 && value <= 5 ? value : 0;
+  }
   function tagCatalogue(books, tags) {
     const counts = /* @__PURE__ */ new Map();
     for (const book of books) {
@@ -1552,6 +1585,7 @@ var __dshReaderBundle = (() => {
       if (category === "recent" && !book.progress) return false;
       if (category === "unread" && book.progress) return false;
       if (category === "reading" && !book.progress) return false;
+      if (category === "done" && bookStatus(book.id, options.status) !== "done") return false;
       if (category.startsWith("format:") && book.format !== category.slice(7)) return false;
       if (category.startsWith("tag:")) {
         const tag = category.slice(4);
@@ -1574,12 +1608,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     });
     return sorted;
   }
-  function categoryCounts(books, tags) {
+  function categoryCounts(books, tags, status) {
     return {
       all: books.length,
       recent: books.filter((book) => book.progress).length,
       unread: books.filter((book) => !book.progress).length,
       reading: books.filter((book) => book.progress).length,
+      done: books.filter((book) => bookStatus(book.id, status) === "done").length,
       formats: ["txt", "md", "epub", "pdf"].reduce((counts, format) => {
         counts[format] = books.filter((book) => book.format === format).length;
         return counts;
@@ -1589,9 +1624,19 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
 
   // src/client/views/library-view.ts
   var FORMATS = ["txt", "md", "epub", "pdf"];
-  function TagDialog({ t, book, initialTags, allTags, onClose, onSave }) {
+  var STATUSES = ["want", "reading", "done"];
+  var RATINGS = [1, 2, 3, 4, 5];
+  function statusLabel(t, status) {
+    if (status === "want") return t("statusWant");
+    if (status === "reading") return t("statusReading");
+    if (status === "done") return t("statusDone");
+    return "";
+  }
+  function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating, onClose, onSave }) {
     const [draft, setDraft] = React.useState("");
     const [tags, setTags] = React.useState(() => initialTags.slice());
+    const [status, setStatus] = React.useState(initialStatus);
+    const [rating, setRating] = React.useState(initialRating);
     const [saving, setSaving] = React.useState(false);
     const [error, setError] = React.useState("");
     const inputRef = React.useRef(null);
@@ -1614,7 +1659,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       setSaving(true);
       setError("");
       try {
-        await onSave(tags);
+        await onSave(tags, status, rating);
         onClose();
       } catch (cause) {
         setError(cause instanceof Error ? cause.message : String(cause));
@@ -1636,9 +1681,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
           className: "dsh-readpilot-note-dialog dsh-readpilot-tag-dialog",
           role: "dialog",
           "aria-modal": "true",
-          "aria-label": t("editTags")
+          "aria-label": t("editBook")
         },
-        h("h3", null, t("editTags")),
+        h("h3", null, t("editBook")),
         h("div", { className: "dsh-readpilot-tag-book" }, book.title),
         h(
           "div",
@@ -1688,6 +1733,50 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             onClick: () => add(tag)
           }, `+ ${tag}`))
         ) : null,
+        h(
+          "div",
+          { className: "dsh-readpilot-meta-field" },
+          h("span", { className: "dsh-readpilot-meta-label" }, t("readStatus")),
+          h(
+            "div",
+            { className: "dsh-readpilot-meta-options" },
+            h("button", {
+              type: "button",
+              className: "dsh-readpilot-status-option",
+              "data-active": status === null ? "true" : "false",
+              onClick: () => setStatus(null)
+            }, t("statusNone")),
+            STATUSES.map((value) => h("button", {
+              key: value,
+              type: "button",
+              className: "dsh-readpilot-status-option",
+              "data-active": status === value ? "true" : "false",
+              onClick: () => setStatus(value)
+            }, statusLabel(t, value)))
+          )
+        ),
+        h(
+          "div",
+          { className: "dsh-readpilot-meta-field" },
+          h("span", { className: "dsh-readpilot-meta-label" }, t("rating")),
+          h(
+            "div",
+            { className: "dsh-readpilot-meta-options" },
+            RATINGS.map((value) => h("button", {
+              key: value,
+              type: "button",
+              className: "dsh-readpilot-rating-star",
+              "data-active": rating >= value ? "true" : "false",
+              "aria-label": `${value}`,
+              onClick: () => setRating((previous) => previous === value ? 0 : value)
+            }, "★")),
+            rating > 0 ? h("button", {
+              type: "button",
+              className: "dsh-readpilot-secondary dsh-readpilot-rating-clear",
+              onClick: () => setRating(0)
+            }, t("clear")) : null
+          )
+        ),
         error ? h("div", { className: "dsh-readpilot-note-dialog-error" }, error) : null,
         h(
           "div",
@@ -1708,7 +1797,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       )
     );
   }
-  function BookCard({ t, book, tags, onOpen, onEditTags }) {
+  function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }) {
+    const label = statusLabel(t, status);
     return h(
       "div",
       {
@@ -1736,7 +1826,9 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             "div",
             { className: "dsh-readpilot-book-meta" },
             h("span", null, formatSize(book.size)),
-            h("span", null, book.progress ? book.progress.chapterTitle || t("reading") : t("unread"))
+            h("span", null, book.progress ? book.progress.chapterTitle || t("reading") : t("unread")),
+            label ? h("span", { className: "dsh-readpilot-book-status", "data-status": status ?? "" }, label) : null,
+            rating > 0 ? h("span", { className: "dsh-readpilot-book-rating", title: `${rating}/5` }, "★".repeat(rating)) : null
           ),
           tags.length > 0 ? h(
             "div",
@@ -1754,20 +1846,22 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
       }, t("tags"))
     );
   }
-  function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags }) {
+  function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating }) {
     const books = snapshot.books;
     const tags = snapshot.tags ?? {};
+    const statuses = snapshot.status ?? {};
+    const ratings = snapshot.rating ?? {};
     const [category, setCategory] = React.useState("all");
     const [query, setQuery] = React.useState("");
     const [sort, setSort] = React.useState("recent");
     const [tagEditor, setTagEditor] = React.useState(null);
-    const counts = React.useMemo(() => categoryCounts(books, tags), [books, tags]);
+    const counts = React.useMemo(() => categoryCounts(books, tags, statuses), [books, tags, statuses]);
     const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags]);
     const visible = React.useMemo(
-      () => filterBooks(books, tags, { category, query, sort }),
-      [books, tags, category, query, sort]
+      () => filterBooks(books, tags, { category, query, sort, status: statuses }),
+      [books, tags, statuses, category, query, sort]
     );
-    const categoryTitle = category === "all" ? t("allBooks") : category.startsWith("tag:") ? `#${category.slice(4)}` : category.startsWith("format:") ? category.slice(7).toUpperCase() : category === "recent" ? t("recentReading") : category === "unread" ? t("unread") : t("inProgress");
+    const categoryTitle = category === "all" ? t("allBooks") : category.startsWith("tag:") ? `#${category.slice(4)}` : category.startsWith("format:") ? category.slice(7).toUpperCase() : category === "recent" ? t("recentReading") : category === "unread" ? t("unread") : category === "done" ? t("statusDone") : t("inProgress");
     const categoryButton = (key, label, count) => h(
       "button",
       {
@@ -1790,6 +1884,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         categoryButton("all", t("allBooks"), counts.all),
         categoryButton("recent", t("recentReading"), counts.recent),
         categoryButton("reading", t("inProgress"), counts.reading),
+        categoryButton("done", t("statusDone"), counts.done),
         categoryButton("unread", t("unread"), counts.unread),
         h("div", { className: "dsh-readpilot-library-side-title" }, t("formats")),
         FORMATS.map((format) => categoryButton(`format:${format}`, format.toUpperCase(), counts.formats[format])),
@@ -1864,6 +1959,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
                 t,
                 book,
                 tags: bookTags(book.id, tags),
+                status: bookStatus(book.id, statuses),
+                rating: bookRating(book.id, ratings),
                 onOpen,
                 onEditTags: (entry) => setTagEditor({
                   book: entry,
@@ -1879,9 +1976,17 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         book: tagEditor.book,
         initialTags: tagEditor.initialTags,
         allTags: tagStats.map((item) => item.tag),
+        initialStatus: bookStatus(tagEditor.book.id, statuses),
+        initialRating: bookRating(tagEditor.book.id, ratings),
         onClose: () => setTagEditor(null),
-        onSave: async (nextTags) => {
+        onSave: async (nextTags, nextStatus, nextRating) => {
           await onSetTags(tagEditor.book, nextTags);
+          if (nextStatus !== bookStatus(tagEditor.book.id, statuses)) {
+            await onSetStatus(tagEditor.book, nextStatus);
+          }
+          if (nextRating !== bookRating(tagEditor.book.id, ratings)) {
+            await onSetRating(tagEditor.book, nextRating);
+          }
           setTagEditor(null);
         }
       }) : null
@@ -5851,6 +5956,28 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setSnapshot((previous) => previous ? { ...previous, tags: { ...previous.tags, [book.id]: result.tags } } : previous);
         return result.tags;
       }, []);
+      const setBookStatus = React.useCallback(async (book, status) => {
+        const result = await call("setBookStatus", { bookId: book.id, status });
+        setSnapshot((previous) => {
+          if (!previous) return previous;
+          const statuses = { ...previous.status };
+          if (result.status) statuses[book.id] = result.status;
+          else delete statuses[book.id];
+          return { ...previous, status: statuses };
+        });
+        return result.status;
+      }, []);
+      const setBookRating = React.useCallback(async (book, rating) => {
+        const result = await call("setBookRating", { bookId: book.id, rating: rating > 0 ? rating : null });
+        setSnapshot((previous) => {
+          if (!previous) return previous;
+          const ratings = { ...previous.rating };
+          if (result.rating !== null) ratings[book.id] = result.rating;
+          else delete ratings[book.id];
+          return { ...previous, rating: ratings };
+        });
+        return result.rating;
+      }, []);
       React.useEffect(() => {
         void refresh();
       }, [refresh]);
@@ -6585,7 +6712,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
           onOpen: openBook,
           onRefresh: refresh,
           onSettings: openSetup,
-          onSetTags: setBookTags
+          onSetTags: setBookTags,
+          onSetStatus: setBookStatus,
+          onSetRating: setBookRating
         }) : screen.kind === "unsupported" ? h(
           "div",
           { className: "dsh-readpilot-empty" },
