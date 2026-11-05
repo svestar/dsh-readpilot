@@ -43,6 +43,7 @@ import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
+import { readerShortcut } from './shortcuts.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -581,6 +582,41 @@ export function createPlugin(require: (name: string) => any) {
         setSelection,
         selectChapter,
       })
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book') return
+        const onKeyDown = (event: KeyboardEvent) => {
+          const target = event.target as HTMLElement | null
+          const action = readerShortcut({
+            key: event.key,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+            altKey: event.altKey,
+            isComposing: event.isComposing,
+            targetTag: target?.tagName,
+            contentEditable: target?.isContentEditable,
+          }, {
+            searchOpen,
+            hasSelection: Boolean(selection),
+            paged: effectiveMode === 'paged',
+          })
+          if (!action) return
+          event.preventDefault()
+          if (action === 'next' || action === 'prev') {
+            const delta = action === 'next' ? 1 : -1
+            if (visual?.kind === 'pdf') stepPdfPage(delta)
+            else if (visual?.kind === 'epub') goEpubPage(delta)
+            else textPager.goPage(delta)
+            return
+          }
+          if (action === 'search') toggleSearch()
+          else if (action === 'close-search') setSearchOpen(false)
+          else if (action === 'clear-selection') setSelection(null)
+          else if (action === 'bookmark') void addBookmark()
+        }
+        window.addEventListener('keydown', onKeyDown)
+        return () => window.removeEventListener('keydown', onKeyDown)
+      }, [addBookmark, effectiveMode, goEpubPage, screen, searchOpen, selection, setSearchOpen, setSelection, stepPdfPage, textPager, toggleSearch, visual])
 
       React.useEffect(() => {
         if (!selection) return

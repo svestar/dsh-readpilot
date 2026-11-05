@@ -4773,6 +4773,27 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     return visualForItem(detail, detail.toc.find((item) => item.id === chapterId));
   }
 
+  // src/client/shortcuts.ts
+  function readerShortcut(input, context) {
+    const tag = (input.targetTag ?? "").toUpperCase();
+    if (input.contentEditable || tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return null;
+    if (input.isComposing || input.altKey) return null;
+    const key = input.key;
+    if ((input.ctrlKey || input.metaKey) && key.toLowerCase() === "f") return "search";
+    if (input.ctrlKey || input.metaKey) return null;
+    if (key === "Escape") {
+      if (context.searchOpen) return "close-search";
+      return context.hasSelection ? "clear-selection" : null;
+    }
+    if (key === "f" || key === "F") return "search";
+    if (key === "b" || key === "B") return "bookmark";
+    const forward = key === "ArrowRight" || key === "PageDown" || key === " ";
+    const backward = key === "ArrowLeft" || key === "PageUp";
+    if (!forward && !backward) return null;
+    if (!context.paged) return null;
+    return forward ? "next" : "prev";
+  }
+
   // src/client/hooks/use-long-notes.ts
   function useLongNotes({ call, t, activeBookId, notesTabActive }) {
     const [notes, setNotes] = React.useState([]);
@@ -6324,6 +6345,40 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setSelection,
         selectChapter
       });
+      React.useEffect(() => {
+        if (screen.kind !== "book") return;
+        const onKeyDown = (event) => {
+          const target = event.target;
+          const action = readerShortcut({
+            key: event.key,
+            ctrlKey: event.ctrlKey,
+            metaKey: event.metaKey,
+            altKey: event.altKey,
+            isComposing: event.isComposing,
+            targetTag: target?.tagName,
+            contentEditable: target?.isContentEditable
+          }, {
+            searchOpen,
+            hasSelection: Boolean(selection),
+            paged: effectiveMode === "paged"
+          });
+          if (!action) return;
+          event.preventDefault();
+          if (action === "next" || action === "prev") {
+            const delta = action === "next" ? 1 : -1;
+            if (visual?.kind === "pdf") stepPdfPage(delta);
+            else if (visual?.kind === "epub") goEpubPage(delta);
+            else textPager.goPage(delta);
+            return;
+          }
+          if (action === "search") toggleSearch();
+          else if (action === "close-search") setSearchOpen(false);
+          else if (action === "clear-selection") setSelection(null);
+          else if (action === "bookmark") void addBookmark();
+        };
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+      }, [addBookmark, effectiveMode, goEpubPage, screen, searchOpen, selection, setSearchOpen, setSelection, stepPdfPage, textPager, toggleSearch, visual]);
       React.useEffect(() => {
         if (!selection) return;
         const dismiss = (event) => {
