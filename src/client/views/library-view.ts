@@ -82,92 +82,103 @@ function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating
     },
   },
   h('div', {
-    className: 'dsh-readpilot-note-dialog dsh-readpilot-tag-dialog',
+    className: 'dsh-readpilot-book-dialog',
     role: 'dialog',
     'aria-modal': 'true',
     'aria-label': t('editBook'),
   },
-  h('h3', null, t('editBook')),
-  h('div', { className: 'dsh-readpilot-tag-book' }, book.title),
-  h('div', { className: 'dsh-readpilot-tag-list' },
-    tags.length === 0
-      ? h('span', { className: 'dsh-readpilot-muted' }, t('noTags'))
-      : tags.map(tag => h('span', { key: tag, className: 'dsh-readpilot-tag-chip' },
-        tag,
-        h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-tag-remove',
-          'aria-label': `${t('removeTag')} ${tag}`,
-          onClick: () => setTags(previous => previous.filter(item => item !== tag)),
-        }, '×')))),
-  h('div', { className: 'dsh-readpilot-tag-input-row' },
-    h('input', {
-      ref: inputRef,
-      value: draft,
-      placeholder: t('tagPlaceholder'),
-      spellCheck: false,
-      onChange: (event: any) => setDraft(event.target.value),
-      onKeyDown: (event: any) => {
-        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-          event.preventDefault()
-          add(draft)
-        }
-      },
-    }),
+  h('header', { className: 'dsh-readpilot-book-dialog-head' },
+    h('div', { className: 'dsh-readpilot-book-dialog-heading' },
+      h('h3', null, t('editBook')),
+      h('div', { className: 'dsh-readpilot-book-dialog-title', title: book.title }, book.title)),
     h('button', {
       type: 'button',
-      className: 'dsh-readpilot-secondary',
-      disabled: !draft.trim() || tags.length >= 20,
-      onClick: () => add(draft),
-    }, t('addTag'))),
-  allTags.length > 0
-    ? h('div', { className: 'dsh-readpilot-tag-suggestions' },
-      allTags
-        .filter(tag => !tags.includes(tag))
-        .slice(0, 12)
-        .map(tag => h('button', {
-          key: tag,
+      className: 'dsh-readpilot-book-dialog-close',
+      'aria-label': t('close'),
+      onClick: onClose,
+    }, '×')),
+  h('div', { className: 'dsh-readpilot-book-dialog-body' },
+    h('section', { className: 'dsh-readpilot-book-field' },
+      h('div', { className: 'dsh-readpilot-book-field-label' }, t('tags')),
+      h('div', { className: 'dsh-readpilot-tag-list' },
+        tags.length === 0
+          ? h('span', { className: 'dsh-readpilot-muted' }, t('noTags'))
+          : tags.map(tag => h('span', { key: tag, className: 'dsh-readpilot-tag-chip' },
+            tag,
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-tag-remove',
+              'aria-label': `${t('removeTag')} ${tag}`,
+              onClick: () => setTags(previous => previous.filter(item => item !== tag)),
+            }, '×')))),
+      h('div', { className: 'dsh-readpilot-tag-input-row' },
+        h('input', {
+          ref: inputRef,
+          value: draft,
+          placeholder: t('tagPlaceholder'),
+          spellCheck: false,
+          onChange: (event: any) => setDraft(event.target.value),
+          onKeyDown: (event: any) => {
+            if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+              event.preventDefault()
+              add(draft)
+            }
+          },
+        }),
+        h('button', {
           type: 'button',
-          className: 'dsh-readpilot-tag-suggestion',
-          onClick: () => add(tag),
-        }, `+ ${tag}`)))
-    : null,
-  h('div', { className: 'dsh-readpilot-meta-field' },
-    h('span', { className: 'dsh-readpilot-meta-label' }, t('readStatus')),
-    h('div', { className: 'dsh-readpilot-meta-options' },
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-status-option',
-        'data-active': status === null ? 'true' : 'false',
-        onClick: () => setStatus(null),
-      }, t('statusNone')),
-      STATUSES.map(value => h('button', {
-        key: value,
-        type: 'button',
-        className: 'dsh-readpilot-status-option',
-        'data-active': status === value ? 'true' : 'false',
-        onClick: () => setStatus(value),
-      }, statusLabel(t, value))))),
-  h('div', { className: 'dsh-readpilot-meta-field' },
-    h('span', { className: 'dsh-readpilot-meta-label' }, t('rating')),
-    h('div', { className: 'dsh-readpilot-meta-options' },
-      RATINGS.map(value => h('button', {
-        key: value,
-        type: 'button',
-        className: 'dsh-readpilot-rating-star',
-        'data-active': rating >= value ? 'true' : 'false',
-        'aria-label': `${value}`,
-        onClick: () => setRating(previous => (previous === value ? 0 : value)),
-      }, '★')),
-      rating > 0
-        ? h('button', {
+          className: 'dsh-readpilot-secondary',
+          disabled: !draft.trim() || tags.length >= 20,
+          onClick: () => add(draft),
+        }, t('addTag'))),
+      allTags.length > 0
+        ? h('div', { className: 'dsh-readpilot-tag-suggestions' },
+          allTags
+            .filter(tag => !tags.includes(tag))
+            .slice(0, 12)
+            .map(tag => h('button', {
+              key: tag,
+              type: 'button',
+              className: 'dsh-readpilot-tag-suggestion',
+              onClick: () => add(tag),
+            }, `+ ${tag}`)))
+        : null),
+    h('section', { className: 'dsh-readpilot-book-field' },
+      h('div', { className: 'dsh-readpilot-book-field-label' }, t('readStatus')),
+      h('div', { className: 'dsh-readpilot-meta-options' },
+        h('button', {
           type: 'button',
-          className: 'dsh-readpilot-secondary dsh-readpilot-rating-clear',
-          onClick: () => setRating(0),
-        }, t('clear'))
-        : null)),
-  error ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, error) : null,
-  h('div', { className: 'dsh-readpilot-note-dialog-actions' },
+          className: 'dsh-readpilot-status-option',
+          'data-active': status === null ? 'true' : 'false',
+          onClick: () => setStatus(null),
+        }, t('statusNone')),
+        STATUSES.map(value => h('button', {
+          key: value,
+          type: 'button',
+          className: 'dsh-readpilot-status-option',
+          'data-active': status === value ? 'true' : 'false',
+          onClick: () => setStatus(value),
+        }, statusLabel(t, value))))),
+    h('section', { className: 'dsh-readpilot-book-field' },
+      h('div', { className: 'dsh-readpilot-book-field-label' }, t('rating')),
+      h('div', { className: 'dsh-readpilot-meta-options' },
+        RATINGS.map(value => h('button', {
+          key: value,
+          type: 'button',
+          className: 'dsh-readpilot-rating-star',
+          'data-active': rating >= value ? 'true' : 'false',
+          'aria-label': `${value}`,
+          onClick: () => setRating(previous => (previous === value ? 0 : value)),
+        }, '★')),
+        rating > 0
+          ? h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-secondary dsh-readpilot-rating-clear',
+            onClick: () => setRating(0),
+          }, t('clear'))
+          : null)),
+    error ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, error) : null),
+  h('footer', { className: 'dsh-readpilot-book-dialog-actions' },
     h('button', {
       type: 'button',
       className: 'dsh-readpilot-secondary',
