@@ -119,6 +119,11 @@ export const CSS = `
 .dsh-readpilot-chat-tab:hover{color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600}
 .dsh-readpilot-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-chat-head-actions{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-readpilot-chat-save{height:24px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.dsh-readpilot-chat-save:hover:not(:disabled){color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-chat-save:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-chat-notice{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:11px;max-width:140px}
 .dsh-readpilot-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
 .dsh-readpilot-page-jump{display:inline;margin:0;padding:0;border:0;background:none;color:var(--dsw-alias-brand-primary);font:inherit;line-height:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}

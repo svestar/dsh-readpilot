@@ -44,6 +44,8 @@ import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { readerShortcut } from './shortcuts.ts'
+import { buildAnswerNote, lastAssistantText } from './answer-note.ts'
+import type { AnswerNoteAnchor } from './answer-note.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -131,6 +133,9 @@ export function createPlugin(require: (name: string) => any) {
       const [tocOpen, setTocOpen] = React.useState(true)
       const [fontSize, setFontSize] = React.useState(17)
       const [selection, setSelection] = React.useState<Selection | null>(null)
+      const [answerSaving, setAnswerSaving] = React.useState(false)
+      const [answerNotice, setAnswerNotice] = React.useState('')
+      const answerAnchorRef = React.useRef<AnswerNoteAnchor | null>(null)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
@@ -255,6 +260,8 @@ export function createPlugin(require: (name: string) => any) {
         loadingEarlier,
         chatBinding,
       } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession })
+
+      const answerText = React.useMemo(() => lastAssistantText(messages), [messages])
 
       const nativeInputRef = React.useRef<any>(null)
       const handleNativeReady = React.useCallback((value: any) => {
@@ -563,6 +570,7 @@ export function createPlugin(require: (name: string) => any) {
         addHighlight,
         addBookmark,
         saveNote,
+        loadNotes,
       } = useNotes({
         call,
         t,
@@ -582,6 +590,31 @@ export function createPlugin(require: (name: string) => any) {
         setSelection,
         selectChapter,
       })
+
+      const saveAnswer = React.useCallback(async () => {
+        if (screen.kind !== 'book' || answerSaving) return
+        const payload = buildAnswerNote(answerAnchorRef.current, answerText)
+        if (!payload) {
+          setAnswerNotice(t('answerNoteNoAnchor'))
+          return
+        }
+        setAnswerSaving(true)
+        setAnswerNotice('')
+        try {
+          await call('notes', {
+            action: 'add',
+            bookId: screen.detail.book.id,
+            kind: 'note',
+            ...payload,
+          })
+          await loadNotes()
+          setAnswerNotice(t('answerNoteSaved'))
+        } catch (error) {
+          setAnswerNotice(`${t('answerNoteFailed')}：${messageOf(error)}`)
+        } finally {
+          setAnswerSaving(false)
+        }
+      }, [answerSaving, answerText, call, loadNotes, screen, t])
 
       React.useEffect(() => {
         if (screen.kind !== 'book') return
@@ -670,6 +703,13 @@ export function createPlugin(require: (name: string) => any) {
 
       const askCompanion = React.useCallback(() => {
         if (!selection || screen.kind !== 'book') return
+        answerAnchorRef.current = {
+          quote: selection.text,
+          chapterId: screen.content.chapterId,
+          blockIndex: selection.blockIndex ?? 0,
+          offset: selection.offset,
+        }
+        setAnswerNotice('')
         window.getSelection()?.removeAllRanges()
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
         const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
@@ -825,6 +865,12 @@ export function createPlugin(require: (name: string) => any) {
         chatBody,
         nativeChat,
         onPageJump: format === 'pdf' ? jumpToPage : null,
+        onSaveAnswer: saveAnswer,
+        answerNote: {
+          enabled: Boolean(answerText) && Boolean(answerAnchorRef.current),
+          busy: answerSaving,
+          notice: answerNotice,
+        },
         chatError,
         chatCompose,
         chatWidth,

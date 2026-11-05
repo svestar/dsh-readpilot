@@ -15,6 +15,8 @@ interface ChatPanelProps {
   chatBody: any
   nativeChat?: any
   onPageJump?: ((page: number) => void) | null
+  onSaveAnswer?: (() => void) | null
+  answerNote?: { enabled: boolean; busy: boolean; notice: string } | null
   chatError: string
   chatCompose: any
   chatWidth: number
@@ -39,6 +41,8 @@ export function ChatPanel({
   chatBody,
   nativeChat,
   onPageJump,
+  onSaveAnswer,
+  answerNote,
   chatError,
   chatCompose,
   chatWidth,
@@ -127,11 +131,24 @@ export function ChatPanel({
           'aria-selected': chatTab === 'memory',
           onClick: () => setChatTab('memory'),
         }, t('memory'))),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-chat-close',
-        onClick: () => setChatOpen(false),
-      }, t('closeChat'))),
+      h('div', { className: 'dsh-readpilot-chat-head-actions' },
+        chatTab === 'chat' && onSaveAnswer
+          ? h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-chat-save',
+            disabled: !answerNote?.enabled || Boolean(answerNote?.busy),
+            title: t('saveAsNote'),
+            onClick: () => onSaveAnswer(),
+          }, answerNote?.busy ? t('loading') : t('saveAsNote'))
+          : null,
+        answerNote?.notice
+          ? h('span', { className: 'dsh-readpilot-chat-notice' }, answerNote.notice)
+          : null,
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-chat-close',
+          onClick: () => setChatOpen(false),
+        }, t('closeChat')))),
     chatTab === 'notes'
       ? notesBody
       : chatTab === 'long'

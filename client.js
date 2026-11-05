@@ -593,6 +593,10 @@ var __dshReaderBundle = (() => {
     you: "你",
     assistant: "伴读",
     closeChat: "收起伴读",
+    saveAsNote: "存为批注",
+    answerNoteSaved: "已存为批注",
+    answerNoteNoAnchor: "请先选中原文并向伴读提问",
+    answerNoteFailed: "存为批注失败",
     close: "关闭",
     resizeChat: "调整伴读栏宽度",
     chatDisabled: "先在设置中创建书库工作区。",
@@ -804,6 +808,10 @@ var __dshReaderBundle = (() => {
     you: "You",
     assistant: "Companion",
     closeChat: "Hide companion",
+    saveAsNote: "Save as note",
+    answerNoteSaved: "Saved as a note",
+    answerNoteNoAnchor: "Select a passage and ask the companion first",
+    answerNoteFailed: "Could not save the note",
     close: "Close",
     resizeChat: "Resize companion panel",
     chatDisabled: "Create a library workspace in Settings first.",
@@ -1064,6 +1072,11 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-chat-tab:hover{color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-tab[data-active="true"]{background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font-weight:600}
 .dsh-readpilot-chat-close{height:24px;padding:0 8px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-chat-head-actions{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-readpilot-chat-save{height:24px;padding:0 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer;white-space:nowrap}
+.dsh-readpilot-chat-save:hover:not(:disabled){color:var(--dsw-alias-label-primary);background:var(--dsw-alias-bg-layer-2)}
+.dsh-readpilot-chat-save:disabled{opacity:.45;cursor:default}
+.dsh-readpilot-chat-notice{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:11px;max-width:140px}
 .dsh-readpilot-chat-close:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-chat-body{flex:1;min-height:0;overflow:auto;padding:12px 12px 4px}
 .dsh-readpilot-page-jump{display:inline;margin:0;padding:0;border:0;background:none;color:var(--dsw-alias-brand-primary);font:inherit;line-height:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px}
@@ -3396,6 +3409,8 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
     chatBody,
     nativeChat,
     onPageJump,
+    onSaveAnswer,
+    answerNote,
     chatError,
     chatCompose,
     chatWidth,
@@ -3488,11 +3503,23 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
             onClick: () => setChatTab("memory")
           }, t("memory"))
         ),
-        h("button", {
-          type: "button",
-          className: "dsh-readpilot-chat-close",
-          onClick: () => setChatOpen(false)
-        }, t("closeChat"))
+        h(
+          "div",
+          { className: "dsh-readpilot-chat-head-actions" },
+          chatTab === "chat" && onSaveAnswer ? h("button", {
+            type: "button",
+            className: "dsh-readpilot-chat-save",
+            disabled: !answerNote?.enabled || Boolean(answerNote?.busy),
+            title: t("saveAsNote"),
+            onClick: () => onSaveAnswer()
+          }, answerNote?.busy ? t("loading") : t("saveAsNote")) : null,
+          answerNote?.notice ? h("span", { className: "dsh-readpilot-chat-notice" }, answerNote.notice) : null,
+          h("button", {
+            type: "button",
+            className: "dsh-readpilot-chat-close",
+            onClick: () => setChatOpen(false)
+          }, t("closeChat"))
+        )
       ),
       chatTab === "notes" ? notesBody : chatTab === "long" ? longNotesBody : chatTab === "memory" ? memoryBody : nativeChat ? h("div", { className: "dsh-readpilot-native-chat" }, nativeChat) : chatBody,
       chatTab === "chat" && chatError ? h("div", { className: "dsh-readpilot-chat-error" }, chatError) : null,
@@ -4885,6 +4912,30 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
     return forward ? "next" : "prev";
   }
 
+  // src/client/answer-note.ts
+  function lastAssistantText(messages) {
+    for (let index = messages.length - 1; index >= 0; index -= 1) {
+      const message = messages[index];
+      if (message.role !== "assistant") continue;
+      const text = message.text.trim();
+      if (text) return text;
+    }
+    return "";
+  }
+  function buildAnswerNote(anchor, answer) {
+    if (!anchor) return null;
+    const quote = anchor.quote.trim();
+    const note = answer.trim();
+    if (!quote || !note || !anchor.chapterId) return null;
+    return {
+      quote,
+      note,
+      chapterId: anchor.chapterId,
+      blockIndex: Number.isInteger(anchor.blockIndex) && anchor.blockIndex >= 0 ? anchor.blockIndex : 0,
+      offset: Number.isInteger(anchor.offset) && anchor.offset >= 0 ? anchor.offset : 0
+    };
+  }
+
   // src/client/hooks/use-long-notes.ts
   function useLongNotes({ call, t, activeBookId, notesTabActive }) {
     const [notes, setNotes] = React.useState([]);
@@ -6044,6 +6095,9 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       const [tocOpen, setTocOpen] = React.useState(true);
       const [fontSize, setFontSize] = React.useState(17);
       const [selection, setSelection] = React.useState(null);
+      const [answerSaving, setAnswerSaving] = React.useState(false);
+      const [answerNotice, setAnswerNotice] = React.useState("");
+      const answerAnchorRef = React.useRef(null);
       const [paletteId, setPaletteId] = React.useState(readPaletteId);
       const palette = resolveReaderPalette(paletteId);
       const format = screen.kind === "book" ? screen.detail.book.format : null;
@@ -6150,6 +6204,7 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         loadingEarlier,
         chatBinding
       } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession });
+      const answerText = React.useMemo(() => lastAssistantText(messages), [messages]);
       const nativeInputRef = React.useRef(null);
       const handleNativeReady = React.useCallback((value) => {
         nativeInputRef.current = value;
@@ -6416,7 +6471,8 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         openNoteEditor,
         addHighlight,
         addBookmark,
-        saveNote
+        saveNote,
+        loadNotes
       } = useNotes({
         call,
         t,
@@ -6436,6 +6492,30 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         setSelection,
         selectChapter
       });
+      const saveAnswer = React.useCallback(async () => {
+        if (screen.kind !== "book" || answerSaving) return;
+        const payload = buildAnswerNote(answerAnchorRef.current, answerText);
+        if (!payload) {
+          setAnswerNotice(t("answerNoteNoAnchor"));
+          return;
+        }
+        setAnswerSaving(true);
+        setAnswerNotice("");
+        try {
+          await call("notes", {
+            action: "add",
+            bookId: screen.detail.book.id,
+            kind: "note",
+            ...payload
+          });
+          await loadNotes();
+          setAnswerNotice(t("answerNoteSaved"));
+        } catch (error2) {
+          setAnswerNotice(`${t("answerNoteFailed")}：${messageOf(error2)}`);
+        } finally {
+          setAnswerSaving(false);
+        }
+      }, [answerSaving, answerText, call, loadNotes, screen, t]);
       React.useEffect(() => {
         if (screen.kind !== "book") return;
         const onKeyDown = (event) => {
@@ -6517,6 +6597,13 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
       }, []);
       const askCompanion = React.useCallback(() => {
         if (!selection || screen.kind !== "book") return;
+        answerAnchorRef.current = {
+          quote: selection.text,
+          chapterId: screen.content.chapterId,
+          blockIndex: selection.blockIndex ?? 0,
+          offset: selection.offset
+        };
+        setAnswerNotice("");
         window.getSelection()?.removeAllRanges();
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges();
         const quote = selection.text.split("\n").map((line) => `> ${line}`).join("\n");
@@ -6662,6 +6749,12 @@ ${String(this.state.error?.stack ?? this.state.error)}`);
         chatBody,
         nativeChat,
         onPageJump: format === "pdf" ? jumpToPage : null,
+        onSaveAnswer: saveAnswer,
+        answerNote: {
+          enabled: Boolean(answerText) && Boolean(answerAnchorRef.current),
+          busy: answerSaving,
+          notice: answerNotice
+        },
         chatError,
         chatCompose,
         chatWidth,
