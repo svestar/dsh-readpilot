@@ -22,12 +22,12 @@ async function makeEpub(filePath: string) {
   zip.file('OEBPS/content.opf', `<?xml version="1.0"?>
 <package xmlns="http://www.idpf.org/2007/opf" version="3.0">
   <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
-    <dc:title>Test Book</dc:title><dc:creator>Test Author</dc:creator>
+    <dc:title>Test Book</dc:title><dc:creator>Test Author</dc:creator><meta name="cover" content="cover-img"/>
   </metadata>
   <manifest>
     <item id="ch1" href="ch1.xhtml" media-type="application/xhtml+xml"/>
     <item id="css" href="style.css" media-type="text/css"/>
-    <item id="img" href="pic.png" media-type="image/png"/>
+    <item id="img" href="pic.png" media-type="image/png"/><item id="cover-img" href="cover.png" media-type="image/png"/>
   </manifest>
   <spine><itemref idref="ch1"/></spine>
 </package>`)
@@ -37,6 +37,7 @@ async function makeEpub(filePath: string) {
 <p><img src="pic.png"/></p><p><a href="ch1.xhtml#part">part</a></p></body></html>`)
   zip.file('OEBPS/style.css', 'body{background:url(pic.png)} .remote{background:url(https://evil.example/x.png)}')
   zip.file('OEBPS/pic.png', PNG)
+  zip.file('OEBPS/cover.png', PNG)
   await writeFile(filePath, await zip.generateAsync({ type: 'nodebuffer' }))
 }
 
@@ -109,4 +110,16 @@ test('visual_target_restores_epub_frame', () => {
   assert.deepEqual(visualForChapter(detail, 'e1'), { kind: 'epub', href: 'text/ch1.xhtml' })
   assert.equal(visualForChapter(detail, 'e2'), null)
   assert.equal(visualForChapter(detail, undefined), null)
+})
+test('epub_cover_reads_cover_image', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const filePath = join(root, 'book.epub')
+  await makeEpub(filePath)
+  const visual = createEpubVisual({ dataDir: join(root, 'data') })
+  const meta = await visual.prepare({ bookId: 'book1', filePath })
+  assert.equal(meta.coverPath, 'OEBPS/cover.png')
+  const cover = await visual.cover({ bookId: 'book1', filePath })
+  assert.equal(cover?.contentType, 'image/png')
+  assert.deepEqual(cover?.bytes, PNG)
 })

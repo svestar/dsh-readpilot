@@ -67,6 +67,22 @@ export function apply(ctx: any, config: any = {}): void {
           },
         }),
         register({
+          path: '/api/dsh-readpilot/cover',
+          methods: ['GET'],
+          requestBody: 'buffered',
+          fetch: async (request: Request) => {
+            try {
+              const url = new URL(request.url)
+              const result = await api.cover({ bookId: url.searchParams.get('bookId') })
+              return new Response(result.bytes as unknown as BodyInit, {
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+              })
+            } catch {
+              return new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } })
+            }
+          },
+        }),
+        register({
           path: '/api/dsh-readpilot/pdf-page',
           methods: ['GET'],
           requestBody: 'buffered',

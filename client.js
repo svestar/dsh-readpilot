@@ -991,12 +991,15 @@ var __dshReaderBundle = (() => {
 .dsh-readpilot-book-card{position:relative;min-width:0}
 .dsh-readpilot-book-open{display:block;width:100%;padding:0;border:1px solid var(--dsw-alias-border-l2);border-radius:12px;background:var(--dsw-alias-bg-layer-1);color:inherit;text-align:left;font:inherit;cursor:pointer;overflow:hidden;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
 .dsh-readpilot-book-open:hover{transform:translateY(-2px);border-color:var(--dsw-alias-brand-primary);box-shadow:0 8px 22px rgba(0,0,0,.16)}
-.dsh-readpilot-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff}
+.dsh-readpilot-book-cover{position:relative;display:flex;flex-direction:column;justify-content:space-between;height:104px;padding:10px;background:linear-gradient(135deg,#6b7280,#374151);color:#fff;overflow:hidden}
 .dsh-readpilot-book-card[data-format="md"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#5b7a73,#344d47)}
 .dsh-readpilot-book-card[data-format="epub"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#6b6a86,#42415a)}
 .dsh-readpilot-book-card[data-format="pdf"] .dsh-readpilot-book-cover{background:linear-gradient(135deg,#8a735c,#4d3f33)}
 .dsh-readpilot-book-format{align-self:flex-start;padding:2px 6px;border-radius:5px;background:rgba(255,255,255,.18);font-size:9px;font-weight:700;letter-spacing:.08em}
 .dsh-readpilot-book-cover-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:13px;font-weight:650;line-height:1.35;text-shadow:0 1px 3px rgba(0,0,0,.25)}
+.dsh-readpilot-book-cover-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.dsh-readpilot-book-cover:has(.dsh-readpilot-book-cover-img)::after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.12),rgba(0,0,0,.58))}
+.dsh-readpilot-book-cover>*{position:relative;z-index:1}
 .dsh-readpilot-book-info{padding:9px 10px 10px}
 .dsh-readpilot-book-title{display:-webkit-box;overflow:hidden;-webkit-line-clamp:2;-webkit-box-orient:vertical;font-size:12px;font-weight:600;line-height:1.4;word-break:break-word}
 .dsh-readpilot-book-meta{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:5px;color:var(--dsw-alias-label-secondary);font-size:10px}
@@ -1799,6 +1802,7 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
   }
   function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }) {
     const label = statusLabel(t, status);
+    const [coverFailed, setCoverFailed] = React.useState(false);
     return h(
       "div",
       {
@@ -1815,6 +1819,13 @@ ${bookTags(book.id, tags).join(" ")}`.toLowerCase();
         h(
           "div",
           { className: "dsh-readpilot-book-cover" },
+          coverFailed ? null : h("img", {
+            className: "dsh-readpilot-book-cover-img",
+            src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
+            alt: "",
+            loading: "lazy",
+            onError: () => setCoverFailed(true)
+          }),
           h("span", { className: "dsh-readpilot-book-format" }, book.format.toUpperCase()),
           h("span", { className: "dsh-readpilot-book-cover-title" }, book.title)
         ),

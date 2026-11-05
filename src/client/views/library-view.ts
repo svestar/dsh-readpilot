@@ -194,6 +194,7 @@ interface BookCardProps {
 
 function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCardProps) {
   const label = statusLabel(t, status)
+  const [coverFailed, setCoverFailed] = React.useState(false)
   return h('div', {
     className: 'dsh-readpilot-book-card',
     'data-format': book.format,
@@ -204,6 +205,15 @@ function BookCard({ t, book, tags, status, rating, onOpen, onEditTags }: BookCar
     onClick: () => onOpen(book),
   },
   h('div', { className: 'dsh-readpilot-book-cover' },
+    coverFailed
+      ? null
+      : h('img', {
+        className: 'dsh-readpilot-book-cover-img',
+        src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
+        alt: '',
+        loading: 'lazy',
+        onError: () => setCoverFailed(true),
+      }),
     h('span', { className: 'dsh-readpilot-book-format' }, book.format.toUpperCase()),
     h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title)),
   h('div', { className: 'dsh-readpilot-book-info' },

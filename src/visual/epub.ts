@@ -23,6 +23,7 @@ export interface EpubVisual {
     docBase?: string
   }): Promise<EpubDocumentResult>
   readAsset(request?: { bookId?: string; filePath?: string; path?: string }): Promise<EpubAssetResult>
+  cover(request?: { bookId?: string; filePath?: string }): Promise<EpubAssetResult | null>
 }
 
 interface EpubManifestItem {
@@ -39,6 +40,7 @@ export interface EpubRecord {
   author: string
   opfPath: string
   opfDir: string
+  coverPath: string | null
   spine: Array<{ id: string; href: string }>
 }
 
@@ -151,13 +153,38 @@ function readManifest(packageElement: any, opfPath: string): Map<string, EpubMan
   return manifest
 }
 
-function readSpine(packageElement: any, manifest: Map<string, EpubManifestItem>): EpubManifestItem[] {
-  const items: EpubManifestItem[] = []
+function readSpine(packageElement: any, manifest: Map<string, EpubManifestItem>): EpubManifestItem[] {  const items: EpubManifestItem[] = []
   for (const ref of findAll(packageElement, 'itemref')) {
     const item = manifest.get(ref.getAttribute('idref'))
     if (item) items.push(item)
   }
   return items
+}
+
+function findCoverPath(packageElement: any, manifest: Map<string, EpubManifestItem>, opfPath: string): string | null {
+  const metadata = findFirst(packageElement, 'metadata')
+  if (metadata) {
+    for (const meta of findAll(metadata, 'meta')) {
+      if (String(meta.getAttribute('name') ?? '').toLowerCase() !== 'cover') continue
+      const item = manifest.get(String(meta.getAttribute('content') ?? ''))
+      if (item && item.mediaType.startsWith('image/')) return item.path
+    }
+  }
+  for (const item of manifest.values()) {
+    if (item.properties.includes('cover-image') && item.mediaType.startsWith('image/')) return item.path
+  }
+  const guide = findFirst(packageElement, 'guide')
+  if (guide) {
+    for (const ref of findAll(guide, 'reference')) {
+      if (String(ref.getAttribute('type') ?? '').toLowerCase() !== 'cover') continue
+      const target = resolveZipPath(opfPath, ref.getAttribute('href'))
+      if (!target) continue
+      for (const item of manifest.values()) {
+        if (item.path === target && item.mediaType.startsWith('image/')) return item.path
+      }
+    }
+  }
+  return null
 }
 
 function readMetadata(packageElement: any): { title: string; author: string } {
@@ -199,7 +226,7 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
     const info = await stat(filePath)
     try {
       const cached: any = JSON.parse(await readFile(metaPath, 'utf8'))
-      if (cached.sourceMtimeMs === info.mtimeMs && cached.sourceSize === info.size) {
+      if (cached.sourceMtimeMs === info.mtimeMs && cached.sourceSize === info.size && 'coverPath' in cached) {
         await stat(join(root, ASSET_ROOT, cached.opfPath))
         return cached
       }
@@ -239,6 +266,7 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
       author: metadata.author,
       opfPath,
       opfDir,
+      coverPath: findCoverPath(packageElement, manifest, opfPath),
       spine: spine.map(item => ({
         id: item.id,
         href: posix.relative(opfDir, item.path),
@@ -361,5 +389,19 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
     return { bytes, contentType }
   }
 
-  return { prepare, readDocument, readAsset }
+  async function cover(request: { bookId?: string; filePath?: string } = {}): Promise<EpubAssetResult | null> {
+    const id = assertBookId(request.bookId)
+    const meta = await prepare({ bookId: id, filePath: request.filePath })
+    if (!meta.coverPath) return null
+    const root = join(bookRoot(id), ASSET_ROOT)
+    const target = join(root, meta.coverPath)
+    const rootPrefix = root.endsWith(sep) ? root : `${root}${sep}`
+    if (target !== root && !target.startsWith(rootPrefix)) return null
+    const bytes = await readFile(target).catch(() => null)
+    if (!bytes) return null
+    const extension = posix.extname(meta.coverPath).toLowerCase()
+    return { bytes, contentType: CONTENT_TYPES.get(extension) ?? 'image/jpeg' }
+  }
+
+  return { prepare, readDocument, readAsset, cover }
 }

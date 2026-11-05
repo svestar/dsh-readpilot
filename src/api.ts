@@ -44,6 +44,7 @@ const PARSER_VERSION = 6
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
+const PDF_COVER_SCALE = 0.5
 const MAX_SEARCH_BOOKS = 20
 
 export interface ReaderContext {
@@ -199,6 +200,7 @@ export interface ReaderApi {
   toolNote(payload?: any): Promise<any>
   pageView(payload?: any): Promise<PageViewResult>
   pdfPage(payload?: any): Promise<{ png: Buffer; contentType: string }>
+  cover(payload?: any): Promise<{ bytes: Buffer; contentType: string }>
   epubDocument(payload?: any): Promise<EpubDocumentResult>
   epubAsset(payload?: any): Promise<EpubAssetResult>
   handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult>
@@ -1347,6 +1349,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return { png: result.png, contentType: 'image/png' }
   }
 
+  async function cover({ bookId }: any = {}): Promise<{ bytes: Buffer; contentType: string }> {
+    const book = await resolveBook(bookId)
+    if (book.format === 'epub') {
+      const visual = await getEpubVisual()
+      const result = await visual.cover({ bookId: book.id, filePath: book.path })
+      if (!result) throw new ReaderError('no-cover', '这本书没有封面')
+      return result
+    }
+    if (book.format === 'pdf') {
+      const page = await pdfPage({ bookId: book.id, page: 1, scale: PDF_COVER_SCALE })
+      return { bytes: page.png, contentType: page.contentType }
+    }
+    throw new ReaderError('no-cover', '这本书没有封面')
+  }
+
   async function epubDocument({ bookId, href }: any = {}): Promise<EpubDocumentResult> {
     const book = await resolveBook(bookId)
     if (book.format !== 'epub') throw new ReaderError('not-epub', '只有 EPUB 支持原书渲染')
@@ -1390,6 +1407,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       openNoteFile,
       exportNotes,
       pageView,
+      pdfPage,
+      cover,
       libraryMeta,
       setBookTags,
       setBookStatus,
@@ -1443,6 +1462,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     toolNote,
     pageView,
     pdfPage,
+    cover,
     epubDocument,
     epubAsset,
     handleRpc,
