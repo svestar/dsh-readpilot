@@ -55,7 +55,7 @@ import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
-import { columnsFor, pageSpanWidth } from './paging.ts'
+import { chapterPercent, columnsFor, pageSpanWidth, pdfPagePercent } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 import type {
   ClientBook,
@@ -417,10 +417,6 @@ export function createPlugin(require: (name: string) => any) {
           if (screen.kind === 'book') {
             setVisual(visualForChapter(screen.detail, chapterId, reflowModeRef.current))
           }
-          const toc = screen.kind === 'book' ? screen.detail.toc : []
-          const index = toc.findIndex(item => item.id === chapterId)
-          const percent = index >= 0 && toc.length > 0 ? (index / toc.length) * 100 : undefined
-          void call('progress', { bookId, chapterId, chapterTitle: content.title, percent }).catch(() => {})
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
@@ -484,9 +480,6 @@ export function createPlugin(require: (name: string) => any) {
         epubFrameRef,
         epubPage,
         epubPageCount,
-        epubPageStart,
-        epubPageEnd,
-        epubPageTotal,
         visual: visualState,
         goPdfPage,
         stepPdfPage,
@@ -536,6 +529,30 @@ export function createPlugin(require: (name: string) => any) {
       const toc = screen.kind === 'book' ? screen.detail.toc : []
       const chapterIndex = screen.kind === 'book' ? toc.findIndex(item => item.id === screen.content.chapterId) : -1
       const chapterTotal = toc.length
+      const activeChapterIndex = toc.findIndex(item => item.id === activeChapterId)
+      const pdfVisualPage = visual?.kind === 'pdf' ? visual.page : 1
+      const readingPercent = screen.kind !== 'book'
+        ? 0
+        : screen.detail.book.format === 'pdf' && !reflowMode
+          ? pdfPagePercent(pdfVisualPage, pdfPageCount || toc.length || 1)
+          : screen.detail.book.format === 'epub' && !reflowMode
+            ? chapterPercent(toc, chapterIndex, epubPage, epubPageCount)
+            : chapterPercent(toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, textPager.page, textPager.pageCount)
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || !activeChapterId) return
+        const chapterTitle = toc.find(item => item.id === activeChapterId)?.title ?? screen.content.title
+        const timer = window.setTimeout(() => {
+          void call('progress', {
+            bookId: screen.detail.book.id,
+            chapterId: activeChapterId,
+            chapterTitle,
+            percent: Math.round(readingPercent * 10) / 10,
+          }).catch(() => {})
+        }, 350)
+        return () => window.clearTimeout(timer)
+      }, [activeChapterId, readingPercent, screen, toc, call])
+
 
       const goChapter = React.useCallback((delta: number) => {
         if (screen.kind !== 'book') return
@@ -911,6 +928,8 @@ export function createPlugin(require: (name: string) => any) {
           pageStart: pdfPage,
           pageEnd: Math.min(pdfPage + columnsFor(pageLayout) - 1, pdfPageCount || pdfPage),
           pageTotal: pdfPageCount || 1,
+          percent: readingPercent,
+          reflow: false,
           canPrev: pdfPage > 1,
           canNext: pdfPage < pdfPageCount,
           onPrev: () => stepPdfPage(-1),
@@ -925,9 +944,10 @@ export function createPlugin(require: (name: string) => any) {
         : format === 'epub'
           ? effectiveMode === 'paged'
             ? {
-              pageStart: epubPageStart,
-              pageEnd: epubPageEnd,
-              pageTotal: epubPageTotal,
+              pageStart: epubPage + 1,
+              pageEnd: epubPage + 1,
+              pageTotal: epubPageCount,
+              percent: readingPercent,
               canPrev: epubPage > 0 || chapterIndex > 0,
               canNext: epubPage < epubPageCount - 1 || chapterIndex < chapterTotal - 1,
               onPrev: () => goEpubPage(-1),
@@ -939,6 +959,7 @@ export function createPlugin(require: (name: string) => any) {
               pageStart: 1,
               pageEnd: 1,
               pageTotal: 1,
+              percent: readingPercent,
               canPrev: chapterIndex > 0,
               canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
               onPrev: () => goEpubChapter(-1),
@@ -950,6 +971,8 @@ export function createPlugin(require: (name: string) => any) {
               pageStart: textPager.pageStart,
               pageEnd: textPager.pageEnd,
               pageTotal: textPager.pageTotal,
+              percent: readingPercent,
+              reflow: reflowMode,
               canPrev: textPager.canPrev,
               canNext: textPager.canNext,
               onPrev: () => textPager.goPage(-1),
@@ -961,6 +984,7 @@ export function createPlugin(require: (name: string) => any) {
               pageStart: 1,
               pageEnd: 1,
               pageTotal: 1,
+              percent: readingPercent,
               canPrev: chapterIndex > 0,
               canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
               onPrev: () => goChapter(-1),
@@ -979,6 +1003,7 @@ export function createPlugin(require: (name: string) => any) {
           chapterTotal,
           ...readerBarProps,
           onLayoutChange: format === 'pdf' && reflowMode ? undefined : setPageLayout,
+          reflow: reflowMode,
         })
         : null
 

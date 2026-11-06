@@ -234,7 +234,16 @@ export function useVisual({
       })
     }
     doc.addEventListener('mouseup', handler)
-    epubCleanupRef.current = () => doc.removeEventListener('mouseup', handler)
+    const bump = () => setEpubReady(previous => previous + 1)
+    const images = Array.from(doc.images ?? [])
+    for (const image of images) {
+      if (!image.complete) image.addEventListener('load', bump, { once: true })
+    }
+    if (doc.fonts?.ready) doc.fonts.ready.then(bump).catch(() => {})
+    epubCleanupRef.current = () => {
+      doc.removeEventListener('mouseup', handler)
+      for (const image of images) image.removeEventListener('load', bump)
+    }
   }, [palette, setSelection])
 
   React.useEffect(() => {

@@ -4,7 +4,6 @@ import {
   clampPageIndex,
   columnsFor,
   measurePageMetrics,
-  pageBounds,
 } from '../paging.ts'
 import type { PageLayout } from '../paging.ts'
 import type { MutableRef, Screen, SelectChapter } from '../types.ts'
@@ -37,7 +36,6 @@ export interface TextPager {
 export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, selectChapter }: TextPagerOptions): TextPager {
   const [page, setPage] = React.useState(0)
   const [pageCount, setPageCount] = React.useState(1)
-  const [pageTotal, setPageTotal] = React.useState(1)
   const [stride, setStride] = React.useState(0)
   const frameRef = React.useRef<HTMLDivElement | null>(null)
   const innerRef = React.useRef<HTMLDivElement | null>(null)
@@ -74,7 +72,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     if (!active) {
       setStride(0)
       setPageCount(1)
-      setPageTotal(1)
       return
     }
     const inner = innerRef.current
@@ -93,7 +90,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       if (pendingLast) pendingLastRef.current = null
       setStride(metrics.stride)
       setPageCount(metrics.pageCount)
-      setPageTotal(metrics.totalColumns)
       if (pendingLast) {
         setPage(metrics.pageCount - 1)
       } else {
@@ -210,8 +206,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
 
   const safePage = active ? clampPageIndex(page, pageCount) : 0
   const count = active ? pageCount : 1
-  const total = active ? pageTotal : 1
-  const bounds = pageBounds(safePage, layout, total)
   const canPrev = active && (safePage > 0 || prevChapter !== null)
   const canNext = active && (safePage < count - 1 || nextChapter !== null)
 
@@ -221,9 +215,9 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     innerStyle,
     page: safePage,
     pageCount: count,
-    pageStart: bounds.start,
-    pageEnd: bounds.end,
-    pageTotal: total,
+    pageStart: safePage + 1,
+    pageEnd: safePage + 1,
+    pageTotal: count,
     canPrev,
     canNext,
     goPage,

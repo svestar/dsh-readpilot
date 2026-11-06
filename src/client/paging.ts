@@ -76,3 +76,26 @@ export function pageSpanWidth(pageWidth: number, layout: PageLayout, gap = PAGE_
   if (!Number.isFinite(gap) || gap < 0) return 0
   return width * 2 + gap
 }
+/** Character-weighted reading percentage at a page inside one chapter. */
+export function chapterPercent(
+  chapters: ReadonlyArray<{ chars?: number }>,
+  chapterIndex: number,
+  pageIndex: number,
+  pageCount: number,
+): number {
+  const weights = chapters.map(chapter => Math.max(1, Number(chapter.chars) || 1))
+  const total = weights.reduce((sum, weight) => sum + weight, 0)
+  if (total <= 0) return 0
+  const index = Math.max(0, Math.min(chapterIndex, weights.length - 1))
+  const before = weights.slice(0, index).reduce((sum, weight) => sum + weight, 0)
+  const fraction = pageCount > 0 ? Math.max(0, Math.min(pageIndex, pageCount)) / pageCount : 0
+  return Math.max(0, Math.min(100, ((before + weights[index] * fraction) / total) * 100))
+}
+
+/** PDF visual pages are already absolute, so progress follows the page number. */
+export function pdfPagePercent(page: number, pageCount: number): number {
+  if (!Number.isFinite(pageCount) || pageCount <= 0) return 0
+  const index = Math.max(0, Math.min(page - 1, pageCount))
+  const span = Math.max(1, pageCount - 1)
+  return Math.max(0, Math.min(100, (index / span) * 100))
+}

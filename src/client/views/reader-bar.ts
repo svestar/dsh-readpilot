@@ -14,6 +14,8 @@ interface ReaderBarProps {
   pageStart: number
   pageEnd: number
   pageTotal: number
+  percent?: number
+  reflow?: boolean
   canPrev: boolean
   canNext: boolean
   onPrev: () => void
@@ -38,6 +40,8 @@ export function ReaderBar({
   pageStart,
   pageEnd,
   pageTotal,
+  percent,
+  reflow,
   canPrev,
   canNext,
   onPrev,
@@ -55,9 +59,14 @@ export function ReaderBar({
   const nextLabel = t(paged ? 'pageNext' : 'chapterNext')
   const modeLabel = t(paged ? 'scrollMode' : 'pagedMode')
   const numericPage = paged && Boolean(onPageCommit) && pageInput !== undefined
+  const percentText = percent === undefined ? '' : ` · ${Math.round(percent)}%`
+  const pdfOriginal = format === 'pdf' && !reflow
+  const range = pageEnd > pageStart ? `–${pageEnd}` : ''
   const pagePosition = paged
-    ? `${pageStart}${pageEnd > pageStart ? `–${pageEnd}` : ''} / ${pageTotal}`
-    : `${chapterIndex + 1} / ${chapterTotal}`
+    ? pdfOriginal
+      ? `PDF ${pageStart}${range} / ${pageTotal}${percentText}`
+      : `${pageStart}${range} / ${pageTotal}${percentText}`
+    : `${chapterIndex + 1} / ${chapterTotal}${percentText}`
 
   return h('div', {
     className: 'dsh-readpilot-bar',
@@ -101,7 +110,7 @@ export function ReaderBar({
               if (Number.isFinite(page)) onPageCommit?.(page)
             },
           }),
-          h('span', { className: 'dsh-readpilot-bar-position' }, `/ ${pageTotal}`))
+          h('span', { className: 'dsh-readpilot-bar-position' }, `/ ${pageTotal}${percentText}`))
         : h('span', {
           className: 'dsh-readpilot-bar-position',
           title: t(paged ? 'page' : 'chapter'),

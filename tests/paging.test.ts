@@ -4,6 +4,7 @@ import type { TestContext } from 'node:test'
 import {
   PAGE_ASPECT,
   PAGE_GAP,
+  chapterPercent,
   clampPageIndex,
   columnsFor,
   measurePageMetrics,
@@ -11,6 +12,7 @@ import {
   pageSpanWidth,
   pageStep,
   pageWidthForHeight,
+  pdfPagePercent,
 } from '../src/client/paging.ts'
 import {
   DEFAULT_PAGE_LAYOUT,
@@ -262,4 +264,18 @@ test('reading_preferences_are_global_and_validate_values', t => {
   values.set(PAGE_LAYOUT_KEY, 'bogus')
   assert.equal(readReadingMode(), 'paged')
   assert.equal(readPageLayout(), 'single')
+})
+test('chapter_percent_weights_chapters_and_pages', () => {
+  const chapters = [{ chars: 100 }, { chars: 300 }]
+  assert.equal(chapterPercent(chapters, 0, 0, 2), 0)
+  assert.equal(chapterPercent(chapters, 0, 1, 2), 12.5)
+  assert.equal(chapterPercent(chapters, 1, 0, 2), 25)
+  assert.equal(chapterPercent(chapters, 1, 2, 2), 100)
+})
+
+test('pdf_page_percent_spans_first_to_last_page', () => {
+  assert.equal(pdfPagePercent(1, 5), 0)
+  assert.equal(pdfPagePercent(3, 5), 50)
+  assert.equal(pdfPagePercent(5, 5), 100)
+  assert.equal(pdfPagePercent(1, 1), 0)
 })
