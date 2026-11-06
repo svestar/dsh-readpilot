@@ -197,7 +197,23 @@ export function useCompanion({
       }
     }
 
+    const sessionArchived = async (sessionId: string) => {
+      try {
+        const result = await call('sessionAlive', { sessionId })
+        return result.alive === false
+      } catch {
+        return false
+      }
+    }
+
     try {
+      const current = chatRef.current?.sessionId ?? activeSessionId
+      if (current && await sessionArchived(current)) {
+        await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
+        forgetSession(book.id)
+        releaseChat()
+        setChatError(t('chatSessionLost'))
+      }
       let reference = chatRef.current?.reference
       if (!reference) reference = await createSession()
       try {
@@ -211,13 +227,14 @@ export function useCompanion({
         setChatError('')
         await runPrompt(reference)
       }
+      setChatError('')
       setDraft('')
     } catch (error) {
       setChatError(`${t('sendFailed')}：${messageOf(error)}`)
     } finally {
       setSending(false)
     }
-  }, [draft, sending, screen, workspaceId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t])
+  }, [draft, sending, screen, workspaceId, activeSessionId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t])
 
   const loadEarlier = React.useCallback(async () => {
     const reference = chatRef.current?.reference

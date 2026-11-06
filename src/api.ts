@@ -177,6 +177,7 @@ export interface ReaderApi {
   chapter(payload?: { bookId?: unknown; chapterId?: unknown }): Promise<ChapterContent>
   saveReadingProgress(payload?: any): Promise<{ bookId: string; chapterId: string }>
   setCompanionSession(payload?: any): Promise<{ bookId: string; sessionId: string | null }>
+  sessionAlive(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; alive: boolean }>
   setCompanionPolicy(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; mode: string | null; applied: boolean }>
   setCompanionContext(payload?: any): Promise<{ sessionId: string; characters: number }>
   companionContextOf(sessionId: unknown): string
@@ -330,6 +331,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       loadCompanionSettings(dataDir),
     ])
     companionSettings = companion
+    const archived = new Set(archivedSessionIds())
+    if (archived.size > 0) {
+      for (const [bookId, entry] of Object.entries(sessions)) {
+        if (archived.has(entry.sessionId)) delete sessions[bookId]
+      }
+    }
     return {
       settings,
       books: books.map(book => ({ ...book, progress: progress[book.id] ?? null })),
@@ -543,6 +550,19 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       await saveSessions(dataDir, sessions)
     })
     return { bookId, sessionId: sessionId ?? null }
+  }
+
+  function archivedSessionIds(): string[] {
+    const registry = ctx.get('workspaceRegistry') as { archivedSessionIds?: unknown } | undefined
+    const ids = registry?.archivedSessionIds
+    return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : []
+  }
+
+  async function sessionAlive({ sessionId }: { sessionId?: unknown } = {}): Promise<{ sessionId: string; alive: boolean }> {
+    if (typeof sessionId !== 'string' || !sessionId) {
+      throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
+    }
+    return { sessionId, alive: !archivedSessionIds().includes(sessionId) }
   }
 
   async function setCompanionPolicy({ sessionId }: { sessionId?: unknown } = {}): Promise<{ sessionId: string; mode: string | null; applied: boolean }> {
@@ -1085,6 +1105,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       chapter,
       progress: saveReadingProgress,
       session: setCompanionSession,
+      sessionAlive,
       companionPolicy: setCompanionPolicy,
       companionContext: setCompanionContext,
       setNoteContext,
@@ -1123,6 +1144,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     chapter,
     saveReadingProgress,
     setCompanionSession,
+    sessionAlive,
     setCompanionPolicy,
     setCompanionContext,
     companionContextOf,

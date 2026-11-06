@@ -232,6 +232,7 @@ export interface Operations {
   chapter: { payload: { bookId: string; chapterId: string }; result: ChapterContent }
   progress: { payload: ProgressPayload; result: { bookId: string; chapterId: string } }
   session: { payload: SessionPayload; result: { bookId: string; sessionId: string | null } }
+  sessionAlive: { payload: { sessionId: string }; result: { sessionId: string; alive: boolean } }
   companionPolicy: { payload: CompanionPolicyPayload; result: CompanionPolicyResult }
   companionContext: { payload: CompanionContextPayload; result: CompanionContextResult }
   search: { payload: SearchPayload; result: SearchResult }
@@ -285,7 +286,7 @@ export type CallRpc = <K extends Operation>(
 ) => Promise<OperationResult<K>>
 
 export const OPERATIONS: readonly Operation[] = [
-  'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session',
+  'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive',
   'companionPolicy', 'companionContext', 'search', 'exportNotes', 'openNoteFile',
   'setNoteContext', 'setAutoApplyNotes', 'pageView', 'libraryMeta',
   'setBookTags', 'setBookStatus', 'setBookRating',

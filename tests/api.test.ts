@@ -7,11 +7,14 @@ import { createReaderApi, noteFilePath } from '../src/api.ts'
 
 function fakeContext() {
   const workspaces: any[] = []
+  const archivedSessionIds: string[] = []
   return {
     workspaces,
+    archivedSessionIds,
     get(name: string) {
       if (name !== 'workspaceRegistry') return undefined
       return {
+        archivedSessionIds,
         async resolveByPath(path: string) {
           return workspaces.find(workspace => workspace.path === path)
         },
@@ -476,4 +479,17 @@ test('library_scan_is_cached_briefly_and_rescan_forces_fresh', async t => {
   await new Promise(resolve => setTimeout(resolve, 1600))
   const expired = await api.state()
   assert.equal(expired.books.length, 2)
+})
+test('archived_session_is_reported_and_filtered_from_state', async t => {
+  const { library, data } = await makeLibrary(t)
+  const ctx = fakeContext()
+  const api = createReaderApi({ ctx, dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.setCompanionSession({ bookId, sessionId: 's1' })
+  assert.equal((await api.sessionAlive({ sessionId: 's1' })).alive, true)
+  ctx.archivedSessionIds.push('s1')
+  assert.equal((await api.sessionAlive({ sessionId: 's1' })).alive, false)
+  const refreshed = await api.state()
+  assert.equal(refreshed.sessions[bookId], undefined)
 })

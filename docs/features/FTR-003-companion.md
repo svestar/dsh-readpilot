@@ -3,18 +3,19 @@
 - **ID：** FTR-003
 - **名称：** 伴读与检索
 - **状态：** active
-- **代码：** `src/api.ts`（`setCompanionSession`、`search`）
+- **代码：** `src/api.ts`（`setCompanionSession`、`sessionAlive`、`search`）
 - **测试：** `tests/api.test.ts`
 
 ## 行为
 
-每本书在 `$DSH_HOME/dsh-readpilot/sessions.json` 中保存一个伴读会话 id。阅读面板首次向某本书提问时，在该书库工作区创建会话并保存映射；已有映射时直接复用。会话被删除或失效时清除映射并重建一次。会话就绪后客户端调用 `companionPolicy`：Host 在 live Session 上检查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`，同一会话只应用一次。`search` 在指定书或全库中做字面量检索，返回书名、章节名、片段和 `bookId:chapterId:offset` 定位符。
+每本书在 `$DSH_HOME/dsh-readpilot/sessions.json` 中保存一个伴读会话 id。阅读面板首次向某本书提问时，在该书库工作区创建会话并保存映射；已有映射时直接复用。发送前通过 `sessionAlive` 检查会话是否已归档；已归档则清除映射、新建会话后再发送。归档会话的请求不会报错（DSH 的归档门禁直接拒绝该步骤），因此不能依赖发送后的异常来恢复。会话就绪后客户端调用 `companionPolicy`：Host 在 live Session 上检查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`，同一会话只应用一次。`search` 在指定书或全库中做字面量检索，返回书名、章节名、片段和 `bookId:chapterId:offset` 定位符。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `setCompanionSession` | `src/api.ts:setCompanionSession` | 持久化或清除书籍与会话的映射 |
+| `sessionAlive` | `src/api.ts:sessionAlive` | 检查会话是否已被归档 |
 | `setCompanionPolicy` | `src/api.ts:setCompanionPolicy` | 把伴读会话切到只读沙箱，已只读时跳过 |
 | `search` | `src/api.ts:search` | 返回带稳定定位符的检索结果 |
 
@@ -27,3 +28,4 @@
 - 正常路径：写入会话映射后重新加载 API 仍能读到该映射，清除后映射消失（`session_mapping_persists`）。
 - 正常路径：首次调用追加 `sandbox/mode`，再次调用不重复追加，非 live 会话返回空模式（`companion_policy_sets_read_only_once`）。
 - 正常路径：检索“再见”返回第二章的命中，定位符包含章节 id（`search_returns_locator`）。
+- 边界：会话被归档后 `sessionAlive` 返回 `alive=false`，刷新状态时该映射被过滤（`archived_session_is_reported_and_filtered_from_state`）。
