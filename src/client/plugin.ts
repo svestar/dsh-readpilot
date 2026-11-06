@@ -498,6 +498,7 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
         readingMode: effectiveMode,
         layout: pageLayout,
+        fontSize,
       })
 
       // The panel remounts when switching DSH pages; restored screens must rebuild

@@ -8,7 +8,7 @@
 
 ## 行为
 
-EPUB 与 PDF 阅读时顶栏出现“重排/原版”切换。EPUB 重排仍在 iframe 中渲染：Host 去掉出版社的 `<link rel="stylesheet">`、`<style>` 与元素 `style` 属性，注入统一排版样式（正文、标题、引用、代码、表格、图片），原版模式保持出版社 CSS 不变。PDF 重排复用文本阅读器：`parsePdf` 过滤页码与重复页眉页脚，按字号识别标题、按等宽字体识别代码、对双栏页按左右栏重排，然后把块交给与 TXT/MD 相同的分页渲染器。
+EPUB 与 PDF 阅读时顶栏出现“重排/原版”切换。EPUB 重排仍在 iframe 中渲染：Host 去掉出版社的 `<link rel="stylesheet">`、`<style>` 与元素 `style` 属性，注入统一排版样式（正文、标题、引用、代码、表格、图片），原版模式保持出版社 CSS 不变。PDF 重排复用文本阅读器：字号跟随阅读器的 A+/A-（EPUB 通过 iframe 根字号应用，PDF/TXT/MD 使用同一套文本渲染器）；TXT 与 MD 始终走这套渲染器。`parsePdf` 过滤页码与重复页眉页脚，按字号识别标题、按等宽字体识别代码、对双栏页按左右栏重排，然后把块交给与 TXT/MD 相同的分页渲染器。
 
 EPUB 重排的分页沿用视觉模式的 CSS 多列：`useVisual` 给 iframe 的 `html` 注入列数与列间距，横向滚动翻页。PDF 重排按 PDF 页做章节分页，切回原版恢复页面位图。模式保存在 `localStorage` 的 `dsh-readpilot.reflow`，跨书生效。
 

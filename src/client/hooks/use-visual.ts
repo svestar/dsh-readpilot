@@ -22,6 +22,7 @@ interface VisualOptions {
   selectChapter: SelectChapter
   readingMode?: ReaderMode
   layout?: PageLayout
+  fontSize?: number
 }
 
 const EPUB_PAGING_STYLE_ID = 'dsh-readpilot-paging'
@@ -35,6 +36,11 @@ function applyEpubPagingStyle(doc: Document, layout: PageLayout): void {
     ;(doc.head ?? doc.documentElement).appendChild(style)
   }
   style.textContent = `html { height: 100%; column-count: ${columnsFor(layout)}; column-gap: ${PAGE_GAP}px; column-fill: auto; overflow: hidden; } body { margin: 0 !important; height: 100%; }`
+}
+
+function applyReflowFont(doc: Document, visual: any, fontSize: number): void {
+  if (!visual || visual.kind !== 'epub' || !visual.reflow) return
+  doc.documentElement.style.fontSize = `${fontSize}px`
 }
 
 function removeEpubPagingStyle(doc: Document | null | undefined): void {
@@ -69,6 +75,7 @@ export function useVisual({
   selectChapter,
   readingMode = 'paged',
   layout = 'single',
+  fontSize = 17,
 }: VisualOptions) {
   const [visual, setVisual] = React.useState<Visual | null>(null)
   const [pageView, setPageView] = React.useState<PageView | null>(null)
@@ -216,6 +223,7 @@ export function useVisual({
     epubCleanupRef.current = null
     if (!doc) return
     applyPaletteToFrame(frame, palette)
+    applyReflowFont(doc, visual, fontSize)
     setEpubReady(previous => previous + 1)
     const handler = () => {
       const selected = doc.getSelection()
@@ -235,7 +243,17 @@ export function useVisual({
     }
     doc.addEventListener('mouseup', handler)
     epubCleanupRef.current = () => doc.removeEventListener('mouseup', handler)
-  }, [palette, setSelection])
+  }, [palette, setSelection, visual, fontSize])
+
+  React.useEffect(() => {
+    if (!epubPaged) return
+    const frame = epubFrameRef.current
+    if (!frame) return
+    const doc = readyEpubDocument(frame)
+    if (!doc) return
+    applyReflowFont(doc, visual, fontSize)
+    setEpubReady(previous => previous + 1)
+  }, [fontSize, visual?.kind, visual?.kind === 'epub' ? visual.href : null, epubPaged])
 
   React.useEffect(() => {
     if (visual?.kind === 'epub' && epubFrameRef.current) {
