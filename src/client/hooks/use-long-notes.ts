@@ -97,7 +97,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, chatVersio
     } catch (cause) {
       if (requestRef.current === request) setError(`${t('notesFailed')}：${messageOf(cause)}`)
     } finally {
-      if (!silent && requestRef.current === request) setLoading(false)
+      // A silent poll may supersede an explicit load; the latest request must
+      // always settle the spinner or the list stays "loading" forever.
+      if (requestRef.current === request) setLoading(false)
     }
   }, [activeBookId, call, t])
 
