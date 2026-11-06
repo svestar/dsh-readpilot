@@ -149,6 +149,7 @@ export function createPlugin(require: (name: string) => any) {
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const isTextFormat = format === 'txt' || format === 'md' || (format === 'pdf' && reflowMode)
+      const textLayout: PageLayout = format === 'pdf' && reflowMode ? 'single' : pageLayout
       const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
       const pendingScrollRef = React.useRef<PendingScroll | null>(null)
@@ -516,7 +517,7 @@ export function createPlugin(require: (name: string) => any) {
 
       const textPager = useTextPager({
         enabled: isTextFormat && effectiveMode === 'paged',
-        layout: pageLayout,
+        layout: textLayout,
         screen,
         fontSize,
         pageWidth: textPageWidth,
@@ -968,11 +969,12 @@ export function createPlugin(require: (name: string) => any) {
           t,
           format: screen.detail.book.format,
           mode: effectiveMode,
-          layout: pageLayout,
+          layout: textLayout,
           chapterTitle: screen.content.title,
           chapterIndex,
           chapterTotal,
           ...readerBarProps,
+          onLayoutChange: format === 'pdf' && reflowMode ? undefined : setPageLayout,
         })
         : null
 
@@ -993,8 +995,7 @@ export function createPlugin(require: (name: string) => any) {
         epubFrameRef,
       }) : null
 
-      const singlePageLayout = pageLayout !== 'single' && textPager.pageCount <= 1
-      const pageSpan = pageSpanWidth(textPageWidth, singlePageLayout ? 'single' : pageLayout)
+      const pageSpan = pageSpanWidth(textPageWidth, textLayout)
       const pageFrameStyle = pageSpan > 0
         ? { width: `${pageSpan}px`, maxWidth: '100%', margin: '0 auto' }
         : undefined
@@ -1015,7 +1016,7 @@ export function createPlugin(require: (name: string) => any) {
             h('div', {
               className: 'dsh-readpilot-reader-inner dsh-readpilot-paged-inner',
               ref: textPager.innerRef,
-              style: singlePageLayout ? { ...textPager.innerStyle, columnCount: 1 } : textPager.innerStyle,
+              style: textPager.innerStyle,
             },
             h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),

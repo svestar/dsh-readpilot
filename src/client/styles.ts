@@ -5,7 +5,10 @@ body[data-ds-dark-theme] .dsh-readpilot-library{background:rgba(0,0,0,.50);box-s
 .dsh-readpilot-setup{background:rgba(240,243,248,.5)}
 body[data-ds-dark-theme] .dsh-readpilot-setup{background:rgba(0,0,0,.50)}
 .dsh-readpilot-book{background:var(--dsw-alias-bg-base)}
-.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-reader,.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-visual{background:var(--reader-bg);-webkit-backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%);backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%)}
+.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-reader{background:var(--reader-bg);-webkit-backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%);backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%)}
+.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-visual{background:transparent}
+.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-visual::before{content:"";position:absolute;inset:0;background:var(--reader-bg);-webkit-backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%);backdrop-filter:blur(var(--reader-glass-blur,25px)) saturate(150%);pointer-events:none;z-index:0}
+.dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-visual>*{position:relative;z-index:1}
 .dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-book{background:transparent}
 .dsh-readpilot-panel[data-palette="glass"] .dsh-readpilot-epub-frame{background:transparent}
 .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(240,243,248,.5)}
