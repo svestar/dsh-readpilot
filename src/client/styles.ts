@@ -181,7 +181,10 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-md pre code{padding:0;background:transparent}
 .dsh-readpilot-md blockquote{margin:.6em 0;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
 .dsh-readpilot-md a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
-.dsh-readpilot-md hr.dsh-readpilot-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}
+.dsh-readpilot-table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:.92em;line-height:1.5;table-layout:auto}
+.dsh-readpilot-table th,.dsh-readpilot-table td{border:1px solid var(--reader-border);padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
+.dsh-readpilot-table th{background:color-mix(in srgb,var(--reader-fg) 6%,transparent);font-weight:600}
+.dsh-readpilot-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}
 .dsh-readpilot-md .dsh-readpilot-li{margin:0 0 .45em}
 .dsh-readpilot-chat-thinking{color:var(--dsw-alias-label-secondary);font-size:12px;padding:2px 0 10px}
 .dsh-readpilot-chat-error{margin:0 12px 8px;padding:7px 9px;border-radius:7px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12px;line-height:1.55}

@@ -372,6 +372,22 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
         }
       }
     }
+    if (reflow) {
+      let block = 0
+      const BLOCK_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'blockquote', 'li'])
+      const walk = (node: any): void => {
+        for (const child of [...(node.children ?? [])]) {
+          const tag = String(child.tagName ?? '').toLowerCase()
+          if (BLOCK_TAGS.has(tag)) {
+            child.setAttribute('data-reflow-block', String(block))
+            block += 1
+          } else {
+            walk(child)
+          }
+        }
+      }
+      if (document.body) walk(document.body)
+    }
     const head: any = document.head ?? document.querySelector('head')
     if (head) {
       const style: any = document.createElement('style')

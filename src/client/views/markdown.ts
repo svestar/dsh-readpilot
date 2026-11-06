@@ -64,6 +64,15 @@ export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): 
     if (block.type === 'hr') {
       return h('hr', { key, 'data-block-index': index, className: 'dsh-readpilot-md-hr' })
     }
+    if (block.type === 'table' && block.rows?.length) {
+      return h('table', { key, 'data-block-index': index, className: 'dsh-readpilot-table' },
+        h('tbody', null,
+          block.rows.map((row, rowIndex) =>
+            h('tr', { key: `${key}-${rowIndex}` },
+              row.map((cell, cellIndex) =>
+                h(rowIndex === 0 ? 'th' : 'td', { key: `${key}-${rowIndex}-${cellIndex}` },
+                  inline(cell, `${key}-${rowIndex}-${cellIndex}`)))))))
+    }
     if (block.type === 'li') {
       return h('div', { key, 'data-block-index': index, className: 'dsh-readpilot-li' },
         h('span', { className: 'dsh-readpilot-li-marker' }, block.ordered ? `${block.index}.` : '•'),

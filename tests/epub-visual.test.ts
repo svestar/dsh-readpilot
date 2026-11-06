@@ -138,6 +138,7 @@ test('epub_visual_reflow_drops_publisher_styles', async t => {
   assert.ok(!reflow.html.includes('rel="stylesheet"'))
   assert.ok(!reflow.html.includes('style="color:red"'))
   assert.ok(reflow.html.includes('data-dsh-reflow'))
+  assert.ok(reflow.html.includes('data-reflow-block="0"'))
   assert.ok(reflow.html.includes('text-indent:2em'))
 })
 

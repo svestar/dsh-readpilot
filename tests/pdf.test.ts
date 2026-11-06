@@ -11,9 +11,18 @@ function textAt(text: string, y: number, size: number) {
   return `BT\n/F1 ${size} Tf\n72 ${y} Td\n(${escapePdfString(text)}) Tj\nET`
 }
 
+function cellsAt(cells: Array<{ text: string; x: number }>, y: number, size: number) {
+  const parts = cells
+    .map(cell => `1 0 0 1 ${cell.x} ${y} Tm\n(${escapePdfString(cell.text)}) Tj`)
+    .join('\n')
+  return `BT\n/F1 ${size} Tf\n${parts}\nET\n`
+}
+
 function textContent(page: any) {
   if (Array.isArray(page)) {
-    return page.map(line => textAt(line.text, line.y, line.size ?? 12)).join('\n')
+    return page.map(line => line.cells
+      ? cellsAt(line.cells, line.y, line.size ?? 12)
+      : textAt(line.text, line.y, line.size ?? 12)).join('\n')
   }
   return textAt(page, 720, 24)
 }
@@ -164,4 +173,22 @@ test('parse_pdf_reports_reflow_confidence', async () => {
   const empty = await parsePdf(buildPdf({ pages: [null] }), 'empty.pdf')
   assert.ok(empty.reflowConfidence! < 0.6)
   assert.ok(empty.reflowNotes!.some(note => note.includes('没有文本')))
+})
+test('parse_pdf_detects_simple_tables', async () => {
+  const buffer = buildPdf({
+    pages: [[
+      { cells: [{ text: 'Name', x: 72 }, { text: 'Value', x: 320 }], y: 600 },
+      { cells: [{ text: 'Alpha', x: 72 }, { text: '1', x: 320 }], y: 580 },
+      { text: 'After table', y: 540 },
+    ]],
+  })
+  const book = await parsePdf(buffer, 'table.pdf')
+  const blocks = book.chapters[0].blocks
+  assert.deepEqual(blocks[0], {
+    type: 'table',
+    text: 'Name | Value\nAlpha | 1',
+    rows: [['Name', 'Value'], ['Alpha', '1']],
+  })
+  assert.equal(blocks[1].type, 'p')
+  assert.match(blocks[1].text, /After table/)
 })

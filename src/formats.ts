@@ -2,12 +2,13 @@ import { basename, extname } from 'node:path'
 
 export type BookFormat = 'txt' | 'md' | 'epub' | 'pdf'
 
-export type BlockType = 'p' | 'h' | 'quote' | 'code' | 'li'
+export type BlockType = 'p' | 'h' | 'quote' | 'code' | 'li' | 'table'
 
 export interface TextBlock {
   type: BlockType
   text: string
   level?: number
+  rows?: string[][]
 }
 
 export interface Chapter {

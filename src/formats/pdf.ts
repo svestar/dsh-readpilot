@@ -27,6 +27,7 @@ interface PdfLine {
   items: PdfLineItem[]
   text?: string
   mono: boolean
+  cells?: Array<{ text: string; x: number }>
 }
 
 interface PdfPageData {
@@ -140,6 +141,29 @@ function groupLines(items: PdfLineItem[]): PdfLine[] {
     const monoInk = line.items.filter(item => item.mono).reduce((sum, item) => sum + item.text.trim().length, 0)
     const ink = line.items.reduce((sum, item) => sum + item.text.trim().length, 0)
     line.mono = ink > 0 && monoInk >= ink * 0.6
+    const cells: Array<{ text: string; x: number }> = []
+    let cell: { text: string; x: number } | null = null
+    let cursor = line.x
+    for (const item of line.items) {
+      if (!item.text.trim()) {
+        if (cell && item.width > item.size * 1.5) {
+          cells.push({ text: cell.text.trim(), x: cell.x })
+          cell = null
+        }
+        cursor = item.x + item.width
+        continue
+      }
+      const gap = item.x - cursor
+      if (cell && gap > Math.max(6, item.size * 1.2)) {
+        cells.push({ text: cell.text.trim(), x: cell.x })
+        cell = null
+      }
+      if (!cell) cell = { text: item.text, x: item.x }
+      else cell.text += ` ${item.text}`
+      cursor = item.x + item.width
+    }
+    if (cell) cells.push({ text: cell.text.trim(), x: cell.x })
+    line.cells = cells.filter(entry => entry.text)
   }
   return lines
 }
@@ -214,6 +238,24 @@ function looksLikeTocPage(lines: PdfLine[]): boolean {
   return entries >= text.length * 0.4
 }
 
+function tableRowsAt(lines: PdfLine[], index: number): { rows: string[][]; count: number } | null {
+  const first = lines[index]
+  if (!first?.text || first.mono) return null
+  const base = first.cells ?? []
+  if (base.length < 2) return null
+  const rows = [base.map(cell => cell.text)]
+  let cursor = index + 1
+  for (; cursor < lines.length; cursor += 1) {
+    const line = lines[cursor]
+    if (!line.text || line.mono) break
+    const cells = line.cells ?? []
+    if (cells.length !== base.length) break
+    if (cells.some((cell, column) => Math.abs(cell.x - base[column].x) > line.size * 2)) break
+    rows.push(cells.map(cell => cell.text))
+  }
+  return rows.length >= 2 ? { rows, count: rows.length } : null
+}
+
 function pageBlocks(lines: PdfLine[]): TextBlock[] {
   const blocks: TextBlock[] = []
   let paragraph: string[] = []
@@ -247,6 +289,18 @@ function pageBlocks(lines: PdfLine[]): TextBlock[] {
     if (TOC_LEADER_PATTERN.test(line.text)) {
       flushParagraph()
       previous = null
+      continue
+    }
+    const table = tableRowsAt(lines, index)
+    if (table) {
+      flush()
+      blocks.push({
+        type: 'table',
+        text: table.rows.map(row => row.join(' | ')).join('\n'),
+        rows: table.rows,
+      })
+      previous = null
+      index += table.count - 1
       continue
     }
     if (line.mono) {

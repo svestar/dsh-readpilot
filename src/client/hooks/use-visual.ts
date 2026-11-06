@@ -233,10 +233,22 @@ export function useVisual({
       const range = selected.getRangeAt(0)
       const rect = range.getBoundingClientRect()
       const frameRect = frame.getBoundingClientRect()
+      const startNode = range.startContainer.nodeType === 1
+        ? range.startContainer as Element
+        : range.startContainer.parentElement
+      const blockEl = startNode?.closest?.('[data-reflow-block]') ?? null
+      const blockIndex = blockEl ? Number(blockEl.getAttribute('data-reflow-block')) : 0
+      let offset = 0
+      if (blockEl) {
+        const before = range.cloneRange()
+        before.selectNodeContents(blockEl)
+        before.setEnd(range.startContainer, range.startOffset)
+        offset = before.toString().length
+      }
       setSelection({
         text: text.slice(0, 2000),
-        blockIndex: 0,
-        offset: 0,
+        blockIndex: Number.isInteger(blockIndex) ? blockIndex : 0,
+        offset,
         x: Math.min(Math.max(frameRect.left + rect.left + rect.width / 2, 120), window.innerWidth - 120),
         y: frameRect.top + rect.top,
       })
