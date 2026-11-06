@@ -14,6 +14,7 @@ export function rememberReaderScreen(screen: Screen): void {
 export function visualForItem(detail: BookDetail, item: TocItem | undefined, reflow = false): Visual | null {
   if (!detail || !item) return null
   if (detail.book.format === 'pdf') {
+    if (reflow) return null
     return { kind: 'pdf', page: Number.isInteger(item.page) ? item.page! : 1, scale: 1.5 }
   }
   if (detail.book.format === 'epub' && typeof item.href === 'string' && item.href) {

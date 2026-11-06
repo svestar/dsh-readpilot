@@ -138,3 +138,20 @@ test('parse_pdf_rejects_documents_over_page_limit', async () => {
   const buffer = buildPdf({ pages: Array.from({ length: 2001 }, () => null) })
   await assert.rejects(() => parsePdf(buffer, 'too-many-pages.pdf'), /超过 2000 页上限/)
 })
+test('parse_pdf_drops_page_numbers_and_running_headers', async () => {
+  const buffer = buildPdf({
+    pages: [
+      [{ text: 'Body one', y: 600 }],
+      [{ text: 'My Book', y: 750 }, { text: '2', y: 770 }, { text: 'Body two', y: 600 }],
+      [{ text: 'My Book', y: 750 }, { text: '3', y: 770 }, { text: 'Body three', y: 600 }],
+      [{ text: 'My Book', y: 750 }, { text: '4', y: 770 }, { text: 'Body four', y: 600 }],
+    ],
+  })
+  const book = await parsePdf(buffer, 'furniture.pdf')
+  const texts = book.chapters.map(chapter => chapter.blocks.map(block => block.text).join('\n'))
+  assert.match(texts[0], /Body one/)
+  for (const text of texts.slice(1)) {
+    assert.doesNotMatch(text, /My Book/)
+    assert.doesNotMatch(text, /^(?:[234])$/m)
+  }
+})

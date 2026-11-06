@@ -44,7 +44,7 @@ import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/e
 import type { PdfRenderer, PdfTextItem } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
 
-const PARSER_VERSION = 6
+const PARSER_VERSION = 7
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000

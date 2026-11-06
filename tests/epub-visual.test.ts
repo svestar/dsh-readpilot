@@ -147,4 +147,7 @@ test('visual_target_reflow_flag', () => {
     toc: [{ id: 'e1', title: '一章', href: 'text/ch1.xhtml' }],
   } as any
   assert.deepEqual(visualForChapter(detail, 'e1', true), { kind: 'epub', href: 'text/ch1.xhtml', reflow: true })
+  const pdf = { book: { format: 'pdf' }, toc: [{ id: 'p1', page: 3 }] } as any
+  assert.deepEqual(visualForChapter(pdf, 'p1'), { kind: 'pdf', page: 3, scale: 1.5 })
+  assert.equal(visualForChapter(pdf, 'p1', true), null)
 })

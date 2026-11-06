@@ -147,7 +147,7 @@ export function createPlugin(require: (name: string) => any) {
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
-      const isTextFormat = format === 'txt' || format === 'md'
+      const isTextFormat = format === 'txt' || format === 'md' || (format === 'pdf' && reflowMode)
       const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
       const pendingScrollRef = React.useRef<PendingScroll | null>(null)
@@ -481,6 +481,7 @@ export function createPlugin(require: (name: string) => any) {
         epubPageStart,
         epubPageEnd,
         epubPageTotal,
+        visual: visualState,
         goPdfPage,
         stepPdfPage,
         zoomPdf,
@@ -543,10 +544,22 @@ export function createPlugin(require: (name: string) => any) {
       const toggleReflow = React.useCallback(() => {
         const next = !reflowMode
         setReflowMode(next)
-        if (screen.kind === 'book' && screen.detail.book.format === 'epub') {
-          setVisual(visualForChapter(screen.detail, screen.content.chapterId, next))
+        if (screen.kind !== 'book') return
+        const format = screen.detail.book.format
+        if (format !== 'epub' && format !== 'pdf') return
+        const page = visualState?.kind === 'pdf' ? visualState.page : null
+        setVisual(visualForChapter(screen.detail, screen.content.chapterId, next))
+        if (format === 'pdf') {
+          if (next && page) {
+            const target = screen.detail.toc
+              .filter(item => typeof item.page === 'number' && item.page! <= page)
+              .sort((left, right) => right.page! - left.page!)[0] ?? screen.detail.toc[0]
+            if (target) void selectChapter(screen.detail.book.id, target.id)
+          } else if (!next && page) {
+            setVisual({ kind: 'pdf', page, scale: 1.5 })
+          }
         }
-      }, [reflowMode, screen, setVisual])
+      }, [reflowMode, screen, selectChapter, setVisual, visualState])
 
 
       const scrollToBlock = React.useCallback((pending: PendingScroll) => {
@@ -1060,7 +1073,7 @@ export function createPlugin(require: (name: string) => any) {
           onBookmark: addBookmark,
           onFontDecrease: () => setFontSize(previous => Math.max(14, previous - 1)),
           onFontIncrease: () => setFontSize(previous => Math.min(24, previous + 1)),
-          reflowSupported: screen.kind === 'book' && screen.detail.book.format === 'epub',
+          reflowSupported: screen.kind === 'book' && (screen.detail.book.format === 'epub' || screen.detail.book.format === 'pdf'),
           reflow: reflowMode,
           onToggleReflow: toggleReflow,
         }),
