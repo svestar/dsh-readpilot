@@ -287,7 +287,9 @@ export function createPlugin(require: (name: string) => any) {
         }).catch(() => {})
       }, [activeSessionId, screen, call])
 
-      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatOpen })
+      const lastMessage = messages[messages.length - 1]
+      const chatVersion = `${messages.length}:${lastMessage?.key ?? ''}:${lastMessage?.text.length ?? 0}`
+      const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatOpen, chatVersion })
       const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'memory' })
 
       const [noteContextBusy, setNoteContextBusy] = React.useState(false)

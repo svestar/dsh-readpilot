@@ -7,6 +7,7 @@ interface LongNotesOptions {
   t: TextFn
   activeBookId: string | null
   notesTabActive: boolean
+  chatVersion?: string
 }
 
 export interface LongNoteDraft {
@@ -50,7 +51,7 @@ export interface LongNotesState {
   openExternal: () => Promise<void>
 }
 
-export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNotesOptions): LongNotesState {
+export function useLongNotes({ call, t, activeBookId, notesTabActive, chatVersion = '' }: LongNotesOptions): LongNotesState {
   const [notes, setNotes] = React.useState<LongNote[]>([])
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
@@ -73,23 +74,30 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
   const bookRef = React.useRef<string | null>(activeBookId)
   bookRef.current = activeBookId
 
-  const load = React.useCallback(async () => {
+  const load = React.useCallback(async (silent = false) => {
     if (!activeBookId) {
       setNotes([])
       return
     }
     const request = requestRef.current + 1
     requestRef.current = request
-    setLoading(true)
+    if (!silent) setLoading(true)
     setError('')
     try {
       const value = await call('noteFiles.list', { bookId: activeBookId })
       if (requestRef.current !== request) return
-      setNotes(value.notes.slice())
+      setNotes(previous => {
+        const next = value.notes
+        const same = previous.length === next.length
+          && previous.every((note, index) => note.id === next[index].id
+            && note.updatedAt === next[index].updatedAt
+            && note.title === next[index].title)
+        return same ? previous : next.slice()
+      })
     } catch (cause) {
       if (requestRef.current === request) setError(`${t('notesFailed')}：${messageOf(cause)}`)
     } finally {
-      if (requestRef.current === request) setLoading(false)
+      if (!silent && requestRef.current === request) setLoading(false)
     }
   }, [activeBookId, call, t])
 
@@ -139,7 +147,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     }
     let cancelled = false
     const tick = () => {
-      if (!cancelled) void loadDrafts()
+      if (cancelled) return
+      void loadDrafts()
+      void load(true)
     }
     tick()
     const timer = window.setInterval(tick, 4000)
@@ -147,7 +157,16 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
       cancelled = true
       window.clearInterval(timer)
     }
-  }, [activeBookId, notesTabActive, loadDrafts])
+  }, [activeBookId, notesTabActive, loadDrafts, load])
+
+  const chatVersionRef = React.useRef(chatVersion)
+  React.useEffect(() => {
+    if (chatVersionRef.current === chatVersion) return
+    chatVersionRef.current = chatVersion
+    if (!activeBookId) return
+    void load(true)
+    void loadDrafts()
+  }, [activeBookId, chatVersion, load, loadDrafts])
 
   const open = React.useCallback(async (note: LongNote) => {
     if (!activeBookId) return
