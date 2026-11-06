@@ -16,6 +16,7 @@ import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files
 import { buildReaderJumpUrl } from './jump-url.ts'
 import type { CompanionSettings } from './companion-settings.ts'
 import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
+import type { BaseEndpoint } from './contract.ts'
 import type { MemoryStore } from './memory-store.ts'
 import { MemoryStoreError, createMemoryStore } from './memory-store.ts'
 import { buildReadingMemory } from './memory-context.ts'
@@ -48,6 +49,7 @@ const PDF_COVER_SCALE = 0.5
 const MAX_CONCURRENT_COVERS = 4
 const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
 const MAX_SEARCH_BOOKS = 20
+const SCAN_TTL_MS = 1500
 
 export interface ReaderContext {
   get(name: string): any
@@ -270,10 +272,41 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return loadSettings(dataDir)
   }
 
-  async function libraryBooks(): Promise<Book[]> {
+  let scanCache: { dir: string; at: number; books: Book[] } | null = null
+  let scanInflight: { dir: string; promise: Promise<Book[]> } | null = null
+
+  function invalidateScan(): void {
+    scanCache = null
+    scanInflight = null
+  }
+
+  async function libraryBooks(options: { fresh?: boolean } = {}): Promise<Book[]> {
     const settings = await currentSettings()
-    if (!settings.libraryDir) return []
-    return scanLibrary(settings.libraryDir)
+    const dir = settings.libraryDir
+    if (!dir) {
+      invalidateScan()
+      return []
+    }
+    const now = Date.now()
+    if (!options.fresh && scanCache && scanCache.dir === dir && now - scanCache.at < SCAN_TTL_MS) {
+      return scanCache.books
+    }
+    if (!options.fresh && scanInflight && scanInflight.dir === dir) return scanInflight.promise
+    const promise = scanLibrary(dir)
+      .then(books => {
+        scanCache = { dir, at: Date.now(), books }
+        return books
+      })
+      .finally(() => {
+        if (scanInflight?.promise === promise) scanInflight = null
+      })
+    if (!options.fresh) scanInflight = { dir, promise }
+    return promise
+  }
+
+  async function rescan(): Promise<ReaderState> {
+    invalidateScan()
+    return state()
   }
 
   let promptDir: string | null = null
@@ -1372,9 +1405,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   }
 
   async function handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult> {
-    const handlers: Record<string, (payload?: any) => Promise<any>> = {
+    const handlers: Record<BaseEndpoint, (payload?: any) => Promise<any>> = {
       state,
-      rescan: state,
+      rescan,
       configure: configureLibrary,
       open,
       chapter,
@@ -1392,14 +1425,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       openNoteFile,
       exportNotes,
       pageView,
-      pdfPage,
-      cover,
       libraryMeta,
       setBookTags,
       setBookStatus,
       setBookRating,
     }
-    const handler = handlers[endpoint]
+    const handler = (handlers as Record<string, (payload?: any) => Promise<any>>)[endpoint]
     if (!handler) {
       return { ok: false, error: { code: 'unknown-endpoint', message: `未知接口：${String(endpoint)}`, details: {} } }
     }

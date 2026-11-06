@@ -83,7 +83,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setLoading(true)
     setError('')
     try {
-      const value = await call('noteFiles', { action: 'list', bookId: activeBookId })
+      const value = await call('noteFiles.list', { bookId: activeBookId })
       if (requestRef.current !== request) return
       setNotes(value.notes.slice())
     } catch (cause) {
@@ -102,7 +102,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     const request = draftRequestRef.current + 1
     draftRequestRef.current = request
     try {
-      const value = await call('noteDrafts', { action: 'list', bookId })
+      const value = await call('noteDrafts.list', { bookId })
       if (draftRequestRef.current !== request || bookRef.current !== bookId) return
       setDrafts(value.drafts.slice())
     } catch (cause) {
@@ -156,7 +156,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     readRef.current = request
     setError('')
     try {
-      const value = await call('noteFiles', { action: 'read', bookId, id: note.id })
+      const value = await call('noteFiles.read', { bookId, id: note.id })
       if (readRef.current !== request || bookRef.current !== bookId) return
       setActive({ note: value.note, body: value.body, hash: value.hash })
       setCreating(false)
@@ -211,8 +211,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setSaving(true)
     setError('')
     try {
-      const value = await call('noteFiles', {
-        action: 'create',
+      const value = await call('noteFiles.create', {
         bookId,
         title: wantedTitle,
         kind: createKind,
@@ -261,7 +260,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setSaving(true)
     setError('')
     try {
-      await call('noteFiles', { action: 'remove', bookId, id: active.note.id })
+      await call('noteFiles.remove', { bookId, id: active.note.id })
       if (bookRef.current !== bookId) return
       setActive(null)
       setCreating(false)
@@ -287,7 +286,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setDraftBusyId(item.id)
     setError('')
     try {
-      const value = await call('noteDrafts', { action: 'apply', bookId, draftId: item.id })
+      const value = await call('noteDrafts.apply', { bookId, draftId: item.id })
       if (bookRef.current !== bookId) return
       setActive({ note: value.note, body: value.body, hash: value.hash })
       setCreating(false)
@@ -307,7 +306,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setDraftBusyId(item.id)
     setError('')
     try {
-      await call('noteDrafts', { action: 'reject', bookId, draftId: item.id })
+      await call('noteDrafts.reject', { bookId, draftId: item.id })
       if (bookRef.current === bookId) await loadDrafts()
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause)}`)
@@ -321,7 +320,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     const bookId = activeBookId
     setHistoryBusy(true)
     try {
-      const value = await call('noteFiles', { action: 'history', bookId, id: active.note.id })
+      const value = await call('noteFiles.history', { bookId, id: active.note.id })
       if (bookRef.current === bookId) setHistory(value.history.slice())
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause)}`)
@@ -348,8 +347,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setHistoryBusy(true)
     setError('')
     try {
-      const value = await call('noteFiles', {
-        action: 'restore',
+      const value = await call('noteFiles.restore', {
         bookId,
         id: active.note.id,
         historyId: entry.id,
@@ -373,8 +371,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setHistoryBusy(true)
     setError('')
     try {
-      await call('noteFiles', {
-        action: 'historyRemove',
+      await call('noteFiles.historyRemove', {
         bookId,
         id: active.note.id,
         historyId: entry.id,
@@ -395,8 +392,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive }: LongNote
     setHistoryBusy(true)
     setError('')
     try {
-      await call('noteFiles', {
-        action: 'historyClear',
+      await call('noteFiles.historyClear', {
         bookId,
         id: active.note.id,
       })

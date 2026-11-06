@@ -1,7 +1,6 @@
 import { React } from '../runtime.ts'
 import { messageOf } from '../helpers.ts'
 import type { CallRpc, TextFn } from '../types.ts'
-import type { MemoryPayload } from '../../rpc.ts'
 import type { BookMemoryState, MemoryMode, MemoryScope, MemoryView } from '../views/memory-panel.ts'
 
 interface MemoryOptions {
@@ -46,7 +45,7 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
     setLoading(true)
     setError('')
     try {
-      const value = await call('memory', { action: 'status', bookId })
+      const value = await call('memory.status', { bookId })
       if (bookRef.current === bookId) setStatus(value as MemoryView)
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('memoryFailed')}：${messageOf(cause)}`)
@@ -69,13 +68,13 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
     }
   }, [activeBookId, notesTabActive, load])
 
-  const run = React.useCallback(async (payload: Omit<MemoryPayload, 'bookId'>) => {
+  const run = React.useCallback(async (action: string, payload: Record<string, unknown> = {}) => {
     if (!activeBookId || busy) return
     const bookId = activeBookId
     setBusy(true)
     setError('')
     try {
-      const value = await call('memory', { ...payload, bookId })
+      const value = await (call as any)(`memory.${action}`, { ...payload, bookId })
       if (bookRef.current === bookId) setStatus(value as MemoryView)
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('memoryFailed')}：${messageOf(cause)}`)
@@ -89,11 +88,11 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
     loading,
     error,
     busy,
-    refresh: () => run({ action: 'status' }),
-    setMode: mode => run({ action: 'setMode', mode }),
-    setBookState: state => run({ action: 'setBook', state }),
-    saveCard: (scope, text) => run({ action: 'write', scope, text }),
-    undo: scope => run({ action: 'undo', scope }),
-    clear: scope => run({ action: 'clear', scope }),
+    refresh: () => run('status'),
+    setMode: mode => run('setMode', { mode }),
+    setBookState: state => run('setBook', { state }),
+    saveCard: (scope, text) => run('write', { scope, text }),
+    undo: scope => run('undo', { scope }),
+    clear: scope => run('clear', { scope }),
   }
 }

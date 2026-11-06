@@ -82,7 +82,12 @@ export function createPlugin(require: (name: string) => any) {
     let runtime: any
     let boundText: TextFn = key => key
 
-    const call = (async (endpoint: string, payload?: unknown): Promise<any> => {
+    const call = (async (operation: string, payload?: unknown): Promise<any> => {
+      const dot = operation.indexOf('.')
+      const endpoint = dot >= 0 ? operation.slice(0, dot) : operation
+      const body = dot >= 0
+        ? { ...(payload as Record<string, unknown> | undefined ?? {}), action: operation.slice(dot + 1) }
+        : payload ?? null
       if (!runtime || !runtime.connection) throw new Error('连接服务不可用')
       let response: Response
       try {
@@ -90,7 +95,7 @@ export function createPlugin(require: (name: string) => any) {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ endpoint, payload: payload ?? null }),
+          body: JSON.stringify({ endpoint, payload: body }),
         })
       } catch (error) {
         throw new Error(`无法连接阅读器服务：${messageOf(error)}`)

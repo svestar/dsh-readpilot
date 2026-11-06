@@ -459,3 +459,21 @@ test('note_file_path_is_relative_to_library', () => {
     (error: any) => error?.code === 'invalid-note',
   )
 })
+test('library_scan_is_cached_briefly_and_rescan_forces_fresh', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const configured = await api.configureLibrary({ path: library })
+  assert.equal(configured.books.length, 1)
+
+  await writeFile(join(library, 'added.txt'), '第一章 新书\n\n新增内容', 'utf8')
+  const cached = await api.state()
+  assert.equal(cached.books.length, 1)
+
+  const forced = await api.handleRpc('rescan', {})
+  assert.equal(forced.ok, true)
+  assert.equal((forced as any).value.books.length, 2)
+
+  await new Promise(resolve => setTimeout(resolve, 1600))
+  const expired = await api.state()
+  assert.equal(expired.books.length, 2)
+})

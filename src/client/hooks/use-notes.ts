@@ -92,7 +92,7 @@ export function useNotes({
     setNotesLoading(true)
     setNotesError('')
     try {
-      const value = await call('notes', { action: 'list', bookId })
+      const value = await call('notes.list', { bookId })
       if (notesRequestRef.current !== request) return
       const list = value.notes.slice()
       list.sort((left, right) => timestampOf(right.createdAt) - timestampOf(left.createdAt))
@@ -143,8 +143,7 @@ export function useNotes({
     setNoteDeletingId(note.id)
     setNotesError('')
     try {
-      await call('notes', {
-        action: 'delete',
+      await call('notes.delete', {
         bookId,
         noteId: note.id,
       })
@@ -193,8 +192,7 @@ export function useNotes({
     setNoteSaving(true)
     setNoteError('')
     try {
-      await call('notes', {
-        action: 'add',
+      await call('notes.add', {
         bookId: screen.detail.book.id,
         kind: 'highlight',
         color,
@@ -249,8 +247,7 @@ export function useNotes({
     setNoteSaving(true)
     setNoteError('')
     try {
-      await call('notes', {
-        action: 'add',
+      await call('notes.add', {
         bookId: screen.detail.book.id,
         kind: 'bookmark',
         color: 'yellow',
@@ -281,23 +278,20 @@ export function useNotes({
     setNoteError('')
     try {
       if (highlightNoteId) {
-        await call('notes', {
-          action: 'update',
+        await call('notes.update', {
           bookId: screen.detail.book.id,
           noteId: highlightNoteId,
           annotation: text,
           color: noteColor,
         })
       } else if (noteId) {
-        await call('notes', {
-          action: 'update',
+        await call('notes.update', {
           bookId: screen.detail.book.id,
           noteId,
           note: text,
         })
       } else {
-        await call('notes', {
-          action: 'add',
+        await call('notes.add', {
           bookId: screen.detail.book.id,
           kind: 'note',
           chapterId: editor.chapterId,
