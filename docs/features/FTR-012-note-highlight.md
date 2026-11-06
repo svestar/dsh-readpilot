@@ -18,7 +18,7 @@
 | `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
 | `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/views/selection-note.ts:SelectionToolbar`；`src/client/views/selection-note.ts:NoteDialog`；`src/client/views/notes-search.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
-| `handleNotes` | `src/api.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
+| `handleNotes` | `src/api-notes.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
 
 ## 约束与失败行为
 
