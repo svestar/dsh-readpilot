@@ -155,3 +155,13 @@ test('parse_pdf_drops_page_numbers_and_running_headers', async () => {
     assert.doesNotMatch(text, /^(?:[234])$/m)
   }
 })
+test('parse_pdf_reports_reflow_confidence', async () => {
+  const clean = await parsePdf(buildPdf({ pages: ['Hello PDF'] }), 'clean.pdf')
+  assert.equal(typeof clean.reflowConfidence, 'number')
+  assert.ok(clean.reflowConfidence! >= 0.6)
+  assert.deepEqual(clean.reflowNotes, ['每页正文偏少，可能是扫描或图片为主'])
+
+  const empty = await parsePdf(buildPdf({ pages: [null] }), 'empty.pdf')
+  assert.ok(empty.reflowConfidence! < 0.6)
+  assert.ok(empty.reflowNotes!.some(note => note.includes('没有文本')))
+})

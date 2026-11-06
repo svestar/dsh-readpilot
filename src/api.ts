@@ -121,6 +121,8 @@ export interface OpenResult {
   toc: TocItem[]
   outline?: OutlineItem[]
   progress: ReadingProgress | null
+  reflowConfidence?: number
+  reflowNotes?: string[]
 }
 
 export interface ChapterContent {
@@ -491,6 +493,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         return outlineItem
       }),
       progress,
+      ...(typeof parsed.reflowConfidence === 'number' ? { reflowConfidence: parsed.reflowConfidence } : {}),
+      ...(parsed.reflowNotes?.length ? { reflowNotes: parsed.reflowNotes } : {}),
     }
   }
 

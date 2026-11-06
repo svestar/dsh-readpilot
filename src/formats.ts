@@ -33,6 +33,8 @@ export interface ParsedBook {
   chapters: Chapter[]
   chars: number
   outline?: OutlineEntry[]
+  reflowConfidence?: number
+  reflowNotes?: string[]
 }
 
 export interface ChapterSource {

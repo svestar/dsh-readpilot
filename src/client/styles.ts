@@ -366,6 +366,9 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-note-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:12px}
 .dsh-readpilot-banner{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-warn-primary);font-size:12.5px;line-height:1.5}
 .dsh-readpilot-error{flex:none;padding:8px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-state-error-primary);font-size:12.5px;line-height:1.5}
+.dsh-readpilot-reflow-warning{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 8%,var(--dsw-alias-bg-layer-2));color:var(--dsw-alias-label-secondary);font-size:12.5px;line-height:1.5}
+.dsh-readpilot-reflow-warning-close{border:0;background:none;color:inherit;font-size:16px;line-height:1;cursor:pointer;padding:0 2px;opacity:.7}
+.dsh-readpilot-reflow-warning-close:hover{opacity:1}
 .dsh-readpilot-muted{padding:40px 20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-spacer{flex:1}
 .dsh-readpilot-page{flex:1;min-height:0;overflow:auto;padding:0 14px 24px;scroll-behavior:smooth}

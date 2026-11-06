@@ -139,6 +139,7 @@ export function createPlugin(require: (name: string) => any) {
       const [reflowMode, setReflowMode] = React.useState<boolean>(readReflowMode)
       const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)
       const [error, setError] = React.useState('')
+      const [reflowWarning, setReflowWarning] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [tocOpen, setTocOpen] = React.useState(true)
       const [fontSize, setFontSize] = React.useState(17)
@@ -561,6 +562,20 @@ export function createPlugin(require: (name: string) => any) {
           }
         }
       }, [reflowMode, screen, selectChapter, setVisual, visualState])
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf' || !reflowMode) {
+          setReflowWarning('')
+          return
+        }
+        const confidence = screen.detail.reflowConfidence
+        if (typeof confidence === 'number' && confidence < 0.6) {
+          const detail = screen.detail.reflowNotes?.slice(0, 2).join('；')
+          setReflowWarning(`${t('reflowLowConfidence')}（${Math.round(confidence * 100)}%）${detail ? `：${detail}` : ''}`)
+        } else {
+          setReflowWarning('')
+        }
+      }, [screen, reflowMode, t])
 
 
       const scrollToBlock = React.useCallback((pending: PendingScroll) => {
@@ -1078,6 +1093,17 @@ export function createPlugin(require: (name: string) => any) {
           reflow: reflowMode,
           onToggleReflow: toggleReflow,
         }),
+        reflowWarning
+          ? h('div', { className: 'dsh-readpilot-reflow-warning' },
+            h('span', null, reflowWarning),
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-reflow-warning-close',
+              title: t('close'),
+              'aria-label': t('close'),
+              onClick: () => setReflowWarning(''),
+            }, '×'))
+          : null,
         error ? h('div', { className: 'dsh-readpilot-error' }, error) : null,
         searchPanel,
         !snapshot

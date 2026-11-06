@@ -160,7 +160,8 @@ function furnitureKey(text: string): string {
 }
 
 /** Drop page numbers and running headers/footers repeated across pages. */
-function stripPageFurniture(pages: PdfPageData[]): void {
+function stripPageFurniture(pages: PdfPageData[]): number {
+  let removed = 0
   const counts = new Map<string, number>()
   for (const page of pages) {
     if (page.number === 1) continue
@@ -186,12 +187,17 @@ function stripPageFurniture(pages: PdfPageData[]): void {
       if (!text) continue
       if (PAGE_NUMBER_PATTERN.test(text)) {
         line.text = ''
+        removed += 1
         continue
       }
       const key = furnitureKey(text)
-      if ((counts.get(key) ?? 0) >= threshold && key.length <= 80) line.text = ''
+      if ((counts.get(key) ?? 0) >= threshold && key.length <= 80) {
+        line.text = ''
+        removed += 1
+      }
     }
   }
+  return removed
 }
 
 function median(values: number[]): number {
@@ -307,10 +313,14 @@ export async function parsePdf(buffer: Buffer, filePath: string): Promise<Parsed
       pages.push({ number: pageNumber, width, height, lines })
     }
 
-    stripPageFurniture(pages)
+    const removedFurniture = stripPageFurniture(pages)
     const chapters: Chapter[] = []
+    let tocPages = 0
     for (const page of pages) {
-      if (looksLikeTocPage(page.lines)) continue
+      if (looksLikeTocPage(page.lines)) {
+        tocPages += 1
+        continue
+      }
       const blocks = pageBlocks(orderColumns(page.lines, page.width))
       if (blocks.length === 0) continue
       chapters.push({
@@ -322,12 +332,49 @@ export async function parsePdf(buffer: Buffer, filePath: string): Promise<Parsed
       })
     }
 
+    const totalChars = chapters.reduce((sum, chapter) => sum + chapter.chars, 0)
+    const codeChars = chapters.reduce((sum, chapter) => sum + chapter.blocks
+      .filter(block => block.type === 'code')
+      .reduce((inner, block) => inner + block.text.length, 0), 0)
+    const text = chapters.flatMap(chapter => chapter.blocks.map(block => block.text)).join('\n')
+    const replacement = (text.match(/\uFFFD/g) ?? []).length
+    const coverage = pdf.numPages > 0 ? pages.length / pdf.numPages : 1
+    const average = pages.length > 0 ? totalChars / pages.length : 0
+    let confidence = 1
+    const notes: string[] = []
+    if (coverage < 0.9) {
+      confidence -= Math.min(0.35, (1 - coverage) * 1.2)
+      notes.push('部分页面没有文本，重排可能缺页')
+    }
+    if (average < 200) {
+      confidence -= 0.2
+      notes.push('每页正文偏少，可能是扫描或图片为主')
+    }
+    if (tocPages > pdf.numPages * 0.2) {
+      confidence -= 0.1
+      notes.push('目录页较多，已按目录跳过')
+    }
+    if (totalChars > 0 && codeChars / totalChars > 0.6) {
+      confidence -= 0.15
+      notes.push('代码占比高，正文可能被误判为代码')
+    }
+    if (totalChars > 0 && replacement / totalChars > 0.002) {
+      confidence -= 0.3
+      notes.push('存在乱码字符，文本层可能损坏')
+    }
+    if (removedFurniture > pdf.numPages * 3) {
+      confidence -= 0.05
+      notes.push('页眉页脚较多，已自动过滤')
+    }
+
     return {
       title,
       author,
       chapters,
       outline,
       chars: chapters.reduce((sum, chapter) => sum + chapter.chars, 0),
+      reflowConfidence: Math.max(0, Math.min(1, confidence)),
+      reflowNotes: notes,
     }
   } finally {
     await loadingTask.destroy()
