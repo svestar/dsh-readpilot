@@ -21,7 +21,6 @@ export interface EpubVisual {
     href?: string
     assetBase?: string
     docBase?: string
-    reflow?: boolean
   }): Promise<EpubDocumentResult>
   readAsset(request?: { bookId?: string; filePath?: string; path?: string }): Promise<EpubAssetResult>
   cover(request?: { bookId?: string; filePath?: string }): Promise<EpubAssetResult | null>
@@ -51,24 +50,6 @@ const MAX_ENTRY_BYTES = 50 * MEGABYTE
 const MAX_TOTAL_BYTES = 200 * MEGABYTE
 const CONTAINER_PATH = 'META-INF/container.xml'
 const ASSET_ROOT = 'files'
-const REFLOW_CSS = `
-html,body{margin:0;padding:0;background:transparent;color:inherit}
-html{font-size:18px}
-body{font-family:"Noto Serif SC","Source Han Serif SC","Songti SC",serif;line-height:1.8;text-align:justify;overflow-wrap:break-word}
-p{margin:0 0 .75em;text-indent:2em}
-h1,h2,h3,h4,h5,h6{margin:1.1em 0 .6em;line-height:1.35;text-indent:0}
-ul,ol{margin:0 0 .8em;padding-left:1.6em}
-li{margin:0 0 .35em}
-img,svg{max-width:100%;height:auto;break-inside:avoid}
-figure{margin:.8em 0;break-inside:avoid}
-blockquote{margin:.6em 0;padding-left:.8em;border-left:3px solid currentColor;opacity:.85}
-pre{white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.85em;background:rgba(127,127,127,.12);padding:.6em .8em;border-radius:6px;break-inside:avoid}
-code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.9em}
-table{max-width:100%;border-collapse:collapse;font-size:.9em;break-inside:avoid}
-th,td{border:1px solid currentColor;padding:.3em .5em}
-a{color:inherit;text-decoration:underline}
-hr{border:0;border-top:1px solid currentColor;opacity:.35;margin:1.2em 0}
-`
 const CONTENT_TYPES = new Map<string, string>([
   ['.css', 'text/css; charset=utf-8'],
   ['.xhtml', 'application/xhtml+xml'],
@@ -328,9 +309,8 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
     href?: string
     assetBase?: string
     docBase?: string
-    reflow?: boolean
   } = {}): Promise<EpubDocumentResult> {
-    const { bookId, filePath, href, assetBase, docBase, reflow = false } = request
+    const { bookId, filePath, href, assetBase, docBase } = request
     const id = assertBookId(bookId)
     const meta = await prepare({ bookId: id, filePath })
     if (typeof href !== 'string' || !href) throw new Error('href is required')
@@ -341,16 +321,9 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
     for (const node of document.querySelectorAll('script, iframe, object, embed, form, input, button, textarea, select, base, link[rel="preload"]')) {
       node.remove()
     }
-    if (reflow) {
-      for (const node of document.querySelectorAll('link, style')) node.remove()
-    }
     for (const element of document.querySelectorAll('*')) {
       for (const attribute of [...element.attributes]) {
         const name: string = attribute.name.toLowerCase()
-        if (reflow && name === 'style') {
-          element.removeAttribute(attribute.name)
-          continue
-        }
         if (name.startsWith('on') || ['srcdoc', 'formaction', 'action', 'ping'].includes(name)) {
           element.removeAttribute(attribute.name)
           continue
@@ -372,30 +345,11 @@ export function createEpubVisual({ dataDir }: { dataDir?: string } = {}): EpubVi
         }
       }
     }
-    if (reflow) {
-      let block = 0
-      const BLOCK_TAGS = new Set(['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'pre', 'blockquote', 'li'])
-      const walk = (node: any): void => {
-        for (const child of [...(node.children ?? [])]) {
-          const tag = String(child.tagName ?? '').toLowerCase()
-          if (BLOCK_TAGS.has(tag)) {
-            child.setAttribute('data-reflow-block', String(block))
-            block += 1
-          } else {
-            walk(child)
-          }
-        }
-      }
-      if (document.body) walk(document.body)
-    }
     const head: any = document.head ?? document.querySelector('head')
     if (head) {
       const style: any = document.createElement('style')
       style.setAttribute('data-dsh-readpilot', '')
-      if (reflow) style.setAttribute('data-dsh-reflow', '')
-      style.textContent = reflow
-        ? `${REFLOW_CSS}*{user-select:text}mark.dsh-readpilot-highlight{background:var(--dsw-alias-state-warn-primary,#f5c542);color:inherit}`
-        : 'html,body{margin:0;padding:0}*{user-select:text}img{max-width:100%;height:auto}mark.dsh-readpilot-highlight{background:var(--dsw-alias-state-warn-primary,#f5c542);color:inherit}'
+      style.textContent = 'html,body{margin:0;padding:0}*{user-select:text}img{max-width:100%;height:auto}mark.dsh-readpilot-highlight{background:var(--dsw-alias-state-warn-primary,#f5c542);color:inherit}'
       head.appendChild(style)
     }
     return {

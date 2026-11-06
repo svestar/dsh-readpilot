@@ -123,31 +123,13 @@ test('epub_cover_reads_cover_image', async t => {
   assert.equal(cover?.contentType, 'image/png')
   assert.deepEqual(cover?.bytes, PNG)
 })
-test('epub_visual_reflow_drops_publisher_styles', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
-  const filePath = join(root, 'book.epub')
-  await makeEpub(filePath)
-  const visual = createEpubVisual({ dataDir: join(root, 'data') })
-
-  const original = await visual.readDocument({ bookId: 'book1', filePath, href: 'ch1.xhtml' })
-  assert.ok(original.html.includes('rel="stylesheet"'))
-  assert.ok(original.html.includes('style="color:red"'))
-
-  const reflow = await visual.readDocument({ bookId: 'book1', filePath, href: 'ch1.xhtml', reflow: true })
-  assert.ok(!reflow.html.includes('rel="stylesheet"'))
-  assert.ok(!reflow.html.includes('style="color:red"'))
-  assert.ok(reflow.html.includes('data-dsh-reflow'))
-  assert.ok(reflow.html.includes('data-reflow-block="0"'))
-  assert.ok(reflow.html.includes('text-indent:2em'))
-})
-
-test('visual_target_reflow_flag', () => {
+test('visual_target_reflow_flags', () => {
   const detail = {
     book: { format: 'epub' },
     toc: [{ id: 'e1', title: '一章', href: 'text/ch1.xhtml' }],
   } as any
-  assert.deepEqual(visualForChapter(detail, 'e1', true), { kind: 'epub', href: 'text/ch1.xhtml', reflow: true })
+  assert.deepEqual(visualForChapter(detail, 'e1'), { kind: 'epub', href: 'text/ch1.xhtml' })
+  assert.equal(visualForChapter(detail, 'e1', true), null)
   const pdf = { book: { format: 'pdf' }, toc: [{ id: 'p1', page: 3 }] } as any
   assert.deepEqual(visualForChapter(pdf, 'p1'), { kind: 'pdf', page: 3, scale: 1.5 })
   assert.equal(visualForChapter(pdf, 'p1', true), null)

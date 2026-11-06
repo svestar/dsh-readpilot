@@ -137,6 +137,8 @@ export function createPlugin(require: (name: string) => any) {
       const screen = screenState
       const [readingMode, setReadingMode] = React.useState<ReaderMode>(readReadingMode)
       const [reflowMode, setReflowMode] = React.useState<boolean>(readReflowMode)
+      const reflowModeRef = React.useRef(reflowMode)
+      reflowModeRef.current = reflowMode
       const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)
       const [error, setError] = React.useState('')
       const [reflowWarning, setReflowWarning] = React.useState('')
@@ -148,7 +150,9 @@ export function createPlugin(require: (name: string) => any) {
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
-      const isTextFormat = format === 'txt' || format === 'md' || (format === 'pdf' && reflowMode)
+      const isTextFormat = format === 'txt' || format === 'md'
+        || (format === 'pdf' && reflowMode)
+        || (format === 'epub' && reflowMode)
       const textLayout: PageLayout = format === 'pdf' && reflowMode ? 'single' : pageLayout
       const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
@@ -383,7 +387,7 @@ export function createPlugin(require: (name: string) => any) {
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
-          setVisual(visualForItem(detail, target, reflowMode))
+          setVisual(visualForItem(detail, target, reflowModeRef.current))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
@@ -411,7 +415,7 @@ export function createPlugin(require: (name: string) => any) {
             ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
             : previous)
           if (screen.kind === 'book') {
-            setVisual(visualForChapter(screen.detail, chapterId, reflowMode))
+            setVisual(visualForChapter(screen.detail, chapterId, reflowModeRef.current))
           }
           const toc = screen.kind === 'book' ? screen.detail.toc : []
           const index = toc.findIndex(item => item.id === chapterId)
@@ -500,7 +504,6 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
         readingMode: effectiveMode,
         layout: pageLayout,
-        fontSize,
       })
 
       // The panel remounts when switching DSH pages; restored screens must rebuild
@@ -546,6 +549,7 @@ export function createPlugin(require: (name: string) => any) {
 
       const toggleReflow = React.useCallback(() => {
         const next = !reflowMode
+        reflowModeRef.current = next
         setReflowMode(next)
         if (screen.kind !== 'book') return
         const format = screen.detail.book.format

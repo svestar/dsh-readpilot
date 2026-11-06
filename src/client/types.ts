@@ -54,7 +54,6 @@ export interface VisualPdf {
 export interface VisualEpub {
   kind: 'epub'
   href: string
-  reflow?: boolean
 }
 
 export type Visual = VisualPdf | VisualEpub

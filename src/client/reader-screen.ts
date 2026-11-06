@@ -18,7 +18,8 @@ export function visualForItem(detail: BookDetail, item: TocItem | undefined, ref
     return { kind: 'pdf', page: Number.isInteger(item.page) ? item.page! : 1, scale: 1.5 }
   }
   if (detail.book.format === 'epub' && typeof item.href === 'string' && item.href) {
-    return reflow ? { kind: 'epub', href: item.href, reflow: true } : { kind: 'epub', href: item.href }
+    if (reflow) return null
+    return { kind: 'epub', href: item.href }
   }
   return null
 }

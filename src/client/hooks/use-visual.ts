@@ -22,7 +22,6 @@ interface VisualOptions {
   selectChapter: SelectChapter
   readingMode?: ReaderMode
   layout?: PageLayout
-  fontSize?: number
 }
 
 const EPUB_PAGING_STYLE_ID = 'dsh-readpilot-paging'
@@ -36,11 +35,6 @@ function applyEpubPagingStyle(doc: Document, layout: PageLayout): void {
     ;(doc.head ?? doc.documentElement).appendChild(style)
   }
   style.textContent = `html { height: 100%; column-count: ${columnsFor(layout)}; column-gap: ${PAGE_GAP}px; column-fill: auto; overflow: hidden; } body { margin: 0 !important; height: 100%; }`
-}
-
-function applyReflowFont(doc: Document, visual: any, fontSize: number): void {
-  if (!visual || visual.kind !== 'epub' || !visual.reflow) return
-  doc.documentElement.style.fontSize = `${fontSize}px`
 }
 
 function removeEpubPagingStyle(doc: Document | null | undefined): void {
@@ -75,7 +69,6 @@ export function useVisual({
   selectChapter,
   readingMode = 'paged',
   layout = 'single',
-  fontSize = 17,
 }: VisualOptions) {
   const [visual, setVisual] = React.useState<Visual | null>(null)
   const [pageView, setPageView] = React.useState<PageView | null>(null)
@@ -223,7 +216,6 @@ export function useVisual({
     epubCleanupRef.current = null
     if (!doc) return
     applyPaletteToFrame(frame, palette)
-    applyReflowFont(doc, visual, fontSize)
     setEpubReady(previous => previous + 1)
     const handler = () => {
       const selected = doc.getSelection()
@@ -233,39 +225,17 @@ export function useVisual({
       const range = selected.getRangeAt(0)
       const rect = range.getBoundingClientRect()
       const frameRect = frame.getBoundingClientRect()
-      const startNode = range.startContainer.nodeType === 1
-        ? range.startContainer as Element
-        : range.startContainer.parentElement
-      const blockEl = startNode?.closest?.('[data-reflow-block]') ?? null
-      const blockIndex = blockEl ? Number(blockEl.getAttribute('data-reflow-block')) : 0
-      let offset = 0
-      if (blockEl) {
-        const before = range.cloneRange()
-        before.selectNodeContents(blockEl)
-        before.setEnd(range.startContainer, range.startOffset)
-        offset = before.toString().length
-      }
       setSelection({
         text: text.slice(0, 2000),
-        blockIndex: Number.isInteger(blockIndex) ? blockIndex : 0,
-        offset,
+        blockIndex: 0,
+        offset: 0,
         x: Math.min(Math.max(frameRect.left + rect.left + rect.width / 2, 120), window.innerWidth - 120),
         y: frameRect.top + rect.top,
       })
     }
     doc.addEventListener('mouseup', handler)
     epubCleanupRef.current = () => doc.removeEventListener('mouseup', handler)
-  }, [palette, setSelection, visual, fontSize])
-
-  React.useEffect(() => {
-    if (!epubPaged) return
-    const frame = epubFrameRef.current
-    if (!frame) return
-    const doc = readyEpubDocument(frame)
-    if (!doc) return
-    applyReflowFont(doc, visual, fontSize)
-    setEpubReady(previous => previous + 1)
-  }, [fontSize, visual?.kind, visual?.kind === 'epub' ? visual.href : null, epubPaged])
+  }, [palette, setSelection])
 
   React.useEffect(() => {
     if (visual?.kind === 'epub' && epubFrameRef.current) {

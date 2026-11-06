@@ -1078,7 +1078,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     })
   }
 
-  async function epubDocument({ bookId, href, reflow }: any = {}): Promise<EpubDocumentResult> {
+  async function epubDocument({ bookId, href }: any = {}): Promise<EpubDocumentResult> {
     const book = await resolveBook(bookId)
     if (book.format !== 'epub') throw new ReaderError('not-epub', '只有 EPUB 支持原书渲染')
     if (typeof href !== 'string' || !href) throw new ReaderError('invalid-href', '缺少 EPUB 章节 href')
@@ -1089,7 +1089,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       href,
       assetBase: '/api/dsh-readpilot/epub-asset',
       docBase: '/api/dsh-readpilot/epub-doc',
-      reflow: reflow === true,
     })
   }
 
