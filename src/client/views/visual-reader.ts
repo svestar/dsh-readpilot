@@ -264,7 +264,7 @@ export function VisualReader({
     'data-paged': readingMode === 'paged' ? 'true' : 'false',
     sandbox: 'allow-same-origin',
     title: screen.content.title,
-    src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+    src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}${visual.reflow ? '&reflow=1' : ''}`,
     onLoad: onEpubLoad,
     style: epubWidth === null ? undefined : { width: epubWidth, maxWidth: '100%', margin: '0 auto' },
   }))

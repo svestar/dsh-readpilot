@@ -34,7 +34,7 @@ function applyEpubPagingStyle(doc: Document, layout: PageLayout): void {
     style.id = EPUB_PAGING_STYLE_ID
     ;(doc.head ?? doc.documentElement).appendChild(style)
   }
-  style.textContent = `html { height: 100%; column-count: ${columnsFor(layout)}; column-gap: ${PAGE_GAP}px; column-fill: auto; overflow: hidden; } body { margin: 0 !important; }`
+  style.textContent = `html { height: 100%; column-count: ${columnsFor(layout)}; column-gap: ${PAGE_GAP}px; column-fill: auto; overflow: hidden; } body { margin: 0 !important; height: 100%; }`
 }
 
 function removeEpubPagingStyle(doc: Document | null | undefined): void {

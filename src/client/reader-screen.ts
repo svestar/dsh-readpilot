@@ -11,19 +11,19 @@ export function rememberReaderScreen(screen: Screen): void {
 }
 
 /** Pick the visual rendering for one TOC entry; text formats have none. */
-export function visualForItem(detail: BookDetail, item: TocItem | undefined): Visual | null {
+export function visualForItem(detail: BookDetail, item: TocItem | undefined, reflow = false): Visual | null {
   if (!detail || !item) return null
   if (detail.book.format === 'pdf') {
     return { kind: 'pdf', page: Number.isInteger(item.page) ? item.page! : 1, scale: 1.5 }
   }
   if (detail.book.format === 'epub' && typeof item.href === 'string' && item.href) {
-    return { kind: 'epub', href: item.href }
+    return reflow ? { kind: 'epub', href: item.href, reflow: true } : { kind: 'epub', href: item.href }
   }
   return null
 }
 
 /** Rebuild the visual state for a chapter, e.g. after the panel remounts. */
-export function visualForChapter(detail: BookDetail, chapterId: string | undefined): Visual | null {
+export function visualForChapter(detail: BookDetail, chapterId: string | undefined, reflow = false): Visual | null {
   if (!detail || !chapterId) return null
-  return visualForItem(detail, detail.toc.find(item => item.id === chapterId))
+  return visualForItem(detail, detail.toc.find(item => item.id === chapterId), reflow)
 }

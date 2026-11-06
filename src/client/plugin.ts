@@ -16,11 +16,13 @@ import {
   saveGlassBlur,
   normalizeGlassBlur,
   DEFAULT_GLASS_BLUR,
+  readReflowMode,
   readReadingMode,
   resolveReaderPalette,
   savePageLayout,
   savePaletteId,
   saveReadingMode,
+  saveReflowMode,
 } from './helpers.ts'
 
 import { zh, en } from './locale.ts'
@@ -134,6 +136,7 @@ export function createPlugin(require: (name: string) => any) {
       }, [])
       const screen = screenState
       const [readingMode, setReadingMode] = React.useState<ReaderMode>(readReadingMode)
+      const [reflowMode, setReflowMode] = React.useState<boolean>(readReflowMode)
       const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)
       const [error, setError] = React.useState('')
       const [busy, setBusy] = React.useState(false)
@@ -175,6 +178,10 @@ export function createPlugin(require: (name: string) => any) {
       React.useEffect(() => {
         saveReadingMode(readingMode)
       }, [readingMode])
+
+      React.useEffect(() => {
+        saveReflowMode(reflowMode)
+      }, [reflowMode])
 
       React.useEffect(() => {
         savePageLayout(pageLayout)
@@ -374,14 +381,14 @@ export function createPlugin(require: (name: string) => any) {
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
-          setVisual(visualForItem(detail, target))
+          setVisual(visualForItem(detail, target, reflowMode))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
           setBusy(false)
         }
-      }, [t])
+      }, [t, reflowMode])
 
       const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: { blockIndex?: number; offset?: number; flash?: boolean }) => {
         setSelection(null)
@@ -402,7 +409,7 @@ export function createPlugin(require: (name: string) => any) {
             ? { ...previous, detail: { ...previous.detail, progress: { chapterId, chapterTitle: content.title } }, content }
             : previous)
           if (screen.kind === 'book') {
-            setVisual(visualForChapter(screen.detail, chapterId))
+            setVisual(visualForChapter(screen.detail, chapterId, reflowMode))
           }
           const toc = screen.kind === 'book' ? screen.detail.toc : []
           const index = toc.findIndex(item => item.id === chapterId)
@@ -413,7 +420,7 @@ export function createPlugin(require: (name: string) => any) {
         } finally {
           setBusy(false)
         }
-      }, [screen, t])
+      }, [screen, t, reflowMode])
 
       const jumpToPage = React.useCallback((page: number) => {
         if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf') return
@@ -496,8 +503,8 @@ export function createPlugin(require: (name: string) => any) {
       // the visual state or a PDF reader falls back to the text pager.
       React.useEffect(() => {
         if (screen.kind !== 'book' || visual) return
-        setVisual(visualForChapter(screen.detail, screen.content.chapterId))
-      }, [screen, setVisual, visual])
+        setVisual(visualForChapter(screen.detail, screen.content.chapterId, reflowMode))
+      }, [screen, setVisual, visual, reflowMode])
 
       const textPageWidth = usePageWidth({
         enabled: isTextFormat,
@@ -532,6 +539,14 @@ export function createPlugin(require: (name: string) => any) {
       const toggleReadingMode = React.useCallback(() => {
         setReadingMode(previous => previous === 'paged' ? 'scroll' : 'paged')
       }, [])
+
+      const toggleReflow = React.useCallback(() => {
+        const next = !reflowMode
+        setReflowMode(next)
+        if (screen.kind === 'book' && screen.detail.book.format === 'epub') {
+          setVisual(visualForChapter(screen.detail, screen.content.chapterId, next))
+        }
+      }, [reflowMode, screen, setVisual])
 
 
       const scrollToBlock = React.useCallback((pending: PendingScroll) => {
@@ -1045,6 +1060,9 @@ export function createPlugin(require: (name: string) => any) {
           onBookmark: addBookmark,
           onFontDecrease: () => setFontSize(previous => Math.max(14, previous - 1)),
           onFontIncrease: () => setFontSize(previous => Math.min(24, previous + 1)),
+          reflowSupported: screen.kind === 'book' && screen.detail.book.format === 'epub',
+          reflow: reflowMode,
+          onToggleReflow: toggleReflow,
         }),
         error ? h('div', { className: 'dsh-readpilot-error' }, error) : null,
         searchPanel,

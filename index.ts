@@ -115,6 +115,7 @@ export function apply(ctx: any, config: any = {}): void {
               const result = await api.epubDocument({
                 bookId: url.searchParams.get('bookId'),
                 href: url.searchParams.get('href'),
+                reflow: url.searchParams.get('reflow') === '1',
               })
               return new Response(result.html, {
                 headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=60' },

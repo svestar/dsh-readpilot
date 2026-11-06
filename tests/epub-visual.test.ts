@@ -34,7 +34,7 @@ async function makeEpub(filePath: string) {
   zip.file('OEBPS/ch1.xhtml', `<!DOCTYPE html>
 <html><head><link rel="stylesheet" href="style.css"/></head>
 <body><script>alert(1)</script><h1 onclick="x()">Chapter</h1>
-<p><img src="pic.png"/></p><p><a href="ch1.xhtml#part">part</a></p></body></html>`)
+<p><img src="pic.png"/></p><p><a href="ch1.xhtml#part">part</a></p><p style="color:red">styled</p></body></html>`)
   zip.file('OEBPS/style.css', 'body{background:url(pic.png)} .remote{background:url(https://evil.example/x.png)}')
   zip.file('OEBPS/pic.png', PNG)
   zip.file('OEBPS/cover.png', PNG)
@@ -122,4 +122,29 @@ test('epub_cover_reads_cover_image', async t => {
   const cover = await visual.cover({ bookId: 'book1', filePath })
   assert.equal(cover?.contentType, 'image/png')
   assert.deepEqual(cover?.bytes, PNG)
+})
+test('epub_visual_reflow_drops_publisher_styles', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-epub-visual-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const filePath = join(root, 'book.epub')
+  await makeEpub(filePath)
+  const visual = createEpubVisual({ dataDir: join(root, 'data') })
+
+  const original = await visual.readDocument({ bookId: 'book1', filePath, href: 'ch1.xhtml' })
+  assert.ok(original.html.includes('rel="stylesheet"'))
+  assert.ok(original.html.includes('style="color:red"'))
+
+  const reflow = await visual.readDocument({ bookId: 'book1', filePath, href: 'ch1.xhtml', reflow: true })
+  assert.ok(!reflow.html.includes('rel="stylesheet"'))
+  assert.ok(!reflow.html.includes('style="color:red"'))
+  assert.ok(reflow.html.includes('data-dsh-reflow'))
+  assert.ok(reflow.html.includes('text-indent:2em'))
+})
+
+test('visual_target_reflow_flag', () => {
+  const detail = {
+    book: { format: 'epub' },
+    toc: [{ id: 'e1', title: '一章', href: 'text/ch1.xhtml' }],
+  } as any
+  assert.deepEqual(visualForChapter(detail, 'e1', true), { kind: 'epub', href: 'text/ch1.xhtml', reflow: true })
 })

@@ -194,6 +194,24 @@ export function saveReadingMode(mode: ReaderMode): void {
   }
 }
 
+export const REFLOW_MODE_KEY = 'dsh-readpilot.reflow'
+
+export function readReflowMode(): boolean {
+  try {
+    return window.localStorage.getItem(REFLOW_MODE_KEY) === 'on'
+  } catch {
+    return false
+  }
+}
+
+export function saveReflowMode(enabled: boolean): void {
+  try {
+    window.localStorage.setItem(REFLOW_MODE_KEY, enabled ? 'on' : 'off')
+  } catch {
+    // Reflow-mode persistence is best effort.
+  }
+}
+
 export function readCoversEnabled(): boolean {
   try {
     return window.localStorage.getItem(COVERS_ENABLED_KEY) !== 'off'

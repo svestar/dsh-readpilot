@@ -19,6 +19,9 @@ interface HeaderProps {
   onBookmark: () => void
   onFontDecrease: () => void
   onFontIncrease: () => void
+  reflowSupported: boolean
+  reflow: boolean
+  onToggleReflow: () => void
 }
 
 export function Header({
@@ -38,6 +41,9 @@ export function Header({
   onBookmark,
   onFontDecrease,
   onFontIncrease,
+  reflowSupported,
+  reflow,
+  onToggleReflow,
 }: HeaderProps) {
   return h('div', { className: 'dsh-readpilot-header' },
     h('div', { className: 'dsh-readpilot-header-main' },
@@ -76,6 +82,15 @@ export function Header({
           onChange: (event: any) => onChangePalette(event.target.value),
         }, READER_PALETTE_IDS.map(id => h('option', { key: id, value: id },
           t(`palette${id[0].toUpperCase()}${id.slice(1)}`))))
+        : null,
+      screen.kind === 'book' && reflowSupported
+        ? h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-icon-btn',
+          'data-active': reflow ? 'true' : 'false',
+          title: reflow ? t('reflowOriginal') : t('reflowMode'),
+          onClick: onToggleReflow,
+        }, reflow ? t('reflowOriginal') : t('reflowMode'))
         : null,
       screen.kind === 'book'
         ? h('button', {

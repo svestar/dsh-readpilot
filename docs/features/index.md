@@ -34,3 +34,4 @@
 | `FTR-028` | 真实封面 | `docs/features/FTR-028-covers.md` | `src/visual/epub.ts` | `tests/cover.test.ts` | active |
 | `FTR-029` | 键盘快捷键 | `docs/features/FTR-029-shortcuts.md` | `src/client/shortcuts.ts` | `tests/shortcuts.test.ts` | active |
 | `FTR-030` | 批注总览 | `docs/features/FTR-030-annotations-overview.md` | `src/client/mark-filters.ts` | `tests/mark-filters.test.ts` | active |
+| `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/visual/epub.ts` | `tests/epub-visual.test.ts` | active |
