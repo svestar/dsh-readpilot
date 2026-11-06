@@ -22,8 +22,6 @@ export interface MemoryState {
   saveCard: (scope: MemoryScope, text: string) => Promise<void>
   undo: (scope: MemoryScope) => Promise<void>
   clear: (scope: MemoryScope) => Promise<void>
-  approve: (proposalId: string) => Promise<void>
-  reject: (proposalId: string) => Promise<void>
 }
 
 export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptions): MemoryState {
@@ -97,7 +95,5 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
     saveCard: (scope, text) => run({ action: 'write', scope, text }),
     undo: scope => run({ action: 'undo', scope }),
     clear: scope => run({ action: 'clear', scope }),
-    approve: proposalId => run({ action: 'approve', proposalId }),
-    reject: proposalId => run({ action: 'reject', proposalId }),
   }
 }

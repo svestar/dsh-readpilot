@@ -241,7 +241,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_memory',
       description:
-        'Read or update reading memory for one book. update/forget only take effect when memory is on for this book; when the global mode asks for consent, update creates a pending proposal the user must approve in the Notes tab. Use memory only for stable reader preferences, opinions and the reading relationship, never for book plot facts. Never claim memory was saved until the result says saved.',
+        'Read or update reading memory for one book. Memory is opt-in and off by default; update/forget only work when memory is on for this book. When on, proactively record only durable reader facts: stable preferences, views on the book or author, recurring questions and goals. Never store plot facts, one-off questions or reading progress. Write one short line per fact (at most 60 characters); each card is capped at 600 characters, so read it back and compress with mode=replace instead of appending forever. Never claim memory was saved until the result says saved.',
       parameters: {
         type: 'object',
         properties: {

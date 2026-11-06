@@ -83,7 +83,7 @@ test('tools_read_bounded', async t => {
   assertLossless(autoApplied)
   await api.setAutoApplyNotes({ enabled: false })
   const memory = await registered.get('reader_memory')!.execute({ action: 'read', book: state.books[0].title })
-  assert.equal(memory.effective, 'ask')
+  assert.equal(memory.effective, 'off')
   assert.equal(memory.bookCard, '')
   assertLossless(memory)
   const context = await registered.get('reader_context')!.execute({ book: state.books[0].title })

@@ -302,7 +302,7 @@ export function createPlugin(require: (name: string) => any) {
             else delete notes[bookId]
             const companion = previous.companion ?? {
               notes: {},
-              memory: { mode: 'ask' as const, books: {} },
+              memory: { mode: 'off' as const, books: {} },
               autoApplyNotes: false,
             }
             return { ...previous, companion: { ...companion, notes } }
@@ -805,8 +805,6 @@ export function createPlugin(require: (name: string) => any) {
         onSave: memory.saveCard,
         onUndo: memory.undo,
         onClear: memory.clear,
-        onApprove: memory.approve,
-        onReject: memory.reject,
       })
 
       const searchPanel = h(SearchPanel, {

@@ -120,13 +120,12 @@ export interface OpenNoteFileResult {
 }
 
 export interface MemoryPayload {
-  action: 'status' | 'setMode' | 'setBook' | 'write' | 'undo' | 'clear' | 'approve' | 'reject'
+  action: 'status' | 'setMode' | 'setBook' | 'write' | 'undo' | 'clear'
   bookId: string
   mode?: string
   state?: string
   scope?: string
   text?: string
-  proposalId?: string
 }
 
 export interface NoteFileContentResult {

@@ -23,7 +23,7 @@ test('memory_settings_defaults', async t => {
   const dir = await makeDataDir(t)
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: {},
-    memory: { mode: 'ask', books: {} },
+    memory: { mode: 'off', books: {} },
     autoApplyNotes: false,
   })
 })
@@ -33,7 +33,7 @@ test('memory_settings_migrates_notes_only_file', async t => {
   await writeFile(join(dir, 'companion.json'), JSON.stringify({ notes: { abc: true } }))
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: { abc: true },
-    memory: { mode: 'ask', books: {} },
+    memory: { mode: 'off', books: {} },
     autoApplyNotes: false,
   })
 })
@@ -50,14 +50,14 @@ test('memory_settings_validation_and_corrupt_file', async t => {
   }))
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: { good: true, off: false },
-    memory: { mode: 'ask', books: { one: 'on', four: 'inherit' } },
+    memory: { mode: 'off', books: { one: 'on', four: 'inherit' } },
     autoApplyNotes: true,
   })
 
   await writeFile(join(dir, 'companion.json'), '{ not json')
   assert.deepEqual(await loadCompanionSettings(dir), {
     notes: {},
-    memory: { mode: 'ask', books: {} },
+    memory: { mode: 'off', books: {} },
     autoApplyNotes: false,
   })
 })
@@ -74,15 +74,11 @@ test('memory_settings_save_roundtrip', async t => {
 })
 
 test('memory_effective_state_matrix', () => {
-  const cases: Array<[MemoryMode, Record<string, BookMemoryState>, string, 'on' | 'off' | 'ask']> = [
+  const cases: Array<[MemoryMode, Record<string, BookMemoryState>, string, 'on' | 'off']> = [
     ['off', {}, 'book1', 'off'],
     ['off', { book1: 'inherit' }, 'book1', 'off'],
     ['off', { book1: 'on' }, 'book1', 'off'],
     ['off', { book1: 'off' }, 'book1', 'off'],
-    ['ask', {}, 'book1', 'ask'],
-    ['ask', { book1: 'inherit' }, 'book1', 'ask'],
-    ['ask', { book1: 'on' }, 'book1', 'on'],
-    ['ask', { book1: 'off' }, 'book1', 'off'],
     ['on', {}, 'book1', 'on'],
     ['on', { book1: 'inherit' }, 'book1', 'on'],
     ['on', { book1: 'on' }, 'book1', 'on'],
@@ -179,14 +175,14 @@ test('memory_store_caps_clear_and_undo_clear', async t => {
   const dir = await makeDataDir(t)
   const store = createMemoryStore(dir)
 
-  assert.equal((await store.writeBook('book1', 'a'.repeat(4000))).characters, 4000)
+  assert.equal((await store.writeBook('book1', 'a'.repeat(600))).characters, 600)
   await assert.rejects(
-    () => store.writeBook('book1', 'a'.repeat(4001)),
+    () => store.writeBook('book1', 'a'.repeat(601)),
     (error: any) => error?.code === 'memory-too-large',
   )
-  assert.equal((await store.writeReader('b'.repeat(2000))).characters, 2000)
+  assert.equal((await store.writeReader('b'.repeat(600))).characters, 600)
   await assert.rejects(
-    () => store.writeReader('b'.repeat(2001)),
+    () => store.writeReader('b'.repeat(601)),
     (error: any) => error?.code === 'memory-too-large',
   )
 
@@ -279,4 +275,13 @@ test('memory_context_truncates_each_card', () => {
   const single = buildReadingMemory({ bookTitle: '长书', reader: '', book: huge, maxTotal: 500 })
   assert.ok(single.length <= 500, String(single.length))
   assert.match(single, /已截断/)
+})
+test('memory_settings_migrates_ask_to_off', async t => {
+  const dir = await makeDataDir(t)
+  await writeFile(join(dir, 'companion.json'), JSON.stringify({ memory: { mode: 'ask', books: { abc: 'on' } } }))
+  assert.deepEqual(await loadCompanionSettings(dir), {
+    notes: {},
+    memory: { mode: 'off', books: { abc: 'on' } },
+    autoApplyNotes: false,
+  })
 })

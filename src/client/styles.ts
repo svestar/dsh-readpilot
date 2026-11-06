@@ -219,7 +219,6 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
 .dsh-readpilot-memory-history{font-size:11px}
 .dsh-readpilot-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
-.dsh-readpilot-memory-proposals{display:flex;flex-direction:column;gap:7px}
 .dsh-readpilot-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-readpilot-history-row:last-child{border-bottom:0}
@@ -423,7 +422,6 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-icon-action:disabled{opacity:.45;cursor:default}
 .dsh-readpilot-memory-card{padding:11px;gap:8px}
 .dsh-readpilot-memory-card-title{font-size:12.5px;font-weight:600}
-.dsh-readpilot-memory-proposals{padding:11px;background:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 5%,var(--dsw-alias-bg-layer-1));border-color:color-mix(in srgb,var(--dsw-alias-state-warn-primary) 28%,var(--dsw-alias-border-l2))}
 .dsh-readpilot-memory-hint{padding:0 2px;font-size:11.5px;line-height:1.6}
 .dsh-readpilot-chat-tabs{border:1px solid var(--dsw-alias-border-l2);padding:3px}
 .dsh-readpilot-chat-tab{transition:background .15s,color .15s;border-radius:6px}

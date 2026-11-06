@@ -338,7 +338,7 @@ test('notes_rpc_roundtrip', async t => {
   assert.equal(empty.value.notes.length, 0)
 })
 
-test('memory_rpc_and_proposal', async t => {
+test('memory_rpc_requires_opt_in', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
   const state = await api.configureLibrary({ path: library })
@@ -346,23 +346,20 @@ test('memory_rpc_and_proposal', async t => {
 
   await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: 'c001' })
   const read = await api.memoryTool({ book: bookId, action: 'read' })
-  assert.equal(read.effective, 'ask')
+  assert.equal(read.effective, 'off')
+  await assert.rejects(
+    () => api.memoryTool({ book: bookId, action: 'update', scope: 'book', text: '读者偏好简洁回答' }),
+    (error: any) => error?.code === 'memory-off',
+  )
 
-  const proposal = await api.memoryTool({
-    book: bookId,
-    action: 'update',
-    scope: 'book',
-    mode: 'append',
-    text: '读者偏好简洁回答',
-  })
-  assert.equal(proposal.needsConsent, true)
-
-  const status = await api.memory({ action: 'status', bookId })
-  assert.equal(status.proposals.length, 1)
-
-  const approved = await api.memory({ action: 'approve', bookId, proposalId: proposal.proposalId })
-  assert.equal(approved.effective, 'on')
+  await api.memory({ action: 'setMode', bookId, mode: 'on' })
+  await api.memoryTool({ book: bookId, action: 'update', scope: 'book', text: '读者偏好简洁回答' })
   assert.match(api.memoryContextFor('s1'), /读者偏好简洁回答/)
+
+  await assert.rejects(
+    () => api.memoryTool({ book: bookId, action: 'update', scope: 'book', mode: 'replace', text: 'a'.repeat(601) }),
+    (error: any) => error?.code === 'memory-too-large',
+  )
 
   await api.memory({ action: 'setBook', bookId, state: 'off' })
   assert.equal(api.memoryContextFor('s1'), '')

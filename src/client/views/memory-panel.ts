@@ -1,9 +1,11 @@
 import { React, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
 
-export type MemoryMode = 'off' | 'ask' | 'on'
+export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'
 export type MemoryScope = 'book' | 'reader'
+
+export const MAX_MEMORY_CHARACTERS = 600
 
 export interface MemoryHistoryView {
   id: string
@@ -11,23 +13,14 @@ export interface MemoryHistoryView {
   characters: number
 }
 
-export interface MemoryProposalView {
-  id: string
-  scope: MemoryScope
-  mode: 'append' | 'replace'
-  preview: string
-  createdAt: number
-}
-
 export interface MemoryView {
   mode: MemoryMode
   book: BookMemoryState
-  effective: 'on' | 'off' | 'ask'
+  effective: 'on' | 'off'
   bookText: string
   readerText: string
   bookHistory: MemoryHistoryView[]
   readerHistory: MemoryHistoryView[]
-  proposals: MemoryProposalView[]
 }
 
 export interface MemoryPanelProps {
@@ -42,14 +35,10 @@ export interface MemoryPanelProps {
   onSave: (scope: MemoryScope, text: string) => void
   onUndo: (scope: MemoryScope) => void
   onClear: (scope: MemoryScope) => void
-  onApprove: (id: string) => void
-  onReject: (id: string) => void
 }
 
 function modeLabel(t: TextFn, mode: MemoryMode): string {
-  if (mode === 'off') return t('memoryModeOff')
-  if (mode === 'on') return t('memoryModeOn')
-  return t('memoryModeAsk')
+  return mode === 'on' ? t('memoryModeOn') : t('memoryModeOff')
 }
 
 function bookStateLabel(t: TextFn, state: BookMemoryState): string {
@@ -58,10 +47,8 @@ function bookStateLabel(t: TextFn, state: BookMemoryState): string {
   return t('memoryBookInherit')
 }
 
-function effectiveLabel(t: TextFn, effective: 'on' | 'off' | 'ask'): string {
-  if (effective === 'on') return t('memoryEffectiveOn')
-  if (effective === 'off') return t('memoryEffectiveOff')
-  return t('memoryEffectiveAsk')
+function effectiveLabel(t: TextFn, effective: 'on' | 'off'): string {
+  return effective === 'on' ? t('memoryEffectiveOn') : t('memoryEffectiveOff')
 }
 
 function cardEditor(
@@ -77,10 +64,11 @@ function cardEditor(
       h('span', { className: 'dsh-readpilot-memory-card-title' },
         scope === 'book' ? t('memoryBookCard') : t('memoryReaderCard')),
       h('span', { className: 'dsh-readpilot-long-meta' },
-        `${text.length} ${t('noteContextChars')} · ${t('memoryHistoryCount')} ${history.length}`)),
+        `${text.length}/${MAX_MEMORY_CHARACTERS} · ${t('memoryHistoryCount')} ${history.length}`)),
     h('textarea', {
       value: text,
       rows: 5,
+      maxLength: MAX_MEMORY_CHARACTERS,
       placeholder: scope === 'book' ? t('memoryBookPlaceholder') : t('memoryReaderPlaceholder'),
       onChange: (event: any) => setText(event.target.value),
     }),
@@ -172,7 +160,7 @@ export function MemoryPanel(props: MemoryPanelProps) {
       h('div', { className: 'dsh-readpilot-control-row' },
         h('span', { className: 'dsh-readpilot-control-label' }, t('memoryDefaultMode')),
         h('div', { className: 'dsh-readpilot-segmented' },
-          (['off', 'ask', 'on'] as MemoryMode[]).map(mode => h('button', {
+          (['off', 'on'] as MemoryMode[]).map(mode => h('button', {
             key: mode,
             type: 'button',
             className: 'dsh-readpilot-segment',
@@ -195,33 +183,6 @@ export function MemoryPanel(props: MemoryPanelProps) {
           className: 'dsh-readpilot-status-pill',
           'data-state': status.effective,
         }, `${t('memoryEffective')} ${effectiveLabel(t, status.effective)}`))),
-    status.proposals.length > 0
-      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-memory-proposals' },
-        h('div', { className: 'dsh-readpilot-section-head' },
-          h('h4', null, t('memoryProposals')),
-          h('span', { className: 'dsh-readpilot-section-count' }, String(status.proposals.length))),
-        status.proposals.map(proposal => h('div', { key: proposal.id, className: 'dsh-readpilot-draft' },
-          h('div', { className: 'dsh-readpilot-draft-head' },
-            h('span', { className: 'dsh-readpilot-long-kind' },
-              proposal.scope === 'book' ? t('memoryBookCard') : t('memoryReaderCard')),
-            h('span', { className: 'dsh-readpilot-long-title' },
-              proposal.mode === 'append' ? t('memoryAppend') : t('memoryReplace')),
-            h('span', { className: 'dsh-readpilot-long-meta' }, new Date(proposal.createdAt).toLocaleTimeString())),
-          h('pre', { className: 'dsh-readpilot-diff' }, proposal.preview.slice(0, 1200)),
-          h('div', { className: 'dsh-readpilot-long-editor-actions' },
-            h('button', {
-              type: 'button',
-              className: 'dsh-readpilot-chat-send',
-              disabled: props.busy,
-              onClick: () => props.onApprove(proposal.id),
-            }, t('memoryApprove')),
-            h('button', {
-              type: 'button',
-              className: 'dsh-readpilot-note-jump',
-              disabled: props.busy,
-              onClick: () => props.onReject(proposal.id),
-            }, t('memoryReject'))))))
-      : null,
     cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props),
     cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props),
     h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')))

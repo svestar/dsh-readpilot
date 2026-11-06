@@ -19,8 +19,6 @@ import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } fr
 import type { MemoryStore } from './memory-store.ts'
 import { MemoryStoreError, createMemoryStore } from './memory-store.ts'
 import { buildReadingMemory } from './memory-context.ts'
-import type { MemoryProposalStore } from './memory-proposals.ts'
-import { MemoryProposalError, createMemoryProposalStore } from './memory-proposals.ts'
 import type { NoteDraftRecord, NoteDraftStore } from './note-drafts.ts'
 import { NoteDraftError, createNoteDraftStore } from './note-drafts.ts'
 import type { ExportLongNote, ExportMark } from './note-export.ts'
@@ -244,9 +242,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const companionContexts = new Map<string, { text: string; updatedAt: number }>()
   const companionReadings = new Map<string, { bookId: string; title: string; chapter: string; updatedAt: number }>()
   const notesContextCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
-  let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'ask', books: {} }, autoApplyNotes: false }
+  let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'off', books: {} }, autoApplyNotes: false }
   const memoryStore: MemoryStore = createMemoryStore(dataDir)
-  const memoryProposalStore: MemoryProposalStore = createMemoryProposalStore(dataDir)
   const memoryCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
   let noteFileStore: NoteFileStore | null = null
   let noteFileRoot: string | null = null
@@ -942,12 +939,11 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   }
 
   async function memoryStatus(book: Book): Promise<any> {
-    const [bookCard, readerCard, bookHistory, readerHistory, proposals] = await Promise.all([
+    const [bookCard, readerCard, bookHistory, readerHistory] = await Promise.all([
       memoryStore.readBook(book.id),
       memoryStore.readReader(),
       memoryStore.listHistory(book.id),
       memoryStore.listHistory(null),
-      memoryProposalStore.list(book.id),
     ])
     return {
       mode: companionSettings.memory.mode,
@@ -957,7 +953,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       readerText: readerCard.text,
       bookHistory,
       readerHistory,
-      proposals,
     }
   }
 
@@ -967,8 +962,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     try {
       if (payload.action === 'setMode') {
         const mode = payload.mode
-        if (mode !== 'off' && mode !== 'ask' && mode !== 'on') {
-          throw new ReaderError('invalid-memory', '记忆模式必须是 off、ask 或 on')
+        if (mode !== 'off' && mode !== 'on') {
+          throw new ReaderError('invalid-memory', '记忆模式必须是 off 或 on')
         }
         companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, mode } }
         await saveCompanionSettings(dataDir, companionSettings)
@@ -1019,35 +1014,10 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         }
         return memoryStatus(book)
       }
-      if (payload.action === 'approve') {
-        const proposalId = String(payload.proposalId ?? '')
-        const proposal = (await memoryProposalStore.list(book.id)).find(item => item.id === proposalId)
-        if (!proposal) throw new ReaderError('proposal-not-found', '记忆提议不存在')
-        if (proposal.scope === 'reader') {
-          await memoryStore.writeReader(proposal.preview)
-        } else {
-          await memoryStore.writeBook(book.id, proposal.preview)
-        }
-        await memoryProposalStore.reject(book.id, proposal.id)
-        const books = { ...companionSettings.memory.books, [book.id]: 'on' as const }
-        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, books } }
-        await saveCompanionSettings(dataDir, companionSettings)
-        if (proposal.scope === 'reader') await rebuildAllMemory()
-        else await rebuildMemory(book.id)
-        return memoryStatus(book)
-      }
-      if (payload.action === 'reject') {
-        await memoryProposalStore.reject(book.id, String(payload.proposalId ?? ''))
-        const books = { ...companionSettings.memory.books, [book.id]: 'off' as const }
-        companionSettings = { ...companionSettings, memory: { ...companionSettings.memory, books } }
-        await saveCompanionSettings(dataDir, companionSettings)
-        await rebuildMemory(book.id)
-        return memoryStatus(book)
-      }
       if (payload.action === 'status' || payload.action === undefined) return memoryStatus(book)
       throw new ReaderError('invalid-memory-action', `未知记忆操作：${String(payload.action)}`)
     } catch (error) {
-      if (error instanceof MemoryStoreError || error instanceof MemoryProposalError) {
+      if (error instanceof MemoryStoreError) {
         throw new ReaderError(error.code, error.message)
       }
       throw error
@@ -1073,7 +1043,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         }
       }
       if (payload.action === 'forget') {
-        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭或尚未同意')
+        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭')
         if (scope === 'reader') {
           await memoryStore.clearReader()
           await rebuildAllMemory()
@@ -1092,15 +1062,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
           ? (await memoryStore.readReader()).text
           : (await memoryStore.readBook(found.id)).text
         const preview = mode === 'append' && current.trim() ? `${current.trim()}\n\n${text}` : text
-        if (effective === 'ask') {
-          const proposal = await memoryProposalStore.create(found.id, { scope, mode, text, preview })
-          return {
-            needsConsent: true,
-            proposalId: proposal.id,
-            preview,
-            message: '记忆尚未开启，等待用户在笔记页的记忆区确认。',
-          }
-        }
+        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭')
         if (scope === 'reader') {
           await memoryStore.writeReader(preview)
           await rebuildAllMemory()
@@ -1112,7 +1074,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       }
       throw new ReaderError('invalid-memory-action', `未知记忆操作：${String(payload.action)}`)
     } catch (error) {
-      if (error instanceof MemoryStoreError || error instanceof MemoryProposalError) {
+      if (error instanceof MemoryStoreError) {
         throw new ReaderError(error.code, error.message)
       }
       throw error

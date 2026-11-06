@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import { readJson, writeJson } from './fsjson.ts'
 
-export type MemoryMode = 'off' | 'ask' | 'on'
+export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'
 
 export interface CompanionMemorySettings {
@@ -18,7 +18,7 @@ export interface CompanionSettings {
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 
 function isMemoryMode(value: unknown): value is MemoryMode {
-  return value === 'off' || value === 'ask' || value === 'on'
+  return value === 'off' || value === 'on'
 }
 
 function isBookMemoryState(value: unknown): value is BookMemoryState {
@@ -35,7 +35,7 @@ function notesOf(raw: unknown): Record<string, boolean> {
 }
 
 function memoryOf(raw: unknown): CompanionMemorySettings {
-  if (!raw || typeof raw !== 'object') return { mode: 'ask', books: {} }
+  if (!raw || typeof raw !== 'object') return { mode: 'off', books: {} }
   const record = raw as Record<string, unknown>
   const books: Record<string, BookMemoryState> = {}
   if (record.books && typeof record.books === 'object') {
@@ -43,7 +43,8 @@ function memoryOf(raw: unknown): CompanionMemorySettings {
       if (BOOK_ID_PATTERN.test(bookId) && isBookMemoryState(state)) books[bookId] = state
     }
   }
-  return { mode: isMemoryMode(record.mode) ? record.mode : 'ask', books }
+  // `ask` was the old default; memory is opt-in, so the legacy value maps to off.
+  return { mode: isMemoryMode(record.mode) ? record.mode : 'off', books }
 }
 
 export function companionSettingsPath(dataDir: string): string {
@@ -56,7 +57,7 @@ export async function loadCompanionSettings(dataDir: string): Promise<CompanionS
     value = await readJson<unknown>(companionSettingsPath(dataDir), {})
   } catch {
     // 损坏的配置文件按默认值处理，避免阅读器因单个文件无法解析而不可用。
-    return { notes: {}, memory: { mode: 'ask', books: {} }, autoApplyNotes: false }
+    return { notes: {}, memory: { mode: 'off', books: {} }, autoApplyNotes: false }
   }
   const record = value && typeof value === 'object' ? value as Record<string, unknown> : {}
   return {
@@ -70,11 +71,12 @@ export async function saveCompanionSettings(dataDir: string, value: CompanionSet
   await writeJson(companionSettingsPath(dataDir), value)
 }
 
-export function effectiveMemoryState(settings: CompanionSettings, bookId: string): 'on' | 'off' | 'ask' {
+/** Memory is opt-in: the global switch and the per-book override must both allow it. */
+export function effectiveMemoryState(settings: CompanionSettings, bookId: string): 'on' | 'off' {
   const mode = settings.memory.mode
   const state = settings.memory.books[bookId]
   if (mode === 'off') return 'off'
   if (state === 'off') return 'off'
   if (state === 'on') return 'on'
-  return mode === 'on' ? 'on' : 'ask'
+  return mode === 'on' ? 'on' : 'off'
 }

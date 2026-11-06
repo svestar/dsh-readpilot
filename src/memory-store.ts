@@ -37,8 +37,8 @@ const READER_CARD = 'reader'
 const HISTORY_DIR = '.history'
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const HISTORY_ID_PATTERN = /^\d{1,16}-[a-f0-9]{1,32}$/
-const MAX_BOOK_CHARACTERS = 4000
-const MAX_READER_CHARACTERS = 2000
+const MAX_BOOK_CHARACTERS = 600
+const MAX_READER_CHARACTERS = 600
 const MAX_HISTORY = 10
 
 export class MemoryStoreError extends Error {
