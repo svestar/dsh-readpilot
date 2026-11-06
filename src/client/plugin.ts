@@ -993,7 +993,8 @@ export function createPlugin(require: (name: string) => any) {
         epubFrameRef,
       }) : null
 
-      const pageSpan = pageSpanWidth(textPageWidth, pageLayout)
+      const singlePageLayout = pageLayout !== 'single' && textPager.pageCount <= 1
+      const pageSpan = pageSpanWidth(textPageWidth, singlePageLayout ? 'single' : pageLayout)
       const pageFrameStyle = pageSpan > 0
         ? { width: `${pageSpan}px`, maxWidth: '100%', margin: '0 auto' }
         : undefined
@@ -1014,7 +1015,7 @@ export function createPlugin(require: (name: string) => any) {
             h('div', {
               className: 'dsh-readpilot-reader-inner dsh-readpilot-paged-inner',
               ref: textPager.innerRef,
-              style: textPager.innerStyle,
+              style: singlePageLayout ? { ...textPager.innerStyle, columnCount: 1 } : textPager.innerStyle,
             },
             h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
             renderBlocks(screen.content.blocks, screen.content.chapterId),

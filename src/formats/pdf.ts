@@ -238,16 +238,29 @@ function looksLikeTocPage(lines: PdfLine[]): boolean {
   return entries >= text.length * 0.4
 }
 
+function isCodeLine(line: PdfLine): boolean {
+  const text = line.text ?? ''
+  if (!text) return false
+  if (/[\u3400-\u9FFF]/.test(text)) return false
+  if (/[。！？；，]/.test(text)) return false
+  if (/^(?:\$|#|>|\[[^\]]*\]\s*[$#]|\.{0,2}\/|~\/)/.test(text)) return true
+  if (/\s--?[a-zA-Z]/.test(text) && text.length < 160) return true
+  const symbols = (text.match(/[^\p{L}\p{N}\s]/gu) ?? []).length
+  const ratio = symbols / text.length
+  if (line.mono && ratio > 0.1) return true
+  return ratio > 0.22 && text.length < 120
+}
+
 function tableRowsAt(lines: PdfLine[], index: number): { rows: string[][]; count: number } | null {
   const first = lines[index]
-  if (!first?.text || first.mono) return null
+  if (!first?.text || isCodeLine(first)) return null
   const base = first.cells ?? []
   if (base.length < 2) return null
   const rows = [base.map(cell => cell.text)]
   let cursor = index + 1
   for (; cursor < lines.length; cursor += 1) {
     const line = lines[cursor]
-    if (!line.text || line.mono) break
+    if (!line.text || isCodeLine(line)) break
     const cells = line.cells ?? []
     if (cells.length !== base.length) break
     if (cells.some((cell, column) => Math.abs(cell.x - base[column].x) > line.size * 2)) break
@@ -303,9 +316,9 @@ function pageBlocks(lines: PdfLine[]): TextBlock[] {
       index += table.count - 1
       continue
     }
-    if (line.mono) {
-      const nextMono = Boolean(lines[index + 1]?.mono && lines[index + 1]?.text)
-      if (code.length > 0 || nextMono) {
+    if (isCodeLine(line)) {
+      const nextCode = Boolean(lines[index + 1]?.text && isCodeLine(lines[index + 1]))
+      if (code.length > 0 || nextCode) {
         flushParagraph()
         code.push(line.text)
         previous = line

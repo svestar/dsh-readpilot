@@ -295,6 +295,7 @@ export function applyPaletteToFrame(frame: HTMLIFrameElement | null | undefined,
   const doc = frame?.contentDocument
   if (!doc) return
   const colors = paletteCssColors(palette)
+  const frameBg = palette.id === 'glass' ? 'transparent' : colors.bg
   let style = doc.querySelector('style[data-dsh-palette]')
   if (!style) {
     style = doc.createElement('style')
@@ -302,7 +303,7 @@ export function applyPaletteToFrame(frame: HTMLIFrameElement | null | undefined,
     ;(doc.head ?? doc.documentElement)?.appendChild(style)
   }
   style.textContent = [
-    `html,body{background:${colors.bg}!important;color:${colors.fg}!important}`,
+    `html,body{background:${frameBg}!important;color:${colors.fg}!important}`,
     `body :is(p,div,span,li,blockquote,td,th,h1,h2,h3,h4,h5,h6){color:inherit!important}`,
     `::selection{background:${colors.selection}}`,
   ].join('')
