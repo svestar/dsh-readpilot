@@ -9,14 +9,14 @@ import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './li
 import { createLibraryMetaStore } from './library-meta.ts'
 import { createDraftHandlers } from './api-drafts.ts'
 import { createMemoryHandlers } from './api-memory.ts'
+import { createNoteFileHandlers } from './api-note-files.ts'
 import { createNotesHandlers } from './api-notes.ts'
 import { createLimiter } from './limit.ts'
 import { ReaderError } from './reader-error.ts'
 import { enqueueWrite } from './write-queue.ts'
 import type { NotesStore } from './notes.ts'
 import { createNotesStore } from './notes.ts'
-import type { NoteFileStore } from './note-files.ts'
-import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
+import { NOTES_DIR_NAME } from './note-files.ts'
 import { buildReaderJumpUrl } from './jump-url.ts'
 import type { CompanionSettings } from './companion-settings.ts'
 import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
@@ -242,8 +242,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   let companionSettings: CompanionSettings = { notes: {}, memory: { mode: 'off', books: {} }, autoApplyNotes: false }
   const memoryStore: MemoryStore = createMemoryStore(dataDir)
   const memoryCache = new Map<string, { text: string; characters: number; updatedAt: number }>()
-  let noteFileStore: NoteFileStore | null = null
-  let noteFileRoot: string | null = null
   let pdfRendererPromise: Promise<PdfRenderer> | undefined
   let epubVisualPromise: Promise<EpubVisual> | undefined
 
@@ -832,16 +830,15 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     refresh: async bookId => (companionSettings.notes[bookId] ? rebuildNotesContext(bookId) : 0),
   })
 
-  async function ensureNoteFileStore(): Promise<NoteFileStore> {
-    const settings = await currentSettings()
-    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
-    const root = join(settings.libraryDir, NOTES_DIR_NAME)
-    if (!noteFileStore || noteFileRoot !== root) {
-      noteFileStore = createNoteFileStore(root)
-      noteFileRoot = root
-    }
-    return noteFileStore
-  }
+  const noteFileHandlers = createNoteFileHandlers({
+    settings: currentSettings,
+    books: () => libraryBooks(),
+    resolveBook,
+    refreshNotes: async (bookId: string) => {
+      if (companionSettings.notes[bookId]) await rebuildNotesContext(bookId)
+    },
+  })
+  const { store: ensureNoteFileStore, handleNoteFiles, toolNoteFiles } = noteFileHandlers
 
   async function rebuildNotesContext(bookId: string): Promise<number> {
     try {
@@ -928,25 +925,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     refreshNotes: async bookId => (companionSettings.notes[bookId] ? rebuildNotesContext(bookId) : 0),
   })
 
-  async function toolNoteFiles(payload: any = {}): Promise<any> {
-    const books = await libraryBooks()
-    const found = findBookByKey(books, payload.book)
-    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(payload.book)}`)
-    const store = await ensureNoteFileStore()
-    try {
-      if (payload.action === 'index') {
-        return { bookId: found.id, bookTitle: found.title, notes: await store.list(found) }
-      }
-      if (payload.action === 'read') {
-        return await store.read(found, String(payload.id ?? ''))
-      }
-      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
-    } catch (error) {
-      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
-      throw error
-    }
-  }
-
   async function ensureNoteDraftStore(): Promise<NoteDraftStore> {
     return createNoteDraftStore(dataDir, await ensureNoteFileStore())
   }
@@ -1026,52 +1004,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     await mkdir(dir, { recursive: true })
     await writeFile(join(dir, fileName), markdown, 'utf8')
     return { markdown, fileName, path: `notes/.exports/${fileName}` }
-  }
-
-  async function handleNoteFiles(payload: any = {}): Promise<any> {
-    const book = await resolveBook(payload.bookId)
-    const store = await ensureNoteFileStore()
-    try {
-      if (payload.action === 'list') return { notes: await store.list(book) }
-      if (payload.action === 'read') return await store.read(book, String(payload.id ?? ''))
-      if (payload.action === 'create') {
-        const result = await store.create(book, { title: payload.title, kind: payload.kind, body: payload.body })
-        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
-        return result
-      }
-      if (payload.action === 'write') {
-        const result = await store.write(book, String(payload.id ?? ''), {
-          title: payload.title,
-          body: payload.body,
-          baseHash: payload.baseHash,
-        })
-        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
-        return result
-      }
-      if (payload.action === 'remove') {
-        const result = { deleted: await store.remove(book, String(payload.id ?? '')) }
-        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
-        return result
-      }
-      if (payload.action === 'history') {
-        return { history: await store.listHistory(book, String(payload.id ?? '')) }
-      }
-      if (payload.action === 'restore') {
-        const result = await store.restoreHistory(book, String(payload.id ?? ''), String(payload.historyId ?? ''))
-        if (companionSettings.notes[book.id]) await rebuildNotesContext(book.id)
-        return result
-      }
-      if (payload.action === 'historyRemove') {
-        return { removed: await store.removeHistory(book, String(payload.id ?? ''), String(payload.historyId ?? '')) }
-      }
-      if (payload.action === 'historyClear') {
-        return { cleared: await store.clearHistory(book, String(payload.id ?? '')) }
-      }
-      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
-    } catch (error) {
-      if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)
-      throw error
-    }
   }
 
   async function pageView({ bookId, page, scale }: any = {}): Promise<PageViewResult> {

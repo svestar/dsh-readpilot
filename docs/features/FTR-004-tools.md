@@ -21,7 +21,7 @@ Host 插件向 `ctx.tools` 注册八个全局工具：`reader_books` 列出书�
 | `toolRead` | `src/api.ts:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
 | `toolSearch` | `src/api.ts:toolSearch` | 把书名解析为书 id 后调用检索 |
 | `toolNote` | `src/api.ts:toolNote` | 解析书名/章节并读写该书的短笔记 |
-| `toolNoteFiles` | `src/api.ts:toolNoteFiles` | 工具侧的 list/read 长笔记 |
+| `toolNoteFiles` | `src/api-note-files.ts:toolNoteFiles` | 工具侧的 list/read 长笔记 |
 | `noteDraftCreate` | `src/api-drafts.ts:noteDraftCreate` | 工具侧生成草稿；自动应用开启时立即应用 |
 | `memoryTool` | `src/api-memory.ts:memoryTool` | 工具侧读取/更新/忘记记忆 |
 | `losslessJson` | `src/tools.ts:losslessJson` | 注册前把结果归一为无损 JSON |

@@ -14,6 +14,7 @@
 - `src/api-notes.ts`：短笔记 RPC（`createNotesHandlers`）；
 - `src/api-drafts.ts`：长笔记草稿的 UI RPC 与工具创建（`createDraftHandlers`）；
 - `src/api-memory.ts`：记忆的读取、写入、注入缓存与三处入口（`createMemoryHandlers`）；
+- `src/api-note-files.ts`：长笔记文件存储与 RPC（`createNoteFileHandlers`）；
 - `src/reader-error.ts`：`ReaderError` 独立，避免模块与 `api.ts` 循环依赖。
 
 `api.ts` 保留装配职责：创建 store、组合依赖、注册分发表，并继续对外暴露同一组方法。模块不直接读全局 `dataDir` 或可变的 `companionSettings`，而是通过 `getSettings` / `setSettings` / `loadSettings` / `saveSettings` 访问。
@@ -22,7 +23,7 @@
 
 `api.ts` 从约 1500 行降到约 1200 行，三块域可以独立阅读与测试；依赖关系显式化，新增域按同一模式接入。
 
-代价：装配代码集中在一处，模块签名较长；记忆模块需要四个设置访问器才能保持原有热加载语义。长笔记文件存储仍留在 `api.ts`，下一轮可以按同样方式拆出。
+代价：装配代码集中在一处，模块签名较长；记忆模块需要四个设置访问器才能保持原有热加载语义。长笔记文件的 store 访问、RPC 与工具入口已拆到 `api-note-files.ts`；`api.ts` 仅保留 `openNoteFile`、`exportNotes` 等与外部编辑器/导出相关的小块。
 
 ## 备选方案
 

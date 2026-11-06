@@ -3,7 +3,7 @@
 - **ID：** FTR-020
 - **名称：** 长笔记
 - **状态：** active
-- **代码：** `src/note-files.ts`（`createNoteFileStore`、`parseFrontMatter`、`serializeNote`）；`src/api.ts`（`handleNoteFiles`、`openNoteFile`）；`src/library.ts`（`scanLibrary`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/views/modal.ts`（`ModalShell`）
+- **代码：** `src/note-files.ts`（`createNoteFileStore`、`parseFrontMatter`、`serializeNote`）；`src/api-note-files.ts`（`createNoteFileHandlers`、`handleNoteFiles`）；`src/api.ts`（`openNoteFile`）；`src/library.ts`（`scanLibrary`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/views/modal.ts`（`ModalShell`）
 - **测试：** `tests/note-files.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -18,7 +18,7 @@
 |---|---|---|
 | `createNoteFileStore` | `src/note-files.ts:createNoteFileStore` | 长笔记的 list/read/create/write/remove 与历史快照 |
 | `parseFrontMatter` / `serializeNote` | `src/note-files.ts:parseFrontMatter`；`src/note-files.ts:serializeNote` | 读写 front-matter 与正文 |
-| `handleNoteFiles` | `src/api.ts:handleNoteFiles` | `noteFiles` RPC 的 list/read/create/write/remove/history/restore 分发 |
+| `handleNoteFiles` | `src/api-note-files.ts:handleNoteFiles` | `noteFiles` RPC 的 list/read/create/write/remove/history/restore 分发 |
 | `openNoteFile` | `src/api.ts:openNoteFile` | 校验笔记路径并交给系统默认应用打开 |
 | `scanLibrary` | `src/library.ts:scanLibrary` | 书库扫描跳过带 marker 的 `notes/` |
 | `useLongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes` | 列表、编辑器、保存、冲突、删除、历史与外部打开状态 |
