@@ -149,6 +149,28 @@ export function apply(ctx: any, config: any = {}): void {
             }
           },
         }),
+        register({
+          path: '/api/dsh-readpilot/book-asset',
+          methods: ['GET'],
+          requestBody: 'buffered',
+          fetch: async (request: Request) => {
+            try {
+              const url = new URL(request.url)
+              const result = await api.bookAsset({
+                bookId: url.searchParams.get('bookId'),
+                path: url.searchParams.get('path'),
+              })
+              return new Response(result.bytes as unknown as BodyInit, {
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+              })
+            } catch (error) {
+              return jsonResponse({
+                ok: false,
+                error: { code: 'book-asset-error', message: error instanceof Error ? error.message : String(error), details: {} },
+              }, 400)
+            }
+          },
+        }),
       ]
       return () => {
         for (const dispose of disposers) dispose()

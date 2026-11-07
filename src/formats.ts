@@ -2,13 +2,15 @@ import { basename, extname } from 'node:path'
 
 export type BookFormat = 'txt' | 'md' | 'epub' | 'pdf'
 
-export type BlockType = 'p' | 'h' | 'quote' | 'code' | 'li' | 'table'
+export type BlockType = 'p' | 'h' | 'quote' | 'code' | 'li' | 'table' | 'image'
 
 export interface TextBlock {
   type: BlockType
   text: string
   level?: number
   rows?: string[][]
+  src?: string
+  alt?: string
 }
 
 export interface Chapter {
@@ -235,6 +237,13 @@ export function parseBlocks(body: string, format: BookFormat): TextBlock[] {
       continue
     }
     if (format === 'md') {
+      const image = /^!\[([^\]]*)\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)\s*$/.exec(line.trim())
+      if (image) {
+        flush()
+        const alt = image[1].trim()
+        blocks.push({ type: 'image', text: alt, src: image[2], alt })
+        continue
+      }
       const heading = /^(#{3,6})\s+(.+?)\s*$/.exec(line)
       if (heading) {
         flush()

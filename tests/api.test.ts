@@ -493,3 +493,28 @@ test('archived_session_is_reported_and_filtered_from_state', async t => {
   const refreshed = await api.state()
   assert.equal(refreshed.sessions[bookId], undefined)
 })
+test('book_assets_serve_library_images_and_rewrite_chapter_urls', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await writeFile(join(library, 'cover.png'), Buffer.from('png-bytes'), 'utf8')
+
+  const asset = await api.bookAsset({ bookId, path: 'cover.png' })
+  assert.equal(asset.contentType, 'image/png')
+  assert.equal(asset.bytes.toString('utf8'), 'png-bytes')
+  await assert.rejects(
+    () => api.bookAsset({ bookId, path: '../outside.png' }),
+    /越界|invalid-path/,
+  )
+
+  await writeFile(join(library, 'pic.md'), '![图](cover.png)\n\n正文。', 'utf8')
+  const refreshed = await api.handleRpc('rescan', {})
+  assert.equal(refreshed.ok, true)
+  const markdown = (refreshed as any).value.books.find((book: any) => book.title === 'pic')
+  assert.ok(markdown)
+  const opened = await api.open({ bookId: markdown.id })
+  const content = await api.chapter({ bookId: markdown.id, chapterId: opened.toc[0].id })
+  assert.equal(content.blocks[0].type, 'image')
+  assert.match(content.blocks[0].src!, /^\/api\/dsh-readpilot\/book-asset\?bookId=/)
+})

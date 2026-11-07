@@ -112,6 +112,11 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       observer = new ResizeObserver(schedule)
       observer.observe(inner)
     }
+    const images = [...inner.querySelectorAll('img')].filter(image => !image.complete)
+    for (const image of images) image.addEventListener('load', schedule, { once: true })
+    if (typeof document !== 'undefined' && document.fonts?.ready) {
+      document.fonts.ready.then(schedule).catch(() => {})
+    }
     view?.addEventListener('resize', schedule)
     schedule()
     // A restored panel may measure before the page width settles; retry so the
@@ -121,6 +126,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     return () => {
       if (rafId && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(rafId)
       observer?.disconnect()
+      for (const image of images) image.removeEventListener('load', schedule)
       view?.removeEventListener('resize', schedule)
       for (const timer of timers) {
         if (timer !== undefined) view?.clearTimeout(timer)

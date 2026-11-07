@@ -544,13 +544,15 @@ export function saveChatWidth(width: number): void {
 }
 
 export interface MarkdownBlock {
-  type: 'p' | 'h' | 'code' | 'hr' | 'quote' | 'li' | 'table'
+  type: 'p' | 'h' | 'code' | 'hr' | 'quote' | 'li' | 'table' | 'image'
   text?: string
   level?: number
   ordered?: boolean
   index?: number
   lang?: string
   rows?: string[][]
+  src?: string
+  alt?: string
 }
 
 export function parseMarkdownBlocks(text: unknown): MarkdownBlock[] {

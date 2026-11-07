@@ -79,3 +79,16 @@ test('format_of_known_suffixes', () => {
   assert.equal(formatOf('c.txt'), 'txt')
   assert.equal(formatOf('d.log'), null)
 })
+test('parse_markdown_image_block', () => {
+  const markdown = [
+    '# 图片',
+    '',
+    '![系统架构](images/arch.png)',
+    '',
+    '正文。',
+  ].join('\n')
+  const book = parseBook(Buffer.from(markdown, 'utf8'), 'md', 'book.md')
+  const blocks = book.chapters[0].blocks
+  assert.deepEqual(blocks[0], { type: 'image', text: '系统架构', src: 'images/arch.png', alt: '系统架构' })
+  assert.equal(blocks[1].type, 'p')
+})

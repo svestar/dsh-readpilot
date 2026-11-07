@@ -64,6 +64,12 @@ export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): 
     if (block.type === 'hr') {
       return h('hr', { key, 'data-block-index': index, className: 'dsh-readpilot-md-hr' })
     }
+    if (block.type === 'image' && block.src) {
+      const alt = block.alt ?? block.text ?? ''
+      return h('figure', { key, 'data-block-index': index, className: 'dsh-readpilot-figure' },
+        h('img', { src: block.src, alt, loading: 'lazy' }),
+        alt ? h('figcaption', null, alt) : null)
+    }
     if (block.type === 'table' && block.rows?.length) {
       return h('table', { key, 'data-block-index': index, className: 'dsh-readpilot-table' },
         h('tbody', null,

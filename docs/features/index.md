@@ -5,7 +5,7 @@
 | ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状态 |
 |---|---|---|---|---|---|
 | `FTR-001` | 书库配置 | `docs/features/FTR-001-library.md` | `src/api.ts` | `tests/api.test.ts;tests/library.test.ts` | active |
-| `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.ts` | `tests/formats.test.ts` | active |
+| `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.ts` | `tests/formats.test.ts;tests/api.test.ts` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.ts` | `tests/api.test.ts` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.ts` | `tests/tools.test.ts` | active |
 | `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts;tests/client-assembly.test.ts` | active |
@@ -34,4 +34,4 @@
 | `FTR-028` | 真实封面 | `docs/features/FTR-028-covers.md` | `src/visual/epub.ts` | `tests/cover.test.ts` | active |
 | `FTR-029` | 键盘快捷键 | `docs/features/FTR-029-shortcuts.md` | `src/client/shortcuts.ts` | `tests/shortcuts.test.ts` | active |
 | `FTR-030` | 批注总览 | `docs/features/FTR-030-annotations-overview.md` | `src/client/mark-filters.ts` | `tests/mark-filters.test.ts` | active |
-| `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts` | active |
+| `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts;tests/epub.test.ts` | active |

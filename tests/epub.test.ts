@@ -52,6 +52,7 @@ const CHAPTER_ONE = `<?xml version="1.0" encoding="UTF-8"?>
     <ul><li>条目一</li><li>条目二</li></ul>
     <pre><code>const x = 1
 console.log(x)</code></pre>
+    <div><img src="../images/pic.png" alt="插图"/></div>
   </body>
 </html>`
 
@@ -100,13 +101,14 @@ test('parse_epub_nav_toc', async () => {
 
   assert.equal(book.chapters[0].title, '第一章 初见')
   const blocks = book.chapters[0].blocks
-  assert.deepEqual(blocks.map(block => block.type), ['h', 'p', 'quote', 'p', 'li', 'li', 'code'])
+  assert.deepEqual(blocks.map(block => block.type), ['h', 'p', 'quote', 'p', 'li', 'li', 'code', 'image'])
   assert.equal(blocks[0].text, '初见的正文标题')
   assert.equal(blocks[0].level, 1)
   assert.equal(blocks[1].text, '你好，世界。')
   assert.equal(blocks[2].text, '引用的句子。')
   assert.equal(blocks[3].text, '第一行\n第二行')
   assert.equal(blocks[6].text, 'const x = 1\nconsole.log(x)')
+  assert.deepEqual(blocks[7], { type: 'image', text: '插图', src: 'OEBPS/images/pic.png', alt: '插图' })
 
   assert.equal(book.chapters[1].title, '第二章 再会')
   assert.equal(book.chapters[1].blocks[0].text, '再会的正文标题')

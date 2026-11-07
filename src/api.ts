@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
-import { basename, isAbsolute, join, resolve, sep } from 'node:path'
+import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path'
 import type { Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import type { Book } from './library.ts'
@@ -44,7 +44,7 @@ import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/e
 import type { PdfRenderer, PdfTextItem } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
 
-const PARSER_VERSION = 9
+const PARSER_VERSION = 10
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -53,6 +53,16 @@ const MAX_CONCURRENT_COVERS = 4
 const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
 const MAX_SEARCH_BOOKS = 20
 const SCAN_TTL_MS = 1500
+const MAX_BOOK_IMAGE_BYTES = 20 * 1024 * 1024
+const BOOK_IMAGE_TYPES = new Map<string, string>([
+  ['.png', 'image/png'],
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.gif', 'image/gif'],
+  ['.webp', 'image/webp'],
+  ['.avif', 'image/avif'],
+  ['.svg', 'image/svg+xml'],
+])
 
 export interface ReaderContext {
   get(name: string): any
@@ -216,6 +226,7 @@ export interface ReaderApi {
   cover(payload?: any): Promise<{ bytes: Buffer; contentType: string }>
   epubDocument(payload?: any): Promise<EpubDocumentResult>
   epubAsset(payload?: any): Promise<EpubAssetResult>
+  bookAsset(payload?: any): Promise<{ bytes: Buffer; contentType: string }>
   handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult>
 }
 
@@ -511,9 +522,16 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return {
       chapterId: loaded.chapter.id,
       title: loaded.chapter.title,
-      blocks: loaded.chapter.blocks,
+      blocks: loaded.chapter.blocks.map(block => block.type === 'image' && block.src
+        ? { ...block, src: imageAssetUrl(loaded.book, block.src) }
+        : block),
       locator: `${loaded.book.id}:${loaded.chapter.id}`,
     }
+  }
+
+  function imageAssetUrl(book: Book, src: string): string {
+    const endpoint = book.format === 'epub' ? 'epub-asset' : 'book-asset'
+    return `/api/dsh-readpilot/${endpoint}?bookId=${encodeURIComponent(book.id)}&path=${encodeURIComponent(src)}`
   }
 
   async function saveReadingProgress({ bookId, chapterId, chapterTitle, percent }: any = {}): Promise<{ bookId: string; chapterId: string }> {
@@ -1100,6 +1118,26 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return visual.readAsset({ bookId: book.id, filePath: book.path, path })
   }
 
+  async function bookAsset({ bookId, path }: any = {}): Promise<{ bytes: Buffer; contentType: string }> {
+    const book = await resolveBook(bookId)
+    if (book.format === 'epub') return epubAsset({ bookId: book.id, path })
+    if (typeof path !== 'string' || !path) throw new ReaderError('invalid-path', '缺少图片路径')
+    if (/^(?:[a-z][a-z0-9+.-]*:|\/)/i.test(path)) throw new ReaderError('invalid-path', '图片路径必须是书库内的相对路径')
+    const settings = await currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const root = resolve(settings.libraryDir)
+    const target = resolve(dirname(book.path), path)
+    if (target !== root && !target.startsWith(`${root}${sep}`)) {
+      throw new ReaderError('invalid-path', '图片路径越界')
+    }
+    const info = await stat(target)
+    if (!info.isFile()) throw new ReaderError('invalid-path', '图片不是文件')
+    if (info.size > MAX_BOOK_IMAGE_BYTES) throw new ReaderError('image-too-large', '图片超过大小限制')
+    const contentType = BOOK_IMAGE_TYPES.get(extname(target).toLowerCase())
+    if (!contentType) throw new ReaderError('unsupported-image', '不支持的图片格式')
+    return { bytes: await readFile(target), contentType }
+  }
+
   async function handleRpc(endpoint: string, payload?: unknown): Promise<RpcResult> {
     const handlers: Record<BaseEndpoint, (payload?: any) => Promise<any>> = {
       state,
@@ -1179,6 +1217,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     cover,
     epubDocument,
     epubAsset,
+    bookAsset,
     handleRpc,
   }
 }

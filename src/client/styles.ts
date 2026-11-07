@@ -182,6 +182,9 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-md blockquote{margin:.6em 0;padding:2px 0 2px 10px;border-left:2px solid var(--dsw-alias-border-l2);color:var(--dsw-alias-label-secondary);white-space:pre-wrap}
 .dsh-readpilot-md a{color:var(--dsw-alias-brand-primary);text-decoration:underline;text-underline-offset:2px}
 .dsh-readpilot-table{width:100%;border-collapse:collapse;margin:0 0 14px;font-size:.92em;line-height:1.5;table-layout:auto}
+.dsh-readpilot-figure{margin:0 0 14px;text-align:center;break-inside:avoid}
+.dsh-readpilot-figure img{display:block;max-width:100%;height:auto;margin:0 auto;border-radius:6px}
+.dsh-readpilot-figure figcaption{margin-top:4px;font-size:.82em;line-height:1.4;color:var(--reader-muted,var(--dsw-alias-label-secondary))}
 .dsh-readpilot-table th,.dsh-readpilot-table td{border:1px solid var(--reader-border);padding:5px 8px;text-align:left;vertical-align:top;overflow-wrap:anywhere}
 .dsh-readpilot-table th{background:color-mix(in srgb,var(--reader-fg) 6%,transparent);font-weight:600}
 .dsh-readpilot-md-hr{border:0;border-top:1px solid var(--dsw-alias-border-l2);margin:12px 0}

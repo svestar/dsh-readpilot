@@ -252,7 +252,7 @@ async function readChapter(zip: JSZip, item: ManifestItem, tocTitles: Map<string
     node.remove()
   }
   const blocks: TextBlock[] = []
-  if (document.body) collectBlocks(document.body, blocks)
+  if (document.body) collectBlocks(document.body, blocks, item.path)
   if (blocks.length === 0) return null
   const heading = blocks.find(block => block.type === 'h')
   return {
@@ -262,20 +262,53 @@ async function readChapter(zip: JSZip, item: ManifestItem, tocTitles: Map<string
   }
 }
 
-function collectBlocks(parent: any, blocks: TextBlock[]): void {
+function collectBlocks(parent: any, blocks: TextBlock[], basePath: string): void {
   for (const element of elementChildren(parent)) {
     const tag = (element.tagName ?? '').toLowerCase()
+    if (tag === 'img') {
+      const image = imageBlock(element, basePath)
+      if (image) blocks.push(image)
+      continue
+    }
     const type = BLOCK_TYPE.get(tag)
     if (type) {
       const text = type === 'code' ? preText(element) : inlineText(element)
-      if (!text) continue
-      const block: TextBlock = { type, text }
-      if (type === 'h') block.level = Number(tag.slice(1))
-      blocks.push(block)
+      if (text) {
+        const block: TextBlock = { type, text }
+        if (type === 'h') block.level = Number(tag.slice(1))
+        blocks.push(block)
+      }
+      for (const image of element.querySelectorAll?.('img') ?? []) {
+        const block = imageBlock(image, basePath)
+        if (block) blocks.push(block)
+      }
       continue
     }
-    collectBlocks(element, blocks)
+    collectBlocks(element, blocks, basePath)
   }
+}
+
+function resolveImagePath(basePath: string, value: unknown): string {
+  const raw = String(value ?? '').trim()
+  if (!raw || /^(data:|https?:|\/\/)/i.test(raw)) return ''
+  const clean = raw.split('#')[0].split('?')[0]
+  if (!clean) return ''
+  let decoded = clean
+  try {
+    decoded = decodeURIComponent(clean)
+  } catch {
+    // Keep the raw path when it contains malformed escapes.
+  }
+  const joined = posix.normalize(posix.join(posix.dirname(basePath), decoded)).replace(/^\/+/, '')
+  if (!joined || joined === '..' || joined.startsWith('../')) return ''
+  return joined
+}
+
+function imageBlock(element: any, basePath: string): TextBlock | null {
+  const src = resolveImagePath(basePath, element.getAttribute?.('src'))
+  if (!src) return null
+  const alt = String(element.getAttribute?.('alt') ?? '').trim()
+  return { type: 'image', text: alt, src, alt }
 }
 
 function inlineText(element: any): string {
