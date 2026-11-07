@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { readerShortcut } from '../src/client/shortcuts.ts'
+import { READER_SHORTCUT_DEFAULTS, readerShortcut } from '../src/client/shortcuts.ts'
 
 const base = { searchOpen: false, hasSelection: false, paged: true }
 
@@ -26,4 +26,25 @@ test('reader_shortcuts_ignore_typing_and_modifiers', () => {
   assert.equal(readerShortcut({ key: 'b', ctrlKey: true }, base), null)
   assert.equal(readerShortcut({ key: 'ArrowRight' }, { ...base, paged: false }), null)
   assert.equal(readerShortcut({ key: 'f', isComposing: true }, base), null)
+})
+
+test('reader_shortcut_defaults_cover_host_profiles', () => {
+  const profiles = [
+    'desktop:macos',
+    'desktop:windows',
+    'desktop:linux',
+    'web:macos',
+    'web:windows',
+    'web:linux',
+  ] as const
+  for (const command of ['search', 'bookmark'] as const) {
+    for (const profile of profiles) {
+      const value = READER_SHORTCUT_DEFAULTS[command][profile]
+      assert.ok(value)
+      assert.match(value.code, /^[A-Z][A-Za-z]+$/)
+      assert.ok(Array.isArray(value.modifiers ?? []))
+    }
+  }
+  assert.deepEqual(READER_SHORTCUT_DEFAULTS.search['web:windows'].modifiers, ['primary'])
+  assert.deepEqual(READER_SHORTCUT_DEFAULTS.bookmark['desktop:macos'].modifiers, [])
 })

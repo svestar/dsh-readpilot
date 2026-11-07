@@ -1,5 +1,38 @@
 export type ReaderShortcutAction = 'next' | 'prev' | 'search' | 'close-search' | 'clear-selection' | 'bookmark'
 
+export type ShortcutProfile =
+  | 'desktop:macos'
+  | 'desktop:windows'
+  | 'desktop:linux'
+  | 'web:macos'
+  | 'web:windows'
+  | 'web:linux'
+
+export interface ReaderShortcutDefault {
+  code: string
+  modifiers?: string[]
+}
+
+/** Host shortcut defaults for the two reader commands that support remapping. */
+export const READER_SHORTCUT_DEFAULTS: Record<'search' | 'bookmark', Record<ShortcutProfile, ReaderShortcutDefault>> = {
+  search: {
+    'desktop:macos': { code: 'KeyF', modifiers: ['primary'] },
+    'desktop:windows': { code: 'KeyF', modifiers: ['primary'] },
+    'desktop:linux': { code: 'KeyF', modifiers: ['primary'] },
+    'web:macos': { code: 'KeyF', modifiers: ['primary'] },
+    'web:windows': { code: 'KeyF', modifiers: ['primary'] },
+    'web:linux': { code: 'KeyF', modifiers: ['primary'] },
+  },
+  bookmark: {
+    'desktop:macos': { code: 'KeyB', modifiers: [] },
+    'desktop:windows': { code: 'KeyB', modifiers: [] },
+    'desktop:linux': { code: 'KeyB', modifiers: [] },
+    'web:macos': { code: 'KeyB', modifiers: [] },
+    'web:windows': { code: 'KeyB', modifiers: [] },
+    'web:linux': { code: 'KeyB', modifiers: [] },
+  },
+}
+
 export interface ShortcutKey {
   key: string
   ctrlKey?: boolean

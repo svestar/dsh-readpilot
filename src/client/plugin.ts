@@ -57,7 +57,7 @@ import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
-import { readerShortcut } from './shortcuts.ts'
+import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -83,6 +83,8 @@ export function createPlugin(require: (name: string) => any) {
     const ReaderErrorBoundary = createReaderErrorBoundary()
     const NativeChatBoundary = createNativeChatBoundary()
     const NS = 'dshReader'
+    const hostShortcutActions = new Set<'search' | 'bookmark'>()
+    let readerShortcutBridge: { search: () => void; bookmark: () => void } | null = null
 
 
     const style = document.createElement('style')
@@ -937,8 +939,23 @@ export function createPlugin(require: (name: string) => any) {
       })
 
       React.useEffect(() => {
+        if (screen.kind !== 'book') {
+          readerShortcutBridge = null
+          return
+        }
+        readerShortcutBridge = {
+          search: () => toggleSearch(),
+          bookmark: () => { void addBookmark() },
+        }
+        return () => {
+          readerShortcutBridge = null
+        }
+      }, [addBookmark, screen.kind, toggleSearch])
+
+      React.useEffect(() => {
         if (screen.kind !== 'book') return
         const onKeyDown = (event: KeyboardEvent) => {
+          if (event.defaultPrevented) return
           const target = event.target as HTMLElement | null
           const action = readerShortcut({
             key: event.key,
@@ -954,6 +971,8 @@ export function createPlugin(require: (name: string) => any) {
             paged: effectiveMode === 'paged',
           })
           if (!action) return
+          if (action === 'bookmark' && hostShortcutActions.has('bookmark')) return
+          if (action === 'search' && hostShortcutActions.has('search') && (event.ctrlKey || event.metaKey)) return
           event.preventDefault()
           if (action === 'next' || action === 'prev') {
             const delta = action === 'next' ? 1 : -1
@@ -1492,6 +1511,38 @@ export function createPlugin(require: (name: string) => any) {
           }
         })()
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-readpilot: dictionaries')
+        const shortcuts = typeof ctx.get === 'function' ? ctx.get('shortcuts') : undefined
+        if (shortcuts && typeof shortcuts.register === 'function') {
+          for (const item of [
+            { action: 'search' as const, id: 'dsh-readpilot.search', labelKey: 'search' as const },
+            { action: 'bookmark' as const, id: 'dsh-readpilot.bookmark', labelKey: 'bookmark' as const },
+          ]) {
+            const command = {
+              id: item.id,
+              label: () => boundText(item.labelKey),
+              aliases: [item.action],
+              defaults: READER_SHORTCUT_DEFAULTS[item.action],
+              regions: ['page'],
+              modals: [],
+              resolve: () => readerShortcutBridge
+                ? { status: 'handled' as const, run: readerShortcutBridge[item.action] }
+                : { status: 'pass' as const },
+            }
+            ctx.effect(() => {
+              try {
+                const dispose = shortcuts.register(command)
+                hostShortcutActions.add(item.action)
+                return () => {
+                  hostShortcutActions.delete(item.action)
+                  dispose()
+                }
+              } catch (error) {
+                console.warn(`dsh-readpilot: shortcut ${item.id} was not registered`, error)
+                return () => {}
+              }
+            }, `dsh-readpilot: shortcut ${item.id}`)
+          }
+        }
         if (ctx.sidebarRightTabs) {
           ctx.effect(
             () => ctx.sidebarRightTabs.register({
