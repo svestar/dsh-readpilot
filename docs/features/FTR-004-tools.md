@@ -32,6 +32,5 @@ Host 插件向 `ctx.tools` 注册八个全局工具：`reader_books` 列出书�
 
 ## 验收与测试
 
-- 正常路径：`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符（`tools_read_bounded`）。
-- 正常路径：工具列表包含 `reader_notes` 与 `reader_memory`，空书库下 index 返回空、memory read 返回默认 `off`（`tools_read_bounded`）。
+- 正常路径：工具列表包含 `reader_notes` 与 `reader_memory`，空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符（`tools_read_bounded`）。
 - 边界：工具结果丢弃 `undefined`，数组中的空位转 `null`，可无损 JSON 往返（`tool_values_are_lossless_json`）。

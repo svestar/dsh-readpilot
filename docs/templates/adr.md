@@ -3,6 +3,7 @@
 - **状态：** proposed / accepted / superseded
 - **日期：** YYYY-MM-DD
 - **范围：** 受影响的模块或功能 ID
+- **取代者：** 仅 superseded 时填写，如 `ADR-002`
 
 ## 背景
 说明需要作出决策的问题、约束与当前痛点。

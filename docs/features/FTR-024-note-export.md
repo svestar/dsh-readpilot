@@ -31,4 +31,3 @@
 - 正常路径：整书笔记、主题笔记、划线/批注/书签与元数据都进入导出，章节顺序稳定（`note_export_full_export_includes_sections_and_metadata`、`note_export_orders_marks_and_escapes_markdown_text`）。
 - 边界：空书只有标题与时间，空区块不输出，缺字段不出现 `undefined`（`note_export_empty_book_has_only_title_and_metadata`、`note_export_omits_empty_sections_and_handles_missing_text`）。
 - 正常路径：`exportedAt` 固定时输出确定（`note_export_time_is_deterministic_with_exported_at`）。
-- 集成：Host 读取长笔记与标记并返回 markdown 与文件名（API 集成测试覆盖）。

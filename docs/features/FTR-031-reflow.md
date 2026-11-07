@@ -36,6 +36,5 @@ EPUB 重排是纯文本：没有图片、出版社字体、分栏与浮动；依
 ## 验收与测试
 
 - 正常路径：EPUB 与 PDF 开启重排时视觉状态为 `null`，关闭时分别回到 iframe 与页面位图（`visual_target_reflow_flags`）。
-- 正常路径：PDF 解析会丢掉页码与重复页眉页脚，并识别简单表格（PDF 测试 parse_pdf_drops_page_numbers_and_running_headers、parse_pdf_detects_simple_tables）。
-- 正常路径：PDF 解析返回置信度与原因（PDF 测试 parse_pdf_reports_reflow_confidence）。
-- 手动验证：EPUB 重排与 TXT/MD 使用同一分页、字号与玻璃主题；PDF 第 217 页命令输出为代码块、中文说明为正文。
+- 正常路径：PDF 解析会丢掉页码与重复页眉页脚，并识别简单表格（`parse_pdf_drops_page_numbers_and_running_headers`、`parse_pdf_detects_simple_tables`）。
+- 正常路径：PDF 解析返回置信度与原因（`parse_pdf_reports_reflow_confidence`）。

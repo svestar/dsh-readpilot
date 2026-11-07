@@ -34,4 +34,3 @@
 - 正常路径：带 `baseHash` 保存成功并留下历史，旧 hash 再保存返回冲突（`note_file_write_conflict_and_history`）。
 - 正常路径：整书笔记固定为 `book.md`，重复创建被拒绝，删除后列表为空（`note_file_book_note_and_remove`）。
 - 边界：标题中的路径分隔符不会逃出书籍目录（`note_file_title_sanitized`）。
-- 边界：笔记路径按书库根解析，越界路径被拒绝（API 集成测试覆盖）。

@@ -34,4 +34,3 @@
 - 边界：非法历史 id、缺失笔记与未知快照被拒绝，失败不改变文件（`note_history_rejects_invalid_id_and_missing_note`）。
 - 边界：历史数量受 `maxHistory` 限制（`note_history_respects_max_history`）。
 - 正常路径：可删除单条历史并清空当前笔记历史，当前正文不受影响（`note_history_remove_and_clear`）。
-- 集成：笔记接口的 `history` / `restore` RPC 返回列表与恢复后的正文（API 集成测试覆盖）。

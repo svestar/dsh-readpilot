@@ -4,11 +4,11 @@
 
 | ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状态 |
 |---|---|---|---|---|---|
-| `FTR-001` | 书库配置 | `docs/features/FTR-001-library.md` | `src/api.ts` | `tests/api.test.ts` | active |
+| `FTR-001` | 书库配置 | `docs/features/FTR-001-library.md` | `src/api.ts` | `tests/api.test.ts;tests/library.test.ts` | active |
 | `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.ts` | `tests/formats.test.ts` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.ts` | `tests/api.test.ts` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.ts` | `tests/tools.test.ts` | active |
-| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts` | active |
+| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts;tests/client-assembly.test.ts` | active |
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.ts` | `tests/epub.test.ts` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.ts` | `tests/pdf.test.ts` | active |
 | `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.ts` | `tests/notes.test.ts` | active |
@@ -22,16 +22,16 @@
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.ts` | `tests/reading-anchor.test.ts` | active |
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.ts` | `tests/prompt.test.ts` | active |
 | `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
-| `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts` | active |
-| `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts` | active |
-| `FTR-021` | 笔记上下文 | `docs/features/FTR-021-note-context.md` | `src/notes-context.ts` | `tests/notes-context.test.ts` | active |
-| `FTR-022` | 笔记草稿 | `docs/features/FTR-022-note-drafts.md` | `src/note-drafts.ts` | `tests/note-drafts.test.ts` | active |
+| `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/client-assembly.test.ts` | active |
+| `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts;tests/api.test.ts` | active |
+| `FTR-021` | 笔记上下文 | `docs/features/FTR-021-note-context.md` | `src/notes-context.ts` | `tests/notes-context.test.ts;tests/api.test.ts` | active |
+| `FTR-022` | 笔记草稿 | `docs/features/FTR-022-note-drafts.md` | `src/note-drafts.ts` | `tests/note-drafts.test.ts;tests/api.test.ts` | active |
 | `FTR-023` | 记忆 | `docs/features/FTR-023-memory.md` | `src/companion-settings.ts` | `tests/memory.test.ts` | active |
-| `FTR-024` | 笔记导出 | `docs/features/FTR-024-note-export.md` | `src/note-export.ts` | `tests/note-export.test.ts` | active |
-| `FTR-025` | 笔记历史 | `docs/features/FTR-025-note-history.md` | `src/note-files.ts` | `tests/note-history.test.ts` | active |
+| `FTR-024` | 笔记导出 | `docs/features/FTR-024-note-export.md` | `src/note-export.ts` | `tests/note-export.test.ts;tests/api.test.ts` | active |
+| `FTR-025` | 笔记历史 | `docs/features/FTR-025-note-history.md` | `src/note-files.ts` | `tests/note-history.test.ts;tests/api.test.ts` | active |
 | `FTR-026` | 对话页码跳转 | `docs/features/FTR-026-chat-jump.md` | `src/jump-url.ts` | `tests/chat-jump.test.ts` | active |
 | `FTR-027` | 阅读状态与评分 | `docs/features/FTR-027-read-status.md` | `src/library-meta.ts` | `tests/library-organization.test.ts` | active |
 | `FTR-028` | 真实封面 | `docs/features/FTR-028-covers.md` | `src/visual/epub.ts` | `tests/cover.test.ts` | active |
 | `FTR-029` | 键盘快捷键 | `docs/features/FTR-029-shortcuts.md` | `src/client/shortcuts.ts` | `tests/shortcuts.test.ts` | active |
 | `FTR-030` | 批注总览 | `docs/features/FTR-030-annotations-overview.md` | `src/client/mark-filters.ts` | `tests/mark-filters.test.ts` | active |
-| `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts` | active |
+| `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts` | active |

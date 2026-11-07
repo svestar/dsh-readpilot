@@ -32,4 +32,4 @@
 - 正常路径：新建笔记会写入对应书籍的文件，并包含 id、章节、块、偏移与时间戳（`add_creates_record_on_disk`）。
 - 正常路径：列表按创建时间倒序，更新与删除后数据同步（`list_returns_newest_first`、`update_changes_note_and_quote_only`）。
 - 边界：不同书籍的笔记互相隔离（`books_are_isolated`）。
-- 边界：并发新增 5 条笔记后仍保留全部记录，不出现覆盖（concurrent_adds_keep_every_note）。
+- 边界：并发新增 5 条笔记后仍保留全部记录，不出现覆盖（`concurrent_adds_keep_every_note`）。

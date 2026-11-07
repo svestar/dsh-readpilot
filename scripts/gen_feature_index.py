@@ -19,18 +19,20 @@ REQUIRED_FIELDS = ("ID", "名称", "状态", "代码", "测试")
 MAX_NAME_CHARS = 12
 
 
+def all_paths(value):
+    return [span for span in SPAN_RE.findall(value) if re.search(r"[./]", span)]
+
+
 def first_path(value):
-    for span in SPAN_RE.findall(value):
-        if re.search(r"[./]", span):
-            return span
-    return ""
+    paths = all_paths(value)
+    return paths[0] if paths else ""
 
 
 def parse_feature(path):
     fields = dict(FIELD_RE.findall(path.read_text(encoding="utf-8")))
     missing = [name for name in REQUIRED_FIELDS if not fields.get(name)]
     code = first_path(fields.get("代码", ""))
-    test = first_path(fields.get("测试", ""))
+    test = ";".join(all_paths(fields.get("测试", "")))
     if missing or not code or not test:
         detail = "、".join(missing) or "代码或测试路径"
         raise SystemExit(f"{path.relative_to(ROOT)} 头部字段不完整：{detail}")
