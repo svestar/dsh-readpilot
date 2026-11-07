@@ -15,7 +15,7 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 
 ## 安装
 
-npm 最新发布 `0.2.2`；`0.2.3` 已在 GitHub 打标签，尚未发布到 npm。
+npm 最新发布 `0.2.2`；`0.2.4` 已在 GitHub 打标签，尚未发布到 npm。
 
 ```bash
 npm install dsh-readpilot
