@@ -748,6 +748,20 @@ export function createPlugin(require: (name: string) => any) {
         setFontSize(normalizeFontSize(value))
       }, [makeReadingAnchor])
 
+      const openReaderSidebar = React.useCallback(() => {
+        const sidebar = runtime.sidebarRight
+        if (!sidebar || typeof sidebar.openTab !== 'function' || typeof window === 'undefined') return
+        let attempts = 0
+        const attempt = () => {
+          try {
+            sidebar.openTab('dsh-readpilot')
+          } catch {
+            if (attempts++ < 4) window.setTimeout(attempt, 60)
+          }
+        }
+        window.setTimeout(attempt, 0)
+      }, [])
+
       const openWorkspace = React.useCallback(async () => {
         if (screen.kind !== 'book' || openingWorkspace) return
         setOpeningWorkspace(true)
@@ -760,7 +774,7 @@ export function createPlugin(require: (name: string) => any) {
         } finally {
           setOpeningWorkspace(false)
         }
-      }, [ensureSession, openingWorkspace, screen, t])
+      }, [ensureSession, openReaderSidebar, openingWorkspace, screen, t])
 
       React.useEffect(() => {
         if (readingMode !== 'scroll' || screen.kind !== 'book' || !readingAnchor) return
@@ -1449,7 +1463,7 @@ export function createPlugin(require: (name: string) => any) {
 
     return {
       name: 'dsh-readpilot-client',
-      inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace', 'sidebarRightTabs'],
+      inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace', 'sidebarRightTabs', 'sidebarRight'],
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
