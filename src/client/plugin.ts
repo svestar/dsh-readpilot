@@ -45,6 +45,7 @@ import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
 import { ReaderSettings } from './reader-settings.ts'
 import { SidebarReader } from './views/sidebar-reader.ts'
+import { companionSessionTitle, renameCompanionSession } from './session-title.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
@@ -142,6 +143,23 @@ export function createPlugin(require: (name: string) => any) {
         setScreenState(next)
       }, [])
       const screen = screenState
+      const titledSessionsRef = React.useRef(new Set<string>())
+
+      React.useEffect(() => {
+        if (!snapshot) return
+        for (const [bookId, entry] of Object.entries(snapshot.sessions ?? {})) {
+          if (!entry?.sessionId) continue
+          const book = snapshot.books.find(candidate => candidate.id === bookId)
+          if (!book) continue
+          const title = companionSessionTitle(book.title)
+          const key = `${entry.sessionId}\u0000${title}`
+          if (titledSessionsRef.current.has(key)) continue
+          titledSessionsRef.current.add(key)
+          void renameCompanionSession(runtime, entry.sessionId, title).catch(() => {
+            titledSessionsRef.current.delete(key)
+          })
+        }
+      }, [snapshot])
       const [readingMode, setReadingMode] = React.useState<ReaderMode>(readReadingMode)
       const [reflowBooks, setReflowBooks] = React.useState<Record<string, boolean>>(readReflowBooks)
       const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)

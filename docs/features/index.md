@@ -39,3 +39,4 @@
 | `FTR-033` | 阅读位置锚点 | `docs/features/FTR-033-reading-anchor.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/api.test.ts` | active |
 | `FTR-034` | 工作区跳转 | `docs/features/FTR-034-workspace-jump.md` | `src/client/views/header.ts` | `tests/api.test.ts` | active |
 | `FTR-035` | 工作区侧边栏阅读 | `docs/features/FTR-035-workspace-sidebar-reader.md` | `src/client/views/sidebar-reader.ts` | `tests/api.test.ts;tests/paging.test.ts;tests/client-assembly.test.ts` | active |
+| `FTR-036` | 伴读对话标题 | `docs/features/FTR-036-companion-title.md` | `src/client/session-title.ts` | `tests/session-title.test.ts` | active |

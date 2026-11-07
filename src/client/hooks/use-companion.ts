@@ -8,6 +8,7 @@ import {
   saveChatWidth,
 } from '../helpers.ts'
 import { isMissingSessionError } from '../session-recovery.ts'
+import { companionSessionTitle, renameCompanionSession } from '../session-title.ts'
 import type { CallRpc, ChatMessage, Screen, TextFn } from '../types.ts'
 
 interface ChatBinding {
@@ -48,6 +49,7 @@ export function useCompanion({
   const [chatBinding, setChatBinding] = React.useState<any>(null)
   const [chatTab, setChatTab] = React.useState('chat')
   const chatRef = React.useRef<ChatBinding | null>(null)
+  const titledKeyRef = React.useRef('')
   const chatBodyRef = React.useRef<HTMLDivElement | null>(null)
   const chatInputRef = React.useRef<HTMLTextAreaElement | null>(null)
   const dragRef = React.useRef<{ startX: number; startWidth: number } | null>(null)
@@ -157,6 +159,19 @@ export function useCompanion({
   const running = Boolean(sessionSnapshot?.running)
   const messages: ChatMessage[] = React.useMemo(() => foldTranscript(entries).slice(-50), [entries])
 
+  React.useEffect(() => {
+    if (screen.kind !== 'book') return
+    const sessionId = chatBinding?.sessionId ?? activeSessionId
+    if (!sessionId) return
+    const title = companionSessionTitle(screen.detail.book.title)
+    const key = `${sessionId}\u0000${title}`
+    if (titledKeyRef.current === key) return
+    titledKeyRef.current = key
+    void renameCompanionSession(runtime, sessionId, title).catch(() => {
+      if (titledKeyRef.current === key) titledKeyRef.current = ''
+    })
+  }, [activeSessionId, chatBinding, runtime, screen])
+
   const ensureSession = React.useCallback(async (): Promise<string> => {
     if (screen.kind !== 'book') throw new Error(t('chatDisabled'))
     if (!workspaceId) throw new Error(t('chatDisabled'))
@@ -169,7 +184,10 @@ export function useCompanion({
       } catch {
         alive = false
       }
-      if (alive && bindSession(existing)) return existing
+      if (alive && bindSession(existing)) {
+        await renameCompanionSession(runtime, existing, companionSessionTitle(book.title)).catch(() => {})
+        return existing
+      }
       await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
       forgetSession(book.id)
       releaseChat()
@@ -191,6 +209,7 @@ export function useCompanion({
     rememberSession(book.id, session)
     const reference = bindSession(session)
     if (!reference) throw new Error(t('loadFailed'))
+    await renameCompanionSession(runtime, session, companionSessionTitle(book.title)).catch(() => {})
     return session
   }, [activeSessionId, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId])
 
