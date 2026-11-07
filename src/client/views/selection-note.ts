@@ -1,4 +1,4 @@
-import { h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
 
@@ -10,15 +10,63 @@ interface SelectionToolbarProps {
   onAsk?: () => void
   onNote: () => void
   onHighlight: (color: string) => void
-  inline?: boolean
 }
 
-export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight, inline = false }: SelectionToolbarProps) {
+const EDGE = 8
+const GAP = 10
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: SelectionToolbarProps) {
+  const menuRef = React.useRef<HTMLDivElement | null>(null)
+  const [position, setPosition] = React.useState<{ left: number; top: number } | null>(null)
+
+  React.useEffect(() => {
+    if (!selection) {
+      setPosition(null)
+      return
+    }
+    const menu = menuRef.current
+    if (!menu) return
+    setPosition(null)
+    const place = () => {
+      const rect = menu.getBoundingClientRect()
+      const above = selection.y - rect.height - GAP
+      const below = selection.y + 18
+      const top = clamp(
+        above >= EDGE ? above : below,
+        EDGE,
+        Math.max(EDGE, window.innerHeight - rect.height - EDGE),
+      )
+      const left = clamp(
+        selection.x - rect.width / 2,
+        EDGE,
+        Math.max(EDGE, window.innerWidth - rect.width - EDGE),
+      )
+      setPosition(previous => previous?.left === left && previous.top === top ? previous : { left, top })
+    }
+    place()
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(place) : null
+    observer?.observe(menu)
+    window.addEventListener('resize', place)
+    return () => {
+      observer?.disconnect()
+      window.removeEventListener('resize', place)
+    }
+  }, [selection?.x, selection?.y])
+
   if (!selection) return null
   return h('div', {
-    className: `dsh-readpilot-selection${inline ? ' dsh-readpilot-selection-inline' : ''}`,
-    style: inline ? undefined : { left: selection.x, top: Math.max(8, selection.y - 48) },
-    onMouseDown: (event: any) => event.preventDefault(),
+    ref: menuRef,
+    className: 'dsh-readpilot-selection',
+    style: position ? { left: position.left, top: position.top } : { visibility: 'hidden' },
+    onMouseDown: (event: any) => {
+      event.preventDefault()
+      event.stopPropagation()
+    },
+    onPointerUp: (event: any) => event.stopPropagation(),
   },
   selection.blockIndex == null
     ? null

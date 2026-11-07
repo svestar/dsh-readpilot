@@ -106,31 +106,33 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
   }, [call, revision, sessionId, t])
 
   const onContentMouseUp = React.useCallback(() => {
-    const active = window.getSelection()
-    const container = contentRef.current
-    if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
-      setSelection(null)
-      return
-    }
-    const range = active.getRangeAt(0)
-    if (!container.contains(range.commonAncestorContainer)) {
-      setSelection(null)
-      return
-    }
-    const text = active.toString().trim()
-    if (!text) {
-      setSelection(null)
-      return
-    }
-    const rect = range.getBoundingClientRect()
-    const anchor = selectionAnchor(range, container)
-    setSelection({
-      text: text.slice(0, 2000),
-      x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
-      y: rect.top,
-      blockIndex: anchor ? anchor.blockIndex : null,
-      offset: anchor ? anchor.offset : 0,
-    })
+    window.setTimeout(() => {
+      const active = window.getSelection()
+      const container = contentRef.current
+      if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
+        setSelection(null)
+        return
+      }
+      const range = active.getRangeAt(0)
+      if (!container.contains(range.commonAncestorContainer)) {
+        setSelection(null)
+        return
+      }
+      const text = active.toString().trim()
+      if (!text) {
+        setSelection(null)
+        return
+      }
+      const rect = range.getBoundingClientRect()
+      const anchor = selectionAnchor(range, container)
+      setSelection({
+        text: text.slice(0, 2000),
+        x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+        y: rect.top,
+        blockIndex: anchor ? anchor.blockIndex : null,
+        offset: anchor ? anchor.offset : 0,
+      })
+    }, 10)
   }, [])
   const textPageWidth = usePageWidth({
     enabled: mode === 'text' && screen.kind === 'book',
@@ -434,7 +436,6 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       ? h(SelectionToolbar, {
         t,
         selection,
-        inline: true,
         onNote: () => openNoteEditor(),
         onHighlight: (color: string) => { void addHighlight(color) },
       })

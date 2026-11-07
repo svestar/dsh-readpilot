@@ -360,7 +360,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-li{display:flex;gap:8px;margin:0 0 .5em;white-space:pre-wrap}
 .dsh-readpilot-li-marker{color:var(--dsw-alias-label-secondary);flex:none;min-width:1.1em}
 .dsh-readpilot-flash{background:var(--dsw-alias-bg-layer-2);border-radius:4px;transition:background .2s ease}
-.dsh-readpilot-selection{position:fixed;z-index:50;transform:translateX(-50%);display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
+.dsh-readpilot-selection{position:fixed;z-index:50;display:flex;gap:4px;padding:5px;border:1px solid var(--dsw-alias-border-l2);border-radius:10px;background:var(--dsw-alias-bg-overlay);box-shadow:0 10px 34px rgba(0,0,0,.24)}
 .dsh-readpilot-selection.dsh-readpilot-selection-inline{position:static;transform:none;align-self:center;margin:6px 8px;z-index:auto}
 .dsh-readpilot-selection button{height:26px;padding:0 9px;border:0;border-radius:6px;background:transparent;color:var(--dsw-alias-label-primary);font:inherit;font-size:12px;cursor:pointer}
 .dsh-readpilot-selection button:hover{background:var(--dsw-alias-bg-layer-2)}
