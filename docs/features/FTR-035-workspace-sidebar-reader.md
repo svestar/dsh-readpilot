@@ -4,14 +4,14 @@
 - **名称：** 工作区侧边栏阅读
 - **状态：** active
 - **代码：** `src/client/views/sidebar-reader.ts`（`SidebarReader`）；`src/client/plugin.ts`（`apply`）；`src/api.ts`（`sessionBook`、`saveReadingProgress`）；`src/store.ts`（`ReadingProgress.chapterFraction`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）
-- **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`
+- **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为
 
 工作区对话右侧栏的引导页提供“阅读”入口。打开后按当前会话反查关联书籍；没有关联书时显示空状态。有书时提供“文字”和“原版”两种模式，都固定单页：
 
 - 文字：所有格式都走文本重排，复用分页、图片与表格渲染。
-- 原版：EPUB 显示原书 iframe，PDF 显示页面位图；TXT/Markdown 没有原版。
+- 原版：EPUB 显示原书 iframe，PDF 显示页面位图；TXT/Markdown 没有原版。PDF 翻页会同步当前章节，但章节更新不会把视觉页重置回章首。
 
 阅读器保存与主阅读相同的书籍进度：章节 id、章节内比例 `chapterFraction` 和全书百分比。打开时按 `chapterFraction` 恢复到同一章节位置；模式切换也先生成锚点。侧边栏翻页并成功写入进度后广播一次同步事件；主阅读若已挂载则按同一章节比例重新定位。主阅读重新可见时还会重新读取 Host 进度并按比例定位，因此面板被卸载再挂载也能跟随最新位置。不做同屏持续联动。
 
@@ -36,3 +36,4 @@
 - 正常路径：进度保存章节内比例，重新打开可按比例恢复（`progress_percent_persists`、`anchor_page_restores_fraction`）。
 - 正常路径：插件注册 `dsh-readpilot` 侧栏 Tab 类型与“阅读”引导入口（`client_assembly_registers_sidebar_reader_tab`）。
 - 正常路径：侧边栏进度事件只接受带书、章节、比例与来源的合法载荷（`progress_sync_reads_only_well_formed_sidebar_events`）。
+- 正常路径：PDF 翻页导致的章节内容更新保留当前视觉页，只有换书才重置（`sidebar_pdf_visual_keeps_current_page_when_chapter_updates`）。

@@ -15,6 +15,13 @@ import { VisualReader } from './visual-reader.ts'
 const SIDEBAR_FONT_SIZE = 15
 const SIDEBAR_PROGRESS_DEBOUNCE = 400
 
+export function preserveSidebarVisual(previous: Visual | null, next: Visual | null, bookChanged: boolean): Visual | null {
+  if (bookChanged || previous === null) return next
+  if (previous.kind === 'pdf') return previous
+  if (previous.kind === 'epub' && next?.kind === 'epub' && next.href === previous.href) return previous
+  return next
+}
+
 export interface SidebarReaderProps {
   call: CallRpc
   t: TextFn
@@ -44,6 +51,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
   const palette = resolveReaderPalette(readPaletteId())
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const noteLayerRef = React.useRef<HTMLDivElement | null>(null)
+  const visualBookRef = React.useRef('')
 
   const selectChapter = React.useCallback(async (bookId: string, chapterId: string) => {
     try {
@@ -137,10 +145,14 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
 
   React.useEffect(() => {
     if (screen.kind !== 'book' || mode !== 'original') {
+      visualBookRef.current = ''
       setVisual(null)
       return
     }
-    setVisual(visualForChapter(screen.detail, screen.content.chapterId, false))
+    const bookId = screen.detail.book.id
+    const bookChanged = visualBookRef.current !== bookId
+    visualBookRef.current = bookId
+    setVisual(previous => preserveSidebarVisual(previous, visualForChapter(screen.detail, screen.content.chapterId, false), bookChanged))
   }, [mode, screen, setVisual])
 
   const chapterIndex = screen.kind === 'book'
