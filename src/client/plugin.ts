@@ -53,6 +53,7 @@ import { ReaderBar } from './views/reader-bar.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
+import { ReaderBooksToolView } from './views/reader-tool-view.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
@@ -1567,6 +1568,14 @@ export function createPlugin(require: (name: string) => any) {
             'dsh-readpilot: sidebar tab body',
           )
         }
+        ctx.effect(
+          () => ctx.slots.inject('tool.call.toolview', () => ctx.slots.register({
+            name: 'tool.call.toolview',
+            key: 'reader_books',
+            locale: NS,
+          }, (props: any) => h(ReaderBooksToolView, { ...props, t: props.t ?? boundText }))),
+          'dsh-readpilot: reader_books tool view',
+        )
         ctx.effect(
           () => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
             name: 'sidebar.panellist',

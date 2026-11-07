@@ -14,7 +14,7 @@
 
 | 批次 | 内容 | 排期 | 状态 |
 |---|---|---|---|
-| OPT-D | `tool.call.toolview` 卡片与阅读器资源类型 | later | planned |
+| OPT-D | `reader_search/open` 工具卡；阅读器资源类型与 `openResource` | later | planned |
 | OPT-E | 笔记/书库 `ctx.resources` + `ctx.fs.watch`；书库/TOC/笔记列表虚拟化 | later | planned |
 | OPT-F | `dsh-home-paths`、`defineTool` 与结构化工具错误；资产版本；宿主组件收尾 | later | planned |
 
