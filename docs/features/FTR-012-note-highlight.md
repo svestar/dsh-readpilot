@@ -3,12 +3,12 @@
 - **ID：** FTR-012
 - **名称：** 笔记高亮
 - **状态：** active
-- **代码：** `src/client/helpers.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/views/selection-note.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
-- **测试：** `tests/highlight.test.ts`
+- **代码：** `src/client/helpers.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/hooks/use-selection-dismiss.ts`（`useSelectionDismiss`）；`src/client/views/selection-note.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/highlight.test.ts`；`tests/selection-toolbar.test.ts`；`tests/selection-dismiss.test.ts`
 
 ## 行为
 
-保存含引用原文的笔记后，阅读界面在正文中高亮该 `quote`；新笔记同时记录章节规范偏移与块哈希，优先按偏移定位，引文只作兜底。打开书籍或切换章节时，已有笔记的引用同样自动高亮。txt/md 文本块、PDF 文本层 overlay 与 EPUB iframe 三种阅读面都显示高亮。点击高亮可打开编辑框并预填原笔记，保存通过 `notes` 的 `update` 更新，删除通过 `delete`，完成后立即刷新正文高亮与右栏列表。右栏每条笔记提供“跳转”按钮，点击跳到对应章节与块；点击笔记主体同样跳转。EPUB 跳转会在 iframe 内滚动到对应 mark 并短暂描边，因此 iframe 自身有滚动条时也能定位到引文。选中文本后出现的选择工具栏按选区位置测量实际宽度，优先放在选区上方；靠近视口顶部时翻到下方，并水平夹在视口内，窗口尺寸变化后重新定位。点击工具栏之外的任意位置（包括 EPUB iframe 内）立即关闭，点击工具栏按钮不受影响。
+保存含引用原文的笔记后，阅读界面在正文中高亮该 `quote`；新笔记同时记录章节规范偏移与块哈希，优先按偏移定位，引文只作兜底。打开书籍或切换章节时，已有笔记的引用同样自动高亮。txt/md 文本块、PDF 文本层 overlay 与 EPUB iframe 三种阅读面都显示高亮。点击高亮可打开编辑框并预填原笔记，保存通过 `notes` 的 `update` 更新，删除通过 `delete`，完成后立即刷新正文高亮与右栏列表。右栏每条笔记提供“跳转”按钮，点击跳到对应章节与块；点击笔记主体同样跳转。EPUB 跳转会在 iframe 内滚动到对应 mark 并短暂描边，因此 iframe 自身有滚动条时也能定位到引文。选中文本后出现的选择工具栏按选区位置测量实际宽度，优先放在选区上方；靠近视口顶部时翻到下方，并水平夹在视口内，窗口尺寸变化后重新定位。工具栏挂到 `document.body`，按视口坐标定位；阅读界面祖先的 `backdrop-filter`、`transform` 与裁切都不会改变它的包含块，因此玻璃侧栏下也不会偏出屏幕。点击工具栏之外的任意位置（包括 EPUB iframe 内）立即关闭，点击工具栏按钮不受影响。
 
 ## 接口与代码映射
 
@@ -16,6 +16,7 @@
 |---|---|---|
 | `findNoteOccurrence` | `src/client/helpers.ts:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
 | `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
+| `useSelectionDismiss` | `src/client/hooks/use-selection-dismiss.ts:useSelectionDismiss` | 点击工具栏之外（含 EPUB iframe）清空选区 |
 | `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/views/selection-note.ts:SelectionToolbar`；`src/client/views/selection-note.ts:NoteDialog`；`src/client/views/notes-search.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
 | `handleNotes` | `src/api-notes.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |

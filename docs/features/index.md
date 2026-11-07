@@ -15,7 +15,7 @@
 | `FTR-009` | PDF 视觉 | `docs/features/FTR-009-pdf-visual.md` | `src/visual/pdf.ts` | `tests/pdf-visual.test.ts` | active |
 | `FTR-010` | EPUB 视觉 | `docs/features/FTR-010-epub-visual.md` | `src/visual/epub.ts` | `tests/epub-visual.test.ts` | active |
 | `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `src/client/helpers.ts` | `tests/palette.test.ts` | active |
-| `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `src/client/helpers.ts` | `tests/highlight.test.ts` | active |
+| `FTR-012` | 笔记高亮 | `docs/features/FTR-012-note-highlight.md` | `src/client/helpers.ts` | `tests/highlight.test.ts;tests/selection-toolbar.test.ts;tests/selection-dismiss.test.ts` | active |
 | `FTR-013` | 书库整理 | `docs/features/FTR-013-library-organization.md` | `src/library-meta.ts` | `tests/library-organization.test.ts` | active |
 | `FTR-014` | EPUB 章节合并 | `docs/features/FTR-014-epub-chapter-merge.md` | `src/formats/epub.ts` | `tests/epub.test.ts` | active |
 | `FTR-015` | 文本编码 | `docs/features/FTR-015-text-encoding.md` | `src/formats.ts` | `tests/formats.test.ts` | active |

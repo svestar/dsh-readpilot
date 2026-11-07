@@ -49,6 +49,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
   await import('../client.js')
   const plugin = globalAny.__readerRegistration.factory((name: string) => {
     if (name === 'react') return harness.React
+    if (name === 'react-dom') return { createPortal: (node: any) => node }
     throw new Error(`unexpected require: ${name}`)
   })
   let main: any

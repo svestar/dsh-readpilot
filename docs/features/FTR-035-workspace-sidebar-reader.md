@@ -3,7 +3,7 @@
 - **ID：** FTR-035
 - **名称：** 工作区侧边栏阅读
 - **状态：** active
-- **代码：** `src/client/views/sidebar-reader.ts`（`SidebarReader`）；`src/client/plugin.ts`（`apply`）；`src/api.ts`（`sessionBook`、`saveReadingProgress`）；`src/store.ts`（`ReadingProgress.chapterFraction`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）
+- **代码：** `src/client/views/sidebar-reader.ts`（`SidebarReader`、`prefillCompanionQuote`）；`src/client/views/selection-note.ts`（`SelectionToolbar`、`quoteDraft`）；`src/client/plugin.ts`（`apply`）；`src/api.ts`（`sessionBook`、`saveReadingProgress`）；`src/store.ts`（`ReadingProgress.chapterFraction`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）
 - **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为
@@ -20,6 +20,8 @@
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `SidebarReader` | `src/client/views/sidebar-reader.ts:SidebarReader` | 侧边栏单页阅读器与两种模式 |
+| `prefillCompanionQuote` | `src/client/views/sidebar-reader.ts:prefillCompanionQuote` | 把选段写入当前会话输入框 |
+| `quoteDraft` | `src/client/views/selection-note.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
 | `apply` | `src/client/plugin.ts:apply` | 注册 `dsh-readpilot` Tab 类型与正文席位 |
 | `sessionBook` | `src/api.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
 | `saveReadingProgress` | `src/api.ts:saveReadingProgress` | 写入章节内比例 |
@@ -28,7 +30,7 @@
 
 ## 约束与失败行为
 
-侧边栏只提供单页，不显示单/双页或阅读设置。原版只对 EPUB/PDF 可用；TXT/Markdown 强制文字。它不提供伴读、目录或搜索；划线/批注复用主阅读的笔记存储与高亮渲染。反查同一会话对应多本书时取最近更新的一本；会话已归档、书籍已移出书库或未配置时显示空状态。原版 PDF/EPUB 与文字重排只按章节比例近似对应，不保证像素或页码一致。没有同屏实时同步，避免两个视图互相拉跳。
+侧边栏只提供单页，不显示单/双页或阅读设置。原版只对 EPUB/PDF 可用；TXT/Markdown 强制文字。它不提供伴读面板、目录或搜索；选段工具栏的“问伴读”把引用插入当前会话的输入框，优先使用宿主的 `inputActions.insertQuote`，不可用时退回写 `> …` 草稿，不自动发送。划线/批注复用主阅读的笔记存储与高亮渲染。反查同一会话对应多本书时取最近更新的一本；会话已归档、书籍已移出书库或未配置时显示空状态。原版 PDF/EPUB 与文字重排只按章节比例近似对应，不保证像素或页码一致。没有同屏实时同步，避免两个视图互相拉跳。
 
 ## 验收与测试
 
@@ -37,3 +39,4 @@
 - 正常路径：插件注册 `dsh-readpilot` 侧栏 Tab 类型与“阅读”引导入口（`client_assembly_registers_sidebar_reader_tab`）。
 - 正常路径：侧边栏进度事件只接受带书、章节、比例与来源的合法载荷（`progress_sync_reads_only_well_formed_sidebar_events`）。
 - 正常路径：PDF 翻页导致的章节内容更新保留当前视觉页，只有换书才重置（`sidebar_pdf_visual_keeps_current_page_when_chapter_updates`）。
+- 正常路径：侧栏“问伴读”优先插入原生引用节点，不可用时退回 `> …` 草稿（`sidebar_companion_quote_uses_native_quote_insertion`、`sidebar_companion_quote_falls_back_to_the_draft`）。

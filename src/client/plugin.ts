@@ -47,7 +47,7 @@ import { ReaderSettings } from './reader-settings.ts'
 import { SidebarReader } from './views/sidebar-reader.ts'
 import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './session-title.ts'
 import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
-import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
+import { NoteDialog, SelectionToolbar, quoteDraft } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
 import { useCompanion } from './hooks/use-companion.ts'
@@ -63,6 +63,7 @@ import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
+import { useSelectionDismiss } from './hooks/use-selection-dismiss.ts'
 import { chapterPercent, columnsFor, pageSpanWidth, pdfPagePercent } from './paging.ts'
 import type { PageLayout, ReadingAnchor, ReaderMode } from './paging.ts'
 import { readerCapabilities } from './paging.ts'
@@ -965,21 +966,7 @@ export function createPlugin(require: (name: string) => any) {
         return () => window.removeEventListener('keydown', onKeyDown)
       }, [addBookmark, effectiveMode, goEpubPage, screen, searchOpen, selection, setSearchOpen, setSelection, stepPdfPage, textPager, toggleSearch, visual])
 
-      React.useEffect(() => {
-        if (!selection) return
-        const dismiss = (event: Event) => {
-          const target = event.target as Element | null
-          if (target && typeof target.closest === 'function' && target.closest('.dsh-readpilot-selection')) return
-          setSelection(null)
-        }
-        const frameDoc = epubFrameRef.current?.contentDocument ?? null
-        document.addEventListener('pointerdown', dismiss, true)
-        frameDoc?.addEventListener('pointerdown', dismiss, true)
-        return () => {
-          document.removeEventListener('pointerdown', dismiss, true)
-          frameDoc?.removeEventListener('pointerdown', dismiss, true)
-        }
-      }, [epubFrameRef, selection, setSelection])
+      useSelectionDismiss(selection, setSelection, epubFrameRef)
 
 
       const backToLibrary = React.useCallback(() => {
@@ -1019,8 +1006,7 @@ export function createPlugin(require: (name: string) => any) {
         if (!selection || screen.kind !== 'book') return
         window.getSelection()?.removeAllRanges()
         epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
-        const quote = selection.text.split('\n').map(line => `> ${line}`).join('\n')
-        const text = `${quote}\n\n`
+        const text = quoteDraft(selection.text)
         const nativeInput = nativeInputRef.current?.inputActions
         let prefilledNative = false
         if (nativeInput && typeof nativeInput.setDraft === 'function') {

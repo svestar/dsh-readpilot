@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { React, createPortal, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
 
@@ -17,6 +17,11 @@ const GAP = 10
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
+}
+
+/** Format selected text as a Markdown quote draft with a closing blank line. */
+export function quoteDraft(text: string): string {
+  return `${text.split('\n').map(line => `> ${line}`).join('\n')}\n\n`
 }
 
 export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: SelectionToolbarProps) {
@@ -57,8 +62,12 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
     }
   }, [selection?.x, selection?.y])
 
-  if (!selection) return null
-  return h('div', {
+  if (!selection || !document.body) return null
+  // The menu is fixed to the viewport. Rendering it in place would let any
+  // ancestor with a filter/transform (the glass sidebar's backdrop-filter, for
+  // one) become its containing block, so viewport coordinates would land off
+  // screen; the body portal keeps the initial containing block.
+  return createPortal(h('div', {
     ref: menuRef,
     className: 'dsh-readpilot-selection',
     style: position ? { left: position.left, top: position.top } : { visibility: 'hidden' },
@@ -81,7 +90,7 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
         onClick: () => onHighlight(color),
       }))),
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
-  h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')))
+  h('button', { type: 'button', onClick: () => onNote() }, t('noteAction'))), document.body)
 }
 
 interface NoteDialogProps {

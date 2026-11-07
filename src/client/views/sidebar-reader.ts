@@ -1,5 +1,5 @@
 import { React, h } from '../runtime.ts'
-import type { CallRpc, Screen, TextFn, Visual } from '../types.ts'
+import type { CallRpc, ComposerInputActions, Screen, TextFn, Visual } from '../types.ts'
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
@@ -8,10 +8,11 @@ import { usePageWidth } from '../hooks/use-page-width.ts'
 import { useNotes } from '../hooks/use-notes.ts'
 import { useTextPager } from '../hooks/use-text-pager.ts'
 import { useVisual } from '../hooks/use-visual.ts'
+import { useSelectionDismiss } from '../hooks/use-selection-dismiss.ts'
 import { visualForChapter } from '../reader-screen.ts'
 import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
-import { NoteDialog, SelectionToolbar } from './selection-note.ts'
+import { NoteDialog, SelectionToolbar, quoteDraft } from './selection-note.ts'
 import { VisualReader } from './visual-reader.ts'
 
 const SIDEBAR_FONT_SIZE = 15
@@ -28,7 +29,30 @@ export interface SidebarReaderProps {
   call: CallRpc
   t: TextFn
   sessionId?: string
+  inputActions?: ComposerInputActions | null
   useTabInfo?: () => { tab?: { navigation?: { revision?: number } } } | null
+}
+
+/**
+ * Put a selected passage into the session composer.
+ * @param actions - the session's composer actions, when the host provides them.
+ * @param text - selected reader text.
+ * @returns whether the quote reached the composer.
+ */
+export function prefillCompanionQuote(actions: ComposerInputActions | null | undefined, text: string): boolean {
+  const quote = text.trim()
+  if (!quote) return false
+  try {
+    if (actions?.insertQuote?.(quote)) return true
+  } catch {
+    // Older or busy composers fall through to the plain draft write.
+  }
+  try {
+    actions?.setDraft?.(quoteDraft(quote))
+  } catch {
+    return false
+  }
+  return typeof actions?.setDraft === 'function'
 }
 
 interface SidebarBook {
@@ -39,7 +63,7 @@ interface SidebarBook {
 
 type SidebarMode = 'text' | 'original'
 
-export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderProps) {
+export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: SidebarReaderProps) {
   const tab = useTabInfo ? useTabInfo() : null
   const revision = tab?.tab?.navigation?.revision ?? 0
   const [book, setBook] = React.useState<SidebarBook | null>(null)
@@ -257,6 +281,15 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     setSelection,
     selectChapter,
   })
+  useSelectionDismiss(selection, setSelection, epubFrameRef)
+  const canAskCompanion = typeof inputActions?.insertQuote === 'function' || typeof inputActions?.setDraft === 'function'
+  const askCompanion = React.useCallback(() => {
+    if (!selection || screen.kind !== 'book') return
+    window.getSelection()?.removeAllRanges()
+    epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
+    prefillCompanionQuote(inputActions, selection.text)
+    setSelection(null)
+  }, [epubFrameRef, inputActions, screen.kind, selection, setSelection])
   const activeChapterIndex = screen.kind === 'book'
     ? screen.detail.toc.findIndex((item: any) => item.id === activeChapterId)
     : -1
@@ -459,6 +492,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       ? h(SelectionToolbar, {
         t,
         selection,
+        onAsk: canAskCompanion ? askCompanion : undefined,
         onNote: () => openNoteEditor(),
         onHighlight: (color: string) => { void addHighlight(color) },
       })

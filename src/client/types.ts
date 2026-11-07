@@ -116,6 +116,12 @@ export interface SelectTarget {
   flash?: boolean
 }
 
+/** Composer actions the host exposes to session-scoped slot bodies. */
+export interface ComposerInputActions {
+  insertQuote?: (text: string) => boolean
+  setDraft?: (text: string) => void
+}
+
 export type SelectChapter = (bookId: string, chapterId: string, target?: SelectTarget) => Promise<void>
 
 export interface PendingScroll {
