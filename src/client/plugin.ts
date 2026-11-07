@@ -17,6 +17,7 @@ import {
   normalizeGlassBlur,
   DEFAULT_GLASS_BLUR,
   readReflowBooks,
+  reflowEnabledFor,
   readReadingMode,
   readFontSize,
   normalizeFontSize,
@@ -158,8 +159,7 @@ export function createPlugin(require: (name: string) => any) {
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const bookId = screen.kind === 'book' ? screen.detail.book.id : null
-      const defaultReflow = format === 'txt' || format === 'md'
-      const reflowMode = bookId ? (reflowBooks[bookId] ?? defaultReflow) : false
+      const reflowMode = bookId && format ? reflowEnabledFor(reflowBooks, bookId, format) : false
       const reflowModeRef = React.useRef(reflowMode)
       reflowModeRef.current = reflowMode
       const capabilities = readerCapabilities(format ?? 'txt', reflowMode)
@@ -413,14 +413,14 @@ export function createPlugin(require: (name: string) => any) {
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
-          setVisual(visualForItem(detail, target, reflowModeRef.current))
+          setVisual(visualForItem(detail, target, reflowEnabledFor(reflowBooks, book.id, detail.book.format)))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
         } finally {
           setBusy(false)
         }
-      }, [t, reflowMode])
+      }, [reflowBooks, t])
 
       const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: { blockIndex?: number; offset?: number; flash?: boolean }) => {
         setSelection(null)

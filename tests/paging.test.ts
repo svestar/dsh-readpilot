@@ -26,6 +26,7 @@ import {
   normalizeFontSize,
   readFontSize,
   readReflowBooks,
+  reflowEnabledFor,
   readPageLayout,
   readReadingMode,
   savePageLayout,
@@ -310,6 +311,10 @@ test('font_size_and_reflow_books_persist', t => {
   assert.deepEqual(readReflowBooks(), { book1: true, book2: false })
   values.set(REFLOW_BOOKS_KEY, JSON.stringify({ good: true, 'bad/id': true, wrong: 'yes' }))
   assert.deepEqual(readReflowBooks(), { good: true })
+  assert.equal(reflowEnabledFor({}, 'b', 'pdf'), false)
+  assert.equal(reflowEnabledFor({}, 'b', 'md'), true)
+  assert.equal(reflowEnabledFor({ b: true }, 'b', 'epub'), true)
+  assert.equal(reflowEnabledFor({ b: false }, 'b', 'txt'), false)
 })
 test('anchor_page_restores_fraction', () => {
   assert.equal(anchorPage(0, 8), 0)

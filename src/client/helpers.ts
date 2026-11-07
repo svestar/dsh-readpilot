@@ -1,3 +1,4 @@
+import type { BookFormat } from '../formats.ts'
 import type { NoteRecord } from '../notes.ts'
 import type { ChatMessage } from './types.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
@@ -215,6 +216,10 @@ export function saveReflowBooks(books: Record<string, boolean>): void {
   } catch {
     // Per-book reflow persistence is best effort.
   }
+}
+
+export function reflowEnabledFor(books: Record<string, boolean>, bookId: string, format: BookFormat): boolean {
+  return books[bookId] ?? (format === 'txt' || format === 'md')
 }
 
 export const FONT_SIZE_KEY = 'dsh-readpilot.font-size'
