@@ -14,6 +14,7 @@ const HISTORY_ID_PATTERN = /^\d{10,16}-[0-9a-f]{6,32}\.md$/
 const MAX_TITLE = 80
 const MAX_BODY = 200_000
 const MAX_HISTORY = 10
+const META_CACHE_LIMIT = 256
 const WINDOWS_RESERVED = /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i
 
 export class NoteFileError extends Error {
@@ -343,6 +344,39 @@ export interface NoteFileStore {
 
 export function createNoteFileStore(root: string, options: NoteFileStoreOptions = {}): NoteFileStore {
   const maxHistory = options.maxHistory ?? MAX_HISTORY
+  const metaCache = new Map<string, { mtimeMs: number; size: number; note: NoteFileRecord }>()
+
+  function forgetMeta(path: string): void {
+    metaCache.delete(path)
+  }
+
+  async function noteRecordOf(dir: string, fileName: string, book: NoteBookRef): Promise<NoteFileRecord | null> {
+    const path = join(dir, fileName)
+    assertInside(dir, path)
+    let info
+    try {
+      info = await stat(path)
+    } catch {
+      forgetMeta(path)
+      return null
+    }
+    const cached = metaCache.get(path)
+    if (cached && cached.mtimeMs === info.mtimeMs && cached.size === info.size) return cached.note
+    let raw: string
+    try {
+      raw = await readFile(path, 'utf8')
+    } catch {
+      forgetMeta(path)
+      return null
+    }
+    const parsed = parseNote(raw, fileName, book, info.mtimeMs, `notes/${basename(dir)}/${fileName}`)
+    metaCache.set(path, { mtimeMs: info.mtimeMs, size: info.size, note: parsed.note })
+    if (metaCache.size > META_CACHE_LIMIT) {
+      const oldest = metaCache.keys().next().value
+      if (oldest !== undefined) metaCache.delete(oldest)
+    }
+    return parsed.note
+  }
 
   async function list(book: NoteBookRef): Promise<NoteFileRecord[]> {
     assertBookId(book.id)
@@ -357,8 +391,8 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     const notes: NoteFileRecord[] = []
     for (const entry of entries) {
       if (!entry.isFile() || entry.name.startsWith('.') || !entry.name.endsWith('.md')) continue
-      const parsed = await recordOf(dir, entry.name, book)
-      if (parsed) notes.push(parsed.note)
+      const note = await noteRecordOf(dir, entry.name, book)
+      if (note) notes.push(note)
     }
     return notes.sort((left, right) => {
       if (left.kind !== right.kind) return left.kind === 'book' ? -1 : 1
@@ -411,6 +445,7 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
       updated: stamp,
     }, bodyOf(input.body ?? `# ${title}\n`))
     await atomicWrite(path, raw)
+    forgetMeta(path)
     return read(book, id)
   }
 
@@ -453,8 +488,11 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
       const next = join(dir, fileName)
       assertInside(dir, next)
       await rename(path, next)
+      forgetMeta(path)
     }
-    await atomicWrite(join(dir, fileName), content)
+    const target = join(dir, fileName)
+    await atomicWrite(target, content)
+    forgetMeta(target)
     return read(book, current.id)
   }
 
@@ -467,6 +505,7 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     const path = join(dir, note.fileName)
     assertInside(dir, path)
     await rm(path, { force: true })
+    forgetMeta(path)
     return true
   }
 
@@ -531,6 +570,7 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     }
     await writeHistory(dir, note.id, currentRaw, maxHistory)
     await atomicWrite(path, snapshot.raw)
+    forgetMeta(path)
     return read(book, note.id)
   }
 

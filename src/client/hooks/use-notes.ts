@@ -7,7 +7,7 @@ import {
   findNoteOccurrence,
   messageOf,
   pdfNoteRects,
-  rangeForNote,
+  rangeForNodes,
   timestampOf,
 } from '../helpers.ts'
 import type { ReaderPalette } from '../helpers.ts'
@@ -342,7 +342,8 @@ export function useNotes({
       frame = 0
       layer.textContent = ''
       if (!root.isConnected) return
-      const { text } = collectTextNodes(root)
+      const { nodes, text } = collectTextNodes(root)
+      const doc = root.ownerDocument ?? document
       const layerRect = layer.getBoundingClientRect()
       const isPdf = visual?.kind === 'pdf'
       for (const note of relevant) {
@@ -368,7 +369,7 @@ export function useNotes({
           blockRange.selectNodeContents(block)
           rects = [...blockRange.getClientRects()]
         } else {
-          const range = match ? rangeForNote(root, match.start, match.end) : null
+          const range = match ? rangeForNodes(nodes, doc, match.start, match.end) : null
           rects = range ? [...range.getClientRects()] : []
         }
         for (const rect of rects) {

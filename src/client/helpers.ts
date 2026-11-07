@@ -419,9 +419,7 @@ export function collectTextNodes(root: Element | null | undefined): { nodes: Tex
   return { nodes, text: nodes.map(entry => entry.nodeValue ?? '').join('') }
 }
 
-export function rangeForNote(root: Element, start: number, end: number): Range | null {
-  const { nodes } = collectTextNodes(root)
-  const doc = root.ownerDocument ?? document
+export function rangeForNodes(nodes: readonly Text[], doc: Document, start: number, end: number): Range | null {
   const range = doc.createRange()
   let cursor = 0
   let started = false
@@ -440,6 +438,11 @@ export function rangeForNote(root: Element, start: number, end: number): Range |
     cursor = nodeEnd
   }
   return null
+}
+
+export function rangeForNote(root: Element, start: number, end: number): Range | null {
+  const { nodes } = collectTextNodes(root)
+  return rangeForNodes(nodes, root.ownerDocument ?? document, start, end)
 }
 
 interface NoteRect {
