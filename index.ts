@@ -77,7 +77,7 @@ export function apply(ctx: any, config: any = {}): void {
               const url = new URL(request.url)
               const result = await api.cover({ bookId: url.searchParams.get('bookId') })
               return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
               })
             } catch {
               return new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } })
@@ -97,7 +97,7 @@ export function apply(ctx: any, config: any = {}): void {
                 scale: Number(url.searchParams.get('scale')),
               })
               return new Response(result.png as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
               })
             } catch (error) {
               return jsonResponse({
@@ -119,7 +119,7 @@ export function apply(ctx: any, config: any = {}): void {
                 href: url.searchParams.get('href'),
               })
               return new Response(result.html, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=60' },
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
               })
             } catch (error) {
               return new Response(`<pre>${String(error instanceof Error ? error.message : error)}</pre>`, {
@@ -141,7 +141,7 @@ export function apply(ctx: any, config: any = {}): void {
                 path: url.searchParams.get('path'),
               })
               return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
               })
             } catch (error) {
               return jsonResponse({
@@ -163,7 +163,7 @@ export function apply(ctx: any, config: any = {}): void {
                 path: url.searchParams.get('path'),
               })
               return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=3600' },
+                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
               })
             } catch (error) {
               return jsonResponse({
@@ -180,3 +180,4 @@ export function apply(ctx: any, config: any = {}): void {
     }, 'dsh-readpilot: http api')
   })
 }
+

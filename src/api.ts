@@ -631,7 +631,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   function imageAssetUrl(book: Book, src: string): string {
     const endpoint = book.format === 'epub' ? 'epub-asset' : 'book-asset'
-    return `/api/dsh-readpilot/${endpoint}?bookId=${encodeURIComponent(book.id)}&path=${encodeURIComponent(src)}`
+    return `/api/dsh-readpilot/${endpoint}?bookId=${encodeURIComponent(book.id)}&path=${encodeURIComponent(src)}&v=${Math.floor(book.mtimeMs)}`
   }
 
   async function saveReadingProgress({ bookId, chapterId, chapterTitle, chapterFraction, percent }: any = {}): Promise<{ bookId: string; chapterId: string }> {

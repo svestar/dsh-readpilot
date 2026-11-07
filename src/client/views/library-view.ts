@@ -220,7 +220,7 @@ function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags
         h('span', { className: 'dsh-readpilot-book-cover-title' }, book.title))
       : h('img', {
         className: 'dsh-readpilot-book-cover-img',
-        src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}`,
+        src: `/api/dsh-readpilot/cover?bookId=${encodeURIComponent(book.id)}&v=${Math.floor(book.mtimeMs)}`,
         alt: '',
         loading: 'lazy',
         decoding: 'async',

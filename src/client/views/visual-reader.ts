@@ -234,7 +234,7 @@ export function VisualReader({
             },
           },
           h(PdfPageImage, {
-            src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(bookId)}&page=${loadedPage + index}&scale=${visual.scale}`,
+            src: `/api/dsh-readpilot/pdf-page?bookId=${encodeURIComponent(bookId)}&page=${loadedPage + index}&scale=${visual.scale}&v=${Math.floor(screen.detail.book.mtimeMs)}`,
             alt: screen.content.title,
           }),
           h('div', {
@@ -264,7 +264,7 @@ export function VisualReader({
     'data-paged': readingMode === 'paged' ? 'true' : 'false',
     sandbox: 'allow-same-origin',
     title: screen.content.title,
-    src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}`,
+    src: `/api/dsh-readpilot/epub-doc?bookId=${encodeURIComponent(screen.detail.book.id)}&href=${encodeURIComponent(visual.href)}&v=${Math.floor(screen.detail.book.mtimeMs)}`,
     onLoad: onEpubLoad,
     style: epubWidth === null ? undefined : { width: epubWidth, maxWidth: '100%', margin: '0 auto' },
   }))
