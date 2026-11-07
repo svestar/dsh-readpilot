@@ -14,7 +14,6 @@
 
 | 批次 | 内容 | 排期 | 状态 |
 |---|---|---|---|
-| OPT-A | 书库扫描缓存与并行 `stat`；全库检索解析预算 | next | planned |
 | OPT-B | 原生伴读订阅拆分；笔记 compact/章节索引复用；侧栏引用跳转 | next | planned |
 | OPT-C | TagDialog 与原生确认框改宿主 Modal；主要 `title` 提示改 Tooltip | next | planned |
 | OPT-D | `ctx.shortcuts` 阅读器命令；`tool.call.toolview` 卡片与阅读器资源类型 | later | planned |

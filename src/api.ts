@@ -53,7 +53,9 @@ const PDF_COVER_SCALE = 0.5
 const MAX_CONCURRENT_COVERS = 4
 const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
 const MAX_SEARCH_BOOKS = 20
-const SCAN_TTL_MS = 1500
+const MAX_SEARCH_PARSE_BYTES = 128 * 1024 * 1024
+const MAX_SEARCH_PARSE_MS = 3000
+const SCAN_TTL_MS = 30_000
 const MAX_BOOK_IMAGE_BYTES = 20 * 1024 * 1024
 const BOOK_IMAGE_TYPES = new Map<string, string>([
   ['.png', 'image/png'],
@@ -442,6 +444,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       workspaceId: String(workspace.id),
       title: workspace.title ?? (basename(real) || '书库'),
     })
+    invalidateScan()
     return state()
   }
 
@@ -814,9 +817,18 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const matches: SearchMatch[] = []
     let limited = false
     let unreadable = false
+    let scanned = 0
+    let parsedBytes = 0
+    const startedAt = Date.now()
 
     for (const book of books) {
       if (!book.supported) continue
+      if (!scoped && (
+        parsedBytes + book.size > MAX_SEARCH_PARSE_BYTES
+        || Date.now() - startedAt > MAX_SEARCH_PARSE_MS
+      )) break
+      parsedBytes += book.size
+      scanned += 1
       let parsed: BookCacheRecord
       try {
         parsed = await ensureParsed(book)
@@ -855,9 +867,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     return {
       matches,
-      truncated: limited || books.length < supported.length,
+      truncated: limited || scanned < supported.length,
       query: wanted,
-      booksScanned: books.length,
+      booksScanned: scanned,
       booksTotal: supported.length,
       unreadable,
     }

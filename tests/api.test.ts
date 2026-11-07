@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
+import { mkdir, mkdtemp, readFile, rm, truncate, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi, normalizeReadingView, noteFilePath } from '../src/api.ts'
@@ -145,6 +145,28 @@ test('library_search_reports_scan_scope', async t => {
   assert.equal(result.booksTotal, 21)
   assert.equal(result.booksScanned, 20)
   assert.equal(result.matches.length, 20)
+  assert.equal(result.truncated, true)
+  assert.equal(result.unreadable, false)
+})
+
+test('library_search_stops_at_parse_budget', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const large = join(library, 'large.txt')
+  await writeFile(large, 'large', 'utf8')
+  await truncate(large, 129 * 1024 * 1024)
+  await utimes(large, new Date(0), new Date(0))
+  await writeFile(join(library, 'recent.txt'), '第一章 开始\n\n唯一关键词 预算', 'utf8')
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library })
+
+  const result = await api.search({ query: '唯一关键词', limit: 50 })
+  assert.equal(result.booksTotal, 2)
+  assert.equal(result.booksScanned, 1)
+  assert.equal(result.matches.length, 1)
   assert.equal(result.truncated, true)
   assert.equal(result.unreadable, false)
 })
@@ -463,7 +485,7 @@ test('note_file_path_is_relative_to_library', () => {
     (error: any) => error?.code === 'invalid-note',
   )
 })
-test('library_scan_is_cached_briefly_and_rescan_forces_fresh', async t => {
+test('library_scan_is_cached_until_rescan', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
   const configured = await api.configureLibrary({ path: library })
@@ -476,10 +498,6 @@ test('library_scan_is_cached_briefly_and_rescan_forces_fresh', async t => {
   const forced = await api.handleRpc('rescan', {})
   assert.equal(forced.ok, true)
   assert.equal((forced as any).value.books.length, 2)
-
-  await new Promise(resolve => setTimeout(resolve, 1600))
-  const expired = await api.state()
-  assert.equal(expired.books.length, 2)
 })
 test('archived_session_is_reported_and_filtered_from_state', async t => {
   const { library, data } = await makeLibrary(t)

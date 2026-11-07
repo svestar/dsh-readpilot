@@ -6,6 +6,26 @@ import { formatOf, isSupportedFormat } from './formats.ts'
 import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
 
 export const MAX_LIBRARY_FILES = 2000
+const SCAN_STAT_CONCURRENCY = 16
+
+interface BookCandidate {
+  path: string
+  title: string
+  format: BookFormat
+}
+
+async function mapLimit<T, R>(items: readonly T[], limit: number, mapper: (item: T) => Promise<R>): Promise<R[]> {
+  const results = new Array<R>(items.length)
+  let next = 0
+  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
+    while (next < items.length) {
+      const index = next++
+      results[index] = await mapper(items[index])
+    }
+  })
+  await Promise.all(workers)
+  return results
+}
 
 export interface Book {
   id: string
@@ -40,10 +60,10 @@ export function findBookByKey(books: readonly Book[], key: unknown): Book | unde
 export async function scanLibrary(root: string, options: ScanOptions = {}): Promise<Book[]> {
   const maxDepth = options.maxDepth ?? 3
   const maxFiles = options.maxFiles ?? MAX_LIBRARY_FILES
-  const books: Book[] = []
+  const candidates: BookCandidate[] = []
 
   async function walk(directory: string, depth: number): Promise<void> {
-    if (books.length >= maxFiles) return
+    if (candidates.length >= maxFiles) return
     let entries
     try {
       entries = await readdir(directory, { withFileTypes: true })
@@ -51,7 +71,7 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
       return
     }
     for (const entry of entries) {
-      if (books.length >= maxFiles) return
+      if (candidates.length >= maxFiles) return
       if (entry.name.startsWith('.') || entry.name === 'node_modules' || entry.name === 'AGENTS.md') continue
       const full = join(directory, entry.name)
       if (entry.isDirectory()) {
@@ -69,25 +89,34 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
       if (!entry.isFile()) continue
       const format = formatOf(entry.name)
       if (!format) continue
-      let info
-      try {
-        info = await stat(full)
-      } catch {
-        continue
-      }
-      if (!info.isFile() || info.size === 0) continue
-      books.push({
-        id: bookIdFor(full),
-        title: basename(entry.name, extname(entry.name)),
+      candidates.push({
         path: full,
+        title: basename(entry.name, extname(entry.name)),
         format,
-        supported: isSupportedFormat(format),
-        size: info.size,
-        mtimeMs: info.mtimeMs,
       })
     }
   }
 
   await walk(root, 0)
-  return books.sort((left, right) => right.mtimeMs - left.mtimeMs)
+  const books = await mapLimit(candidates, SCAN_STAT_CONCURRENCY, async candidate => {
+    let info
+    try {
+      info = await stat(candidate.path)
+    } catch {
+      return null
+    }
+    if (!info.isFile() || info.size === 0) return null
+    return {
+      id: bookIdFor(candidate.path),
+      title: candidate.title,
+      path: candidate.path,
+      format: candidate.format,
+      supported: isSupportedFormat(candidate.format),
+      size: info.size,
+      mtimeMs: info.mtimeMs,
+    } satisfies Book
+  })
+  return books
+    .filter((book): book is Book => book !== null)
+    .sort((left, right) => right.mtimeMs - left.mtimeMs || left.path.localeCompare(right.path))
 }
