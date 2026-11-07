@@ -786,17 +786,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
   }
 
-  async function toolContext({ book }: any = {}): Promise<any> {
+  async function toolContext({ book, sessionId }: any = {}): Promise<any> {
     const books = await libraryBooks()
     let found: Book | undefined
     if (book) {
       found = findBookByKey(books, book)
       if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
     } else {
-      const progress = await loadProgress(dataDir)
-      found = books
-        .filter(candidate => progress[candidate.id])
-        .sort((left, right) => (progress[right.id].updatedAt ?? 0) - (progress[left.id].updatedAt ?? 0))[0]
+      const reading = typeof sessionId === 'string' ? companionReadings.get(sessionId) : undefined
+      if (reading) found = books.find(candidate => candidate.id === reading.bookId)
+      if (!found) {
+        const progress = await loadProgress(dataDir)
+        found = books
+          .filter(candidate => progress[candidate.id])
+          .sort((left, right) => (progress[right.id].updatedAt ?? 0) - (progress[left.id].updatedAt ?? 0))[0]
+      }
       if (!found) throw new ReaderError('no-current-book', '还没有最近阅读的书籍，请先用 reader_books 选择一本书')
     }
     const detail = await open({ bookId: found.id })

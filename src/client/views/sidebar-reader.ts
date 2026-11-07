@@ -171,6 +171,17 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       : chapterPercent(screen.detail.toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, chapterPage, chapterPages)
 
   React.useEffect(() => {
+    if (screen.kind !== 'book' || !activeChapterId || !sessionId) return
+    const chapterTitle = screen.detail.toc.find((item: any) => item.id === activeChapterId)?.title ?? screen.content.title
+    void call('companionContext', {
+      sessionId,
+      bookId: screen.detail.book.id,
+      title: screen.detail.book.title,
+      chapter: chapterTitle,
+    }).catch(() => {})
+  }, [activeChapterId, call, screen, sessionId])
+
+  React.useEffect(() => {
     if (screen.kind !== 'book' || !activeChapterId) return
     if (progressSkipRef.current) {
       progressSkipRef.current = false

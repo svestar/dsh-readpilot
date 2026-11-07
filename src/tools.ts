@@ -8,7 +8,7 @@ interface ToolDefinition {
     schema: { type: string; properties: Record<string, unknown>; additionalProperties: boolean }
     render: (args: unknown, value: unknown) => Array<{ type: string; text: string }>
   }
-  execute(args?: any): Promise<unknown>
+  execute(args?: any, exec?: any): Promise<unknown>
 }
 
 export interface ToolContext {
@@ -103,9 +103,9 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         additionalProperties: false,
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
-      async execute(args) {
+      async execute(args, exec) {
         try {
-          return await api.toolContext(args ?? {})
+          return await api.toolContext({ ...(args ?? {}), sessionId: exec?.agent?.session?.id })
         } catch (error) {
           return jsonError(error)
         }
@@ -275,8 +275,8 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
 
   const disposers = definitions.map(definition => ctx.tools.register({
     ...definition,
-    async execute(args?: any) {
-      return losslessJson(await definition.execute(args))
+    async execute(args?: any, exec?: any) {
+      return losslessJson(await definition.execute(args, exec))
     },
   }))
   return () => {
