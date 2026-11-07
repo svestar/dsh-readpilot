@@ -1,6 +1,7 @@
 import { React, h } from '../runtime.ts'
 import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
+import { ConfirmDialog } from './confirm-dialog.ts'
 import { ModalShell } from './modal.ts'
 import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../types.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
@@ -269,6 +270,12 @@ export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) 
             : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
         ],
       })
-      : null
+      : null,
+    h(ConfirmDialog, {
+      t,
+      message: state.confirmMessage,
+      onConfirm: () => state.settleConfirm(true),
+      onCancel: () => state.settleConfirm(false),
+    })
   )
 }

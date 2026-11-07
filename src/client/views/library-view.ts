@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { Modal, React, h } from '../runtime.ts'
 import { formatSize, readCoversEnabled, saveCoversEnabled } from '../helpers.ts'
 import {
   bookRating,
@@ -75,17 +75,13 @@ function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating
     }
   }
 
-  return h('div', {
-    className: 'dsh-readpilot-book-overlay',
-    onMouseDown: (event: any) => {
-      if (event.target === event.currentTarget) onClose()
-    },
-  },
-  h('div', {
+  return h(Modal, {
+    open: true,
+    onClose,
+    closeLabel: t('close'),
+    title: t('editBook'),
+    headless: true,
     className: 'dsh-readpilot-book-dialog',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-label': t('editBook'),
   },
   h('header', { className: 'dsh-readpilot-book-dialog-head' },
     h('div', { className: 'dsh-readpilot-book-dialog-heading' },
@@ -190,7 +186,7 @@ function TagDialog({ t, book, initialTags, allTags, initialStatus, initialRating
       className: 'dsh-readpilot-primary',
       disabled: saving,
       onClick: () => void save(),
-    }, saving ? t('loading') : t('save')))))
+    }, saving ? t('loading') : t('save'))))
 }
 
 interface BookCardProps {

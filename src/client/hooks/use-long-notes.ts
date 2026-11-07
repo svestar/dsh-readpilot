@@ -34,6 +34,8 @@ export interface LongNotesState {
   exporting: boolean
   exportStatus: string
   externalBusy: boolean
+  confirmMessage: string
+  settleConfirm: (ok: boolean) => void
   setTitle: (value: string) => void
   open: (note: LongNote) => Promise<void>
   beginCreate: (kind: 'book' | 'topic') => void
@@ -69,11 +71,31 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
   const [exporting, setExporting] = React.useState(false)
   const [exportStatus, setExportStatus] = React.useState('')
   const [externalBusy, setExternalBusy] = React.useState(false)
+  const [confirmMessage, setConfirmMessage] = React.useState('')
+  const confirmRef = React.useRef<((ok: boolean) => void) | null>(null)
   const requestRef = React.useRef(0)
   const draftRequestRef = React.useRef(0)
   const readRef = React.useRef(0)
   const bookRef = React.useRef<string | null>(activeBookId)
   bookRef.current = activeBookId
+
+  const confirm = React.useCallback((message: string) => new Promise<boolean>(resolve => {
+    confirmRef.current?.(false)
+    confirmRef.current = resolve
+    setConfirmMessage(message)
+  }), [])
+
+  const settleConfirm = React.useCallback((ok: boolean) => {
+    const resolve = confirmRef.current
+    confirmRef.current = null
+    setConfirmMessage('')
+    resolve?.(ok)
+  }, [])
+
+  React.useEffect(() => () => {
+    confirmRef.current?.(false)
+    confirmRef.current = null
+  }, [])
 
   const load = React.useCallback(async (silent = false) => {
     if (!activeBookId) {
@@ -289,8 +311,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
   const remove = React.useCallback(async () => {
     if (!activeBookId || !active) return
     const bookId = activeBookId
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
-      && !window.confirm(t('deleteLongNoteConfirm'))) return
+    if (!(await confirm(t('deleteLongNoteConfirm')))) return
     setSaving(true)
     setError('')
     try {
@@ -307,7 +328,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     } finally {
       setSaving(false)
     }
-  }, [active, activeBookId, call, load, t])
+  }, [active, activeBookId, call, confirm, load, t])
 
   const reload = React.useCallback(async () => {
     if (!active) return
@@ -376,8 +397,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
   const restoreHistory = React.useCallback(async (entry: LongNoteHistory) => {
     if (!activeBookId || !active || historyBusy) return
     const bookId = activeBookId
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
-      && !window.confirm(t('historyRestoreConfirm'))) return
+    if (!(await confirm(t('historyRestoreConfirm')))) return
     setHistoryBusy(true)
     setError('')
     try {
@@ -395,13 +415,12 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     } finally {
       setHistoryBusy(false)
     }
-  }, [active, activeBookId, call, historyBusy, load, loadHistory, t])
+  }, [active, activeBookId, call, confirm, historyBusy, load, loadHistory, t])
 
   const removeHistory = React.useCallback(async (entry: LongNoteHistory) => {
     if (!activeBookId || !active || historyBusy) return
     const bookId = activeBookId
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
-      && !window.confirm(t('historyDeleteConfirm'))) return
+    if (!(await confirm(t('historyDeleteConfirm')))) return
     setHistoryBusy(true)
     setError('')
     try {
@@ -416,13 +435,12 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     } finally {
       setHistoryBusy(false)
     }
-  }, [active, activeBookId, call, historyBusy, loadHistory, t])
+  }, [active, activeBookId, call, confirm, historyBusy, loadHistory, t])
 
   const clearHistory = React.useCallback(async () => {
     if (!activeBookId || !active || historyBusy) return
     const bookId = activeBookId
-    if (typeof window !== 'undefined' && typeof window.confirm === 'function'
-      && !window.confirm(t('historyClearConfirm'))) return
+    if (!(await confirm(t('historyClearConfirm')))) return
     setHistoryBusy(true)
     setError('')
     try {
@@ -436,7 +454,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     } finally {
       setHistoryBusy(false)
     }
-  }, [active, activeBookId, call, historyBusy, loadHistory, t])
+  }, [active, activeBookId, call, confirm, historyBusy, loadHistory, t])
 
   const exportNotes = React.useCallback(async (save: boolean) => {
     if (!activeBookId || exporting) return
@@ -490,6 +508,8 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     exporting,
     exportStatus,
     externalBusy,
+    confirmMessage,
+    settleConfirm,
     setTitle,
     open,
     beginCreate,
