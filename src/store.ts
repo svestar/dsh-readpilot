@@ -11,6 +11,7 @@ export interface Settings {
 export interface ReadingProgress {
   chapterId?: string
   chapterTitle?: string
+  chapterFraction?: number
   percent?: number
   updatedAt?: number
 }

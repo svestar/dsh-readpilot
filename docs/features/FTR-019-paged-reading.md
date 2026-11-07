@@ -4,13 +4,13 @@
 - **名称：** 分页阅读
 - **状态：** active
 - **代码：** `src/client/paging.ts`（`measurePageMetrics`、`pageBounds`、`chapterPercent`、`pdfPagePercent`、`columnsFor`、`pageWidthForHeight`、`pageSpanWidth`）；`src/client/hooks/use-page-width.ts`（`usePageWidth`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/reader-bar.ts`（`ReaderBar`）；`src/client/plugin.ts`（`ReaderPanel`）
-- **测试：** `tests/paging.test.ts`；`tests/client-assembly.test.ts`
+- **测试：** `tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/api.test.ts`
 
 ## 行为
 
 打开书籍按格式决定初始视图：PDF 始终分页；EPUB/txt/md 沿用全局记忆的阅读模式与单/双页布局，首次默认分页、单页。工具栏只提供翻页/章节切换、标题、位置与 PDF 页码/缩放；阅读模式、单双页与重排由阅读设置面板管理（见 [FTR-032](FTR-032-reader-settings.md)）。
 
-位置显示：文本与 EPUB 为“本章第几页 / 本章页数 · 全书百分比”；PDF 原版为“PDF 页 / 总页数 · 百分比”；PDF 重排为“本章页 · 全书百分比”。双页显示跨页序号，不再显示列范围。百分比按章节字数加权，翻页即更新。
+位置显示：文本与 EPUB 为“本章第几页 / 本章页数 · 全书百分比”；PDF 原版为“PDF 页 / 总页数 · 百分比”；PDF 重排为“本章页 · 全书百分比”。双页显示跨页序号，不再显示列范围。百分比按章节字数加权，翻页即更新；阅读进度同时记录章节内比例，供重新打开或工作区侧边栏恢复到同一位置。
 
 Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useTextPager` 测宽并把翻页写为 `scrollLeft`；EPUB 在 iframe 的 `html` 上应用同样栏样式。页数由视口、字号、布局与原书 CSS 决定，不是印刷页。
 
@@ -36,6 +36,7 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useT
 
 - 模式与布局存 localStorage，换书与重启后沿用；非法值回退分页、单页。PDF 始终分页，不覆盖文本模式记忆。
 - 页数是布局结果，不是印刷页；视口、字号、布局变化会重测并夹取当前页。章节页码与全书百分比分开显示，不再把列数当总页数。
+- 进度保存 `chapterFraction`（0–1）作为跨视图位置；`percent` 只用于显示，不能用页码代替。
 - 单页页宽由阅读区高度决定；测得 0 时不写内联页宽。
 - 文本分页按栏宽步长把 `scrollLeft` 四舍五入为页码，平滑滚动中可能短暂显示中间栏。
 - PDF 双页选区、笔记与高亮只绑定第一页；缩放只提高渲染分辨率。
@@ -48,3 +49,4 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useT
 - 正常/边界：页宽/跨度夹取与非法输入（`page_width_from_height`、`page_width_clamps_to_available_width`、`page_span_single`、`page_span_double`、`page_span_invalid_inputs`）。
 - 边界：空内容/非法尺寸/越界页索引（`measure_invalid_inputs`、`clamp_page_index`、`page_bounds`）。
 - 正常：章节页码与全书百分比按字数加权，PDF 页百分比从第一页 0% 到最后一页 100%（`chapter_percent_weights_chapters_and_pages`、`pdf_page_percent_spans_first_to_last_page`）。
+- 正常：进度同时保存章节内比例，重新打开按该比例定位（`progress_percent_persists`）。

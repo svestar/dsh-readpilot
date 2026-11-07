@@ -44,6 +44,7 @@ import { VisualReader } from './views/visual-reader.ts'
 import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
 import { ReaderSettings } from './reader-settings.ts'
+import { SidebarReader } from './views/sidebar-reader.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
@@ -150,8 +151,10 @@ export function createPlugin(require: (name: string) => any) {
       const [tocOpen, setTocOpen] = React.useState(true)
       const [fontSize, setFontSize] = React.useState(readFontSize)
       const [settingsOpen, setSettingsOpen] = React.useState(false)
+      const [openingWorkspace, setOpeningWorkspace] = React.useState(false)
       const [readingAnchor, setReadingAnchor] = React.useState<ReadingAnchor | null>(null)
       const anchorTokenRef = React.useRef(0)
+      const progressSkipRef = React.useRef(false)
       const scrollAnchorAppliedRef = React.useRef(0)
       const [selection, setSelection] = React.useState<Selection | null>(null)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
@@ -307,6 +310,7 @@ export function createPlugin(require: (name: string) => any) {
         hasMore,
         loadingEarlier,
         chatBinding,
+        ensureSession,
       } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession })
 
       const nativeInputRef = React.useRef<any>(null)
@@ -413,6 +417,15 @@ export function createPlugin(require: (name: string) => any) {
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
+          const savedFraction = detail.progress?.chapterFraction
+          progressSkipRef.current = true
+          setReadingAnchor(typeof savedFraction === 'number' && Number.isFinite(savedFraction)
+            ? {
+              chapterId: target.id,
+              fraction: Math.max(0, Math.min(1, savedFraction)),
+              token: ++anchorTokenRef.current,
+            }
+            : null)
           setVisual(visualForItem(detail, target, reflowEnabledFor(reflowBooks, book.id, detail.book.format)))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
@@ -559,6 +572,14 @@ export function createPlugin(require: (name: string) => any) {
       const chapterTotal = toc.length
       const activeChapterIndex = toc.findIndex(item => item.id === activeChapterId)
       const pdfVisualPage = visual?.kind === 'pdf' ? visual.page : 1
+      const chapterFraction = screen.kind !== 'book'
+        ? 0
+        : screen.detail.book.format === 'pdf' && !reflowMode
+          ? 0
+          : screen.detail.book.format === 'epub' && !reflowMode
+            ? epubPage / Math.max(1, epubPageCount)
+            : textPager.page / Math.max(1, textPager.pageCount)
+
       const readingPercent = screen.kind !== 'book'
         ? 0
         : screen.detail.book.format === 'pdf' && !reflowMode
@@ -600,6 +621,20 @@ export function createPlugin(require: (name: string) => any) {
         setFontSize(normalizeFontSize(value))
       }, [makeReadingAnchor])
 
+      const openWorkspace = React.useCallback(async () => {
+        if (screen.kind !== 'book' || openingWorkspace) return
+        setOpeningWorkspace(true)
+        setError('')
+        try {
+          const sessionId = await ensureSession()
+          runtime.uiWorkspace.openSession(sessionId)
+        } catch (cause) {
+          setError(`${t('openWorkspaceFailed')}：${messageOf(cause)}`)
+        } finally {
+          setOpeningWorkspace(false)
+        }
+      }, [ensureSession, openingWorkspace, screen, t])
+
       React.useEffect(() => {
         if (readingMode !== 'scroll' || screen.kind !== 'book' || !readingAnchor) return
         if (readingAnchor.chapterId !== screen.content.chapterId) return
@@ -614,17 +649,22 @@ export function createPlugin(require: (name: string) => any) {
 
       React.useEffect(() => {
         if (screen.kind !== 'book' || !activeChapterId) return
+        if (progressSkipRef.current) {
+          progressSkipRef.current = false
+          return
+        }
         const chapterTitle = toc.find(item => item.id === activeChapterId)?.title ?? screen.content.title
         const timer = window.setTimeout(() => {
           void call('progress', {
             bookId: screen.detail.book.id,
             chapterId: activeChapterId,
             chapterTitle,
+            chapterFraction: Math.round(chapterFraction * 1000) / 1000,
             percent: Math.round(readingPercent * 10) / 10,
           }).catch(() => {})
         }, 350)
         return () => window.clearTimeout(timer)
-      }, [activeChapterId, readingPercent, screen, toc, call])
+      }, [activeChapterId, chapterFraction, readingPercent, screen, toc, call])
 
 
       const goChapter = React.useCallback((delta: number) => {
@@ -1176,6 +1216,8 @@ export function createPlugin(require: (name: string) => any) {
           searchOpen,
           settingsOpen,
           onToggleSettings: () => setSettingsOpen(previous => !previous),
+          openingWorkspace,
+          onOpenWorkspace: openWorkspace,
           onToggleSearch: toggleSearch,
           onToggleChat: () => setChatOpen(previous => !previous),
           onToggleToc: () => setTocOpen(previous => !previous),
@@ -1280,7 +1322,7 @@ export function createPlugin(require: (name: string) => any) {
 
     return {
       name: 'dsh-readpilot-client',
-      inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace'],
+      inject: ['slots', 'layout', 'locale', 'connection', 'sessions', 'uiWorkspace', 'sidebarRightTabs'],
       foldTranscript,
       clampChatWidth,
       parseMarkdownBlocks,
@@ -1296,6 +1338,30 @@ export function createPlugin(require: (name: string) => any) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-readpilot: dictionaries')
+        if (ctx.sidebarRightTabs) {
+          ctx.effect(
+            () => ctx.sidebarRightTabs.register({
+              id: 'dsh-readpilot.sidebar',
+              kind: 'dsh-readpilot',
+              title: () => boundText('sidebarReaderTitle'),
+              guide: [{
+                id: 'reader',
+                title: () => boundText('sidebarReaderTitle'),
+                description: () => boundText('sidebarReaderHint'),
+              }],
+              keepMounted: true,
+            }),
+            'dsh-readpilot: sidebar tab type',
+          )
+          ctx.effect(
+            () => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
+              name: 'sidebar.right.pane.tab',
+              key: 'dsh-readpilot',
+              locale: NS,
+            }, (props: any) => h(SidebarReader, { ...props, call, t: props.t ?? boundText }))),
+            'dsh-readpilot: sidebar tab body',
+          )
+        }
         ctx.effect(
           () => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
             name: 'sidebar.panellist',

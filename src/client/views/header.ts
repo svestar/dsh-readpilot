@@ -10,6 +10,8 @@ interface HeaderProps {
   searchOpen: boolean
   settingsOpen: boolean
   onToggleSettings: () => void
+  openingWorkspace: boolean
+  onOpenWorkspace: () => void
   onToggleSearch: () => void
   onToggleChat: () => void
   onToggleToc: () => void
@@ -25,6 +27,8 @@ export function Header({
   searchOpen,
   settingsOpen,
   onToggleSettings,
+  openingWorkspace,
+  onOpenWorkspace,
   onToggleSearch,
   onToggleChat,
   onToggleToc,
@@ -53,6 +57,15 @@ export function Header({
           'aria-expanded': settingsOpen ? 'true' : 'false',
           onClick: onToggleSettings,
         }, 'Aa')
+        : null,
+      screen.kind === 'book'
+        ? h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-icon-btn',
+          disabled: openingWorkspace,
+          title: openingWorkspace ? t('openingWorkspace') : t('openWorkspace'),
+          onClick: onOpenWorkspace,
+        }, openingWorkspace ? '…' : t('openWorkspace'))
         : null,
       screen.kind === 'book'
         ? h('button', {

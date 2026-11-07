@@ -67,10 +67,11 @@ test('progress_percent_persists', async t => {
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
   const state = await api.configureLibrary({ path: library })
   const bookId = state.books[0].id
-  await api.saveReadingProgress({ bookId, chapterId: 'c002', chapterTitle: '第二章', percent: 42.5 })
+  await api.saveReadingProgress({ bookId, chapterId: 'c002', chapterTitle: '第二章', chapterFraction: 0.25, percent: 42.5 })
   const progress = (await api.state()).progress[bookId]
   assert.equal(progress.chapterId, 'c002')
   assert.equal(progress.percent, 42.5)
+  assert.equal(progress.chapterFraction, 0.25)
 })
 
 test('configure_creates_workspace', async t => {
@@ -517,4 +518,15 @@ test('book_assets_serve_library_images_and_rewrite_chapter_urls', async t => {
   const content = await api.chapter({ bookId: markdown.id, chapterId: opened.toc[0].id })
   assert.equal(content.blocks[0].type, 'image')
   assert.match(content.blocks[0].src!, /^\/api\/dsh-readpilot\/book-asset\?bookId=/)
+})
+test('session_book_reverses_companion_mapping', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.setCompanionSession({ bookId, sessionId: 'sess-reader' })
+  const found = await api.sessionBook({ sessionId: 'sess-reader' })
+  assert.equal(found?.bookId, bookId)
+  assert.equal(found?.format, 'txt')
+  assert.equal(await api.sessionBook({ sessionId: 'sess-missing' }), null)
 })

@@ -157,6 +157,43 @@ export function useCompanion({
   const running = Boolean(sessionSnapshot?.running)
   const messages: ChatMessage[] = React.useMemo(() => foldTranscript(entries).slice(-50), [entries])
 
+  const ensureSession = React.useCallback(async (): Promise<string> => {
+    if (screen.kind !== 'book') throw new Error(t('chatDisabled'))
+    if (!workspaceId) throw new Error(t('chatDisabled'))
+    const book = screen.detail.book
+    const existing = chatRef.current?.sessionId ?? activeSessionId ?? undefined
+    if (existing) {
+      let alive = false
+      try {
+        alive = (await call('sessionAlive', { sessionId: existing })).alive !== false
+      } catch {
+        alive = false
+      }
+      if (alive && bindSession(existing)) return existing
+      await call('session', { bookId: book.id, sessionId: null }).catch(() => {})
+      forgetSession(book.id)
+      releaseChat()
+    }
+    let sessionId: string | undefined
+    if (typeof runtime.sessions.create === 'function') {
+      try {
+        sessionId = await runtime.sessions.create({ workspaceId })
+      } catch {
+        sessionId = undefined
+      }
+    }
+    if (!sessionId) {
+      sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
+      runtime.layout.selectPanel('dsh-readpilot')
+    }
+    const session = sessionId as string
+    await call('session', { bookId: book.id, sessionId: session })
+    rememberSession(book.id, session)
+    const reference = bindSession(session)
+    if (!reference) throw new Error(t('loadFailed'))
+    return session
+  }, [activeSessionId, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId])
+
   const send = React.useCallback(async () => {
     const text = draft.trim()
     if (!text || sending || screen.kind !== 'book') return
@@ -169,22 +206,8 @@ export function useCompanion({
     setSending(true)
 
     const createSession = async () => {
-      let sessionId: string | undefined
-      if (typeof runtime.sessions.create === 'function') {
-        try {
-          sessionId = await runtime.sessions.create({ workspaceId })
-        } catch {
-          sessionId = undefined
-        }
-      }
-      if (!sessionId) {
-        sessionId = await runtime.uiWorkspace.connectWorkspace(workspaceId)
-        runtime.layout.selectPanel('dsh-readpilot')
-      }
-      const session = sessionId as string
-      await call('session', { bookId: book.id, sessionId: session })
-      rememberSession(book.id, session)
-      const reference = bindSession(session)
+      await ensureSession()
+      const reference = chatRef.current?.reference
       if (!reference) throw new Error(t('loadFailed'))
       return reference
     }
@@ -234,7 +257,7 @@ export function useCompanion({
     } finally {
       setSending(false)
     }
-  }, [draft, sending, screen, workspaceId, activeSessionId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t])
+  }, [draft, ensureSession, sending, screen, workspaceId, activeSessionId, rememberSession, forgetSession, bindSession, releaseChat, runtime, call, t])
 
   const loadEarlier = React.useCallback(async () => {
     const reference = chatRef.current?.reference
@@ -323,6 +346,7 @@ export function useCompanion({
     running,
     messages,
     send,
+    ensureSession,
     loadEarlier,
     startResize,
     moveResize,

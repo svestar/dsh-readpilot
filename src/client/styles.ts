@@ -492,4 +492,13 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-settings-value{min-width:48px;text-align:center;font-size:12px;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-settings-blur{display:flex;align-items:center;gap:8px;font-size:11.5px;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-settings-blur input{flex:1;min-width:0}
-`
+
+.dsh-readpilot-sidebar-reader-root{display:flex;flex-direction:column;height:100%;min-height:0;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
+.dsh-readpilot-sidebar-reader-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--reader-border,var(--dsw-alias-border-l2))}
+.dsh-readpilot-sidebar-reader-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:600}
+.dsh-readpilot-sidebar-reader-body{flex:1;min-height:0;display:flex;overflow:hidden;padding:0 4px}
+.dsh-readpilot-sidebar-reader{padding:4px 8px;height:100%;overflow:hidden}
+.dsh-readpilot-sidebar-reader .dsh-readpilot-page-frame{padding:8px 4px;height:100%}
+.dsh-readpilot-sidebar-state{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;height:100%;padding:20px;text-align:center;color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-sidebar-empty-title{font-size:13px;color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-sidebar-empty-hint{font-size:11.5px;line-height:1.5}`

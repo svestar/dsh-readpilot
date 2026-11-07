@@ -22,7 +22,7 @@
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.ts` | `tests/reading-anchor.test.ts` | active |
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.ts` | `tests/prompt.test.ts` | active |
 | `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
-| `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/client-assembly.test.ts` | active |
+| `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/client-assembly.test.ts;tests/api.test.ts` | active |
 | `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts;tests/api.test.ts` | active |
 | `FTR-021` | 笔记上下文 | `docs/features/FTR-021-note-context.md` | `src/notes-context.ts` | `tests/notes-context.test.ts;tests/api.test.ts` | active |
 | `FTR-022` | 笔记草稿 | `docs/features/FTR-022-note-drafts.md` | `src/note-drafts.ts` | `tests/note-drafts.test.ts;tests/api.test.ts` | active |
@@ -36,4 +36,6 @@
 | `FTR-030` | 批注总览 | `docs/features/FTR-030-annotations-overview.md` | `src/client/mark-filters.ts` | `tests/mark-filters.test.ts` | active |
 | `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts;tests/epub.test.ts` | active |
 | `FTR-032` | 阅读设置 | `docs/features/FTR-032-reader-settings.md` | `src/client/reader-settings.ts` | `tests/paging.test.ts` | active |
-| `FTR-033` | 阅读位置锚点 | `docs/features/FTR-033-reading-anchor.md` | `src/client/paging.ts` | `tests/paging.test.ts` | active |
+| `FTR-033` | 阅读位置锚点 | `docs/features/FTR-033-reading-anchor.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/api.test.ts` | active |
+| `FTR-034` | 工作区跳转 | `docs/features/FTR-034-workspace-jump.md` | `src/client/views/header.ts` | `tests/api.test.ts` | active |
+| `FTR-035` | 工作区侧边栏阅读 | `docs/features/FTR-035-workspace-sidebar-reader.md` | `src/client/views/sidebar-reader.ts` | `tests/api.test.ts;tests/paging.test.ts;tests/client-assembly.test.ts` | active |

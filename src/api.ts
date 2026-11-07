@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path'
-import type { Chapter, TextBlock } from './formats.ts'
+import type { BookFormat, Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
@@ -110,6 +110,13 @@ export interface OutlineItem {
   chapterId?: string
 }
 
+export interface SessionBookResult {
+  bookId: string
+  title: string
+  format: BookFormat
+  progress: ReadingProgress | null
+}
+
 export interface ReaderState {
   settings: Settings
   books: BookWithProgress[]
@@ -188,6 +195,7 @@ export interface ReaderApi {
   open(payload?: { bookId?: unknown }): Promise<OpenResult>
   chapter(payload?: { bookId?: unknown; chapterId?: unknown }): Promise<ChapterContent>
   saveReadingProgress(payload?: any): Promise<{ bookId: string; chapterId: string }>
+  sessionBook(payload?: { sessionId?: unknown }): Promise<SessionBookResult | null>
   setCompanionSession(payload?: any): Promise<{ bookId: string; sessionId: string | null }>
   sessionAlive(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; alive: boolean }>
   setCompanionPolicy(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; mode: string | null; applied: boolean }>
@@ -534,17 +542,21 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return `/api/dsh-readpilot/${endpoint}?bookId=${encodeURIComponent(book.id)}&path=${encodeURIComponent(src)}`
   }
 
-  async function saveReadingProgress({ bookId, chapterId, chapterTitle, percent }: any = {}): Promise<{ bookId: string; chapterId: string }> {
+  async function saveReadingProgress({ bookId, chapterId, chapterTitle, chapterFraction, percent }: any = {}): Promise<{ bookId: string; chapterId: string }> {
     if (typeof bookId !== 'string' || typeof chapterId !== 'string') {
       throw new ReaderError('invalid-progress', '进度需要 bookId 与 chapterId')
     }
     const book = await resolveBook(bookId)
     const numericPercent = Number(percent)
+    const numericFraction = Number(chapterFraction)
     await enqueueWrite(`progress:${dataDir}`, async () => {
       const progress = await loadProgress(dataDir)
       progress[book.id] = {
         chapterId,
         chapterTitle: typeof chapterTitle === 'string' ? chapterTitle : '',
+        ...(Number.isFinite(numericFraction)
+          ? { chapterFraction: Math.max(0, Math.min(1, numericFraction)) }
+          : {}),
         ...(Number.isFinite(numericPercent)
           ? { percent: Math.max(0, Math.min(100, numericPercent)) }
           : {}),
@@ -585,6 +597,30 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
     }
     return { sessionId, alive: !archivedSessionIds().includes(sessionId) }
+  }
+
+  async function sessionBook({ sessionId }: { sessionId?: unknown } = {}): Promise<SessionBookResult | null> {
+    if (typeof sessionId !== 'string' || !sessionId || sessionId.length > 160) return null
+    if (archivedSessionIds().includes(sessionId)) return null
+    const [sessions, books, progress] = await Promise.all([
+      loadSessions(dataDir),
+      libraryBooks(),
+      loadProgress(dataDir),
+    ])
+    let latest: { bookId: string; updatedAt: number } | null = null
+    for (const [bookId, entry] of Object.entries(sessions)) {
+      if (entry.sessionId !== sessionId) continue
+      if (!latest || entry.updatedAt > latest.updatedAt) latest = { bookId, updatedAt: entry.updatedAt }
+    }
+    if (!latest) return null
+    const book = books.find(candidate => candidate.id === latest.bookId)
+    if (!book) return null
+    return {
+      bookId: book.id,
+      title: book.title,
+      format: book.format,
+      progress: progress[book.id] ?? null,
+    }
   }
 
   async function setCompanionPolicy({ sessionId }: { sessionId?: unknown } = {}): Promise<{ sessionId: string; mode: string | null; applied: boolean }> {
@@ -1147,6 +1183,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       chapter,
       progress: saveReadingProgress,
       session: setCompanionSession,
+      sessionBook,
       sessionAlive,
       companionPolicy: setCompanionPolicy,
       companionContext: setCompanionContext,
@@ -1187,6 +1224,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     saveReadingProgress,
     setCompanionSession,
     sessionAlive,
+    sessionBook,
     setCompanionPolicy,
     setCompanionContext,
     companionContextOf,

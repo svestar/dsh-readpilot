@@ -1,0 +1,333 @@
+import { React, h } from '../runtime.ts'
+import type { CallRpc, Screen, TextFn, Visual } from '../types.ts'
+import type { PageLayout, ReadingAnchor } from '../paging.ts'
+import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
+import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
+import { usePageWidth } from '../hooks/use-page-width.ts'
+import { useTextPager } from '../hooks/use-text-pager.ts'
+import { useVisual } from '../hooks/use-visual.ts'
+import { visualForChapter } from '../reader-screen.ts'
+import { renderBlocks } from './markdown.ts'
+import { ReaderBar } from './reader-bar.ts'
+import { VisualReader } from './visual-reader.ts'
+
+const SIDEBAR_FONT_SIZE = 15
+const SIDEBAR_PROGRESS_DEBOUNCE = 400
+
+export interface SidebarReaderProps {
+  call: CallRpc
+  t: TextFn
+  sessionId?: string
+  useTabInfo?: () => { tab?: { navigation?: { revision?: number } } } | null
+}
+
+interface SidebarBook {
+  bookId: string
+  title: string
+  format: 'txt' | 'md' | 'epub' | 'pdf'
+}
+
+type SidebarMode = 'text' | 'original'
+
+export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderProps) {
+  const tab = useTabInfo ? useTabInfo() : null
+  const revision = tab?.tab?.navigation?.revision ?? 0
+  const [book, setBook] = React.useState<SidebarBook | null>(null)
+  const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
+  const [mode, setMode] = React.useState<SidebarMode>('text')
+  const [loading, setLoading] = React.useState(false)
+  const [error, setError] = React.useState('')
+  const [anchor, setAnchor] = React.useState<ReadingAnchor | null>(null)
+  const anchorTokenRef = React.useRef(0)
+  const progressSkipRef = React.useRef(true)
+  const palette = resolveReaderPalette(readPaletteId())
+  const contentRef = React.useRef<HTMLDivElement | null>(null)
+  const noteLayerRef = React.useRef<HTMLDivElement | null>(null)
+
+  const selectChapter = React.useCallback(async (bookId: string, chapterId: string) => {
+    try {
+      const content = await call('chapter', { bookId, chapterId })
+      setScreen(previous => previous.kind === 'book' ? { ...previous, content } : previous)
+    } catch (cause) {
+      setError(`${t('loadFailed')}：${cause instanceof Error ? cause.message : String(cause)}`)
+    }
+  }, [call, t])
+
+  React.useEffect(() => {
+    if (!sessionId) {
+      setBook(null)
+      setScreen({ kind: 'library' })
+      setLoading(false)
+      return
+    }
+    let cancelled = false
+    setLoading(true)
+    setError('')
+    void (async () => {
+      const found = await call('sessionBook', { sessionId }) as SidebarBook | null
+      if (cancelled) return
+      if (!found) {
+        setBook(null)
+        setScreen({ kind: 'library' })
+        return
+      }
+      setBook(found)
+      if (found.format === 'txt' || found.format === 'md') setMode('text')
+      const detail = await call('open', { bookId: found.bookId })
+      if (cancelled) return
+      if (!detail.supported) throw new Error(t('unsupported'))
+      const target = detail.toc.find((item: any) => item.id === detail.progress?.chapterId) ?? detail.toc[0]
+      if (!target) throw new Error(t('unsupported'))
+      const content = await call('chapter', { bookId: found.bookId, chapterId: target.id })
+      if (cancelled) return
+      const fraction = detail.progress?.chapterFraction
+      setAnchor(typeof fraction === 'number' && Number.isFinite(fraction)
+        ? { chapterId: target.id, fraction: Math.max(0, Math.min(1, fraction)), token: ++anchorTokenRef.current }
+        : null)
+      progressSkipRef.current = true
+      setScreen({ kind: 'book', detail, content })
+    })().catch((cause: unknown) => {
+      if (!cancelled) setError(`${t('loadFailed')}：${cause instanceof Error ? cause.message : String(cause)}`)
+    }).finally(() => {
+      if (!cancelled) setLoading(false)
+    })
+    return () => { cancelled = true }
+  }, [call, revision, sessionId, t])
+
+  const textPageWidth = usePageWidth({
+    enabled: mode === 'text' && screen.kind === 'book',
+    containerRef: contentRef,
+  })
+  const textPager = useTextPager({
+    enabled: mode === 'text' && screen.kind === 'book',
+    layout: 'single',
+    screen,
+    fontSize: SIDEBAR_FONT_SIZE,
+    pageWidth: textPageWidth,
+    anchor,
+    selectChapter,
+  })
+
+  const {
+    visual,
+    setVisual,
+    pageViews,
+    loadedView,
+    pdfPageCount,
+    visualLoading,
+    visualError,
+    epubPage,
+    epubPageCount,
+    epubFrameRef,
+    stepPdfPage,
+    goEpubPage,
+    onEpubLoad,
+  } = useVisual({
+    call,
+    t,
+    screen,
+    palette,
+    setSelection: () => {},
+    selectChapter,
+    readingMode: 'paged',
+    layout: 'single',
+    anchor,
+  })
+
+  React.useEffect(() => {
+    if (screen.kind !== 'book' || mode !== 'original') {
+      setVisual(null)
+      return
+    }
+    setVisual(visualForChapter(screen.detail, screen.content.chapterId, false))
+  }, [mode, screen, setVisual])
+
+  const chapterIndex = screen.kind === 'book'
+    ? screen.detail.toc.findIndex((item: any) => item.id === screen.content.chapterId)
+    : -1
+  const chapterTotal = screen.kind === 'book' ? screen.detail.toc.length : 0
+  const activeChapterId = screen.kind === 'book'
+    ? (visual?.kind === 'pdf'
+      ? screen.detail.toc.find((item: any) => item.page === visual.page)?.id ?? screen.content.chapterId
+      : screen.content.chapterId)
+    : null
+  const activeChapterIndex = screen.kind === 'book'
+    ? screen.detail.toc.findIndex((item: any) => item.id === activeChapterId)
+    : -1
+  const chapterFraction = screen.kind !== 'book'
+    ? 0
+    : mode === 'text'
+      ? textPager.page / Math.max(1, textPager.pageCount)
+      : visual?.kind === 'epub'
+        ? epubPage / Math.max(1, epubPageCount)
+        : 0
+  const chapterPage = mode === 'text' ? textPager.page : visual?.kind === 'epub' ? epubPage : 0
+  const chapterPages = mode === 'text' ? textPager.pageCount : visual?.kind === 'epub' ? epubPageCount : 1
+  const readingPercent = screen.kind !== 'book'
+    ? 0
+    : screen.detail.book.format === 'pdf' && mode === 'original' && visual?.kind === 'pdf'
+      ? pdfPagePercent(visual.page, pdfPageCount || screen.detail.toc.length || 1)
+      : chapterPercent(screen.detail.toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, chapterPage, chapterPages)
+
+  React.useEffect(() => {
+    if (screen.kind !== 'book' || !activeChapterId) return
+    if (progressSkipRef.current) {
+      progressSkipRef.current = false
+      return
+    }
+    const chapterTitle = screen.detail.toc.find((item: any) => item.id === activeChapterId)?.title ?? screen.content.title
+    const timer = window.setTimeout(() => {
+      void call('progress', {
+        bookId: screen.detail.book.id,
+        chapterId: activeChapterId,
+        chapterTitle,
+        chapterFraction: Math.round(chapterFraction * 1000) / 1000,
+        percent: Math.round(readingPercent * 10) / 10,
+      }).catch(() => {})
+    }, SIDEBAR_PROGRESS_DEBOUNCE)
+    return () => window.clearTimeout(timer)
+  }, [activeChapterId, chapterFraction, readingPercent, screen, call])
+
+  const canOriginal = screen.kind === 'book' && (screen.detail.book.format === 'epub' || screen.detail.book.format === 'pdf')
+  const switchMode = (next: SidebarMode) => {
+    if (next === mode || (next === 'original' && !canOriginal)) return
+    const fraction = screen.kind === 'book'
+      ? mode === 'text'
+        ? textPager.page / Math.max(1, textPager.pageCount)
+        : visual?.kind === 'epub'
+          ? epubPage / Math.max(1, epubPageCount)
+          : 0
+      : 0
+    if (screen.kind === 'book') {
+      setAnchor({ chapterId: screen.content.chapterId, fraction, token: ++anchorTokenRef.current })
+    }
+    setMode(next)
+  }
+
+  const pageSpan = pageSpanWidth(textPageWidth, 'single' as PageLayout)
+  const pageFrameStyle = pageSpan > 0 ? { width: `${pageSpan}px`, maxWidth: '100%', margin: '0 auto' } : undefined
+
+  const barProps = screen.kind === 'book'
+    ? mode === 'text'
+      ? {
+        pageStart: textPager.pageStart,
+        pageEnd: textPager.pageEnd,
+        pageTotal: textPager.pageTotal,
+        percent: readingPercent,
+        chapterIndex,
+        chapterTotal,
+        canPrev: textPager.canPrev,
+        canNext: textPager.canNext,
+        onPrev: () => textPager.goPage(-1),
+        onNext: () => textPager.goPage(1),
+      }
+      : visual?.kind === 'pdf'
+        ? {
+          pageStart: visual.page,
+          pageEnd: visual.page,
+          pageTotal: pdfPageCount,
+          percent: readingPercent,
+          chapterIndex,
+          chapterTotal,
+          canPrev: visual.page > 1,
+          canNext: visual.page < (pdfPageCount || visual.page),
+          onPrev: () => stepPdfPage(-1),
+          onNext: () => stepPdfPage(1),
+        }
+        : {
+          pageStart: epubPage + 1,
+          pageEnd: epubPage + 1,
+          pageTotal: epubPageCount,
+          percent: readingPercent,
+          chapterIndex,
+          chapterTotal,
+          canPrev: epubPage > 0 || chapterIndex > 0,
+          canNext: epubPage + 1 < epubPageCount || chapterIndex < chapterTotal - 1,
+          onPrev: () => goEpubPage(-1),
+          onNext: () => goEpubPage(1),
+        }
+    : null
+
+  if (loading) {
+    return h('div', { className: 'dsh-readpilot-sidebar-state' }, t('loading'))
+  }
+  if (error) {
+    return h('div', { className: 'dsh-readpilot-sidebar-state' }, error)
+  }
+  if (!book || screen.kind !== 'book' || !barProps) {
+    return h('div', { className: 'dsh-readpilot-sidebar-state' },
+      h('div', { className: 'dsh-readpilot-sidebar-empty-title' }, t('sidebarReaderEmpty')),
+      h('div', { className: 'dsh-readpilot-sidebar-empty-hint' }, t('sidebarReaderEmptyHint')))
+  }
+
+  const body = mode === 'text'
+    ? h('div', {
+      className: 'dsh-readpilot-reader dsh-readpilot-sidebar-reader',
+      'data-paged': 'true',
+      ref: contentRef,
+      style: { fontSize: `${SIDEBAR_FONT_SIZE}px` },
+    },
+    h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
+      h('div', {
+        className: 'dsh-readpilot-reader-inner dsh-readpilot-paged-inner',
+        ref: textPager.innerRef,
+        style: textPager.innerStyle,
+      },
+      h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
+      renderBlocks(screen.content.blocks, `sidebar-${screen.content.chapterId}`),
+      h('div', { className: 'dsh-readpilot-note-layer', ref: noteLayerRef }))))
+    : h(VisualReader, {
+      t,
+      visual: visual as Visual | null,
+      screen,
+      pageViews,
+      loadedView,
+      layout: 'single' as PageLayout,
+      readingMode: 'paged',
+      stepPdfPage,
+      visualLoading,
+      visualError,
+      onPdfMouseUp: () => {},
+      noteLayerRef,
+      onEpubLoad,
+      epubFrameRef,
+    })
+
+  return h('div', { className: 'dsh-readpilot-sidebar-reader-root' },
+    h('div', { className: 'dsh-readpilot-sidebar-reader-head' },
+      h('div', { className: 'dsh-readpilot-sidebar-reader-title', title: book.title }, book.title),
+      h('div', { className: 'dsh-readpilot-segmented' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-segment',
+          'data-active': mode === 'text' ? 'true' : 'false',
+          onClick: () => switchMode('text'),
+        }, t('sidebarTextMode')),
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-segment',
+          'data-active': mode === 'original' ? 'true' : 'false',
+          disabled: !canOriginal,
+          title: canOriginal ? t('sidebarOriginalMode') : t('sidebarOriginalUnavailable'),
+          onClick: () => switchMode('original'),
+        }, t('sidebarOriginalMode')))),
+    h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
+    h(ReaderBar, {
+      t,
+      format: screen.detail.book.format,
+      mode: 'paged',
+      layout: 'single',
+      chapterTitle: screen.content.title,
+      chapterIndex,
+      chapterTotal,
+      pageStart: barProps.pageStart,
+      pageEnd: barProps.pageEnd,
+      pageTotal: barProps.pageTotal,
+      percent: barProps.percent,
+      reflow: mode === 'text',
+      canPrev: barProps.canPrev,
+      canNext: barProps.canNext,
+      onPrev: barProps.onPrev,
+      onNext: barProps.onNext,
+    }))
+}

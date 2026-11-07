@@ -8,6 +8,7 @@ export interface ProgressPayload {
   bookId: string
   chapterId: string
   chapterTitle?: string
+  chapterFraction?: number
   percent?: number
 }
 
@@ -233,6 +234,7 @@ export interface Operations {
   progress: { payload: ProgressPayload; result: { bookId: string; chapterId: string } }
   session: { payload: SessionPayload; result: { bookId: string; sessionId: string | null } }
   sessionAlive: { payload: { sessionId: string }; result: { sessionId: string; alive: boolean } }
+  sessionBook: { payload: { sessionId: string }; result: import('./api.ts').SessionBookResult | null }
   companionPolicy: { payload: CompanionPolicyPayload; result: CompanionPolicyResult }
   companionContext: { payload: CompanionContextPayload; result: CompanionContextResult }
   search: { payload: SearchPayload; result: SearchResult }
@@ -286,7 +288,7 @@ export type CallRpc = <K extends Operation>(
 ) => Promise<OperationResult<K>>
 
 export const OPERATIONS: readonly Operation[] = [
-  'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive',
+  'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive', 'sessionBook',
   'companionPolicy', 'companionContext', 'search', 'exportNotes', 'openNoteFile',
   'setNoteContext', 'setAutoApplyNotes', 'pageView', 'libraryMeta',
   'setBookTags', 'setBookStatus', 'setBookRating',
