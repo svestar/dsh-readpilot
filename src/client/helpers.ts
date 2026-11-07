@@ -346,6 +346,18 @@ export function applyPaletteToFrame(frame: HTMLIFrameElement | null | undefined,
   ].join('')
 }
 
+function compactAnchorText(text: string): { value: string; map: number[] } {
+  const characters: string[] = []
+  const map: number[] = []
+  for (let index = 0; index < text.length; index += 1) {
+    const character = text[index]
+    if (/\s/u.test(character) || character === '\u00AD' || character === '\u200B' || character === '\uFEFF') continue
+    characters.push(character)
+    map.push(index)
+  }
+  map.push(text.length)
+  return { value: characters.join(''), map }
+}
 export function findNoteOccurrence(
   text: string,
   quote: string,
@@ -369,6 +381,25 @@ export function findNoteOccurrence(
       best = { start: index, end: index + quote.length, score }
     }
     index = text.indexOf(quote, index + 1)
+  }
+  if (best) return { start: best.start, end: best.end }
+  const haystack = compactAnchorText(text)
+  const needle = compactAnchorText(quote)
+  if (!needle.value) return null
+  const compactPrefix = compactAnchorText(wantedPrefix).value
+  const compactSuffix = compactAnchorText(wantedSuffix).value
+  let compactIndex = haystack.value.indexOf(needle.value)
+  while (compactIndex !== -1) {
+    const start = haystack.map[compactIndex]
+    const last = compactIndex + needle.value.length - 1
+    const end = haystack.map[last] + 1
+    const before = compactPrefix ? haystack.value.slice(Math.max(0, compactIndex - compactPrefix.length), compactIndex) : ''
+    const after = compactSuffix ? haystack.value.slice(last + 1, last + 1 + compactSuffix.length) : ''
+    const mismatch = (compactPrefix && before !== compactPrefix ? 100000 : 0)
+      + (compactSuffix && after !== compactSuffix ? 100000 : 0)
+    const score = Math.abs(start - preferred) + mismatch
+    if (!best || score < best.score) best = { start, end, score }
+    compactIndex = haystack.value.indexOf(needle.value, compactIndex + 1)
   }
   return best ? { start: best.start, end: best.end } : null
 }
@@ -521,7 +552,7 @@ export function applyEpubNoteMarks(
   doc.addEventListener('click', onClick)
   const text = doc.body.textContent ?? ''
   for (const note of relevant) {
-    const match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
+    const match = findNoteOccurrence(text, note.quote, typeof note.start === 'number' ? note.start : note.offset, note.quotePrefix, note.quoteSuffix)
     if (!match) continue
     const range = rangeForNote(doc.body, match.start, match.end)
     if (!range) continue

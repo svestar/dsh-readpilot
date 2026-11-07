@@ -86,6 +86,9 @@ export interface NoteEditor {
   quotePrefix?: string
   quoteSuffix?: string
   textHash?: string
+  start?: number
+  end?: number
+  blockHash?: string
 }
 
 export interface NoteRef {

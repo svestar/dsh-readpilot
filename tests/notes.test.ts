@@ -141,3 +141,13 @@ test('concurrent_adds_keep_every_note', async t => {
   assert.equal(notes.length, 5)
   assert.deepEqual(notes.map(note => note.note).sort(), ['note-0', 'note-1', 'note-2', 'note-3', 'note-4'])
 })
+test('canonical_anchor_fields_persist', async t => {
+  const { store } = await tempStore(t)
+  const created = await store.add('book-a', sample({ start: 3, end: 9, blockHash: 'blockhash' }))
+  assert.equal(created.start, 3)
+  assert.equal(created.end, 9)
+  assert.equal(created.blockHash, 'blockhash')
+  const list = await store.list('book-a')
+  assert.equal(list[0].start, 3)
+  assert.equal(list[0].blockHash, 'blockhash')
+})

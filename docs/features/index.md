@@ -43,3 +43,4 @@
 | `FTR-037` | Agent 阅读上下文 | `docs/features/FTR-037-agent-context.md` | `src/tools.ts` | `tests/api.test.ts` | active |
 | `FTR-038` | 阅读感知 | `docs/features/FTR-038-reading-perception.md` | `src/client/plugin.ts` | `tests/api.test.ts` | active |
 | `FTR-039` | 全书概括 | `docs/features/FTR-039-whole-book-digest.md` | `src/digest.ts` | `tests/digest.test.ts;tests/tools.test.ts` | active |
+| `FTR-040` | 跨模式划线锚点 | `docs/features/FTR-040-cross-mode-anchor.md` | `src/notes.ts` | `tests/anchor.test.ts;tests/notes.test.ts` | active |

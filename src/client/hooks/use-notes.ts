@@ -164,23 +164,28 @@ export function useNotes({
   }, [])
 
   const selectionFields = React.useCallback(() => {
-    if (!selection || selection.blockIndex == null || screen.kind !== 'book') return null
+    if (!selection || screen.kind !== 'book') return null
+    const blockIndex = Number.isInteger(selection.blockIndex) ? selection.blockIndex as number : 0
+    const block = screen.content.blocks[blockIndex]
     const chapter = blocksText(screen.content.blocks)
     const stripped = selection.text.replace(/^[\s•·▪◦●]+/, '')
     const quote = stripped || selection.text
     const shift = selection.text.length - quote.length
-    const preferred = offsetInChapter(screen.content.blocks, selection.blockIndex, selection.offset) + shift
+    const preferred = offsetInChapter(screen.content.blocks, blockIndex, selection.offset) + shift
     const occurrence = findNoteOccurrence(chapter, quote, preferred)
     const start = occurrence?.start ?? preferred
     const context = contextAround(chapter, start, start + quote.length)
     return {
       chapterId: activeChapterId,
-      blockIndex: selection.blockIndex,
+      blockIndex,
       offset: selection.offset + shift,
       quote,
       quotePrefix: context.prefix,
       quoteSuffix: context.suffix,
       textHash: hashText(chapter),
+      start,
+      end: start + quote.length,
+      ...(block?.text ? { blockHash: hashText(block.text) } : {}),
     }
   }, [activeChapterId, screen, selection])
 
@@ -301,6 +306,9 @@ export function useNotes({
           quotePrefix: editor.quotePrefix,
           quoteSuffix: editor.quoteSuffix,
           textHash: editor.textHash,
+          start: editor.start,
+          end: editor.end,
+          blockHash: editor.blockHash,
           note: text,
         })
       }
@@ -341,14 +349,28 @@ export function useNotes({
         const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
         const quote = stripped || note.quote
         const shift = note.quote.length - quote.length
-        let match = findNoteOccurrence(text, quote, note.offset + shift, note.quotePrefix, note.quoteSuffix)
+        const preferred = typeof note.start === 'number' ? note.start : note.offset + shift
+        let match = findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix)
         if (!match) {
           match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
         }
-        if (!match) continue
-        const range = rangeForNote(root, match.start, match.end)
-        const pdfRects = isPdf ? pdfNoteRects(pageView, match) : null
-        const rects = pdfRects ?? (range ? [...range.getClientRects()] : [])
+        let block: Element | null = null
+        if (!match && Number.isInteger(note.blockIndex)) {
+          const candidate = root.querySelector(`[data-block-index="${note.blockIndex}"]`)
+          if (candidate && (!note.blockHash || hashText(candidate.textContent ?? '') === note.blockHash)) block = candidate
+        }
+        if (!match && !block) continue
+        const pdfRects = match && isPdf ? pdfNoteRects(pageView, match) : null
+        let rects: Array<{ left: number; top: number; width: number; height: number }>
+        if (pdfRects) rects = pdfRects
+        else if (block) {
+          const blockRange = document.createRange()
+          blockRange.selectNodeContents(block)
+          rects = [...blockRange.getClientRects()]
+        } else {
+          const range = match ? rangeForNote(root, match.start, match.end) : null
+          rects = range ? [...range.getClientRects()] : []
+        }
         for (const rect of rects) {
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')

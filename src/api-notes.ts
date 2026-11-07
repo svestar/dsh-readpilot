@@ -31,6 +31,9 @@ export function createNotesHandlers({ resolveBook, notes, refresh }: NotesHandle
         quotePrefix: payload.quotePrefix,
         quoteSuffix: payload.quoteSuffix,
         textHash: payload.textHash,
+        start: payload.start,
+        end: payload.end,
+        blockHash: payload.blockHash,
       })
       await touch()
       return { note: record }

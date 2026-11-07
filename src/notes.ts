@@ -27,6 +27,9 @@ export interface NoteRecord {
   quotePrefix?: string
   quoteSuffix?: string
   textHash?: string
+  start?: number
+  end?: number
+  blockHash?: string
   createdAt: number
   updatedAt: number
 }
@@ -43,6 +46,9 @@ export interface NewNoteInput {
   quotePrefix?: unknown
   quoteSuffix?: unknown
   textHash?: unknown
+  start?: unknown
+  end?: unknown
+  blockHash?: unknown
 }
 
 export interface NotePatch {
@@ -71,6 +77,9 @@ interface NoteFields {
   quotePrefix?: string
   quoteSuffix?: string
   textHash?: string
+  start?: number
+  end?: number
+  blockHash?: string
 }
 
 function normalizeKind(kind: unknown): NoteKind {
@@ -142,6 +151,9 @@ function validateNewNote(input: NewNoteInput | undefined): NoteFields {
   const quotePrefix = assertOptionalText('quotePrefix', input.quotePrefix)
   const quoteSuffix = assertOptionalText('quoteSuffix', input.quoteSuffix)
   const textHash = assertOptionalText('textHash', input.textHash, 32)
+  const start = input.start === undefined ? undefined : assertPosition('start', input.start)
+  const end = input.end === undefined ? undefined : assertPosition('end', input.end)
+  const blockHash = assertOptionalText('blockHash', input.blockHash, 32)
   return {
     kind,
     color: normalizeColor(input.color),
@@ -154,6 +166,9 @@ function validateNewNote(input: NewNoteInput | undefined): NoteFields {
     ...(quotePrefix ? { quotePrefix } : {}),
     ...(quoteSuffix ? { quoteSuffix } : {}),
     ...(textHash ? { textHash } : {}),
+    ...(start === undefined ? {} : { start }),
+    ...(end === undefined ? {} : { end }),
+    ...(blockHash ? { blockHash } : {}),
   }
 }
 
