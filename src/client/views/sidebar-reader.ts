@@ -3,6 +3,7 @@ import type { CallRpc, ComposerInputActions, Screen, SelectTarget, TextFn, Visua
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
+import { parseReaderResource } from '../reader-resource.ts'
 import { publishProgressSync } from '../progress-sync.ts'
 import { usePageWidth } from '../hooks/use-page-width.ts'
 import { useNotes } from '../hooks/use-notes.ts'
@@ -41,7 +42,7 @@ export interface SidebarReaderProps {
   t: TextFn
   sessionId?: string
   inputActions?: ComposerInputActions | null
-  useTabInfo?: () => { tab?: { navigation?: { revision?: number } } } | null
+  useTabInfo?: () => { tab?: { contentId?: string; navigation?: { revision?: number } } } | null
 }
 
 /**
@@ -77,6 +78,7 @@ type SidebarMode = 'text' | 'original'
 export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: SidebarReaderProps) {
   const tab = useTabInfo ? useTabInfo() : null
   const revision = tab?.tab?.navigation?.revision ?? 0
+  const resourceAddress = tab?.tab?.contentId ?? ''
   const [book, setBook] = React.useState<SidebarBook | null>(null)
   const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
   const [mode, setMode] = React.useState<SidebarMode>('text')
@@ -116,16 +118,40 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
   })
 
   React.useEffect(() => {
-    if (!sessionId) {
+    const resource = parseReaderResource(resourceAddress)
+    if (!sessionId && !resource) {
       setBook(null)
       setScreen({ kind: 'library' })
       setLoading(false)
+      setError('')
       return
     }
     let cancelled = false
     setLoading(true)
     setError('')
     void (async () => {
+      if (resource) {
+        const detail = await call('open', { bookId: resource.bookId })
+        if (cancelled) return
+        if (!detail.supported) throw new Error(t('unsupported'))
+        const target = detail.toc.find((item: any) => item.id === resource.chapterId)
+          ?? detail.toc.find((item: any) => item.id === detail.progress?.chapterId)
+          ?? detail.toc[0]
+        if (!target) throw new Error(t('unsupported'))
+        const content = await call('chapter', { bookId: resource.bookId, chapterId: target.id })
+        if (cancelled) return
+        setBook({ bookId: resource.bookId, title: detail.book.title, format: detail.book.format })
+        if (detail.book.format === 'txt' || detail.book.format === 'md') setMode('text')
+        const offset = typeof resource.offset === 'number' ? resource.offset : null
+        const fraction = chapterFractionForOffset(content.blocks, offset)
+        setAnchor(fraction !== null
+          ? { chapterId: target.id, fraction, token: ++anchorTokenRef.current }
+          : null)
+        progressSkipRef.current = true
+        setScreen({ kind: 'book', detail, content })
+        return
+      }
+      if (!sessionId) return
       const found = await call('sessionBook', { sessionId }) as SidebarBook | null
       if (cancelled) return
       if (!found) {
@@ -154,7 +180,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
       if (!cancelled) setLoading(false)
     })
     return () => { cancelled = true }
-  }, [call, revision, sessionId, t])
+  }, [call, resourceAddress, revision, sessionId, t])
 
   const captureSelection = React.useCallback((target: EventTarget | null) => {
     const targetElement = target instanceof Element ? target : null

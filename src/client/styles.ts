@@ -506,6 +506,10 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-tool-card-pending{color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-tool-card-list{display:flex;flex-direction:column;gap:4px}
 .dsh-readpilot-tool-card-row{display:flex;justify-content:space-between;gap:10px;min-width:0}
+.dsh-readpilot-tool-card-match{display:flex;align-items:flex-start;gap:8px;min-width:0}
+.dsh-readpilot-tool-card-main{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.dsh-readpilot-tool-card-snippet{color:var(--dsw-alias-label-secondary);font-size:11.5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.dsh-readpilot-tool-card-open{flex:none;padding:2px 7px;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-secondary);font:inherit;font-size:11px;cursor:pointer}
 .dsh-readpilot-tool-card-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-tool-card-meta{flex:none;color:var(--dsw-alias-label-tertiary);white-space:nowrap}
 .dsh-readpilot-tool-card-more{color:var(--dsw-alias-label-tertiary)}

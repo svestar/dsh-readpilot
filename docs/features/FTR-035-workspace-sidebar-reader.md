@@ -3,8 +3,8 @@
 - **ID：** FTR-035
 - **名称：** 工作区侧边栏阅读
 - **状态：** active
-- **代码：** `src/client/views/sidebar-reader.ts`（`SidebarReader`、`prefillCompanionQuote`）；`src/client/views/selection-note.ts`（`SelectionToolbar`、`quoteDraft`）；`src/client/plugin.ts`（`apply`）；`src/api.ts`（`sessionBook`、`saveReadingProgress`）；`src/store.ts`（`ReadingProgress.chapterFraction`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）
-- **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`
+- **代码：** `src/client/views/sidebar-reader.ts`；`src/client/reader-resource.ts`；`src/client/views/selection-note.ts`；`src/client/plugin.ts`；`src/api.ts`；`src/store.ts`；`src/client/hooks/use-text-pager.ts`；`src/client/hooks/use-visual.ts`
+- **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`；`tests/reader-resource.test.ts`
 
 ## 行为
 
@@ -13,7 +13,7 @@
 - 文字：所有格式都走文本重排，复用分页、图片与表格渲染。
 - 原版：EPUB 显示原书 iframe，PDF 显示页面位图；TXT/Markdown 没有原版。PDF 翻页会同步当前章节，但章节更新不会把视觉页重置回章首。
 
-阅读器保存与主阅读相同的书籍进度：章节 id、章节内比例 `chapterFraction` 和全书百分比。打开时按 `chapterFraction` 恢复到同一章节位置；模式切换也先生成锚点。侧边栏翻页并成功写入进度后广播一次同步事件；主阅读若已挂载则按同一章节比例重新定位。主阅读重新可见时还会重新读取 Host 进度并按比例定位，因此面板被卸载再挂载也能跟随最新位置。不做同屏持续联动。
+阅读器保存与主阅读相同的书籍进度：章节 id、章节内比例 `chapterFraction` 和全书百分比。打开时按 `chapterFraction` 恢复到同一章节位置；模式切换也先生成锚点。侧边栏翻页并成功写入进度后广播一次同步事件；主阅读若已挂载则按同一章节比例重新定位。主阅读重新可见时还会重新读取 Host 进度并按比例定位，因此面板被卸载再挂载也能跟随最新位置。不做同屏持续联动。Tab 类型声明 `dsh-resource://dsh-readpilot/**` 资源模式；工具卡或外部调用用 `openResource` 打开 `dsh-resource://dsh-readpilot/book/<bookId>?chapter=...&offset=...`，正文优先按地址加载并定位，没有地址时仍按会话反查。
 
 ## 接口与代码映射
 
@@ -24,6 +24,7 @@
 | `quoteDraft` | `src/client/views/selection-note.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
 | `apply` | `src/client/plugin.ts:apply` | 注册 `dsh-readpilot` Tab 类型与正文席位 |
 | `sessionBook` | `src/api.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
+| `parseReaderResource` / `buildReaderResource` | `src/client/reader-resource.ts:parseReaderResource`；`src/client/reader-resource.ts:buildReaderResource` | 解析/生成 `dsh-resource://` 阅读地址 |
 | `saveReadingProgress` | `src/api.ts:saveReadingProgress` | 写入章节内比例 |
 | `ReadingProgress.chapterFraction` | `src/store.ts:ReadingProgress` | 跨视图的规范位置 |
 | `useTextPager` / `useVisual` | `src/client/hooks/use-text-pager.ts:useTextPager` | 文字与原版单页渲染 |
@@ -40,3 +41,4 @@
 - 正常路径：侧边栏进度事件只接受带书、章节、比例与来源的合法载荷（`progress_sync_reads_only_well_formed_sidebar_events`）。
 - 正常路径：PDF 翻页导致的章节内容更新保留当前视觉页，只有换书才重置（`sidebar_pdf_visual_keeps_current_page_when_chapter_updates`）。
 - 正常路径：侧栏“问伴读”优先插入原生引用节点，不可用时退回 `> …` 草稿（`sidebar_companion_quote_uses_native_quote_insertion`、`sidebar_companion_quote_falls_back_to_the_draft`）。
+- 正常路径：阅读资源地址可往返生成/解析书、章节与偏移，其他 origin 返回 null（`reader_resource_roundtrips_book_chapter_offset`）。

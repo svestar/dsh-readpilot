@@ -53,7 +53,7 @@ import { ReaderBar } from './views/reader-bar.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
-import { ReaderBooksToolView } from './views/reader-tool-view.ts'
+import { ReaderBooksToolView, ReaderOpenToolView, ReaderSearchToolView } from './views/reader-tool-view.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
@@ -1549,6 +1549,7 @@ export function createPlugin(require: (name: string) => any) {
             () => ctx.sidebarRightTabs.register({
               id: 'dsh-readpilot.sidebar',
               kind: 'dsh-readpilot',
+              patterns: ['dsh-resource://dsh-readpilot/**'],
               title: () => boundText('sidebarReaderTitle'),
               guide: [{
                 id: 'reader',
@@ -1575,6 +1576,39 @@ export function createPlugin(require: (name: string) => any) {
             locale: NS,
           }, (props: any) => h(ReaderBooksToolView, { ...props, t: props.t ?? boundText }))),
           'dsh-readpilot: reader_books tool view',
+        )
+        const openReaderResource = typeof ctx.sidebarRight?.openResource === 'function'
+          ? (address: string) => {
+            try {
+              ctx.sidebarRight.openResource(address)
+            } catch (error) {
+              console.warn('dsh-readpilot: could not open reader resource', error)
+            }
+          }
+          : undefined
+        ctx.effect(
+          () => ctx.slots.inject('tool.call.toolview', () => ctx.slots.register({
+            name: 'tool.call.toolview',
+            key: 'reader_search',
+            locale: NS,
+          }, (props: any) => h(ReaderSearchToolView, {
+            ...props,
+            t: props.t ?? boundText,
+            onOpen: openReaderResource,
+          }))),
+          'dsh-readpilot: reader_search tool view',
+        )
+        ctx.effect(
+          () => ctx.slots.inject('tool.call.toolview', () => ctx.slots.register({
+            name: 'tool.call.toolview',
+            key: 'reader_open',
+            locale: NS,
+          }, (props: any) => h(ReaderOpenToolView, {
+            ...props,
+            t: props.t ?? boundText,
+            onOpen: openReaderResource,
+          }))),
+          'dsh-readpilot: reader_open tool view',
         )
         ctx.effect(
           () => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({
