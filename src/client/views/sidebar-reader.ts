@@ -430,6 +430,15 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
           title: canOriginal ? t('sidebarOriginalMode') : t('sidebarOriginalUnavailable'),
           onClick: () => switchMode('original'),
         }, t('sidebarOriginalMode')))),
+    selection && !noteEditor
+      ? h(SelectionToolbar, {
+        t,
+        selection,
+        inline: true,
+        onNote: () => openNoteEditor(),
+        onHighlight: (color: string) => { void addHighlight(color) },
+      })
+      : null,
     h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
     h(ReaderBar, {
       t,
@@ -464,14 +473,6 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
         deleteNote,
         closeNoteEditor,
         saveNote,
-      })
-      : null,
-    selection && !noteEditor
-      ? h(SelectionToolbar, {
-        t,
-        selection,
-        onNote: () => openNoteEditor(),
-        onHighlight: (color: string) => { void addHighlight(color) },
       })
       : null)
 }

@@ -10,13 +10,14 @@ interface SelectionToolbarProps {
   onAsk?: () => void
   onNote: () => void
   onHighlight: (color: string) => void
+  inline?: boolean
 }
 
-export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: SelectionToolbarProps) {
+export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight, inline = false }: SelectionToolbarProps) {
   if (!selection) return null
   return h('div', {
-    className: 'dsh-readpilot-selection',
-    style: { left: selection.x, top: Math.max(8, selection.y - 48) },
+    className: `dsh-readpilot-selection${inline ? ' dsh-readpilot-selection-inline' : ''}`,
+    style: inline ? undefined : { left: selection.x, top: Math.max(8, selection.y - 48) },
     onMouseDown: (event: any) => event.preventDefault(),
   },
   selection.blockIndex == null
@@ -32,9 +33,7 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
         onClick: () => onHighlight(color),
       }))),
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
-  selection.blockIndex == null
-    ? null
-    : h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')))
+  h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')))
 }
 
 interface NoteDialogProps {
