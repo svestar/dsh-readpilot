@@ -45,7 +45,7 @@ import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
 import { ReaderSettings } from './reader-settings.ts'
 import { SidebarReader } from './views/sidebar-reader.ts'
-import { companionSessionTitle, renameCompanionSession } from './session-title.ts'
+import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './session-title.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
@@ -1355,6 +1355,14 @@ export function createPlugin(require: (name: string) => any) {
       apply(ctx: any) {
         runtime = ctx
         boundText = ctx.locale.bind(NS)
+        void (async () => {
+          try {
+            const value = await call('state')
+            await syncCompanionSessionTitles(runtime, value.books ?? [], value.sessions ?? {})
+          } catch {
+            // Session titles are best effort; reader open retries.
+          }
+        })()
         ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-readpilot: dictionaries')
         if (ctx.sidebarRightTabs) {
           ctx.effect(

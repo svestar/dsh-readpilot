@@ -34,3 +34,4 @@
 ## 验收与测试
 
 - 正常路径：书名生成 `《书名》· 伴读`，空白书名回退“未命名书籍”（`companion_session_title_is_stable_and_identifies_book`）。
+- 正常路径：同步只改有书籍映射的会话，未知 bookId 跳过（`sync_companion_session_titles_renames_linked_sessions`）。
