@@ -33,6 +33,7 @@ export interface LongNotesState {
   historyBusy: boolean
   exporting: boolean
   exportStatus: string
+  clearExportStatus: () => void
   externalBusy: boolean
   confirmMessage: string
   settleConfirm: (ok: boolean) => void
@@ -456,8 +457,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     }
   }, [active, activeBookId, call, confirm, historyBusy, loadHistory, t])
 
-  const exportNotes = React.useCallback(async (save: boolean) => {
-    if (!activeBookId || exporting) return
+  const clearExportStatus = React.useCallback(() => setExportStatus(''), [])
+
+  const exportNotes = React.useCallback(async (save: boolean) => {    if (!activeBookId || exporting) return
     const bookId = activeBookId
     setExporting(true)
     setExportStatus('')
@@ -507,6 +509,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     historyBusy,
     exporting,
     exportStatus,
+    clearExportStatus,
     externalBusy,
     confirmMessage,
     settleConfirm,

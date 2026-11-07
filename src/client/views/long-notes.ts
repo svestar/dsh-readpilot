@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { React, Toast, h } from '../runtime.ts'
 import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
 import { ConfirmDialog } from './confirm-dialog.ts'
@@ -136,10 +136,7 @@ export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) 
         className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
         disabled: state.exporting,
         onClick: () => void state.exportNotes(true),
-      }, t('exportSave')),
-      state.exportStatus
-        ? h('span', { className: 'dsh-readpilot-long-hint' }, state.exportStatus)
-        : null),
+      }, t('exportSave'))),
     noteContext
       ? h('button', {
         type: 'button',
@@ -269,6 +266,13 @@ export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) 
             ? null
             : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
         ],
+      })
+      : null,
+    state.exportStatus
+      ? h(Toast, {
+        text: state.exportStatus,
+        tone: 'success',
+        onDone: state.clearExportStatus,
       })
       : null,
     h(ConfirmDialog, {

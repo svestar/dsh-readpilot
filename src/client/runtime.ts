@@ -16,6 +16,7 @@ export let h!: (...args: any[]) => any
 export let createPortal!: (children: any, container: Element) => any
 export let Modal!: any
 export let Tooltip!: any
+export let Toast!: any
 export let useVirtualizer: any
 
 export function bindRuntime(require: (name: string) => any): void {
@@ -25,6 +26,7 @@ export function bindRuntime(require: (name: string) => any): void {
   const primitives = require('@deepseek-ai/dsh-client-ui-primitives')
   Modal = primitives.Modal
   Tooltip = primitives.Tooltip
+  Toast = primitives.Toast
   try {
     useVirtualizer = require('@tanstack/react-virtual').useVirtualizer
   } catch {
