@@ -12,6 +12,8 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-header{flex:none;display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-header-main{display:flex;align-items:center;gap:10px;min-width:0;flex:1}
 .dsh-readpilot-header-actions{display:flex;align-items:center;gap:6px;flex:none}
+.dsh-readpilot-header-workspace{flex:none;display:flex;align-items:center;padding-left:12px;border-left:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-workspace-btn{height:28px;padding:0 10px;border-radius:14px;font-size:12px}
 .dsh-readpilot-icon-btn{display:inline-flex;align-items:center;justify-content:center;min-width:28px;height:28px;padding:0 6px;border:1px solid transparent;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;cursor:pointer}
 .dsh-readpilot-icon-btn:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-icon-btn:disabled{opacity:.45;cursor:default}

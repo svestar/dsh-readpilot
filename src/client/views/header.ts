@@ -47,6 +47,16 @@ export function Header({
       h('div', { style: { minWidth: 0 } },
         h('div', { className: 'dsh-readpilot-title' }, title),
         subtitle ? h('div', { className: 'dsh-readpilot-subtitle' }, subtitle) : null)),
+    screen.kind === 'book'
+      ? h('div', { className: 'dsh-readpilot-header-workspace' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary dsh-readpilot-workspace-btn',
+          disabled: openingWorkspace,
+          title: openingWorkspace ? t('openingWorkspace') : t('openWorkspace'),
+          onClick: onOpenWorkspace,
+        }, openingWorkspace ? '…' : t('openWorkspace')))
+      : null,
     h('div', { className: 'dsh-readpilot-header-actions' },
       screen.kind === 'book'
         ? h('button', {
@@ -57,15 +67,6 @@ export function Header({
           'aria-expanded': settingsOpen ? 'true' : 'false',
           onClick: onToggleSettings,
         }, 'Aa')
-        : null,
-      screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          disabled: openingWorkspace,
-          title: openingWorkspace ? t('openingWorkspace') : t('openWorkspace'),
-          onClick: onOpenWorkspace,
-        }, openingWorkspace ? '…' : t('openWorkspace'))
         : null,
       screen.kind === 'book'
         ? h('button', {
