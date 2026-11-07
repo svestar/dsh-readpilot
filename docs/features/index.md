@@ -29,7 +29,7 @@
 | `FTR-023` | 记忆 | `docs/features/FTR-023-memory.md` | `src/companion-settings.ts` | `tests/memory.test.ts` | active |
 | `FTR-024` | 笔记导出 | `docs/features/FTR-024-note-export.md` | `src/note-export.ts` | `tests/note-export.test.ts;tests/api.test.ts` | active |
 | `FTR-025` | 笔记历史 | `docs/features/FTR-025-note-history.md` | `src/note-files.ts` | `tests/note-history.test.ts;tests/api.test.ts` | active |
-| `FTR-026` | 对话页码跳转 | `docs/features/FTR-026-chat-jump.md` | `src/jump-url.ts` | `tests/chat-jump.test.ts` | active |
+| `FTR-026` | 对话页码跳转 | `docs/features/FTR-026-chat-jump.md` | `src/jump-url.ts` | `tests/chat-jump.test.ts;tests/sidebar-reader.test.ts` | active |
 | `FTR-027` | 阅读状态与评分 | `docs/features/FTR-027-read-status.md` | `src/library-meta.ts` | `tests/library-organization.test.ts` | active |
 | `FTR-028` | 真实封面 | `docs/features/FTR-028-covers.md` | `src/visual/epub.ts` | `tests/cover.test.ts` | active |
 | `FTR-029` | 键盘快捷键 | `docs/features/FTR-029-shortcuts.md` | `src/client/shortcuts.ts` | `tests/shortcuts.test.ts` | active |

@@ -3,8 +3,8 @@
 - **ID：** FTR-026
 - **名称：** 对话页码跳转
 - **状态：** active
-- **代码：** `src/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/views/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
-- **测试：** `tests/chat-jump.test.ts`
+- **代码：** `src/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/views/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/client/views/sidebar-reader.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
+- **测试：** `tests/chat-jump.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为
 
@@ -14,7 +14,7 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 
 阅读工具的 `reader_open`、`reader_read`、`reader_search`、`reader_context` 结果仍保留 `jumpUrl`，`src/jump-url.ts` 与 `useChatJump` 的解析能力也保留：如果历史消息或手工消息里已有 `https://dsh-readpilot.invalid/jump?...` 链接，客户端仍会拦截并跳转。提示词不再要求模型生成这些链接，自动页码按钮不依赖它们。
 
-客户端在 document 捕获阶段拦截指向该地址的 `<a>`，解析 book/chapter/offset/q；当前书内直接调用 `selectChapter(..., { offset, flash: true })` 跳转并高亮。没有 offset 而带 q 时，先在本书检索并要求命中同一章节；找不到则显示错误。窄屏跳转后收起伴读抽屉，宽屏保留伴读栏。
+客户端在 document 捕获阶段拦截指向该地址的 `<a>`，解析 book/chapter/offset/q；当前书内直接调用 `selectChapter(..., { offset, flash: true })` 跳转并高亮。没有 offset 而带 q 时，先在本书检索并要求命中同一章节；找不到则显示错误。窄屏跳转后收起伴读抽屉，宽屏保留伴读栏。主阅读面板与工作区侧栏阅读都挂载 `useChatJump`；侧栏把 offset 映射为章节文本比例写入阅读锚点，窄屏收起动作为 no-op。
 
 ## 接口与代码映射
 
@@ -36,3 +36,4 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 
 - 正常：链接生成/解析保留 book、chapter、offset、q，并拒绝非目标 origin（`reader_jump_url_roundtrip_and_validation`）。
 - 正常：PDF 页码范围可被识别为起始页按钮，普通章节号不误识别（`page_references_find_ranges_and_single_pages`）。
+- 边界：侧栏把章节文本 offset 映射为 0–1 的阅读比例，空章节返回 null（`sidebar_chapter_offset_maps_to_reading_fraction`）。

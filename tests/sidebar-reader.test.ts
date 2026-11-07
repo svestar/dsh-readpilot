@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { preserveSidebarVisual, prefillCompanionQuote } from '../src/client/views/sidebar-reader.ts'
+import { preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/views/sidebar-reader.ts'
 
 test('sidebar_pdf_visual_keeps_current_page_when_chapter_updates', () => {
   const current = { kind: 'pdf' as const, page: 2, scale: 1.5 }
@@ -13,6 +13,15 @@ test('sidebar_epub_visual_keeps_same_href_and_follows_chapter_change', () => {
   const current = { kind: 'epub' as const, href: 'ch1.xhtml' }
   assert.deepEqual(preserveSidebarVisual(current, { kind: 'epub', href: 'ch1.xhtml' }, false), current)
   assert.deepEqual(preserveSidebarVisual(current, { kind: 'epub', href: 'ch2.xhtml' }, false), { kind: 'epub', href: 'ch2.xhtml' })
+})
+
+test('sidebar_chapter_offset_maps_to_reading_fraction', () => {
+  const blocks = [{ text: 'abcd' }, { text: 'ef' }]
+  assert.equal(chapterFractionForOffset(blocks, 3), 0.5)
+  assert.equal(chapterFractionForOffset(blocks, -5), 0)
+  assert.equal(chapterFractionForOffset(blocks, 50), 1)
+  assert.equal(chapterFractionForOffset(blocks, null), null)
+  assert.equal(chapterFractionForOffset([], 1), null)
 })
 
 test('sidebar_companion_quote_uses_native_quote_insertion', () => {

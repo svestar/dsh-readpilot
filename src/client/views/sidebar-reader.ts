@@ -1,5 +1,5 @@
 import { React, h } from '../runtime.ts'
-import type { CallRpc, ComposerInputActions, Screen, TextFn, Visual } from '../types.ts'
+import type { CallRpc, ComposerInputActions, Screen, SelectTarget, TextFn, Visual } from '../types.ts'
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
@@ -9,6 +9,7 @@ import { useNotes } from '../hooks/use-notes.ts'
 import { useTextPager } from '../hooks/use-text-pager.ts'
 import { useVisual } from '../hooks/use-visual.ts'
 import { useSelectionDismiss } from '../hooks/use-selection-dismiss.ts'
+import { useChatJump } from '../hooks/use-chat-jump.ts'
 import { visualForChapter } from '../reader-screen.ts'
 import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
@@ -23,6 +24,16 @@ export function preserveSidebarVisual(previous: Visual | null, next: Visual | nu
   if (previous.kind === 'pdf') return previous
   if (previous.kind === 'epub' && next?.kind === 'epub' && next.href === previous.href) return previous
   return next
+}
+
+export function chapterFractionForOffset(
+  blocks: ReadonlyArray<{ text: string }> | null | undefined,
+  offset: number | null,
+): number | null {
+  if (offset === null || !Number.isFinite(offset)) return null
+  const chars = (blocks ?? []).reduce((sum, block) => sum + (block.text?.length ?? 0), 0)
+  if (chars <= 0) return null
+  return Math.max(0, Math.min(1, offset / chars))
 }
 
 export interface SidebarReaderProps {
@@ -75,19 +86,34 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
   const [selection, setSelection] = React.useState<any>(null)
   const anchorTokenRef = React.useRef(0)
   const progressSkipRef = React.useRef(true)
+  const noopSetChatOpen = React.useCallback(() => {}, [])
   const palette = resolveReaderPalette(readPaletteId())
   const contentRef = React.useRef<HTMLDivElement | null>(null)
   const rootRef = React.useRef<HTMLDivElement | null>(null)
   const visualBookRef = React.useRef('')
 
-  const selectChapter = React.useCallback(async (bookId: string, chapterId: string) => {
+  const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: SelectTarget) => {
     try {
       const content = await call('chapter', { bookId, chapterId })
+      const offset = typeof target?.offset === 'number' ? target.offset : null
+      const fraction = chapterFractionForOffset(content.blocks, offset)
+      setAnchor(fraction !== null
+        ? { chapterId, fraction, token: ++anchorTokenRef.current }
+        : null)
       setScreen(previous => previous.kind === 'book' ? { ...previous, content } : previous)
     } catch (cause) {
       setError(`${t('loadFailed')}：${cause instanceof Error ? cause.message : String(cause)}`)
     }
   }, [call, t])
+
+  useChatJump({
+    call,
+    screen,
+    t,
+    selectChapter,
+    setChatError: setError,
+    setChatOpen: noopSetChatOpen,
+  })
 
   React.useEffect(() => {
     if (!sessionId) {

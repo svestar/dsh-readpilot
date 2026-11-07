@@ -68,6 +68,17 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
     () => new Map<string, string>(toc ? toc.map(item => [item.id, item.title]) : []),
     [toc],
   )
+  const bookmarkContexts = React.useMemo(() => {
+    const cache = new Map<string, { chapterTitle: string; pageLabel: string }>()
+    return (chapterId: string | null) => {
+      const key = chapterId ?? ''
+      const cached = cache.get(key)
+      if (cached) return cached
+      const value = bookmarkContext(screen, chapterId)
+      cache.set(key, value)
+      return value
+    }
+  }, [screen])
   const colors = markColors(allMarks)
   const chapterTitles = screen.kind === 'book'
     ? screen.detail.toc.filter(item => chapterIdSet.has(item.id))
@@ -174,7 +185,7 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                   h('h4', null, t('bookmarks')),
                   h('span', { className: 'dsh-readpilot-section-count' }, String(visibleBookmarks.length))),
                 visibleBookmarks.map(bookmark => {
-                  const context = bookmarkContext(screen, bookmark.chapterId)
+                  const context = bookmarkContexts(bookmark.chapterId)
                   const title = context.chapterTitle || bookmark.note || t('bookmark')
                   const detail = bookmark.annotation
                     || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')

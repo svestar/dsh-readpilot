@@ -346,7 +346,12 @@ export function applyPaletteToFrame(frame: HTMLIFrameElement | null | undefined,
   ].join('')
 }
 
-function compactAnchorText(text: string): { value: string; map: number[] } {
+export interface CompactAnchor {
+  value: string
+  map: number[]
+}
+
+export function compactAnchorText(text: string): CompactAnchor {
   const characters: string[] = []
   const map: number[] = []
   for (let index = 0; index < text.length; index += 1) {
@@ -358,12 +363,14 @@ function compactAnchorText(text: string): { value: string; map: number[] } {
   map.push(text.length)
   return { value: characters.join(''), map }
 }
+
 export function findNoteOccurrence(
   text: string,
   quote: string,
   preferredOffset = 0,
   prefix = '',
   suffix = '',
+  compact?: () => CompactAnchor,
 ): { start: number; end: number } | null {
   if (typeof text !== 'string' || typeof quote !== 'string' || !quote) return null
   const preferred = Number.isFinite(Number(preferredOffset)) ? Number(preferredOffset) : 0
@@ -383,7 +390,7 @@ export function findNoteOccurrence(
     index = text.indexOf(quote, index + 1)
   }
   if (best) return { start: best.start, end: best.end }
-  const haystack = compactAnchorText(text)
+  const haystack = compact ? compact() : compactAnchorText(text)
   const needle = compactAnchorText(quote)
   if (!needle.value) return null
   const compactPrefix = compactAnchorText(wantedPrefix).value
@@ -554,9 +561,12 @@ export function applyEpubNoteMarks(
   }
   doc.addEventListener('click', onClick)
   const text = doc.body.textContent ?? ''
+  let compact: CompactAnchor | null = null
+  const compactText = () => (compact ??= compactAnchorText(text))
   for (const note of relevant) {
-    const match = findNoteOccurrence(text, note.quote, typeof note.start === 'number' ? note.start : note.offset, note.quotePrefix, note.quoteSuffix)
+    const match = findNoteOccurrence(text, note.quote, typeof note.start === 'number' ? note.start : note.offset, note.quotePrefix, note.quoteSuffix, compactText)
     if (!match) continue
+    // Each inserted mark can split text nodes, so recollect before the next range.
     const range = rangeForNote(doc.body, match.start, match.end)
     if (!range) continue
     const mark = doc.createElement('mark')

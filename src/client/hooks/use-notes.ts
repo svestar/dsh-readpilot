@@ -4,13 +4,14 @@ import { bookmarkContext } from '../bookmark-label.ts'
 import {
   applyEpubNoteMarks,
   collectTextNodes,
+  compactAnchorText,
   findNoteOccurrence,
   messageOf,
   pdfNoteRects,
   rangeForNodes,
   timestampOf,
 } from '../helpers.ts'
-import type { ReaderPalette } from '../helpers.ts'
+import type { CompactAnchor, ReaderPalette } from '../helpers.ts'
 import type { PageLayout } from '../paging.ts'
 import type { StateSetter } from '../runtime.ts'
 import type {
@@ -346,14 +347,16 @@ export function useNotes({
       const doc = root.ownerDocument ?? document
       const layerRect = layer.getBoundingClientRect()
       const isPdf = visual?.kind === 'pdf'
+      let compact: CompactAnchor | null = null
+      const compactText = () => (compact ??= compactAnchorText(text))
       for (const note of relevant) {
         const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
         const quote = stripped || note.quote
         const shift = note.quote.length - quote.length
         const preferred = typeof note.start === 'number' ? note.start : note.offset + shift
-        let match = findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix)
+        let match = findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
         if (!match) {
-          match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix)
+          match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
         }
         let block: Element | null = null
         if (!match && Number.isInteger(note.blockIndex)) {
