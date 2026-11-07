@@ -50,7 +50,7 @@ import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
 import { NoteDialog, SelectionToolbar, quoteDraft } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
-import { useCompanion } from './hooks/use-companion.ts'
+import { companionMode, useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
 import { useSearch } from './hooks/use-search.ts'
@@ -307,6 +307,8 @@ export function createPlugin(require: (name: string) => any) {
         : null
       const workspaceId = snapshot?.settings?.workspaceId ?? null
 
+      const [nativeFailed, setNativeFailed] = React.useState(false)
+      const nativeMode = companionMode(Boolean(props.SessionProvider), Boolean(props.renderSlot), nativeFailed) === 'native'
       const {
         chatOpen,
         setChatOpen,
@@ -322,6 +324,7 @@ export function createPlugin(require: (name: string) => any) {
         chatInputRef,
         running,
         messages,
+        eventSeq,
         send,
         loadEarlier,
         startResize,
@@ -333,18 +336,19 @@ export function createPlugin(require: (name: string) => any) {
         loadingEarlier,
         chatBinding,
         ensureSession,
-      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, rememberSession, forgetSession })
+      } = useCompanion({ runtime, call, t, screen, workspaceId, activeSessionId, nativeMode, rememberSession, forgetSession })
 
       const nativeInputRef = React.useRef<any>(null)
       const handleNativeReady = React.useCallback((value: any) => {
         nativeInputRef.current = value
-        if (!value || !chatBinding?.sessionId) return
-        void call('companionPolicy', { sessionId: chatBinding.sessionId }).catch(() => {})
-      }, [chatBinding, call])
+      }, [])
+      const handleNativeFallback = React.useCallback(() => setNativeFailed(true), [])
 
 
       const lastMessage = messages[messages.length - 1]
-      const chatVersion = `${messages.length}:${lastMessage?.key ?? ''}:${lastMessage?.text.length ?? 0}`
+      const chatVersion = nativeMode
+        ? `native:${eventSeq}`
+        : `${messages.length}:${lastMessage?.key ?? ''}:${lastMessage?.text.length ?? 0}`
       const longNotes = useLongNotes({ call, t, activeBookId, notesTabActive: chatTab === 'long', draftWatch: chatOpen, chatVersion })
       const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'memory' })
 
@@ -1097,9 +1101,13 @@ export function createPlugin(require: (name: string) => any) {
 
       const companionReference = chatBinding?.reference
       const nativeChat = companionReference && props.SessionProvider && props.renderSlot
-        ? h(NativeChatBoundary, { fallback: fallbackChat },
+        ? h(NativeChatBoundary, { fallback: fallbackChat, onError: handleNativeFallback },
           h(props.SessionProvider, { session: companionReference },
-            props.renderSlot('dsh-readpilot.companion', { onReady: handleNativeReady, fallback: fallbackChat })))
+            props.renderSlot('dsh-readpilot.companion', {
+              onReady: handleNativeReady,
+              onFallback: handleNativeFallback,
+              fallback: fallbackChat,
+            })))
         : null
 
       const notesBody = h(NotesBody, {

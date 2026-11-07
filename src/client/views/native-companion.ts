@@ -10,7 +10,7 @@ export function createNativeChatBoundary(): any {
   const Base: new (...args: any[]) => any = React.Component
   return class NativeChatBoundary extends Base {
     declare state: { failed: boolean }
-    declare props: { children?: any; fallback?: any }
+    declare props: { children?: any; fallback?: any; onError?: () => void }
 
     constructor(props: any) {
       super(props)
@@ -23,6 +23,7 @@ export function createNativeChatBoundary(): any {
 
     componentDidCatch(error: any, info: any) {
       console.error('dsh-readpilot: native companion failed', error, info)
+      this.props.onError?.()
     }
 
     render() {
@@ -51,6 +52,7 @@ export function NativeCompanion(props: any) {
     sessionId,
     inputActions,
     onReady,
+    onFallback,
     fallback,
   } = props
 
@@ -65,7 +67,12 @@ export function NativeCompanion(props: any) {
   const conversation = useConversation((value: any) => value)
   const summaryBlank = useSessions((state: any) => state?.byId?.[sessionId]?.blank)
 
-  if (typeof renderFactorySlot !== 'function' || sessionId === undefined) {
+  const unavailable = typeof renderFactorySlot !== 'function' || sessionId === undefined
+  React.useEffect(() => {
+    if (unavailable && typeof onFallback === 'function') onFallback()
+  }, [unavailable, onFallback])
+
+  if (unavailable) {
     return fallback ?? null
   }
 

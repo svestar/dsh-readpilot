@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { currentReaderScreen, rememberReaderScreen } from '../src/client/reader-screen.ts'
 import { isMissingSessionError } from '../src/client/session-recovery.ts'
+import { companionMode } from '../src/client/hooks/use-companion.ts'
 
 const globalAny = globalThis as any
 
@@ -156,6 +157,13 @@ test('native_companion_falls_back_without_factory', () => {
     fallback: 'fallback',
   })
   assert.equal(element, 'fallback')
+})
+
+test('companion_mode_uses_native_until_failure', () => {
+  assert.equal(companionMode(true, true, false), 'native')
+  assert.equal(companionMode(true, true, true), 'fallback')
+  assert.equal(companionMode(false, true, false), 'fallback')
+  assert.equal(companionMode(true, false, false), 'fallback')
 })
 
 test('reader_screen_cache_remembers_last_screen', () => {

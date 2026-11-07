@@ -14,7 +14,15 @@ import type { CallRpc, ChatMessage, Screen, TextFn } from '../types.ts'
 interface ChatBinding {
   sessionId: string
   reference: any
+  nativeMode: boolean
   unsubscribe: () => void
+}
+
+export type CompanionMode = 'native' | 'fallback'
+
+/** Native rendering owns the transcript; folding is only needed for the fallback. */
+export function companionMode(hasProvider: boolean, hasRenderSlot: boolean, nativeFailed: boolean): CompanionMode {
+  return hasProvider && hasRenderSlot && !nativeFailed ? 'native' : 'fallback'
 }
 
 interface CompanionOptions {
@@ -24,6 +32,7 @@ interface CompanionOptions {
   screen: Screen
   workspaceId: string | null
   activeSessionId: string | null
+  nativeMode: boolean
   rememberSession: (bookId: string, sessionId: string) => void
   forgetSession: (bookId: string) => void
 }
@@ -35,6 +44,7 @@ export function useCompanion({
   screen,
   workspaceId,
   activeSessionId,
+  nativeMode,
   rememberSession,
   forgetSession,
 }: CompanionOptions) {
@@ -45,6 +55,7 @@ export function useCompanion({
   const [chatError, setChatError] = React.useState('')
   const [entries, setEntries] = React.useState<any[]>([])
   const [hasMore, setHasMore] = React.useState(false)
+  const [eventSeq, setEventSeq] = React.useState(0)
   const [loadingEarlier, setLoadingEarlier] = React.useState(false)
   const [chatBinding, setChatBinding] = React.useState<any>(null)
   const [chatTab, setChatTab] = React.useState('chat')
@@ -90,7 +101,9 @@ export function useCompanion({
       releaseChat()
       return null
     }
-    if (chatRef.current?.sessionId === sessionId) return chatRef.current.reference
+    if (chatRef.current?.sessionId === sessionId && chatRef.current.nativeMode === nativeMode) {
+      return chatRef.current.reference
+    }
     releaseChat()
     setChatError('')
     let reference: any
@@ -106,14 +119,44 @@ export function useCompanion({
       return null
     }
     const source = reference.binding.eventSource
-    const update = () => {
-      const value = source.getSnapshot()
-      setEntries(value.entries)
-      setHasMore(value.hasMore)
+    const record: ChatBinding = { sessionId, reference, nativeMode, unsubscribe: () => {} }
+    if (nativeMode) {
+      let lastSeq = -1
+      let lastAt = 0
+      let timer = 0
+      const flush = () => {
+        timer = 0
+        if (lastSeq >= 0) setEventSeq(lastSeq)
+      }
+      const update = () => {
+        const value = source.getSnapshot()
+        const seq = value.entries.length ? value.entries[value.entries.length - 1]?.event?.seq ?? 0 : 0
+        if (seq === lastSeq) return
+        lastSeq = seq
+        const now = Date.now()
+        if (now - lastAt >= 500) {
+          lastAt = now
+          setEventSeq(seq)
+          return
+        }
+        if (!timer) timer = window.setTimeout(flush, Math.max(0, 500 - (now - lastAt)))
+      }
+      const unsubscribeSource = source.subscribe(update)
+      record.unsubscribe = () => {
+        unsubscribeSource()
+        if (timer) window.clearTimeout(timer)
+      }
+      update()
+    } else {
+      const update = () => {
+        const value = source.getSnapshot()
+        setEntries(value.entries)
+        setHasMore(value.hasMore)
+        setEventSeq(value.entries.length ? value.entries[value.entries.length - 1]?.event?.seq ?? 0 : 0)
+      }
+      update()
+      record.unsubscribe = source.subscribe(update)
     }
-    update()
-    const unsubscribe = source.subscribe(update)
-    const record: ChatBinding = { sessionId, reference, unsubscribe }
     chatRef.current = record
     setChatBinding(record)
     reference.ready.then(() => {
@@ -130,7 +173,7 @@ export function useCompanion({
       }
     })
     return reference
-  }, [releaseChat, runtime, t, call, screen, invalidateSession])
+  }, [nativeMode, releaseChat, runtime, t, call, screen, invalidateSession])
 
   React.useEffect(() => {
     if (!activeSessionId) {
@@ -157,7 +200,10 @@ export function useCompanion({
     React.useCallback(() => chatBinding?.reference?.binding.session.getSnapshot() ?? null, [chatBinding]),
   )
   const running = Boolean(sessionSnapshot?.running)
-  const messages: ChatMessage[] = React.useMemo(() => foldTranscript(entries).slice(-50), [entries])
+  const messages: ChatMessage[] = React.useMemo(
+    () => nativeMode ? [] : foldTranscript(entries).slice(-50),
+    [entries, nativeMode],
+  )
 
   React.useEffect(() => {
     if (screen.kind !== 'book') return
@@ -364,6 +410,7 @@ export function useCompanion({
     chatInputRef,
     running,
     messages,
+    eventSeq,
     send,
     ensureSession,
     loadEarlier,
