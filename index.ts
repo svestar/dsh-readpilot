@@ -18,6 +18,7 @@ export function apply(ctx: any, config: any = {}): void {
     dataDir: pluginDataDir(resolveDshHome()),
     config,
   })
+  void api.syncCompanionContexts().catch(() => {})
   void api.syncPrompt().catch(() => {})
 
   ctx.effect(() => registerTools(ctx, api), 'dsh-readpilot: tools')

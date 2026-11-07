@@ -544,3 +544,14 @@ test('tool_context_prefers_session_reading_over_latest_progress', async t => {
   const context = await api.toolContext({ sessionId: 'session-tool-context' })
   assert.equal(context.bookId, first!.id)
 })
+test('tool_context_hydrates_session_mapping_without_opening_reader', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.setCompanionSession({ bookId, sessionId: 'session-without-ui' })
+  await api.saveReadingProgress({ bookId, chapterId: 'c002', chapterTitle: '第二章', chapterFraction: 0.2, percent: 50 })
+  const context = await api.toolContext({ sessionId: 'session-without-ui' })
+  assert.equal(context.bookId, bookId)
+  assert.match(api.companionContextOf('session-without-ui'), /书名：demo|书名：/)
+})

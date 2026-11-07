@@ -200,6 +200,7 @@ export interface ReaderApi {
   sessionAlive(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; alive: boolean }>
   setCompanionPolicy(payload?: { sessionId?: unknown }): Promise<{ sessionId: string; mode: string | null; applied: boolean }>
   setCompanionContext(payload?: any): Promise<{ sessionId: string; characters: number }>
+  syncCompanionContexts(): Promise<void>
   companionContextOf(sessionId: unknown): string
   setNoteContext(payload?: any): Promise<{ bookId: string; enabled: boolean; characters: number }>
   setAutoApplyNotes(payload?: { enabled?: unknown }): Promise<{ enabled: boolean }>
@@ -683,6 +684,53 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return { sessionId, characters: text.length }
   }
 
+  async function ensureSessionReading(sessionId: string): Promise<{ bookId: string; title: string; chapter: string } | undefined> {
+    const existing = companionReadings.get(sessionId)
+    if (existing) return existing
+    const [sessions, books, progress] = await Promise.all([
+      loadSessions(dataDir),
+      libraryBooks(),
+      loadProgress(dataDir),
+    ])
+    const entries = Object.entries(sessions)
+      .filter(([, entry]) => entry.sessionId === sessionId)
+      .sort((left, right) => (left[1].updatedAt ?? 0) - (right[1].updatedAt ?? 0))
+    const latest = entries.at(-1)
+    if (!latest) return undefined
+    const [bookId, entry] = latest
+    const book = books.find(candidate => candidate.id === bookId)
+    if (!book) return undefined
+    await setCompanionContext({
+      sessionId: entry.sessionId,
+      bookId: book.id,
+      title: book.title,
+      chapter: progress[book.id]?.chapterTitle ?? '',
+    })
+    return companionReadings.get(sessionId)
+  }
+
+  async function syncCompanionContexts(): Promise<void> {
+    const [sessions, books, progress, companion] = await Promise.all([
+      loadSessions(dataDir),
+      libraryBooks(),
+      loadProgress(dataDir),
+      loadCompanionSettings(dataDir),
+    ])
+    companionSettings = companion
+    const entries = Object.entries(sessions).sort((left, right) => (left[1].updatedAt ?? 0) - (right[1].updatedAt ?? 0))
+    for (const [bookId, entry] of entries) {
+      if (companionReadings.has(entry.sessionId)) continue
+      const book = books.find(candidate => candidate.id === bookId)
+      if (!book) continue
+      await setCompanionContext({
+        sessionId: entry.sessionId,
+        bookId: book.id,
+        title: book.title,
+        chapter: progress[book.id]?.chapterTitle ?? '',
+      })
+    }
+  }
+
   function companionContextOf(sessionId: unknown): string {
     return typeof sessionId === 'string' ? companionContexts.get(sessionId)?.text ?? '' : ''
   }
@@ -793,7 +841,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       found = findBookByKey(books, book)
       if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
     } else {
-      const reading = typeof sessionId === 'string' ? companionReadings.get(sessionId) : undefined
+      const reading = typeof sessionId === 'string' ? await ensureSessionReading(sessionId) : undefined
       if (reading) found = books.find(candidate => candidate.id === reading.bookId)
       if (!found) {
         const progress = await loadProgress(dataDir)
@@ -1231,6 +1279,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     sessionBook,
     setCompanionPolicy,
     setCompanionContext,
+    syncCompanionContexts,
     companionContextOf,
     setNoteContext,
     setAutoApplyNotes,
