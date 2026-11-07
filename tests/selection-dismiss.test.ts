@@ -19,7 +19,7 @@ function setup() {
   bindRuntime((name: string) => {
     if (name === 'react') return { createElement() {}, useEffect(effect: () => void | (() => void)) { effects.push(effect) } }
     if (name === 'react-dom') return { createPortal() {} }
-    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast', Button: 'Button', MarkdownText: 'MarkdownText' }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast', Button: 'Button' }
     throw new Error(`unexpected require: ${name}`)
   })
   return { listeners, effects }
@@ -70,4 +70,5 @@ test('selection_dismiss_registers_no_listener_without_a_selection', () => {
   effects[0]()
   assert.equal(listeners.length, 0)
 })
+
 

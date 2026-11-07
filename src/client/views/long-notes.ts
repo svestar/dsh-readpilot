@@ -1,6 +1,7 @@
-import { MarkdownText, React, Toast, h } from '../runtime.ts'
+import { React, Toast, h } from '../runtime.ts'
 import { buildNoteResource } from '../note-resource.ts'
 import { diffLines, formatSize } from '../helpers.ts'
+import { MarkdownMessage } from './markdown.ts'
 import { ConfirmDialog } from './confirm-dialog.ts'
 import { ModalShell } from './modal.ts'
 import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../types.ts'
@@ -274,7 +275,7 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
           h('div', { className: 'dsh-readpilot-modal-body' },
             state.historyOpen
               ? historyView(t, state)
-              : h(MarkdownText, { text: state.active.body, variant: 'body' })),
+              : h(MarkdownMessage, { text: state.active.body, prefix: 'long-note' })),
           state.historyOpen
             ? null
             : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
