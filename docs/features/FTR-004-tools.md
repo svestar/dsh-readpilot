@@ -8,7 +8,7 @@
 
 ## 行为
 
-Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录与最近笔记；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_digest` 返回全书章节标题与抽取式关键摘录，供全书概括；`reader_note` 按书新增或列出短笔记；`reader_notes` 查看/读取长笔记，或为 `create`/`write`/`append` 生成待确认草稿；自动应用开启时直接应用并返回 `applied`；`reader_memory` 读取/更新记忆，默认关闭，开启后才写入。短笔记用 `reader_note`，长文用 `reader_notes`；含糊时先问。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节、引用原文与笔记正文。
+Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录与最近笔记；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_digest` 返回全书章节标题与抽取式关键摘录，供全书概括；`reader_note` 按书新增或列出短笔记；`reader_notes` 查看/读取长笔记，或为 `create`/`write`/`append` 生成待确认草稿；自动应用开启时直接应用并返回 `applied`；`reader_memory` 读取/更新记忆，默认关闭，开启后才写入。短笔记用 `reader_note`，长文用 `reader_notes`；含糊时先问。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_books` 与 `reader_search` 声明结构化输出字段（书籍/命中数组、截断与扫描计数），其余工具仍为宽松对象。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节、引用原文与笔记正文。
 
 ## 接口与代码映射
 
@@ -32,5 +32,5 @@ Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书�
 
 ## 验收与测试
 
-- 正常路径：工具列表包含九个工具，`reader_digest` 返回章节与摘录；空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符；找不到书与未知操作抛出错误（`tools_read_bounded`）。
+- 正常路径：工具列表包含九个工具，`reader_digest` 返回章节与摘录；空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符；books/search 声明输出字段；找不到书与未知操作抛出错误（`tools_read_bounded`）。
 - 边界：工具结果丢弃 `undefined`，数组中的空位转 `null`，可无损 JSON 往返（`tool_values_are_lossless_json`）。

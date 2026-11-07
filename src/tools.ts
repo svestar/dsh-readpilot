@@ -5,7 +5,7 @@ interface ToolDefinition {
   description: string
   parameters: Record<string, unknown>
   output: {
-    schema: { type: string; properties: Record<string, unknown>; additionalProperties: boolean }
+    schema: Record<string, unknown>
     render: (args: unknown, value: unknown) => Array<{ type: string; text: string }>
   }
   execute(args?: any, exec?: any): Promise<unknown>
@@ -16,6 +16,28 @@ export interface ToolContext {
 }
 
 const OUTPUT_SCHEMA = { type: 'object', properties: {}, additionalProperties: true }
+
+const BOOKS_OUTPUT_SCHEMA = {
+  type: 'object',
+  properties: {
+    libraryDir: { type: 'string' },
+    books: { type: 'array' },
+  },
+  additionalProperties: true,
+}
+
+const SEARCH_OUTPUT_SCHEMA = {
+  type: 'object',
+  properties: {
+    matches: { type: 'array' },
+    truncated: { type: 'boolean' },
+    query: { type: 'string' },
+    booksScanned: { type: 'number' },
+    booksTotal: { type: 'number' },
+    unreadable: { type: 'boolean' },
+  },
+  additionalProperties: true,
+}
 
 function outputOf(value: unknown): Array<{ type: string; text: string }> {
   return [{ type: 'text', text: JSON.stringify(value) }]
@@ -57,7 +79,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         properties: {},
         additionalProperties: false,
       },
-      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      output: { schema: BOOKS_OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute() {
         return await api.toolBooks()
       },
@@ -148,7 +170,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         required: ['query'],
         additionalProperties: false,
       },
-      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      output: { schema: SEARCH_OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
         return await api.toolSearch(args ?? {})
       },
