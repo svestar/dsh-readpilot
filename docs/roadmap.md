@@ -14,7 +14,7 @@
 
 | 批次 | 内容 | 排期 | 状态 |
 |---|---|---|---|
-| OPT-E | 笔记/书库 `ctx.resources` + `ctx.fs.watch`；书库/TOC/笔记列表虚拟化 | later | planned |
+| OPT-E | 笔记/书库 `ctx.resources`（库侧 `fs.watch` 与 `content-visibility` 已完成）；真实窗口化列表 | later | planned |
 | OPT-F | `dsh-home-paths`、`defineTool` 与结构化工具错误；资产版本；宿主组件收尾 | later | planned |
 
 | ID | 功能 | 要解决的问题 | 验收线索 | 优先级 | 排期 | 状态 |

@@ -5,13 +5,14 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi, normalizeReadingView, noteFilePath } from '../src/api.ts'
 
-function fakeContext() {
+function fakeContext(options: { fs?: any } = {}) {
   const workspaces: any[] = []
   const archivedSessionIds: string[] = []
   return {
     workspaces,
     archivedSessionIds,
     get(name: string) {
+      if (name === 'fs') return options.fs
       if (name !== 'workspaceRegistry') return undefined
       return {
         archivedSessionIds,
@@ -499,6 +500,33 @@ test('library_scan_is_cached_until_rescan', async t => {
   assert.equal(forced.ok, true)
   assert.equal((forced as any).value.books.length, 2)
 })
+test('library_scan_watch_invalidates_cache', async t => {
+  const { library, data } = await makeLibrary(t)
+  const callbacks: Array<() => void> = []
+  let closed = false
+  const fs = {
+    async resolve(path: string) {
+      return { targetKey: path, displayPath: path }
+    },
+    async watch(_target: any, changed: () => void) {
+      callbacks.push(changed)
+      return async () => { closed = true }
+    },
+  }
+  const api = createReaderApi({ ctx: fakeContext({ fs }), dataDir: data })
+  const configured = await api.configureLibrary({ path: library })
+  assert.equal(configured.books.length, 1)
+  assert.equal(callbacks.length, 1)
+
+  await writeFile(join(library, 'watched.txt'), '第一章 新书\n\n内容', 'utf8')
+  assert.equal((await api.state()).books.length, 1)
+  callbacks[0]()
+  assert.equal((await api.state()).books.length, 2)
+
+  await api.dispose()
+  assert.equal(closed, true)
+})
+
 test('archived_session_is_reported_and_filtered_from_state', async t => {
   const { library, data } = await makeLibrary(t)
   const ctx = fakeContext()

@@ -234,6 +234,7 @@ export interface RpcResult {
 
 export interface ReaderApi {
   state(): Promise<ReaderState>
+  dispose(): Promise<void>
   syncPrompt(): Promise<void>
   configureLibrary(payload?: { path?: unknown }): Promise<ReaderState>
   open(payload?: { bookId?: unknown }): Promise<OpenResult>
@@ -335,10 +336,47 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   let scanCache: { dir: string; at: number; books: Book[] } | null = null
   let scanInflight: { dir: string; promise: Promise<Book[]> } | null = null
+  let libraryWatch: { dir: string; controller: AbortController; close: () => Promise<void> } | null = null
+  let watchAttemptedDir: string | null = null
 
   function invalidateScan(): void {
     scanCache = null
     scanInflight = null
+  }
+
+  async function refreshLibraryWatch(dir: string | null): Promise<void> {
+    if (libraryWatch?.dir === dir) return
+    if (!libraryWatch && watchAttemptedDir === dir) return
+    const previous = libraryWatch
+    libraryWatch = null
+    if (previous) {
+      previous.controller.abort()
+      await previous.close().catch(() => {})
+    }
+    if (!dir) {
+      watchAttemptedDir = null
+      return
+    }
+    watchAttemptedDir = dir
+    const fs = typeof ctx.get === 'function' ? ctx.get('fs') : undefined
+    if (!fs || typeof fs.resolve !== 'function' || typeof fs.watch !== 'function') return
+    try {
+      const target = await fs.resolve(dir)
+      const controller = new AbortController()
+      const close = await fs.watch(target, () => invalidateScan(), controller.signal)
+      libraryWatch = { dir, controller, close }
+    } catch {
+      // Watching is an optimization; the 30s TTL remains the fallback.
+    }
+  }
+
+  async function dispose(): Promise<void> {
+    const current = libraryWatch
+    libraryWatch = null
+    watchAttemptedDir = null
+    if (!current) return
+    current.controller.abort()
+    await current.close().catch(() => {})
   }
 
   async function libraryBooks(options: { fresh?: boolean } = {}): Promise<Book[]> {
@@ -390,6 +428,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   async function state(): Promise<ReaderState> {
     const settings = await currentSettings()
     await syncWorkspacePrompt(settings)
+    await refreshLibraryWatch(settings.libraryDir || null)
     const [books, progress, sessions, meta, companion] = await Promise.all([
       libraryBooks(),
       loadProgress(dataDir),
@@ -1411,5 +1450,6 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     epubAsset,
     bookAsset,
     handleRpc,
+    dispose,
   }
 }

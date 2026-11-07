@@ -22,6 +22,7 @@ export function apply(ctx: any, config: any = {}): void {
   void api.syncPrompt().catch(() => {})
 
   ctx.effect(() => registerTools(ctx, api), 'dsh-readpilot: tools')
+  ctx.effect(() => () => { void api.dispose() }, 'dsh-readpilot: dispose')
 
   ctx.inject(['systemPrompt'], (scope: any) => {
     scope.effect(() => scope.systemPrompt.context({

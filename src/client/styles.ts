@@ -513,4 +513,8 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-tool-card-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-tool-card-meta{flex:none;color:var(--dsw-alias-label-tertiary);white-space:nowrap}
 .dsh-readpilot-tool-card-more{color:var(--dsw-alias-label-tertiary)}
-.dsh-readpilot-tool-card-raw{max-height:200px;margin:0;padding:8px 10px;overflow:auto;white-space:pre-wrap;font-size:11.5px;line-height:1.5}`
+.dsh-readpilot-tool-card-raw{max-height:200px;margin:0;padding:8px 10px;overflow:auto;white-space:pre-wrap;font-size:11.5px;line-height:1.5}
+.dsh-readpilot-book-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
+.dsh-readpilot-toc-item{content-visibility:auto;contain-intrinsic-size:auto 34px}
+.dsh-readpilot-note{content-visibility:auto;contain-intrinsic-size:auto 80px}
+.dsh-readpilot-search-result{content-visibility:auto;contain-intrinsic-size:auto 64px}`
