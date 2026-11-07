@@ -145,6 +145,7 @@ export function createPlugin(require: (name: string) => any) {
       }, [])
       const screen = screenState
       const titledSessionsRef = React.useRef(new Set<string>())
+      const panelWasActiveRef = React.useRef(false)
 
       React.useEffect(() => {
         if (!snapshot) return
@@ -504,6 +505,38 @@ export function createPlugin(require: (name: string) => any) {
         window.addEventListener(PROGRESS_SYNC_EVENT, handler)
         return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handler)
       }, [applyRemoteProgress])
+
+      const refreshFromHost = React.useCallback(async () => {
+        if (screen.kind !== 'book') return
+        try {
+          const latest = await call('open', { bookId: screen.detail.book.id })
+          const saved = latest.progress
+          if (!saved?.chapterId) return
+          const fraction = typeof saved.chapterFraction === 'number' && Number.isFinite(saved.chapterFraction)
+            ? Math.max(0, Math.min(1, saved.chapterFraction))
+            : 0
+          setReadingAnchor({ chapterId: saved.chapterId, fraction, token: ++anchorTokenRef.current })
+          if (saved.chapterId !== screen.content.chapterId) {
+            progressSkipRef.current = true
+            await selectChapter(screen.detail.book.id, saved.chapterId)
+          }
+        } catch {
+          // The current page remains usable if the Host cannot refresh progress.
+        }
+      }, [call, screen, selectChapter])
+
+      const panelInfo = runtime.layout?.panelInfo
+      const panelSubscribe = React.useCallback((callback: () => void) =>
+        panelInfo?.subscribe ? panelInfo.subscribe(callback) : () => {}, [panelInfo])
+      const panelSnapshot = React.useCallback(() =>
+        panelInfo?.getSnapshot?.().activePanelId ?? null, [panelInfo])
+      const activePanelId = React.useSyncExternalStore(panelSubscribe, panelSnapshot)
+
+      React.useEffect(() => {
+        const active = activePanelId === 'dsh-readpilot'
+        if (active && !panelWasActiveRef.current && screen.kind === 'book') void refreshFromHost()
+        panelWasActiveRef.current = active
+      }, [activePanelId, refreshFromHost, screen.kind])
 
       const jumpToPage = React.useCallback((page: number) => {
         if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf') return
