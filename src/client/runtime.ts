@@ -17,6 +17,8 @@ export let createPortal!: (children: any, container: Element) => any
 export let Modal!: any
 export let Tooltip!: any
 export let Toast!: any
+export let Button!: any
+export let MarkdownText!: any
 export let useVirtualizer: any
 
 export function bindRuntime(require: (name: string) => any): void {
@@ -27,6 +29,8 @@ export function bindRuntime(require: (name: string) => any): void {
   Modal = primitives.Modal
   Tooltip = primitives.Tooltip
   Toast = primitives.Toast
+  Button = primitives.Button
+  MarkdownText = primitives.MarkdownText
   try {
     useVirtualizer = require('@tanstack/react-virtual').useVirtualizer
   } catch {

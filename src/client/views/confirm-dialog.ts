@@ -1,4 +1,4 @@
-import { Modal, h } from '../runtime.ts'
+import { Button, Modal, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
 
 interface ConfirmDialogProps {
@@ -18,14 +18,12 @@ export function ConfirmDialog({ t, message, onConfirm, onCancel }: ConfirmDialog
     title: t('confirmTitle'),
     description: message,
     footer: h('div', { className: 'dsh-readpilot-confirm-actions' },
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-secondary',
+      h(Button, {
+        variant: 'outline',
         onClick: onCancel,
       }, t('cancel')),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-primary',
+      h(Button, {
+        variant: 'primary',
         onClick: onConfirm,
       }, t('confirmAction'))),
   })
