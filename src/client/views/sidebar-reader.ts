@@ -5,11 +5,13 @@ import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
 import { publishProgressSync } from '../progress-sync.ts'
 import { usePageWidth } from '../hooks/use-page-width.ts'
+import { useNotes } from '../hooks/use-notes.ts'
 import { useTextPager } from '../hooks/use-text-pager.ts'
 import { useVisual } from '../hooks/use-visual.ts'
 import { visualForChapter } from '../reader-screen.ts'
-import { renderBlocks } from './markdown.ts'
+import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
+import { NoteDialog, SelectionToolbar } from './selection-note.ts'
 import { VisualReader } from './visual-reader.ts'
 
 const SIDEBAR_FONT_SIZE = 15
@@ -46,11 +48,11 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
   const [loading, setLoading] = React.useState(false)
   const [error, setError] = React.useState('')
   const [anchor, setAnchor] = React.useState<ReadingAnchor | null>(null)
+  const [selection, setSelection] = React.useState<any>(null)
   const anchorTokenRef = React.useRef(0)
   const progressSkipRef = React.useRef(true)
   const palette = resolveReaderPalette(readPaletteId())
   const contentRef = React.useRef<HTMLDivElement | null>(null)
-  const noteLayerRef = React.useRef<HTMLDivElement | null>(null)
   const visualBookRef = React.useRef('')
 
   const selectChapter = React.useCallback(async (bookId: string, chapterId: string) => {
@@ -103,6 +105,33 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     return () => { cancelled = true }
   }, [call, revision, sessionId, t])
 
+  const onContentMouseUp = React.useCallback(() => {
+    const active = window.getSelection()
+    const container = contentRef.current
+    if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
+      setSelection(null)
+      return
+    }
+    const range = active.getRangeAt(0)
+    if (!container.contains(range.commonAncestorContainer)) {
+      setSelection(null)
+      return
+    }
+    const text = active.toString().trim()
+    if (!text) {
+      setSelection(null)
+      return
+    }
+    const rect = range.getBoundingClientRect()
+    const anchor = selectionAnchor(range, container)
+    setSelection({
+      text: text.slice(0, 2000),
+      x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+      y: rect.top,
+      blockIndex: anchor ? anchor.blockIndex : null,
+      offset: anchor ? anchor.offset : 0,
+    })
+  }, [])
   const textPageWidth = usePageWidth({
     enabled: mode === 'text' && screen.kind === 'book',
     containerRef: contentRef,
@@ -121,6 +150,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     visual,
     setVisual,
     pageViews,
+    pageView,
     loadedView,
     pdfPageCount,
     visualLoading,
@@ -128,6 +158,8 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     epubPage,
     epubPageCount,
     epubFrameRef,
+    epubReady,
+    onPdfMouseUp,
     stepPdfPage,
     goEpubPage,
     onEpubLoad,
@@ -136,7 +168,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     t,
     screen,
     palette,
-    setSelection: () => {},
+    setSelection,
     selectChapter,
     readingMode: 'paged',
     layout: 'single',
@@ -164,6 +196,41 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       ? screen.detail.toc.find((item: any) => item.page === visual.page)?.id ?? screen.content.chapterId
       : screen.content.chapterId)
     : null
+  const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
+  const {
+    noteLayerRef,
+    noteEditor,
+    noteDraft,
+    setNoteDraft,
+    noteColor,
+    setNoteColor,
+    noteSaving,
+    noteError,
+    noteInputRef,
+    closeNoteEditor,
+    openNoteEditor,
+    addHighlight,
+    deleteNote,
+    saveNote,
+  } = useNotes({
+    call,
+    t,
+    screen,
+    activeBookId,
+    activeChapterId: activeChapterId ?? '',
+    visual,
+    pageView,
+    palette,
+    fontSize: SIDEBAR_FONT_SIZE,
+    paged: true,
+    layout: 'single',
+    contentRef,
+    epubFrameRef,
+    epubReady,
+    selection,
+    setSelection,
+    selectChapter,
+  })
   const activeChapterIndex = screen.kind === 'book'
     ? screen.detail.toc.findIndex((item: any) => item.id === activeChapterId)
     : -1
@@ -316,6 +383,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       className: 'dsh-readpilot-reader dsh-readpilot-sidebar-reader',
       'data-paged': 'true',
       ref: contentRef,
+      onMouseUp: onContentMouseUp,
       style: { fontSize: `${SIDEBAR_FONT_SIZE}px` },
     },
     h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
@@ -338,7 +406,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       stepPdfPage,
       visualLoading,
       visualError,
-      onPdfMouseUp: () => {},
+      onPdfMouseUp,
       noteLayerRef,
       onEpubLoad,
       epubFrameRef,
@@ -380,5 +448,30 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       canNext: barProps.canNext,
       onPrev: barProps.onPrev,
       onNext: barProps.onNext,
-    }))
+    }),
+    noteEditor
+      ? h(NoteDialog, {
+        t,
+        noteEditor,
+        noteDraft,
+        setNoteDraft,
+        noteColor,
+        setNoteColor,
+        noteSaving,
+        noteError,
+        noteInputRef,
+        activeBookId,
+        deleteNote,
+        closeNoteEditor,
+        saveNote,
+      })
+      : null,
+    selection && !noteEditor
+      ? h(SelectionToolbar, {
+        t,
+        selection,
+        onNote: () => openNoteEditor(),
+        onHighlight: (color: string) => { void addHighlight(color) },
+      })
+      : null)
 }

@@ -7,7 +7,7 @@ const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']
 interface SelectionToolbarProps {
   t: TextFn
   selection: Selection | null
-  onAsk: () => void
+  onAsk?: () => void
   onNote: () => void
   onHighlight: (color: string) => void
 }
@@ -31,7 +31,7 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
         'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         onClick: () => onHighlight(color),
       }))),
-  h('button', { type: 'button', onClick: onAsk }, t('askCompanion')),
+  onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
   selection.blockIndex == null
     ? null
     : h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')))
