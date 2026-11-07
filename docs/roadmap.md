@@ -15,6 +15,5 @@
 | RDM-003 | Agent 动作 | 现有工具几乎只读，写操作不驱动界面 | `reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status` 可改变阅读器状态并返回回执 | P1 | next | candidate |
 | RDM-004 | 动作撤销 | Agent 执行的动作没有统一撤销入口 | 每个动作有回执与界面留痕，可一键撤销；不可撤销的动作不开放 | P2 | later | candidate |
 | RDM-005 | 深链动作验证 | 完整动作队列与反向通道成本高，先用零架构改动验证需求 | Agent 输出可点击的深链动作，用户点击后复用现有跳转拦截执行 | P2 | later | candidate |
-| RDM-006 | EPUB 重排图片与表格 | EPUB 重排目前只有文本，丢失插图和表格 | 重排模式能显示 EPUB 内图片与简单表格，并保持分页稳定 | P2 | later | candidate |
 | RDM-007 | PDF 相邻页合并 | PDF 重排一章等于一个 PDF 页，双页布局无法并排显示两页 | 相邻 2–8 个 PDF 页合并为一个重排章节，双页可显示两页且目录跳转仍准确 | P2 | later | candidate |
 | RDM-008 | 冻结排版页号 | 重排页数随字号与窗口变化，全书页号不稳定 | 可按当前排版冻结全书页号并明确标注，字号变化后提示重新计算 | P2 | later | candidate |

@@ -52,6 +52,10 @@ const CHAPTER_ONE = `<?xml version="1.0" encoding="UTF-8"?>
     <ul><li>条目一</li><li>条目二</li></ul>
     <pre><code>const x = 1
 console.log(x)</code></pre>
+    <table>
+      <thead><tr><th>名称</th><th>值</th></tr></thead>
+      <tbody><tr><td>Alpha</td><td>1</td></tr><tr><td>Beta</td><td>2</td></tr></tbody>
+    </table>
     <div><img src="../images/pic.png" alt="插图"/></div>
   </body>
 </html>`
@@ -101,14 +105,19 @@ test('parse_epub_nav_toc', async () => {
 
   assert.equal(book.chapters[0].title, '第一章 初见')
   const blocks = book.chapters[0].blocks
-  assert.deepEqual(blocks.map(block => block.type), ['h', 'p', 'quote', 'p', 'li', 'li', 'code', 'image'])
+  assert.deepEqual(blocks.map(block => block.type), ['h', 'p', 'quote', 'p', 'li', 'li', 'code', 'table', 'image'])
   assert.equal(blocks[0].text, '初见的正文标题')
   assert.equal(blocks[0].level, 1)
   assert.equal(blocks[1].text, '你好，世界。')
   assert.equal(blocks[2].text, '引用的句子。')
   assert.equal(blocks[3].text, '第一行\n第二行')
   assert.equal(blocks[6].text, 'const x = 1\nconsole.log(x)')
-  assert.deepEqual(blocks[7], { type: 'image', text: '插图', src: 'OEBPS/images/pic.png', alt: '插图' })
+  assert.deepEqual(blocks[7], {
+    type: 'table',
+    text: '名称 值\nAlpha 1\nBeta 2',
+    rows: [['名称', '值'], ['Alpha', '1'], ['Beta', '2']],
+  })
+  assert.deepEqual(blocks[8], { type: 'image', text: '插图', src: 'OEBPS/images/pic.png', alt: '插图' })
 
   assert.equal(book.chapters[1].title, '第二章 再会')
   assert.equal(book.chapters[1].blocks[0].text, '再会的正文标题')
@@ -132,4 +141,9 @@ test('parse_epub_merges_title_only_spine_page', async () => {
   assert.equal(book.chapters[1].blocks[0].text, '封面标题')
   assert.equal(book.chapters[1].blocks[1].text, '初见的正文标题')
   assert.match(book.chapters[1].blocks.map(block => block.text).join('\n'), /封面标题[\s\S]*初见的正文标题/)
+})
+test('parse_epub_table_blocks', async () => {
+  const book = await parseEpub(await buildEpub(), 'E:\\Books\\table.epub')
+  const table = book.chapters[0].blocks.find(block => block.type === 'table')
+  assert.deepEqual(table?.rows, [['名称', '值'], ['Alpha', '1'], ['Beta', '2']])
 })

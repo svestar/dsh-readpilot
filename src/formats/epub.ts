@@ -270,6 +270,11 @@ function collectBlocks(parent: any, blocks: TextBlock[], basePath: string): void
       if (image) blocks.push(image)
       continue
     }
+    if (tag === 'table') {
+      const rows = tableRows(element)
+      if (rows.length) blocks.push({ type: 'table', text: rows.map(row => row.join(' ')).join('\n'), rows })
+      continue
+    }
     const type = BLOCK_TYPE.get(tag)
     if (type) {
       const text = type === 'code' ? preText(element) : inlineText(element)
@@ -286,6 +291,29 @@ function collectBlocks(parent: any, blocks: TextBlock[], basePath: string): void
     }
     collectBlocks(element, blocks, basePath)
   }
+}
+
+function tableRows(table: any): string[][] {
+  const rows: string[][] = []
+  const walk = (parent: any): void => {
+    for (const child of elementChildren(parent)) {
+      const tag = (child.tagName ?? '').toLowerCase()
+      if (tag === 'tr') {
+        const cells: string[] = []
+        for (const cell of elementChildren(child)) {
+          const cellTag = (cell.tagName ?? '').toLowerCase()
+          if (cellTag === 'td' || cellTag === 'th') cells.push(inlineText(cell))
+        }
+        if (cells.some(cell => cell.trim())) rows.push(cells)
+        continue
+      }
+      if (tag === 'thead' || tag === 'tbody' || tag === 'tfoot') walk(child)
+    }
+  }
+  walk(table)
+  const width = rows.reduce((max, row) => Math.max(max, row.length), 0)
+  if (width === 0) return []
+  return rows.map(row => [...row, ...Array.from({ length: width - row.length }, () => '')])
 }
 
 function resolveImagePath(basePath: string, value: unknown): string {
