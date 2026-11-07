@@ -19,6 +19,7 @@ function setup() {
   bindRuntime((name: string) => {
     if (name === 'react') return { createElement() {}, useEffect(effect: () => void | (() => void)) { effects.push(effect) } }
     if (name === 'react-dom') return { createPortal() {} }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal' }
     throw new Error(`unexpected require: ${name}`)
   })
   return { listeners, effects }

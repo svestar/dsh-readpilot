@@ -1,4 +1,4 @@
-import { h } from '../runtime.ts'
+import { Modal, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
 
 export interface ModalShellProps {
@@ -10,17 +10,15 @@ export interface ModalShellProps {
 }
 
 export function ModalShell({ t, title, meta, onClose, children }: ModalShellProps) {
-  return h('div', {
-    className: 'dsh-readpilot-modal-overlay',
-    role: 'presentation',
-    onClick: onClose,
-  },
-  h('div', {
+  // Headless keeps this package's header/body layout; the host supplies the
+  // portal, mask, focus trap, Escape handling and modal stack registration.
+  return h(Modal, {
+    open: true,
+    onClose,
+    closeLabel: t('close'),
+    title,
+    headless: true,
     className: 'dsh-readpilot-modal',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-label': title,
-    onClick: (event: any) => event.stopPropagation(),
   },
   h('div', { className: 'dsh-readpilot-modal-head' },
     h('div', { className: 'dsh-readpilot-modal-title' },
@@ -33,5 +31,5 @@ export function ModalShell({ t, title, meta, onClose, children }: ModalShellProp
       'aria-label': t('close'),
       onClick: onClose,
     }, '×')),
-  ...children))
+  ...children)
 }

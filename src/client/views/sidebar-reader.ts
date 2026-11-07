@@ -132,7 +132,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
 
   const captureSelection = React.useCallback((target: EventTarget | null) => {
     const targetElement = target instanceof Element ? target : null
-    if (targetElement?.closest('.dsh-readpilot-selection, .dsh-readpilot-note-overlay')) return
+    if (targetElement?.closest('.dsh-readpilot-selection, [role="dialog"]')) return
     const root = rootRef.current
     const active = window.getSelection()
     if (!root || !active || active.isCollapsed || active.rangeCount === 0) return

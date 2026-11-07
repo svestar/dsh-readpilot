@@ -218,9 +218,9 @@ export function useNotes({
   }, [call, epubFrameRef, loadNotes, noteSaving, screen, selectionFields, setSelection, t])
 
   const openNoteEditor = React.useCallback((note?: Note) => {
+    window.getSelection()?.removeAllRanges()
+    epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
     if (note) {
-      window.getSelection()?.removeAllRanges()
-      epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
       setNoteEditor({
         noteId: note.id,
         kind: note.kind ?? 'note',
@@ -244,7 +244,7 @@ export function useNotes({
     setNoteError('')
     setSelection(null)
     requestAnimationFrame(() => noteInputRef.current?.focus())
-  }, [noteInputRef, selectionFields, setSelection])
+  }, [epubFrameRef, noteInputRef, selectionFields, setSelection])
 
   const addBookmark = React.useCallback(async (label?: string) => {
     if (screen.kind !== 'book' || noteSaving) return

@@ -41,15 +41,6 @@ export function DraftNotice({ t, state }: DraftNoticeProps) {
     }
   }, [draft])
 
-  React.useEffect(() => {
-    if (!draft) return
-    const onKeyDown = (event: any) => {
-      if (event.key === 'Escape') setDraftId(null)
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [draft])
-
   if (!draft) return null
   const lines = diffLines(draft.baseBody, draft.body)
   const added = lines.filter(line => line.type === 'add').length

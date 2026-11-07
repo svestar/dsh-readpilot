@@ -14,9 +14,11 @@ export interface ReactRuntime {
 export let React!: ReactRuntime
 export let h!: (...args: any[]) => any
 export let createPortal!: (children: any, container: Element) => any
+export let Modal!: any
 
 export function bindRuntime(require: (name: string) => any): void {
   React = require('react')
   h = React.createElement
   createPortal = require('react-dom').createPortal
+  Modal = require('@deepseek-ai/dsh-client-ui-primitives').Modal
 }

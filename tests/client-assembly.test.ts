@@ -50,6 +50,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
   const plugin = globalAny.__readerRegistration.factory((name: string) => {
     if (name === 'react') return harness.React
     if (name === 'react-dom') return { createPortal: (node: any) => node }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal' }
     throw new Error(`unexpected require: ${name}`)
   })
   let main: any

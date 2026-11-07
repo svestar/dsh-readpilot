@@ -1,4 +1,4 @@
-import { React, createPortal, h } from '../runtime.ts'
+import { React, createPortal, Modal, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
 
@@ -127,17 +127,13 @@ export function NoteDialog({
   if (!noteEditor) return null
   const isHighlight = noteEditor.kind === 'highlight'
   const title = isHighlight ? t('annotationTitle') : noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')
-  return h('div', {
-    className: 'dsh-readpilot-note-overlay',
-    onMouseDown: (event: any) => {
-      if (event.target === event.currentTarget) closeNoteEditor()
-    },
-  },
-  h('div', {
+  return h(Modal, {
+    open: true,
+    onClose: closeNoteEditor,
+    closeLabel: t('close'),
+    title,
+    headless: true,
     className: 'dsh-readpilot-note-dialog',
-    role: 'dialog',
-    'aria-modal': 'true',
-    'aria-label': title,
   },
   h('h3', null, title),
   h('div', { className: 'dsh-readpilot-note-dialog-quote' }, noteEditor.quote),
@@ -186,5 +182,5 @@ export function NoteDialog({
       className: 'dsh-readpilot-primary',
       disabled: noteSaving || (!isHighlight && !noteDraft.trim()),
       onClick: () => void saveNote(),
-    }, noteSaving ? t('noteSaving') : t('save')))))
+    }, noteSaving ? t('noteSaving') : t('save'))))
 }

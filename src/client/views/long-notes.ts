@@ -67,15 +67,6 @@ export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) 
     }
   }, [previewOpen])
 
-  React.useEffect(() => {
-    if (!previewOpen) return
-    const onKeyDown = (event: any) => {
-      if (event.key === 'Escape') state.close()
-    }
-    window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [previewOpen, state.close])
-
   const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
     h('div', { className: 'dsh-readpilot-empty-icon' }, '▤'),
     h('div', { className: 'dsh-readpilot-empty-title' }, title),
