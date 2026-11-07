@@ -51,6 +51,22 @@ test('render_pdf_page_png', async t => {
   assert.deepEqual(await readFile(pngPath), page.png)
 })
 
+test('pdf_document_cache_reloads_when_source_changes', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-pdf-visual-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const filePath = join(root, 'changing.pdf')
+  await writeFile(filePath, makePdf('Hello PDF'))
+  const renderer = createPdfPageRenderer({ cacheDir: join(root, 'cache') })
+
+  const first = await renderer.render({ bookId: 'book1', filePath, page: 1, scale: 1 })
+  assert.equal(first.pageCount, 1)
+
+  await writeFile(filePath, buildOutlinePdf())
+  const second = await renderer.render({ bookId: 'book1', filePath, page: 2, scale: 1 })
+  assert.equal(second.pageCount, 2)
+  assert.ok(second.textItems.some(item => item.text.includes('Two')))
+})
+
 test('pdf_page_rejects_out_of_range', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-pdf-visual-'))
   t.after(() => rm(root, { recursive: true, force: true }))

@@ -52,6 +52,21 @@ interface PdfCache {
   meta: PdfCacheMeta
 }
 
+type PdfLoadingTask = ReturnType<typeof getDocument>
+type PdfDocument = Awaited<PdfLoadingTask['promise']>
+
+interface CachedPdf {
+  mtimeMs: number
+  size: number
+  task: PdfLoadingTask
+  pdf: PdfDocument
+  lastUsed: number
+}
+
+/** Open documents stay resident; keep a small, bounded working set. */
+const MAX_CACHED_DOCUMENTS = 4
+const MAX_CACHED_DOCUMENT_BYTES = 256 * 1024 * 1024
+
 function assertBookId(bookId: unknown): string {
   if (typeof bookId !== 'string' || !/^[A-Za-z0-9_-]{1,64}$/.test(bookId)) {
     throw new Error('bookId must match [A-Za-z0-9_-]{1,64}')
@@ -151,7 +166,73 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
   if (typeof cacheDir !== 'string' || !cacheDir) throw new Error('cacheDir is required')
   const cacheRoot = cacheDir
   const inflight = new Map<string, Promise<PdfPageResult>>()
+  const documents = new Map<string, CachedPdf>()
+  const documentLoads = new Map<string, Promise<CachedPdf>>()
   let lastPruneAt = 0
+
+  function pruneDocuments(): void {
+    if (documents.size <= 1) return
+    let bytes = 0
+    for (const entry of documents.values()) bytes += entry.size
+    if (documents.size <= MAX_CACHED_DOCUMENTS && bytes <= MAX_CACHED_DOCUMENT_BYTES) return
+    const entries = [...documents.entries()].sort((left, right) => left[1].lastUsed - right[1].lastUsed)
+    for (const [id, entry] of entries) {
+      if (documents.size <= MAX_CACHED_DOCUMENTS && bytes <= MAX_CACHED_DOCUMENT_BYTES) break
+      documents.delete(id)
+      bytes -= entry.size
+      void entry.task.destroy().catch(() => {})
+    }
+  }
+
+  async function loadDocument(id: string, filePath: string, info: { mtimeMs: number; size: number }): Promise<CachedPdf> {
+    const pending = documentLoads.get(id)
+    if (pending) return pending
+    const task = (async () => {
+      const data = new Uint8Array(await readFile(filePath))
+      const loadingTask = getDocument({
+        data,
+        useSystemFonts: false,
+        isEvalSupported: false,
+        disableFontFace: true,
+        verbosity: 0,
+      } as any)
+      try {
+        const pdf = await loadingTask.promise
+        if (pdf.numPages > MAX_PAGES) {
+          throw new Error(`PDF 页数超过 ${MAX_PAGES} 页上限（共 ${pdf.numPages} 页）`)
+        }
+        const entry: CachedPdf = { mtimeMs: info.mtimeMs, size: info.size, task: loadingTask, pdf, lastUsed: Date.now() }
+        const previous = documents.get(id)
+        documents.set(id, entry)
+        if (previous) void previous.task.destroy().catch(() => {})
+        pruneDocuments()
+        return entry
+      } catch (error) {
+        await loadingTask.destroy()
+        throw error
+      }
+    })()
+    const clear = () => {
+      if (documentLoads.get(id) === task) documentLoads.delete(id)
+    }
+    documentLoads.set(id, task)
+    void task.then(clear, clear)
+    return task
+  }
+
+  async function documentFor(id: string, filePath: string, info: { mtimeMs: number; size: number }): Promise<CachedPdf> {
+    const cached = documents.get(id)
+    if (cached && cached.mtimeMs === info.mtimeMs && cached.size === info.size) {
+      cached.lastUsed = Date.now()
+      return cached
+    }
+    const pending = documentLoads.get(id)
+    if (pending) {
+      const loaded = await pending
+      if (loaded.mtimeMs === info.mtimeMs && loaded.size === info.size) return loaded
+    }
+    return loadDocument(id, filePath, info)
+  }
 
   async function renderPage({ bookId, filePath, page, scale = 1.5 }: PdfRenderRequest): Promise<PdfPageResult> {
     const id = assertBookId(bookId)
@@ -180,23 +261,13 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
         }
       }
 
-      const data = new Uint8Array(await readFile(filePath))
-      const loadingTask = getDocument({
-        data,
-        useSystemFonts: false,
-        isEvalSupported: false,
-        disableFontFace: true,
-        verbosity: 0,
-      } as any)
+      const entry = await documentFor(id, filePath, info)
+      const pdf = entry.pdf
+      if (page > pdf.numPages) {
+        throw new Error(`page ${page} exceeds page count ${pdf.numPages}`)
+      }
+      const pdfPage = await pdf.getPage(page)
       try {
-        const pdf = await loadingTask.promise
-        if (pdf.numPages > MAX_PAGES) {
-          throw new Error(`PDF 页数超过 ${MAX_PAGES} 页上限（共 ${pdf.numPages} 页）`)
-        }
-        if (page > pdf.numPages) {
-          throw new Error(`page ${page} exceeds page count ${pdf.numPages}`)
-        }
-        const pdfPage = await pdf.getPage(page)
         const viewport = pdfPage.getViewport({ scale })
         const canvas = createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height))
         const context = canvas.getContext('2d')
@@ -212,8 +283,8 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
           textItems,
         }
         await writeCache(cacheRoot, bookId, page, scale, png, {
-          sourceMtimeMs: info.mtimeMs,
-          sourceSize: info.size,
+          sourceMtimeMs: entry.mtimeMs,
+          sourceSize: entry.size,
           width: result.width,
           height: result.height,
           pageCount: result.pageCount,
@@ -226,7 +297,7 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
         }
         return result
       } finally {
-        await loadingTask.destroy()
+        pdfPage.cleanup()
       }
     })().finally(() => inflight.delete(key))
     inflight.set(key, task)
