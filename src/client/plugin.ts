@@ -340,15 +340,6 @@ export function createPlugin(require: (name: string) => any) {
         void call('companionPolicy', { sessionId: chatBinding.sessionId }).catch(() => {})
       }, [chatBinding, call])
 
-      React.useEffect(() => {
-        if (screen.kind !== 'book' || !activeSessionId) return
-        void call('companionContext', {
-          sessionId: activeSessionId,
-          bookId: screen.detail.book.id,
-          title: screen.detail.book.title,
-          chapter: screen.content.title,
-        }).catch(() => {})
-      }, [activeSessionId, screen, call])
 
       const lastMessage = messages[messages.length - 1]
       const chatVersion = `${messages.length}:${lastMessage?.key ?? ''}:${lastMessage?.text.length ?? 0}`
@@ -662,6 +653,67 @@ export function createPlugin(require: (name: string) => any) {
           : screen.detail.book.format === 'epub' && !reflowMode
             ? chapterPercent(toc, chapterIndex, epubPage, epubPageCount)
             : chapterPercent(toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, textPager.page, textPager.pageCount)
+
+      const readingView = React.useMemo(() => {
+        if (screen.kind !== 'book') return null
+        const view: Record<string, unknown> = {
+          mode: effectiveMode,
+          chapterIndex: activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex,
+          chapterTotal,
+        }
+        const pdfPage = visual?.kind === 'pdf' ? pdfVisualPage : null
+        if (effectiveMode === 'paged') {
+          if (format === 'pdf' && !reflowMode && pdfPage !== null) {
+            view.pageStart = pdfPage
+            view.pageEnd = pdfPage
+            if (pdfPageCount > 0) view.pageTotal = pdfPageCount
+          } else if (format === 'epub' && !reflowMode) {
+            view.pageStart = epubPage + 1
+            view.pageEnd = epubPage + 1
+            if (epubPageCount > 0) view.pageTotal = epubPageCount
+          } else {
+            view.pageStart = textPager.pageStart
+            view.pageEnd = textPager.pageEnd
+            view.pageTotal = textPager.pageTotal
+          }
+        }
+        if (selection?.text) {
+          view.selection = selection.text.slice(0, 4000)
+          if (Number.isInteger(selection.blockIndex)) view.selectionBlockIndex = selection.blockIndex
+          if (Number.isInteger(selection.offset)) view.selectionOffset = selection.offset
+        }
+        return view
+      }, [
+        activeChapterIndex,
+        chapterIndex,
+        chapterTotal,
+        effectiveMode,
+        epubPage,
+        epubPageCount,
+        format,
+        pdfPageCount,
+        reflowMode,
+        selection?.blockIndex,
+        selection?.offset,
+        selection?.text,
+        textPager.pageEnd,
+        textPager.pageStart,
+        textPager.pageTotal,
+        visual?.kind,
+        pdfVisualPage,
+      ])
+      const readingViewKey = JSON.stringify(readingView)
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book' || !activeSessionId || !readingView) return
+        void call('companionContext', {
+          sessionId: activeSessionId,
+          bookId: screen.detail.book.id,
+          title: screen.detail.book.title,
+          chapter: screen.content.title,
+          view: readingView,
+        }).catch(() => {})
+      }, [activeSessionId, readingViewKey, screen, call])
 
       const makeReadingAnchor = React.useCallback((chapterId?: string, fraction?: number) => {
         let value = fraction

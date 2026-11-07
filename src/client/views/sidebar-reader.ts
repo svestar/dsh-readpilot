@@ -170,16 +170,37 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       ? pdfPagePercent(visual.page, pdfPageCount || screen.detail.toc.length || 1)
       : chapterPercent(screen.detail.toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, chapterPage, chapterPages)
 
+  const readingView = React.useMemo(() => {
+    if (screen.kind !== 'book') return null
+    const view: Record<string, unknown> = { mode: 'paged', chapterIndex, chapterTotal }
+    if (mode === 'text') {
+      view.pageStart = textPager.pageStart
+      view.pageEnd = textPager.pageEnd
+      view.pageTotal = textPager.pageTotal
+    } else if (visual?.kind === 'pdf') {
+      view.pageStart = visual.page
+      view.pageEnd = visual.page
+      if (pdfPageCount > 0) view.pageTotal = pdfPageCount
+    } else {
+      view.pageStart = epubPage + 1
+      view.pageEnd = epubPage + 1
+      if (epubPageCount > 0) view.pageTotal = epubPageCount
+    }
+    return view
+  }, [chapterIndex, chapterTotal, epubPage, epubPageCount, mode, pdfPageCount, screen, textPager.pageEnd, textPager.pageStart, textPager.pageTotal, visual])
+  const readingViewKey = JSON.stringify(readingView)
+
   React.useEffect(() => {
-    if (screen.kind !== 'book' || !activeChapterId || !sessionId) return
+    if (screen.kind !== 'book' || !activeChapterId || !sessionId || !readingView) return
     const chapterTitle = screen.detail.toc.find((item: any) => item.id === activeChapterId)?.title ?? screen.content.title
     void call('companionContext', {
       sessionId,
       bookId: screen.detail.book.id,
       title: screen.detail.book.title,
       chapter: chapterTitle,
+      view: readingView,
     }).catch(() => {})
-  }, [activeChapterId, call, screen, sessionId])
+  }, [activeChapterId, call, readingViewKey, screen, sessionId])
 
   React.useEffect(() => {
     if (screen.kind !== 'book' || !activeChapterId) return

@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createReaderApi, noteFilePath } from '../src/api.ts'
+import { createReaderApi, normalizeReadingView, noteFilePath } from '../src/api.ts'
 
 function fakeContext() {
   const workspaces: any[] = []
@@ -554,4 +554,35 @@ test('tool_context_hydrates_session_mapping_without_opening_reader', async t => 
   const context = await api.toolContext({ sessionId: 'session-without-ui' })
   assert.equal(context.bookId, bookId)
   assert.match(api.companionContextOf('session-without-ui'), /书名：demo|书名：/)
+})
+test('reading_view_is_normalized_and_available_from_tool_context', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  const selection = '选'.repeat(5000)
+  await api.setCompanionContext({
+    sessionId: 'session-view',
+    bookId,
+    title: 'demo',
+    chapter: '第一章 开始',
+    view: {
+      mode: 'paged',
+      pageStart: 2,
+      pageEnd: 3,
+      pageTotal: 8,
+      chapterIndex: 0,
+      chapterTotal: 2,
+      selection,
+      selectionBlockIndex: 4,
+      selectionOffset: 12,
+    },
+  })
+  const context = await api.toolContext({ sessionId: 'session-view' })
+  assert.equal(context.view.pageStart, 2)
+  assert.equal(context.view.pageEnd, 3)
+  assert.equal(context.view.pageTotal, 8)
+  assert.equal(context.view.selection.length, 4000)
+  assert.equal(context.view.selectionBlockIndex, 4)
+  assert.equal(normalizeReadingView({ pageStart: 0, pageEnd: 'x' }), undefined)
 })

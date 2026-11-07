@@ -32,6 +32,7 @@ export interface CompanionContextPayload {
   bookId: string
   title: string
   chapter: string
+  view?: import('./api.ts').CompanionReadingView
 }
 
 export interface CompanionContextResult {
