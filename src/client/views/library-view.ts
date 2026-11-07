@@ -1,4 +1,4 @@
-import { Modal, React, h } from '../runtime.ts'
+import { Modal, React, h, useVirtualizer } from '../runtime.ts'
 import { formatSize, readCoversEnabled, saveCoversEnabled } from '../helpers.ts'
 import {
   bookRating,
@@ -271,6 +271,54 @@ interface LibraryProps {
   onSetRating: (book: ClientBook, rating: number) => Promise<number | null>
 }
 
+function VirtualBookGrid({ items, renderCard }: {
+  items: ClientBook[]
+  renderCard: (book: ClientBook) => any
+}) {
+  const scrollRef = React.useRef<HTMLDivElement | null>(null)
+  const [width, setWidth] = React.useState(0)
+  React.useEffect(() => {
+    const element = scrollRef.current
+    if (!element) return
+    const update = () => setWidth(element.clientWidth)
+    update()
+    if (typeof ResizeObserver !== 'function') return
+    const observer = new ResizeObserver(update)
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+  const gap = 12
+  const columns = Math.max(1, Math.floor((Math.max(0, width) + gap) / (158 + gap)))
+  const rows = Math.ceil(items.length / columns)
+  const virtualizer = useVirtualizer({
+    count: rows,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 236,
+    overscan: 2,
+  })
+  return h('div', { ref: scrollRef, className: 'dsh-readpilot-grid-virtual' },
+    h('div', { className: 'dsh-readpilot-grid-virtual-inner', style: { height: `${virtualizer.getTotalSize()}px` } },
+      virtualizer.getVirtualItems().map((row: any) => {
+        const start = row.index * columns
+        return h('div', {
+          key: row.key,
+          ref: virtualizer.measureElement,
+          'data-index': row.index,
+          className: 'dsh-readpilot-grid-row',
+          style: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: '100%',
+            display: 'grid',
+            transform: `translateY(${row.start}px)`,
+            gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+            gap: `${gap}px`,
+          },
+        }, items.slice(start, start + columns).map(renderCard))
+      })))
+}
+
 export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating }: LibraryProps) {
   const books = snapshot.books
   const tags = snapshot.tags ?? {}
@@ -316,6 +364,22 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
   },
   h('span', null, label),
   typeof count === 'number' ? h('span', { className: 'dsh-readpilot-library-count' }, count) : null)
+
+  const renderBook = (book: ClientBook) => h(BookCard, {
+    key: book.id,
+    t,
+    book,
+    tags: bookTags(book.id, tags),
+    status: bookStatus(book.id, statuses),
+    rating: bookRating(book.id, ratings),
+    showCover: coversEnabled,
+    onOpen,
+    onEditTags: (entry: ClientBook) => setTagEditor({
+      book: entry,
+      initialTags: bookTags(entry.id, tags),
+    }),
+  })
+  const virtual = typeof useVirtualizer === 'function'
 
   return h('div', { className: 'dsh-readpilot-library' },
     h('aside', { className: 'dsh-readpilot-library-side' },
@@ -368,28 +432,16 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
         ? h('div', { className: 'dsh-readpilot-empty' },
           h('h2', null, t('empty')),
           h('p', null, t('emptyHint')))
-        : h('div', { className: 'dsh-readpilot-library-scroll' },
+        : h('div', { className: 'dsh-readpilot-library-scroll', 'data-virtual': virtual ? 'true' : 'false' },
           h('section', { className: 'dsh-readpilot-all-section' },
             h('div', { className: 'dsh-readpilot-section-head' },
               h('h3', null, categoryTitle),
               h('span', null, `${visible.length}`)),
             visible.length === 0
               ? h('div', { className: 'dsh-readpilot-library-empty' }, t('noMatches'))
-              : h('div', { className: 'dsh-readpilot-grid' },
-                visible.map(book => h(BookCard, {
-                  key: book.id,
-                  t,
-                  book,
-                  tags: bookTags(book.id, tags),
-                  status: bookStatus(book.id, statuses),
-                  rating: bookRating(book.id, ratings),
-                  showCover: coversEnabled,
-                  onOpen,
-                  onEditTags: (entry: ClientBook) => setTagEditor({
-                    book: entry,
-                    initialTags: bookTags(entry.id, tags),
-                  }),
-                })))))),
+              : virtual
+                ? h(VirtualBookGrid, { items: visible, renderCard: renderBook })
+                : h('div', { className: 'dsh-readpilot-grid' }, visible.map(renderBook))))),
     tagEditor
       ? h(TagDialog, {
         t,

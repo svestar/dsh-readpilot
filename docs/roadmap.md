@@ -14,7 +14,7 @@
 
 | 批次 | 内容 | 排期 | 状态 |
 |---|---|---|---|
-| OPT-E | 书库/笔记真实窗口化（TOC 已窗口化） | later | planned |
+| OPT-E | 短笔记/划线列表真实窗口化 | later | planned |
 | OPT-F | `dsh-home-paths`、`defineTool` 全量结构化定义（books/search 已声明） | later | planned |
 
 | ID | 功能 | 要解决的问题 | 验收线索 | 优先级 | 排期 | 状态 |

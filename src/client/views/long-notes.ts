@@ -1,4 +1,4 @@
-import { React, Toast, h } from '../runtime.ts'
+import { React, Toast, h, useVirtualizer } from '../runtime.ts'
 import { buildNoteResource } from '../note-resource.ts'
 import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
@@ -14,6 +14,31 @@ interface LongNotesProps {
   noteContext?: NoteContextToggle
   autoApply?: NoteAutoApplyToggle
   useResource?: (address: string) => any
+}
+
+function VirtualNoteList({ notes, renderNote }: {
+  notes: any[]
+  renderNote: (note: any) => any
+}) {
+  const scrollRef = React.useRef<HTMLDivElement | null>(null)
+  const virtualizer = useVirtualizer({
+    count: notes.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 62,
+    overscan: 6,
+  })
+  return h('div', { ref: scrollRef, className: 'dsh-readpilot-long-list-virtual' },
+    h('div', { className: 'dsh-readpilot-long-list-virtual-inner', style: { height: `${virtualizer.getTotalSize()}px` } },
+      virtualizer.getVirtualItems().map((row: any) => {
+        const note = notes[row.index]
+        return h('div', {
+          key: note.id,
+          ref: virtualizer.measureElement,
+          'data-index': row.index,
+          className: 'dsh-readpilot-long-list-virtual-row',
+          style: { transform: `translateY(${row.start}px)` },
+        }, renderNote(note))
+      })))
 }
 
 function ActiveNoteSync({ useResource, address, onValue }: {
@@ -68,6 +93,19 @@ function historyView(t: TextFn, state: LongNotesState) {
 export function LongNotes({ t, state, noteContext, autoApply, useResource }: LongNotesProps) {
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const showActions = !state.active && !state.creating
+  const virtual = typeof useVirtualizer === 'function' && state.notes.length > 30
+  const renderNote = (note: any) => h('button', {
+    key: note.id,
+    type: 'button',
+    className: 'dsh-readpilot-long-note',
+    'data-kind': note.kind,
+    onClick: () => void state.open(note),
+  },
+  h('span', { className: 'dsh-readpilot-long-kind' },
+    note.kind === 'book' ? t('bookNote') : t('noteKindTopic')),
+  h('span', { className: 'dsh-readpilot-long-title' }, note.title),
+  h('span', { className: 'dsh-readpilot-long-meta' },
+    `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`))
 
   React.useEffect(() => {
     setPreviewOpen(Boolean(state.active))
@@ -118,7 +156,10 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
             }, t('rejectDraft'))))
       }))
     : null
-  return h('section', { className: 'dsh-readpilot-long-notes dsh-readpilot-page' },
+  return h('section', {
+    className: 'dsh-readpilot-long-notes dsh-readpilot-page',
+    style: virtual ? { flex: 1, minHeight: 0, overflow: 'hidden' } : undefined,
+  },
     h('header', { className: 'dsh-readpilot-page-head dsh-readpilot-long-notes-head' },
       h('div', { className: 'dsh-readpilot-page-heading' },
         h('div', { className: 'dsh-readpilot-page-title-row' },
@@ -217,22 +258,13 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
         ? emptyState(t('loading'), '')
         : state.notes.length === 0
           ? emptyState(t('longNoteEmpty'), t('longNotesHint'))
-          : h('div', { className: 'dsh-readpilot-long-list' },
+          : h('div', { className: 'dsh-readpilot-long-list', 'data-virtual': virtual ? 'true' : 'false' },
             h('div', { className: 'dsh-readpilot-list-head' },
               h('span', null, t('allNotes')),
               h('span', { className: 'dsh-readpilot-section-count' }, String(state.notes.length))),
-            state.notes.map(note => h('button', {
-              key: note.id,
-              type: 'button',
-              className: 'dsh-readpilot-long-note',
-              'data-kind': note.kind,
-              onClick: () => void state.open(note),
-            },
-            h('span', { className: 'dsh-readpilot-long-kind' },
-              note.kind === 'book' ? t('bookNote') : t('noteKindTopic')),
-            h('span', { className: 'dsh-readpilot-long-title' }, note.title),
-            h('span', { className: 'dsh-readpilot-long-meta' },
-              `${formatSize(note.size)} · ${new Date(note.updatedAt).toLocaleDateString()}`)))),
+            virtual
+              ? h(VirtualNoteList, { notes: state.notes, renderNote })
+              : state.notes.map(renderNote)),
     previewOpen && state.active
       ? h(ModalShell, {
         t,
