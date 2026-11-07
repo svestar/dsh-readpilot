@@ -1,4 +1,5 @@
 import { React, Toast, h } from '../runtime.ts'
+import { buildNoteResource } from '../note-resource.ts'
 import { diffLines, formatSize } from '../helpers.ts'
 import { MarkdownMessage } from './markdown.ts'
 import { ConfirmDialog } from './confirm-dialog.ts'
@@ -12,6 +13,19 @@ interface LongNotesProps {
   state: LongNotesState
   noteContext?: NoteContextToggle
   autoApply?: NoteAutoApplyToggle
+  useResource?: (address: string) => any
+}
+
+function ActiveNoteSync({ useResource, address, onValue }: {
+  useResource: (address: string) => any
+  address: string
+  onValue: (value: any) => void
+}) {
+  const resource = useResource(address)
+  React.useEffect(() => {
+    if (resource?.status === 'live' && resource.value) onValue(resource.value)
+  }, [onValue, resource?.status, resource?.value])
+  return null
 }
 
 function historyView(t: TextFn, state: LongNotesState) {
@@ -51,7 +65,7 @@ function historyView(t: TextFn, state: LongNotesState) {
     }, t('historyClose')))
 }
 
-export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) {
+export function LongNotes({ t, state, noteContext, autoApply, useResource }: LongNotesProps) {
   const [previewOpen, setPreviewOpen] = React.useState(false)
   const showActions = !state.active && !state.creating
 
@@ -273,6 +287,13 @@ export function LongNotes({ t, state, noteContext, autoApply }: LongNotesProps) 
         text: state.exportStatus,
         tone: 'success',
         onDone: state.clearExportStatus,
+      })
+      : null,
+    state.active && useResource
+      ? h(ActiveNoteSync, {
+        useResource,
+        address: buildNoteResource(state.active.note.bookId, state.active.note.id),
+        onValue: state.applyExternalNote,
       })
       : null,
     h(ConfirmDialog, {

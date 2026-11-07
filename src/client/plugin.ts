@@ -59,6 +59,7 @@ import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
+import { parseNoteResource } from './note-resource.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -131,7 +132,7 @@ export function createPlugin(require: (name: string) => any) {
 
 
 
-    function ReaderPanel(props: { t?: TextFn; SessionProvider?: any; renderSlot?: any }) {
+    function ReaderPanel(props: { t?: TextFn; SessionProvider?: any; renderSlot?: any; useResource?: any }) {
       const t: TextFn = props.t ?? boundText
       const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null)
       const [screenState, setScreenState] = React.useState<Screen>(currentReaderScreen)
@@ -1143,7 +1144,7 @@ export function createPlugin(require: (name: string) => any) {
         deleteNote,
       })
 
-      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext, autoApply })
+      const longNotesBody = h(LongNotes, { t, state: longNotes, noteContext, autoApply, useResource: props.useResource })
       const memoryBody = h(MemoryPanel, {
         t,
         status: memory.status,
@@ -1543,6 +1544,37 @@ export function createPlugin(require: (name: string) => any) {
               }
             }, `dsh-readpilot: shortcut ${item.id}`)
           }
+        }
+        const resources = typeof ctx.get === 'function' ? ctx.get('resources') : undefined
+        if (resources && typeof resources.register === 'function') {
+          ctx.effect(() => resources.register({
+            protocol: 'dsh-readpilot-note',
+            async *open(address: string, options: any) {
+              const target = parseNoteResource(address)
+              if (!target) return
+              const signal = options?.signal
+              let lastHash = ''
+              while (!signal?.aborted) {
+                try {
+                  const value = await call('noteFiles.read', { bookId: target.bookId, id: target.noteId })
+                  if (value.hash !== lastHash) {
+                    lastHash = value.hash
+                    yield { ok: true, value }
+                  }
+                } catch (error) {
+                  yield { ok: false, error: { code: 'note-resource', message: messageOf(error) } }
+                  return
+                }
+                await new Promise<void>(resolve => {
+                  const timer = window.setTimeout(resolve, 2000)
+                  signal?.addEventListener('abort', () => {
+                    window.clearTimeout(timer)
+                    resolve()
+                  }, { once: true })
+                })
+              }
+            },
+          }), 'dsh-readpilot: note resource')
         }
         if (ctx.sidebarRightTabs) {
           ctx.effect(

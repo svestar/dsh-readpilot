@@ -53,6 +53,7 @@ export interface LongNotesState {
   clearHistory: () => Promise<void>
   exportNotes: (save: boolean) => Promise<void>
   openExternal: () => Promise<void>
+  applyExternalNote: (value: any) => void
 }
 
 export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch, chatVersion = '' }: LongNotesOptions): LongNotesState {
@@ -459,6 +460,13 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
 
   const clearExportStatus = React.useCallback(() => setExportStatus(''), [])
 
+  const applyExternalNote = React.useCallback((value: any) => {
+    setActive(current => {
+      if (!current || current.note.id !== value?.note?.id || current.hash === value.hash) return current
+      return { note: value.note, body: value.body, hash: value.hash }
+    })
+  }, [])
+
   const exportNotes = React.useCallback(async (save: boolean) => {    if (!activeBookId || exporting) return
     const bookId = activeBookId
     setExporting(true)
@@ -511,6 +519,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     exportStatus,
     clearExportStatus,
     externalBusy,
+    applyExternalNote,
     confirmMessage,
     settleConfirm,
     setTitle,
