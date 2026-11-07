@@ -28,9 +28,9 @@ Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书�
 
 ## 约束与失败行为
 
-工具依赖用户已配置书库；找不到书时返回 `{ error }`，不抛到工具层。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，结果带 `booksScanned`/`booksTotal`；被上限截断或解析失败时分别标记 `truncated`/`unreadable`。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`；`reader_digest` 只返回摘录和覆盖范围，需要细节时仍用 `reader_read`。，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 默认关闭（`off`），关闭时更新返回 `memory-off`；开启后只记录长期有效的偏好与结论，每卡上限 600 字，超限返回 `memory-too-large` 要求先压缩。`reader_note` 仍按用户明确要求写短笔记。工具结果在返回前归一为无损 JSON：丢弃 `undefined` 字段，非有限数与 `-0` 分别转成 `null` 与 `0`，否则 DSH 会以 invalid output 拒绝整次调用。
+工具依赖用户已配置书库；找不到书或未知操作时抛出错误，由宿主标记为工具失败。`reader_notes` 自动应用失败时的 `error` 是草稿结果字段，不是工具失败。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，结果带 `booksScanned`/`booksTotal`；被上限截断或解析失败时分别标记 `truncated`/`unreadable`。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`；`reader_digest` 只返回摘录和覆盖范围，需要细节时仍用 `reader_read`。，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 默认关闭（`off`），关闭时更新返回 `memory-off`；开启后只记录长期有效的偏好与结论，每卡上限 600 字，超限返回 `memory-too-large` 要求先压缩。`reader_note` 仍按用户明确要求写短笔记。工具结果在返回前归一为无损 JSON：丢弃 `undefined` 字段，非有限数与 `-0` 分别转成 `null` 与 `0`，否则 DSH 会以 invalid output 拒绝整次调用。
 
 ## 验收与测试
 
-- 正常路径：工具列表包含九个工具，`reader_digest` 返回章节与摘录；空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符（`tools_read_bounded`）。
+- 正常路径：工具列表包含九个工具，`reader_digest` 返回章节与摘录；空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符；找不到书与未知操作抛出错误（`tools_read_bounded`）。
 - 边界：工具结果丢弃 `undefined`，数组中的空位转 `null`，可无损 JSON 往返（`tool_values_are_lossless_json`）。

@@ -21,10 +21,6 @@ function outputOf(value: unknown): Array<{ type: string; text: string }> {
   return [{ type: 'text', text: JSON.stringify(value) }]
 }
 
-function jsonError(error: unknown): { error: string } {
-  return { error: error instanceof Error ? error.message : String(error) }
-}
-
 /**
  * Normalize a tool result to lossless JSON. DSH rejects a tool call whose value
  * does not survive a JSON round trip: `undefined` fields, non-finite numbers and
@@ -63,11 +59,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute() {
-        try {
-          return await api.toolBooks()
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolBooks()
       },
     },
     {
@@ -84,11 +76,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.toolOpen(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolOpen(args ?? {})
       },
     },
     {
@@ -107,11 +95,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.toolDigest(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolDigest(args ?? {})
       },
     },
     {
@@ -127,11 +111,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args, exec) {
-        try {
-          return await api.toolContext({ ...(args ?? {}), sessionId: exec?.agent?.session?.id })
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolContext({ ...(args ?? {}), sessionId: exec?.agent?.session?.id })
       },
     },
     {
@@ -151,11 +131,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.toolRead(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolRead(args ?? {})
       },
     },
     {
@@ -174,11 +150,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.toolSearch(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolSearch(args ?? {})
       },
     },
     {
@@ -201,11 +173,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.toolNote(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.toolNote(args ?? {})
       },
     },
     {
@@ -232,33 +200,29 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          const action = args?.action
-          if (action === 'index' || action === 'read') return await api.toolNoteFiles(args ?? {})
-          if (action === 'create' || action === 'write' || action === 'append') {
-            const result = await api.noteDraftCreate(args ?? {})
-            return {
-              draft: {
-                id: result.draft.id,
-                action: result.draft.action,
-                title: result.draft.title,
-                noteId: result.draft.noteId ?? null,
-                characters: result.draft.body.length,
-              },
-              applied: result.autoApplied === true,
-              note: result.note ?? null,
-              error: result.error,
-              message: result.autoApplied
-                ? '笔记已自动应用。'
-                : result.error
-                  ? `草稿已创建，但自动应用失败：${result.error}。请在长笔记页确认。`
-                  : '草稿已创建，等待用户在笔记面板确认。',
-            }
+        const action = args?.action
+        if (action === 'index' || action === 'read') return await api.toolNoteFiles(args ?? {})
+        if (action === 'create' || action === 'write' || action === 'append') {
+          const result = await api.noteDraftCreate(args ?? {})
+          return {
+            draft: {
+              id: result.draft.id,
+              action: result.draft.action,
+              title: result.draft.title,
+              noteId: result.draft.noteId ?? null,
+              characters: result.draft.body.length,
+            },
+            applied: result.autoApplied === true,
+            note: result.note ?? null,
+            error: result.error,
+            message: result.autoApplied
+              ? '笔记已自动应用。'
+              : result.error
+                ? `草稿已创建，但自动应用失败：${result.error}。请在长笔记页确认。`
+                : '草稿已创建，等待用户在笔记面板确认。',
           }
-          return { error: `未知操作：${String(action)}` }
-        } catch (error) {
-          return jsonError(error)
         }
+        throw new Error(`未知操作：${String(action)}`)
       },
     },
     {
@@ -287,11 +251,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        try {
-          return await api.memoryTool(args ?? {})
-        } catch (error) {
-          return jsonError(error)
-        }
+        return await api.memoryTool(args ?? {})
       },
     },
   ]

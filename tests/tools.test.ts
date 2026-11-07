@@ -119,6 +119,11 @@ test('tools_read_bounded', async t => {
   const books = await registered.get('reader_books')!.execute({})
   assert.equal(books.books.length, 1)
   assertLossless(books)
+  await assert.rejects(() => registered.get('reader_open')!.execute({ book: 'missing' }), /找不到/)
+  await assert.rejects(
+    () => registered.get('reader_notes')!.execute({ action: 'nope', book: state.books[0].title }),
+    /未知操作/,
+  )
   dispose()
   assert.equal(registered.size, 0)
 })
