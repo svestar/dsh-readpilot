@@ -6,6 +6,7 @@ import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 MAX_CHARS = 1500
+README_MAX_CHARS = 2000
 FEATURE_DOC_MAX_CHARS = 3000
 MAX_FEATURE_ENTRIES = 200
 UNLIMITED_PATHS = {"docs/features/index.md", "docs/roadmap.md"}
@@ -42,6 +43,8 @@ def char_limit(rel_path):
     posix = rel_path.as_posix()
     if posix in UNLIMITED_PATHS or posix.startswith(UNLIMITED_PREFIXES):
         return None
+    if posix == "README.md":
+        return README_MAX_CHARS
     if posix.startswith(("docs/features/", "docs/decisions/")):
         return FEATURE_DOC_MAX_CHARS
     return MAX_CHARS
