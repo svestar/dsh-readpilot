@@ -531,4 +531,8 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-book-card{content-visibility:auto;contain-intrinsic-size:auto 220px}
 .dsh-readpilot-toc-item{content-visibility:auto;contain-intrinsic-size:auto 34px}
 .dsh-readpilot-note{content-visibility:auto;contain-intrinsic-size:auto 80px}
+.dsh-readpilot-mark-list-virtual{flex:1;min-height:0;overflow:auto;padding-bottom:24px}
+.dsh-readpilot-mark-list-virtual-inner{position:relative;width:100%}
+.dsh-readpilot-mark-list-virtual-row{position:absolute;top:0;left:0;width:100%}
+.dsh-readpilot-mark-section-head{padding-top:8px}
 .dsh-readpilot-search-result{content-visibility:auto;contain-intrinsic-size:auto 64px}`

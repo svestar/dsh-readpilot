@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { React, h, useVirtualizer } from '../runtime.ts'
 import { bookmarkContext } from '../bookmark-label.ts'
 import { filterMarks, markChapterIds, markColors } from '../mark-filters.ts'
 import type { StateSetter } from '../runtime.ts'
@@ -57,6 +57,35 @@ function colorLabel(t: TextFn, color: string): string {
   return t(key)
 }
 
+type MarkListRow =
+  | { type: 'header'; key: string; title: string; count: number }
+  | { type: 'mark'; key: string; kind: 'highlight' | 'note' | 'bookmark'; item: Note }
+
+function VirtualMarkList({ rows, renderRow }: {
+  rows: MarkListRow[]
+  renderRow: (row: MarkListRow) => any
+}) {
+  const scrollRef = React.useRef<HTMLDivElement | null>(null)
+  const virtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => scrollRef.current,
+    estimateSize: () => 76,
+    overscan: 6,
+  })
+  return h('div', { ref: scrollRef, className: 'dsh-readpilot-mark-list-virtual' },
+    h('div', { className: 'dsh-readpilot-mark-list-virtual-inner', style: { height: `${virtualizer.getTotalSize()}px` } },
+      virtualizer.getVirtualItems().map((row: any) => {
+        const item = rows[row.index]
+        return h('div', {
+          key: item.key,
+          ref: virtualizer.measureElement,
+          'data-index': row.index,
+          className: 'dsh-readpilot-mark-list-virtual-row',
+          style: { transform: `translateY(${row.start}px)` },
+        }, renderRow(item))
+      })))
+}
+
 export function NotesBody({ t, notesError, notesLoading, notes, highlights, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
   const [chapterFilter, setChapterFilter] = React.useState('all')
   const [colorFilter, setColorFilter] = React.useState('all')
@@ -99,11 +128,79 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
   const visibleBookmarks = filterMarks(bookmarks, filter)
   const total = visibleHighlights.length + visibleNotes.length + visibleBookmarks.length
   const allTotal = allMarks.length
+  const virtual = typeof useVirtualizer === 'function' && total > 40
+  const rows: MarkListRow[] = []
+  if (virtual) {
+    if (visibleHighlights.length > 0) {
+      rows.push({ type: 'header', key: 'header:highlights', title: t('highlights'), count: visibleHighlights.length })
+      for (const item of visibleHighlights) rows.push({ type: 'mark', key: `highlight:${item.id}`, kind: 'highlight', item })
+    }
+    if (visibleNotes.length > 0) {
+      rows.push({ type: 'header', key: 'header:notes', title: t('shortNotes'), count: visibleNotes.length })
+      for (const item of visibleNotes) rows.push({ type: 'mark', key: `note:${item.id}`, kind: 'note', item })
+    }
+    if (visibleBookmarks.length > 0) {
+      rows.push({ type: 'header', key: 'header:bookmarks', title: t('bookmarks'), count: visibleBookmarks.length })
+      for (const item of visibleBookmarks) rows.push({ type: 'mark', key: `bookmark:${item.id}`, kind: 'bookmark', item })
+    }
+  }
+  const renderMarkRow = (row: MarkListRow) => {
+    if (row.type === 'header') {
+      return h('div', { className: 'dsh-readpilot-mark-section-head' },
+        h('div', { className: 'dsh-readpilot-section-head' },
+          h('h4', null, row.title),
+          h('span', { className: 'dsh-readpilot-section-count' }, String(row.count))))
+    }
+    if (row.kind === 'highlight') {
+      return h('div', { className: 'dsh-readpilot-note dsh-readpilot-mark-highlight' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-note-main',
+          onClick: () => openNote(row.item),
+        },
+        h('div', { className: 'dsh-readpilot-note-chapter' },
+          h('span', { className: `dsh-readpilot-color-dot dsh-readpilot-color-${row.item.color ?? 'yellow'}` }),
+          chapterTitleById.get(row.item.chapterId) || t('reading')),
+        h('div', { className: 'dsh-readpilot-note-quote' }, row.item.quote),
+        row.item.annotation
+          ? h('div', { className: 'dsh-readpilot-note-body' }, row.item.annotation)
+          : null),
+        ...markActions({ t, item: row.item, noteDeletingId, deleteNote, openNote }))
+    }
+    if (row.kind === 'note') {
+      return h('div', { className: 'dsh-readpilot-note' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-note-main',
+          onClick: () => openNote(row.item),
+        },
+        h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleById.get(row.item.chapterId) || t('reading')),
+        row.item.quote ? h('div', { className: 'dsh-readpilot-note-quote' }, row.item.quote) : null,
+        h('div', { className: 'dsh-readpilot-note-body' }, row.item.note)),
+        ...markActions({ t, item: row.item, noteDeletingId, deleteNote, openNote }))
+    }
+    const context = bookmarkContexts(row.item.chapterId)
+    const title = context.chapterTitle || row.item.note || t('bookmark')
+    const detail = row.item.annotation
+      || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
+    return h('div', { className: 'dsh-readpilot-note dsh-readpilot-mark-bookmark' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-main',
+        onClick: () => openNote(row.item),
+      },
+      h('div', { className: 'dsh-readpilot-note-chapter' }, title),
+      detail ? h('div', { className: 'dsh-readpilot-note-body' }, detail) : null),
+      ...markActions({ t, item: row.item, noteDeletingId, deleteNote, openNote }))
+  }
   const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
     h('div', { className: 'dsh-readpilot-empty-icon' }, '✎'),
     h('div', { className: 'dsh-readpilot-empty-title' }, title),
     hint ? h('div', { className: 'dsh-readpilot-empty-hint' }, hint) : null)
-  return h('div', { className: 'dsh-readpilot-notes dsh-readpilot-page' },
+  return h('div', {
+    className: 'dsh-readpilot-notes dsh-readpilot-page',
+    style: virtual ? { display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' } : undefined,
+  },
     h('header', { className: 'dsh-readpilot-page-head' },
       h('div', { className: 'dsh-readpilot-page-heading' },
         h('div', { className: 'dsh-readpilot-page-title-row' },
@@ -142,7 +239,9 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
         ? notesError ? null : emptyState(t('noteEmpty'), t('notesEmptyHint'))
         : total === 0
           ? emptyState(t('noMatches'), '')
-          : h('div', { className: 'dsh-readpilot-page-content' },
+          : virtual
+            ? h(VirtualMarkList, { rows, renderRow: renderMarkRow })
+            : h('div', { className: 'dsh-readpilot-page-content' },
             visibleHighlights.length > 0
               ? h('section', { key: 'highlights', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
                 h('div', { className: 'dsh-readpilot-section-head' },
