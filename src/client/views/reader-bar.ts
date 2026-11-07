@@ -1,4 +1,4 @@
-import { h } from '../runtime.ts'
+import { Tooltip, h } from '../runtime.ts'
 import type { BookFormat } from '../../formats.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { TextFn } from '../types.ts'
@@ -70,22 +70,22 @@ export function ReaderBar({
     'data-layout': layout,
   },
     h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-nav' },
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
-        title: prevLabel,
-        'aria-label': prevLabel,
-        disabled: !canPrev,
-        onClick: onPrev,
-      }, '‹'),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
-        title: nextLabel,
-        'aria-label': nextLabel,
-        disabled: !canNext,
-        onClick: onNext,
-      }, '›')),
+      h(Tooltip, { label: prevLabel, side: 'top', delayMs: 300 },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
+          'aria-label': prevLabel,
+          disabled: !canPrev,
+          onClick: onPrev,
+        }, '‹')),
+      h(Tooltip, { label: nextLabel, side: 'top', delayMs: 300 },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
+          'aria-label': nextLabel,
+          disabled: !canNext,
+          onClick: onNext,
+        }, '›'))),
     h('div', { className: 'dsh-readpilot-bar-title', title: chapterTitle }, chapterTitle),
     h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-controls' },
       numericPage
@@ -112,20 +112,20 @@ export function ReaderBar({
         }, pagePosition),
       zoom !== undefined && onZoom
         ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-zoom' },
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
-            title: t('zoomOut'),
-            'aria-label': t('zoomOut'),
-            onClick: () => onZoom(-0.25),
-          }, '−'),
+          h(Tooltip, { label: t('zoomOut'), side: 'top', delayMs: 300 },
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
+              'aria-label': t('zoomOut'),
+              onClick: () => onZoom(-0.25),
+            }, '−')),
           h('span', { className: 'dsh-readpilot-bar-position' }, `${Math.round(zoom * 100)}%`),
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
-            title: t('zoomIn'),
-            'aria-label': t('zoomIn'),
-            onClick: () => onZoom(0.25),
-          }, '+'))
+          h(Tooltip, { label: t('zoomIn'), side: 'top', delayMs: 300 },
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
+              'aria-label': t('zoomIn'),
+              onClick: () => onZoom(0.25),
+            }, '+')))
         : null))
 }

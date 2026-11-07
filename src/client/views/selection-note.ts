@@ -1,4 +1,4 @@
-import { React, createPortal, Modal, h } from '../runtime.ts'
+import { React, createPortal, Modal, Tooltip, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
 
@@ -80,15 +80,19 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
   selection.blockIndex == null
     ? null
     : h('div', { className: 'dsh-readpilot-selection-colors', role: 'group', 'aria-label': t('highlight') },
-      COLORS.map(color => h('button', {
+      COLORS.map(color => h(Tooltip, {
         key: color,
+        label: `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
+        side: 'top',
+        delayMs: 300,
+      },
+      h('button', {
         type: 'button',
         className: 'dsh-readpilot-color-btn',
         'data-color': color,
-        title: `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         onClick: () => onHighlight(color),
-      }))),
+      })))),
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
   h('button', { type: 'button', onClick: () => onNote() }, t('noteAction'))), document.body)
 }

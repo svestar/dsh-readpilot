@@ -26,7 +26,7 @@ function setup() {
         },
       }
     }
-    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal' }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip' }
     throw new Error(`unexpected require: ${name}`)
   })
   return { body, portals }

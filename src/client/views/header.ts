@@ -1,4 +1,4 @@
-import { h } from '../runtime.ts'
+import { Tooltip, h } from '../runtime.ts'
 import type { Screen, TextFn } from '../types.ts'
 
 interface HeaderProps {
@@ -37,12 +37,13 @@ export function Header({
   return h('div', { className: 'dsh-readpilot-header' },
     h('div', { className: 'dsh-readpilot-header-main' },
       screen.kind !== 'library'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          title: t('back'),
-          onClick: onBack,
-        }, '←')
+        ? h(Tooltip, { label: t('back'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            'aria-label': t('back'),
+            onClick: onBack,
+          }, '←'))
         : null,
       h('div', { style: { minWidth: 0 } },
         h('div', { className: 'dsh-readpilot-title' }, title),
@@ -59,46 +60,49 @@ export function Header({
       : null,
     h('div', { className: 'dsh-readpilot-header-actions' },
       screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn dsh-readpilot-settings-btn',
-          'data-active': settingsOpen ? 'true' : 'false',
-          title: t('readerSettings'),
-          'aria-expanded': settingsOpen ? 'true' : 'false',
-          onClick: onToggleSettings,
-        }, 'Aa')
+        ? h(Tooltip, { label: t('readerSettings'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn dsh-readpilot-settings-btn',
+            'data-active': settingsOpen ? 'true' : 'false',
+            'aria-label': t('readerSettings'),
+            'aria-expanded': settingsOpen ? 'true' : 'false',
+            onClick: onToggleSettings,
+          }, 'Aa'))
         : null,
       screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          title: t('search'),
-          'aria-expanded': searchOpen ? 'true' : 'false',
-          onClick: onToggleSearch,
-        }, t('search'))
+        ? h(Tooltip, { label: t('search'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            'aria-expanded': searchOpen ? 'true' : 'false',
+            onClick: onToggleSearch,
+          }, t('search')))
         : null,
       screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          title: t('companion'),
-          onClick: onToggleChat,
-        }, t('companion'))
+        ? h(Tooltip, { label: t('companion'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            onClick: onToggleChat,
+          }, t('companion')))
         : null,
       screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          title: t('bookmark'),
-          onClick: onBookmark,
-        }, '🔖')
+        ? h(Tooltip, { label: t('bookmark'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            'aria-label': t('bookmark'),
+            onClick: onBookmark,
+          }, '🔖'))
         : null,
       screen.kind === 'book'
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-icon-btn',
-          title: t('toc'),
-          onClick: onToggleToc,
-        }, '☰')
+        ? h(Tooltip, { label: t('toc'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            'aria-label': t('toc'),
+            onClick: onToggleToc,
+          }, '☰'))
         : null))
 }
