@@ -3,9 +3,10 @@ import {
   PAGE_GAP,
   clampPageIndex,
   columnsFor,
+  anchorPage,
   measurePageMetrics,
 } from '../paging.ts'
-import type { PageLayout } from '../paging.ts'
+import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import type { MutableRef, Screen, SelectChapter } from '../types.ts'
 
 const WHEEL_THRESHOLD = 40
@@ -16,6 +17,7 @@ export interface TextPagerOptions {
   screen: Screen
   fontSize: number
   pageWidth?: number
+  anchor?: ReadingAnchor | null
   selectChapter: SelectChapter
 }
 
@@ -33,7 +35,7 @@ export interface TextPager {
   goPage: (delta: number) => void
 }
 
-export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, selectChapter }: TextPagerOptions): TextPager {
+export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, anchor, selectChapter }: TextPagerOptions): TextPager {
   const [page, setPage] = React.useState(0)
   const [pageCount, setPageCount] = React.useState(1)
   const [stride, setStride] = React.useState(0)
@@ -41,6 +43,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
   const innerRef = React.useRef<HTMLDivElement | null>(null)
   const pendingLastRef = React.useRef<string | null>(null)
   const pageRef = React.useRef(0)
+  const appliedAnchorRef = React.useRef(0)
   const scrollPageRef = React.useRef<number | null>(null)
   pageRef.current = page
 
@@ -90,7 +93,11 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       if (pendingLast) pendingLastRef.current = null
       setStride(metrics.stride)
       setPageCount(metrics.pageCount)
-      if (pendingLast) {
+      if (anchor && anchor.chapterId === chapterId && anchor.token !== appliedAnchorRef.current) {
+        appliedAnchorRef.current = anchor.token
+        const target = anchorPage(anchor.fraction, metrics.pageCount)
+        setPage(clampPageIndex(target, metrics.pageCount))
+      } else if (pendingLast) {
         setPage(metrics.pageCount - 1)
       } else {
         setPage(previous => clampPageIndex(previous, metrics.pageCount))
@@ -132,7 +139,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
         if (timer !== undefined) view?.clearTimeout(timer)
       }
     }
-  }, [active, chapterId, fontSize, layout, pageWidth])
+  }, [active, chapterId, fontSize, layout, pageWidth, anchor?.token])
 
   React.useEffect(() => {
     const fromScroll = scrollPageRef.current === page

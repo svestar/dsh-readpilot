@@ -194,21 +194,54 @@ export function saveReadingMode(mode: ReaderMode): void {
   }
 }
 
-export const REFLOW_MODE_KEY = 'dsh-readpilot.reflow'
+export const REFLOW_BOOKS_KEY = 'dsh-readpilot.reflow-books'
 
-export function readReflowMode(): boolean {
+export function readReflowBooks(): Record<string, boolean> {
   try {
-    return window.localStorage.getItem(REFLOW_MODE_KEY) === 'on'
+    const parsed = JSON.parse(window.localStorage.getItem(REFLOW_BOOKS_KEY) ?? '{}') as Record<string, unknown>
+    const books: Record<string, boolean> = {}
+    for (const [bookId, enabled] of Object.entries(parsed ?? {})) {
+      if (/^[A-Za-z0-9_-]{1,64}$/.test(bookId) && typeof enabled === 'boolean') books[bookId] = enabled
+    }
+    return books
   } catch {
-    return false
+    return {}
   }
 }
 
-export function saveReflowMode(enabled: boolean): void {
+export function saveReflowBooks(books: Record<string, boolean>): void {
   try {
-    window.localStorage.setItem(REFLOW_MODE_KEY, enabled ? 'on' : 'off')
+    window.localStorage.setItem(REFLOW_BOOKS_KEY, JSON.stringify(books))
   } catch {
-    // Reflow-mode persistence is best effort.
+    // Per-book reflow persistence is best effort.
+  }
+}
+
+export const FONT_SIZE_KEY = 'dsh-readpilot.font-size'
+export const DEFAULT_FONT_SIZE = 17
+export const MIN_FONT_SIZE = 14
+export const MAX_FONT_SIZE = 24
+
+export function normalizeFontSize(value: unknown): number {
+  if (value === null || value === undefined || value === '') return DEFAULT_FONT_SIZE
+  const size = Number(value)
+  if (!Number.isFinite(size)) return DEFAULT_FONT_SIZE
+  return Math.round(Math.min(MAX_FONT_SIZE, Math.max(MIN_FONT_SIZE, size)))
+}
+
+export function readFontSize(): number {
+  try {
+    return normalizeFontSize(window.localStorage.getItem(FONT_SIZE_KEY))
+  } catch {
+    return DEFAULT_FONT_SIZE
+  }
+}
+
+export function saveFontSize(value: number): void {
+  try {
+    window.localStorage.setItem(FONT_SIZE_KEY, String(normalizeFontSize(value)))
+  } catch {
+    // Font-size persistence is best effort.
   }
 }
 

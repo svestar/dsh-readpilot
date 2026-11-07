@@ -3,12 +3,12 @@
 - **ID：** FTR-031
 - **名称：** 重排阅读
 - **状态：** active
-- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`toggleReflow`、`isTextFormat`、`textLayout`）；`src/client/helpers.ts`（`readReflowMode`、`saveReflowMode`）；`src/client/views/header.ts`（`Header`）；`src/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/formats/epub.ts`（`parseEpub`）；`src/client/views/markdown.ts`（`renderBlocks`）
+- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/helpers.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/reader-settings.ts`（`ReaderSettings`）；`src/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/formats/epub.ts`（`parseEpub`）；`src/client/views/markdown.ts`（`renderBlocks`）
 - **测试：** `tests/epub-visual.test.ts`；`tests/pdf.test.ts`；`tests/epub.test.ts`
 
 ## 行为
 
-EPUB 与 PDF 阅读时顶栏出现“重排/原版”切换，模式保存在 `localStorage` 的 `dsh-readpilot.reflow`，跨书生效。
+EPUB 与 PDF 阅读时在阅读设置面板切换“原版/重排”；模式按书记忆，保存在 `localStorage` 的 `dsh-readpilot.reflow-books`。
 
 重排统一走原生文本渲染器（A4 分页），不再使用 iframe；iframe 只保留给“原版”EPUB。EPUB 重排使用 `parseEpub` 抽出的块，正文、标题、列表、引用、代码与图片按 TXT/MD 的版式渲染，字号跟随 A+/A-；图片经 `epub-asset` 加载并参与分页重测。出版社字体、浮动等复杂版式仍不进入重排。
 
@@ -19,9 +19,9 @@ PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚�
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `visualForItem` / `visualForChapter` | `src/client/reader-screen.ts:visualForItem` | 重排时对 EPUB/PDF 返回 `null`，走文本渲染器 |
-| `toggleReflow` | `src/client/plugin.ts:toggleReflow` | 切换模式、重建当前章节的视觉状态 |
-| `readReflowMode` / `saveReflowMode` | `src/client/helpers.ts:readReflowMode` | 读写模式偏好 |
-| `Header` | `src/client/views/header.ts:Header` | 仅 EPUB/PDF 显示“重排/原版”按钮 |
+| `applySource` | `src/client/plugin.ts:applySource` | 切换模式、重建当前章节的视觉状态 |
+| `readReflowBooks` / `saveReflowBooks` | `src/client/helpers.ts:readReflowBooks` | 读写按书的模式偏好 |
+| `ReaderSettings` | `src/client/reader-settings.ts:ReaderSettings` | 提供“原版/重排”等内容设置 |
 | `parsePdf` | `src/formats/pdf.ts:parsePdf` | PDF 文本重建，返回 `reflowConfidence` / `reflowNotes` |
 | `stripPageFurniture` | `src/formats/pdf.ts:stripPageFurniture` | 过滤页码与重复页眉页脚 |
 | `orderColumns` | `src/formats/pdf.ts:orderColumns` | 双栏页按左右栏重排 |

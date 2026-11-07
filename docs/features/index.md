@@ -35,3 +35,5 @@
 | `FTR-029` | 键盘快捷键 | `docs/features/FTR-029-shortcuts.md` | `src/client/shortcuts.ts` | `tests/shortcuts.test.ts` | active |
 | `FTR-030` | 批注总览 | `docs/features/FTR-030-annotations-overview.md` | `src/client/mark-filters.ts` | `tests/mark-filters.test.ts` | active |
 | `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts;tests/epub.test.ts` | active |
+| `FTR-032` | 阅读设置 | `docs/features/FTR-032-reader-settings.md` | `src/client/reader-settings.ts` | `tests/paging.test.ts` | active |
+| `FTR-033` | 阅读位置锚点 | `docs/features/FTR-033-reading-anchor.md` | `src/client/paging.ts` | `tests/paging.test.ts` | active |

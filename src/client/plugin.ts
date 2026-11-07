@@ -16,13 +16,16 @@ import {
   saveGlassBlur,
   normalizeGlassBlur,
   DEFAULT_GLASS_BLUR,
-  readReflowMode,
+  readReflowBooks,
   readReadingMode,
+  readFontSize,
+  normalizeFontSize,
   resolveReaderPalette,
   savePageLayout,
   savePaletteId,
   saveReadingMode,
-  saveReflowMode,
+  saveReflowBooks,
+  saveFontSize,
 } from './helpers.ts'
 
 import { zh, en } from './locale.ts'
@@ -39,6 +42,7 @@ import { MemoryPanel } from './views/memory-panel.ts'
 import { VisualReader } from './views/visual-reader.ts'
 import { ChatPanel } from './views/chat-panel.ts'
 import { Header } from './views/header.ts'
+import { ReaderSettings } from './reader-settings.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
@@ -56,7 +60,8 @@ import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
 import { chapterPercent, columnsFor, pageSpanWidth, pdfPagePercent } from './paging.ts'
-import type { PageLayout, ReaderMode } from './paging.ts'
+import type { PageLayout, ReadingAnchor, ReaderMode } from './paging.ts'
+import { readerCapabilities } from './paging.ts'
 import type {
   ClientBook,
   PendingScroll,
@@ -136,20 +141,28 @@ export function createPlugin(require: (name: string) => any) {
       }, [])
       const screen = screenState
       const [readingMode, setReadingMode] = React.useState<ReaderMode>(readReadingMode)
-      const [reflowMode, setReflowMode] = React.useState<boolean>(readReflowMode)
-      const reflowModeRef = React.useRef(reflowMode)
-      reflowModeRef.current = reflowMode
+      const [reflowBooks, setReflowBooks] = React.useState<Record<string, boolean>>(readReflowBooks)
       const [pageLayout, setPageLayout] = React.useState<PageLayout>(readPageLayout)
       const [error, setError] = React.useState('')
       const [reflowWarning, setReflowWarning] = React.useState('')
       const [busy, setBusy] = React.useState(false)
       const [tocOpen, setTocOpen] = React.useState(true)
-      const [fontSize, setFontSize] = React.useState(17)
+      const [fontSize, setFontSize] = React.useState(readFontSize)
+      const [settingsOpen, setSettingsOpen] = React.useState(false)
+      const [readingAnchor, setReadingAnchor] = React.useState<ReadingAnchor | null>(null)
+      const anchorTokenRef = React.useRef(0)
+      const scrollAnchorAppliedRef = React.useRef(0)
       const [selection, setSelection] = React.useState<Selection | null>(null)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
       const format = screen.kind === 'book' ? screen.detail.book.format : null
+      const bookId = screen.kind === 'book' ? screen.detail.book.id : null
+      const defaultReflow = format === 'txt' || format === 'md'
+      const reflowMode = bookId ? (reflowBooks[bookId] ?? defaultReflow) : false
+      const reflowModeRef = React.useRef(reflowMode)
+      reflowModeRef.current = reflowMode
+      const capabilities = readerCapabilities(format ?? 'txt', reflowMode)
       const isTextFormat = format === 'txt' || format === 'md'
         || (format === 'pdf' && reflowMode)
         || (format === 'epub' && reflowMode)
@@ -186,12 +199,25 @@ export function createPlugin(require: (name: string) => any) {
       }, [readingMode])
 
       React.useEffect(() => {
-        saveReflowMode(reflowMode)
-      }, [reflowMode])
+        saveFontSize(fontSize)
+      }, [fontSize])
+
+      const setBookReflow = React.useCallback((enabled: boolean) => {
+        if (!bookId) return
+        setReflowBooks(previous => {
+          const next = { ...previous, [bookId]: enabled }
+          saveReflowBooks(next)
+          return next
+        })
+      }, [bookId])
 
       React.useEffect(() => {
         savePageLayout(pageLayout)
       }, [pageLayout])
+
+      React.useEffect(() => {
+        setSettingsOpen(false)
+      }, [bookId, screen.kind])
 
       const setBookTags = React.useCallback(async (book: ClientBook, tags: string[]) => {
         const result = await call('setBookTags', { bookId: book.id, tags })
@@ -497,6 +523,7 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
         readingMode: effectiveMode,
         layout: pageLayout,
+        anchor: readingAnchor,
       })
 
       // The panel remounts when switching DSH pages; restored screens must rebuild
@@ -517,6 +544,7 @@ export function createPlugin(require: (name: string) => any) {
         screen,
         fontSize,
         pageWidth: textPageWidth,
+        anchor: readingAnchor,
         selectChapter,
       })
 
@@ -539,6 +567,51 @@ export function createPlugin(require: (name: string) => any) {
             ? chapterPercent(toc, chapterIndex, epubPage, epubPageCount)
             : chapterPercent(toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, textPager.page, textPager.pageCount)
 
+      const makeReadingAnchor = React.useCallback((chapterId?: string, fraction?: number) => {
+        let value = fraction
+        if (value === undefined) {
+          const scroller = readingMode === 'scroll' ? contentRef.current : null
+          if (scroller) value = scroller.scrollTop / Math.max(1, scroller.scrollHeight - scroller.clientHeight)
+          else if (isTextFormat && textPager.pageCount > 0) value = textPager.page / Math.max(1, textPager.pageCount)
+          else if (visual?.kind === 'epub' && epubPageCount > 0) value = epubPage / Math.max(1, epubPageCount)
+          else value = 0
+        }
+        return {
+          chapterId: chapterId ?? (screen.kind === 'book' ? screen.content.chapterId : ''),
+          fraction: Math.max(0, Math.min(1, value)),
+          token: ++anchorTokenRef.current,
+        }
+      }, [epubPage, epubPageCount, isTextFormat, readingMode, screen, textPager.page, textPager.pageCount, visual?.kind])
+
+      const changeFlow = React.useCallback((mode: ReaderMode) => {
+        if (mode === readingMode) return
+        setReadingAnchor(makeReadingAnchor())
+        setReadingMode(mode)
+      }, [makeReadingAnchor, readingMode])
+
+      const changeSpread = React.useCallback((layout: PageLayout) => {
+        if (layout === pageLayout) return
+        setReadingAnchor(makeReadingAnchor())
+        setPageLayout(layout)
+      }, [makeReadingAnchor, pageLayout])
+
+      const changeFontSize = React.useCallback((value: number) => {
+        setReadingAnchor(makeReadingAnchor())
+        setFontSize(normalizeFontSize(value))
+      }, [makeReadingAnchor])
+
+      React.useEffect(() => {
+        if (readingMode !== 'scroll' || screen.kind !== 'book' || !readingAnchor) return
+        if (readingAnchor.chapterId !== screen.content.chapterId) return
+        const scroller = contentRef.current
+        if (!scroller || scrollAnchorAppliedRef.current === readingAnchor.token) return
+        scrollAnchorAppliedRef.current = readingAnchor.token
+        const timer = window.setTimeout(() => {
+          scroller.scrollTop = readingAnchor.fraction * Math.max(0, scroller.scrollHeight - scroller.clientHeight)
+        }, 50)
+        return () => window.clearTimeout(timer)
+      }, [readingMode, readingAnchor, screen])
+
       React.useEffect(() => {
         if (screen.kind !== 'book' || !activeChapterId) return
         const chapterTitle = toc.find(item => item.id === activeChapterId)?.title ?? screen.content.title
@@ -560,17 +633,12 @@ export function createPlugin(require: (name: string) => any) {
         if (item) void selectChapter(screen.detail.book.id, item.id)
       }, [chapterIndex, screen, selectChapter])
 
-      const toggleReadingMode = React.useCallback(() => {
-        setReadingMode(previous => previous === 'paged' ? 'scroll' : 'paged')
-      }, [])
-
-      const toggleReflow = React.useCallback(() => {
-        const next = !reflowMode
-        reflowModeRef.current = next
-        setReflowMode(next)
+      const applySource = React.useCallback((next: boolean) => {
         if (screen.kind !== 'book') return
         const format = screen.detail.book.format
         if (format !== 'epub' && format !== 'pdf') return
+        reflowModeRef.current = next
+        setBookReflow(next)
         const page = visualState?.kind === 'pdf' ? visualState.page : null
         setVisual(visualForChapter(screen.detail, screen.content.chapterId, next))
         if (format === 'pdf') {
@@ -578,12 +646,16 @@ export function createPlugin(require: (name: string) => any) {
             const target = screen.detail.toc
               .filter(item => typeof item.page === 'number' && item.page! <= page)
               .sort((left, right) => right.page! - left.page!)[0] ?? screen.detail.toc[0]
+            setReadingAnchor(makeReadingAnchor(target.id, 0))
             if (target) void selectChapter(screen.detail.book.id, target.id)
-          } else if (!next && page) {
-            setVisual({ kind: 'pdf', page, scale: 1.5 })
+          } else {
+            setReadingAnchor(makeReadingAnchor())
+            if (!next && page) setVisual({ kind: 'pdf', page, scale: 1.5 })
           }
+        } else {
+          setReadingAnchor(makeReadingAnchor())
         }
-      }, [reflowMode, screen, selectChapter, setVisual, visualState])
+      }, [makeReadingAnchor, screen, selectChapter, setBookReflow, setVisual, visualState])
 
       React.useEffect(() => {
         if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf' || !reflowMode) {
@@ -939,7 +1011,6 @@ export function createPlugin(require: (name: string) => any) {
           onPageCommit: goPdfPage,
           zoom: pdfVisual?.scale ?? 1,
           onZoom: zoomPdf,
-          onLayoutChange: setPageLayout,
         }
         : format === 'epub'
           ? effectiveMode === 'paged'
@@ -952,8 +1023,6 @@ export function createPlugin(require: (name: string) => any) {
               canNext: epubPage < epubPageCount - 1 || chapterIndex < chapterTotal - 1,
               onPrev: () => goEpubPage(-1),
               onNext: () => goEpubPage(1),
-              onToggleMode: toggleReadingMode,
-              onLayoutChange: setPageLayout,
             }
             : {
               pageStart: 1,
@@ -964,7 +1033,6 @@ export function createPlugin(require: (name: string) => any) {
               canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
               onPrev: () => goEpubChapter(-1),
               onNext: () => goEpubChapter(1),
-              onToggleMode: toggleReadingMode,
             }
           : effectiveMode === 'paged'
             ? {
@@ -977,8 +1045,6 @@ export function createPlugin(require: (name: string) => any) {
               canNext: textPager.canNext,
               onPrev: () => textPager.goPage(-1),
               onNext: () => textPager.goPage(1),
-              onToggleMode: toggleReadingMode,
-              onLayoutChange: setPageLayout,
             }
             : {
               pageStart: 1,
@@ -989,7 +1055,6 @@ export function createPlugin(require: (name: string) => any) {
               canNext: chapterIndex >= 0 && chapterIndex < chapterTotal - 1,
               onPrev: () => goChapter(-1),
               onNext: () => goChapter(1),
-              onToggleMode: toggleReadingMode,
             }
 
       const readerBar = screen.kind === 'book'
@@ -1002,7 +1067,6 @@ export function createPlugin(require: (name: string) => any) {
           chapterIndex,
           chapterTotal,
           ...readerBarProps,
-          onLayoutChange: format === 'pdf' && reflowMode ? undefined : setPageLayout,
           reflow: reflowMode,
         })
         : null
@@ -1109,21 +1173,34 @@ export function createPlugin(require: (name: string) => any) {
           title: headerTitle,
           subtitle: headerSubtitle,
           onBack: backToLibrary,
-          paletteId,
-          onChangePalette: changePalette,
-          glassBlur,
-          onChangeGlassBlur: setGlassBlur,
           searchOpen,
+          settingsOpen,
+          onToggleSettings: () => setSettingsOpen(previous => !previous),
           onToggleSearch: toggleSearch,
           onToggleChat: () => setChatOpen(previous => !previous),
           onToggleToc: () => setTocOpen(previous => !previous),
           onBookmark: addBookmark,
-          onFontDecrease: () => setFontSize(previous => Math.max(14, previous - 1)),
-          onFontIncrease: () => setFontSize(previous => Math.min(24, previous + 1)),
-          reflowSupported: screen.kind === 'book' && (screen.detail.book.format === 'epub' || screen.detail.book.format === 'pdf'),
-          reflow: reflowMode,
-          onToggleReflow: toggleReflow,
         }),
+        settingsOpen && screen.kind === 'book'
+          ? h(ReaderSettings, {
+            t,
+            format: screen.detail.book.format,
+            source: reflowMode,
+            flow: effectiveMode,
+            spread: format === 'pdf' && reflowMode ? 'single' : pageLayout,
+            fontSize,
+            paletteId,
+            glassBlur,
+            capabilities,
+            onSource: applySource,
+            onFlow: changeFlow,
+            onSpread: changeSpread,
+            onFontSize: changeFontSize,
+            onPalette: changePalette,
+            onGlassBlur: setGlassBlur,
+            onClose: () => setSettingsOpen(false),
+          })
+          : null,
         reflowWarning
           ? h('div', { className: 'dsh-readpilot-reflow-warning' },
             h('span', null, reflowWarning),

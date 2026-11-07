@@ -99,3 +99,30 @@ export function pdfPagePercent(page: number, pageCount: number): number {
   const span = Math.max(1, pageCount - 1)
   return Math.max(0, Math.min(100, (index / span) * 100))
 }
+export interface ReaderCapabilities {
+  source: boolean
+  flows: ReaderMode[]
+  spread: boolean
+  fontSize: boolean
+  zoom: boolean
+}
+
+export function readerCapabilities(format: 'txt' | 'md' | 'epub' | 'pdf', reflow: boolean): ReaderCapabilities {
+  if (format === 'txt' || format === 'md') {
+    return { source: false, flows: ['paged', 'scroll'], spread: true, fontSize: true, zoom: false }
+  }
+  if (format === 'pdf') {
+    return { source: true, flows: ['paged'], spread: !reflow, fontSize: reflow, zoom: !reflow }
+  }
+  return { source: true, flows: ['paged', 'scroll'], spread: true, fontSize: reflow, zoom: false }
+}
+export interface ReadingAnchor {
+  chapterId: string
+  fraction: number
+  token: number
+}
+export function anchorPage(fraction: number, pageCount: number): number {
+  const count = Math.max(1, Math.floor(Number.isFinite(pageCount) ? pageCount : 1))
+  const value = Number.isFinite(fraction) ? Math.max(0, Math.min(1, fraction)) : 0
+  return Math.round(value * (count - 1))
+}

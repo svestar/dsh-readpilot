@@ -6,11 +6,12 @@ import {
   PAGE_GAP,
   clampPageIndex,
   columnsFor,
+  anchorPage,
   measurePageMetrics,
   pageBounds,
   pageStep,
 } from '../paging.ts'
-import type { PageLayout, PageMetrics, ReaderMode } from '../paging.ts'
+import type { PageLayout, PageMetrics, ReadingAnchor, ReaderMode } from '../paging.ts'
 import type { CallRpc, PageView, Screen, Selection, SelectChapter, TextFn, Visual } from '../types.ts'
 
 interface VisualOptions {
@@ -22,6 +23,7 @@ interface VisualOptions {
   selectChapter: SelectChapter
   readingMode?: ReaderMode
   layout?: PageLayout
+  anchor?: ReadingAnchor | null
 }
 
 const EPUB_PAGING_STYLE_ID = 'dsh-readpilot-paging'
@@ -69,8 +71,10 @@ export function useVisual({
   selectChapter,
   readingMode = 'paged',
   layout = 'single',
+  anchor,
 }: VisualOptions) {
   const [visual, setVisual] = React.useState<Visual | null>(null)
+  const appliedAnchorRef = React.useRef(0)
   const [pageView, setPageView] = React.useState<PageView | null>(null)
   const [pageViews, setPageViews] = React.useState<PageView[]>([])
   const [loadedView, setLoadedView] = React.useState<{ bookId: string; page: number } | null>(null)
@@ -348,7 +352,11 @@ export function useVisual({
       const metrics = measureEpubDocument(doc, layout)
       lastSize = frame ? `${frame.clientWidth}x${frame.clientHeight}` : ''
       const pendingLast = epubPendingLastRef.current !== null && epubPendingLastRef.current === epubChapterId
-      const page = clampPageIndex(pendingLast ? metrics.pageCount - 1 : epubPageRef.current, metrics.pageCount)
+      let page = clampPageIndex(pendingLast ? metrics.pageCount - 1 : epubPageRef.current, metrics.pageCount)
+      if (anchor && anchor.chapterId === epubChapterId && anchor.token !== appliedAnchorRef.current) {
+        appliedAnchorRef.current = anchor.token
+        page = clampPageIndex(anchorPage(anchor.fraction, metrics.pageCount), metrics.pageCount)
+      }
       epubPageRef.current = page
       epubPageCountRef.current = metrics.pageCount
       epubStrideRef.current = metrics.stride
@@ -378,7 +386,7 @@ export function useVisual({
       if (animationFrame) cancelAnimationFrame(animationFrame)
       observer?.disconnect()
     }
-  }, [epubChapterId, epubHref, epubPaged, epubReady, layout, resetEpubState])
+  }, [epubChapterId, epubHref, epubPaged, epubReady, layout, resetEpubState, anchor?.token])
 
   React.useEffect(() => {
     if (!epubPaged) return

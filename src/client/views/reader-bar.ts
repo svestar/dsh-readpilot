@@ -20,8 +20,6 @@ interface ReaderBarProps {
   canNext: boolean
   onPrev: () => void
   onNext: () => void
-  onToggleMode?: () => void
-  onLayoutChange?: (layout: PageLayout) => void
   pageInput?: string
   setPageInput?: (value: string) => void
   onPageCommit?: (page: number) => void
@@ -46,8 +44,6 @@ export function ReaderBar({
   canNext,
   onPrev,
   onNext,
-  onToggleMode,
-  onLayoutChange,
   pageInput,
   setPageInput,
   onPageCommit,
@@ -57,7 +53,6 @@ export function ReaderBar({
   const paged = mode === 'paged'
   const prevLabel = t(paged ? 'pagePrev' : 'chapterPrev')
   const nextLabel = t(paged ? 'pageNext' : 'chapterNext')
-  const modeLabel = t(paged ? 'scrollMode' : 'pagedMode')
   const numericPage = paged && Boolean(onPageCommit) && pageInput !== undefined
   const percentText = percent === undefined ? '' : ` · ${Math.round(percent)}%`
   const pdfOriginal = format === 'pdf' && !reflow
@@ -115,36 +110,6 @@ export function ReaderBar({
           className: 'dsh-readpilot-bar-position',
           title: t(paged ? 'page' : 'chapter'),
         }, pagePosition),
-      onToggleMode
-        ? h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
-          title: modeLabel,
-          'aria-label': modeLabel,
-          onClick: onToggleMode,
-        }, modeLabel)
-        : null,
-      paged && onLayoutChange
-        ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-layout' },
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
-            title: t('singlePage'),
-            'aria-label': t('singlePage'),
-            'aria-pressed': layout === 'single' ? 'true' : 'false',
-            'data-active': layout === 'single' ? 'true' : 'false',
-            onClick: () => onLayoutChange('single'),
-          }, t('singlePage')),
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-secondary dsh-readpilot-bar-toggle',
-            title: t('doublePage'),
-            'aria-label': t('doublePage'),
-            'aria-pressed': layout === 'double' ? 'true' : 'false',
-            'data-active': layout === 'double' ? 'true' : 'false',
-            onClick: () => onLayoutChange('double'),
-          }, t('doublePage')))
-        : null,
       zoom !== undefined && onZoom
         ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-zoom' },
           h('button', {

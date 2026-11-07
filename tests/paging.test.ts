@@ -4,8 +4,10 @@ import type { TestContext } from 'node:test'
 import {
   PAGE_ASPECT,
   PAGE_GAP,
+  anchorPage,
   chapterPercent,
   clampPageIndex,
+  readerCapabilities,
   columnsFor,
   measurePageMetrics,
   pageBounds,
@@ -17,12 +19,19 @@ import {
 import {
   DEFAULT_PAGE_LAYOUT,
   DEFAULT_READING_MODE,
+  FONT_SIZE_KEY,
   PAGE_LAYOUT_KEY,
   READING_MODE_KEY,
+  REFLOW_BOOKS_KEY,
+  normalizeFontSize,
+  readFontSize,
+  readReflowBooks,
   readPageLayout,
   readReadingMode,
   savePageLayout,
   saveReadingMode,
+  saveFontSize,
+  saveReflowBooks,
 } from '../src/client/helpers.ts'
 
 test('columns_for_layouts', () => {
@@ -278,4 +287,34 @@ test('pdf_page_percent_spans_first_to_last_page', () => {
   assert.equal(pdfPagePercent(3, 5), 50)
   assert.equal(pdfPagePercent(5, 5), 100)
   assert.equal(pdfPagePercent(1, 1), 0)
+})
+test('reader_capabilities_matrix', () => {
+  assert.deepEqual(readerCapabilities('txt', true), { source: false, flows: ['paged', 'scroll'], spread: true, fontSize: true, zoom: false })
+  assert.deepEqual(readerCapabilities('pdf', false), { source: true, flows: ['paged'], spread: true, fontSize: false, zoom: true })
+  assert.deepEqual(readerCapabilities('pdf', true), { source: true, flows: ['paged'], spread: false, fontSize: true, zoom: false })
+  assert.deepEqual(readerCapabilities('epub', false), { source: true, flows: ['paged', 'scroll'], spread: true, fontSize: false, zoom: false })
+  assert.deepEqual(readerCapabilities('epub', true), { source: true, flows: ['paged', 'scroll'], spread: true, fontSize: true, zoom: false })
+})
+
+test('font_size_and_reflow_books_persist', t => {
+  const values = installStorage(t)
+  assert.equal(readFontSize(), 17)
+  assert.equal(normalizeFontSize(99), 24)
+  assert.equal(normalizeFontSize('bad'), 17)
+  saveFontSize(21)
+  assert.equal(values.get(FONT_SIZE_KEY), '21')
+  assert.equal(readFontSize(), 21)
+
+  assert.deepEqual(readReflowBooks(), {})
+  saveReflowBooks({ book1: true, book2: false })
+  assert.deepEqual(readReflowBooks(), { book1: true, book2: false })
+  values.set(REFLOW_BOOKS_KEY, JSON.stringify({ good: true, 'bad/id': true, wrong: 'yes' }))
+  assert.deepEqual(readReflowBooks(), { good: true })
+})
+test('anchor_page_restores_fraction', () => {
+  assert.equal(anchorPage(0, 8), 0)
+  assert.equal(anchorPage(0.5, 8), 4)
+  assert.equal(anchorPage(1, 8), 7)
+  assert.equal(anchorPage(2, 8), 7)
+  assert.equal(anchorPage(0.5, 1), 0)
 })
