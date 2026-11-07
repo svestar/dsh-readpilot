@@ -1356,7 +1356,7 @@ export function createPlugin(require: (name: string) => any) {
           ctx.effect(
             () => ctx.slots.inject('sidebar.right.pane.tab', () => ctx.slots.register({
               name: 'sidebar.right.pane.tab',
-              key: 'dsh-readpilot',
+              key: 'dsh-readpilot.sidebar',
               locale: NS,
             }, (props: any) => h(SidebarReader, { ...props, call, t: props.t ?? boundText }))),
             'dsh-readpilot: sidebar tab body',

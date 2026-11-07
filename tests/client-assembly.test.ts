@@ -55,6 +55,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
   let mainSpec: any
   let companion: any
   let sidebarTab: any
+  let sidebarBodySpec: any
   const disposers: Array<() => void> = []
   plugin.apply({
     slots: {
@@ -65,6 +66,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
           mainSpec = spec
         }
         if (spec.name === 'dsh-readpilot.companion') companion = component
+        if (spec.name === 'sidebar.right.pane.tab') sidebarBodySpec = spec
         return () => {}
       },
     },
@@ -79,7 +81,7 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
     },
   })
   assert.equal(typeof main, 'function')
-  return { plugin, main, mainSpec, companion, sidebarTab, disposers }
+  return { plugin, main, mainSpec, companion, sidebarTab, sidebarBodySpec, disposers }
 }
 
 function collectClasses(element: any, output: any[] = []) {
@@ -174,8 +176,9 @@ test('client_assembly_declares_session_companion_slot', async () => {
 })
 test('client_assembly_registers_sidebar_reader_tab', async () => {
   const harness = createHarness()
-  const { sidebarTab } = await loadClient(harness)
+  const { sidebarTab, sidebarBodySpec } = await loadClient(harness)
   assert.equal(sidebarTab.id, 'dsh-readpilot.sidebar')
   assert.equal(sidebarTab.kind, 'dsh-readpilot')
   assert.equal(sidebarTab.guide[0].id, 'reader')
+  assert.equal(sidebarBodySpec.key, 'dsh-readpilot.sidebar')
 })
