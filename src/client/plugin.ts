@@ -748,15 +748,24 @@ export function createPlugin(require: (name: string) => any) {
         setFontSize(normalizeFontSize(value))
       }, [makeReadingAnchor])
 
-      const openReaderSidebar = React.useCallback(() => {
+      const openReaderSidebar = React.useCallback((sessionId: string) => {
         const sidebar = runtime.sidebarRight
-        if (!sidebar || typeof sidebar.openTab !== 'function' || typeof window === 'undefined') return
+        if (!sessionId || !sidebar || typeof sidebar.openTab !== 'function' || typeof window === 'undefined') return
         let attempts = 0
+        const schedule = () => {
+          if (attempts++ >= 20) return
+          window.setTimeout(attempt, 80)
+        }
         const attempt = () => {
+          const mounted = sidebar.mounted?.getSnapshot?.()
+          if (typeof mounted === 'string' && mounted !== sessionId) {
+            schedule()
+            return
+          }
           try {
             sidebar.openTab('dsh-readpilot')
           } catch {
-            if (attempts++ < 4) window.setTimeout(attempt, 60)
+            schedule()
           }
         }
         window.setTimeout(attempt, 0)
@@ -769,6 +778,7 @@ export function createPlugin(require: (name: string) => any) {
         try {
           const sessionId = await ensureSession()
           runtime.uiWorkspace.openSession(sessionId)
+          openReaderSidebar(sessionId)
         } catch (cause) {
           setError(`${t('openWorkspaceFailed')}：${messageOf(cause)}`)
         } finally {
