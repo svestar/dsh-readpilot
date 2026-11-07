@@ -8,6 +8,19 @@
 
 `| RDM-001 | 功能名 | 要解决的问题 | 可观察的验收结果 | P1 | next | candidate |`
 
+## 工程优化排期
+
+以下条目是工程优化与宿主 API 迁移，不是独立功能，不生成新 FTR；若改变可观察行为，落地时补对应 FTR。落地后从本表删除。
+
+| 批次 | 内容 | 排期 | 状态 |
+|---|---|---|---|
+| OPT-A | 书库扫描缓存与并行 `stat`；全库检索解析预算 | next | planned |
+| OPT-B | 原生伴读订阅拆分；笔记 compact/章节索引复用；侧栏引用跳转 | next | planned |
+| OPT-C | TagDialog 与原生确认框改宿主 Modal；主要 `title` 提示改 Tooltip | next | planned |
+| OPT-D | `ctx.shortcuts` 阅读器命令；`tool.call.toolview` 卡片与阅读器资源类型 | later | planned |
+| OPT-E | 笔记/书库 `ctx.resources` + `ctx.fs.watch`；书库/TOC/笔记列表虚拟化 | later | planned |
+| OPT-F | `dsh-home-paths`、`defineTool` 与结构化工具错误；资产版本；宿主组件收尾 | later | planned |
+
 | ID | 功能 | 要解决的问题 | 验收线索 | 优先级 | 排期 | 状态 |
 |---|---|---|---|---|---|---|
 | RDM-001 | 提示词预设 | 解释、术语、翻译、追问、总结等需求用提示词即可覆盖，缺的是把选段、书名、章节、笔记自动装配进模板 | 选中文字可直接套用预设并填入 `{{selection}}`、`{{book}}`、`{{chapter}}`、`{{notes}}`；模板可增删改 | P1 | next | candidate |
