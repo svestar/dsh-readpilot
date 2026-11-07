@@ -46,6 +46,7 @@ import { Header } from './views/header.ts'
 import { ReaderSettings } from './reader-settings.ts'
 import { SidebarReader } from './views/sidebar-reader.ts'
 import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './session-title.ts'
+import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
 import { NoteDialog, SelectionToolbar } from './views/selection-note.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
@@ -480,6 +481,29 @@ export function createPlugin(require: (name: string) => any) {
           setBusy(false)
         }
       }, [screen, t, reflowMode])
+
+      const applyRemoteProgress = React.useCallback(async (detail: { bookId: string; chapterId: string; chapterFraction: number }) => {
+        if (screen.kind !== 'book' || screen.detail.book.id !== detail.bookId) return
+        setReadingAnchor({
+          chapterId: detail.chapterId,
+          fraction: Math.max(0, Math.min(1, detail.chapterFraction)),
+          token: ++anchorTokenRef.current,
+        })
+        if (detail.chapterId !== screen.content.chapterId) {
+          progressSkipRef.current = true
+          await selectChapter(detail.bookId, detail.chapterId)
+        }
+      }, [screen, selectChapter])
+
+      React.useEffect(() => {
+        const handler = (event: Event) => {
+          const detail = readProgressSync(event)
+          if (!detail || detail.origin !== 'sidebar') return
+          void applyRemoteProgress(detail)
+        }
+        window.addEventListener(PROGRESS_SYNC_EVENT, handler)
+        return () => window.removeEventListener(PROGRESS_SYNC_EVENT, handler)
+      }, [applyRemoteProgress])
 
       const jumpToPage = React.useCallback((page: number) => {
         if (screen.kind !== 'book' || screen.detail.book.format !== 'pdf') return

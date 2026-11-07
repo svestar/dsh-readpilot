@@ -3,6 +3,7 @@ import type { CallRpc, Screen, TextFn, Visual } from '../types.ts'
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
+import { publishProgressSync } from '../progress-sync.ts'
 import { usePageWidth } from '../hooks/use-page-width.ts'
 import { useTextPager } from '../hooks/use-text-pager.ts'
 import { useVisual } from '../hooks/use-visual.ts'
@@ -177,13 +178,19 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     }
     const chapterTitle = screen.detail.toc.find((item: any) => item.id === activeChapterId)?.title ?? screen.content.title
     const timer = window.setTimeout(() => {
+      const fraction = Math.round(chapterFraction * 1000) / 1000
       void call('progress', {
         bookId: screen.detail.book.id,
         chapterId: activeChapterId,
         chapterTitle,
-        chapterFraction: Math.round(chapterFraction * 1000) / 1000,
+        chapterFraction: fraction,
         percent: Math.round(readingPercent * 10) / 10,
-      }).catch(() => {})
+      }).then(() => publishProgressSync({
+        bookId: screen.detail.book.id,
+        chapterId: activeChapterId,
+        chapterFraction: fraction,
+        origin: 'sidebar',
+      })).catch(() => {})
     }, SIDEBAR_PROGRESS_DEBOUNCE)
     return () => window.clearTimeout(timer)
   }, [activeChapterId, chapterFraction, readingPercent, screen, call])
