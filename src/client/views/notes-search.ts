@@ -12,12 +12,6 @@ import type {
   TextFn,
 } from '../types.ts'
 
-function chapterTitleOf(screen: Screen, chapterId: string): string | undefined {
-  return screen.kind === 'book'
-    ? screen.detail.toc.find(item => item.id === chapterId)?.title
-    : ''
-}
-
 interface MarkActionsArgs {
   t: TextFn
   item: Note
@@ -68,14 +62,21 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
   const [colorFilter, setColorFilter] = React.useState('all')
   const allMarks = [...highlights, ...notes, ...bookmarks]
   const chapterIds = markChapterIds(allMarks)
+  const chapterIdSet = new Set(chapterIds)
+  const toc = screen.kind === 'book' ? screen.detail.toc : null
+  const chapterTitleById = React.useMemo(
+    () => new Map<string, string>(toc ? toc.map(item => [item.id, item.title]) : []),
+    [toc],
+  )
   const colors = markColors(allMarks)
   const chapterTitles = screen.kind === 'book'
-    ? screen.detail.toc.filter(item => chapterIds.includes(item.id))
+    ? screen.detail.toc.filter(item => chapterIdSet.has(item.id))
     : []
+  const knownChapterIds = new Set(chapterTitles.map(item => item.id))
   const chapterOptions = [
     ...chapterTitles.map(item => ({ id: item.id, title: item.title })),
     ...chapterIds
-      .filter(id => !chapterTitles.some(item => item.id === id))
+      .filter(id => !knownChapterIds.has(id))
       .map(id => ({ id, title: id })),
   ]
   const filter = {
@@ -144,7 +145,7 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                   },
                   h('div', { className: 'dsh-readpilot-note-chapter' },
                     h('span', { className: `dsh-readpilot-color-dot dsh-readpilot-color-${highlight.color ?? 'yellow'}` }),
-                    chapterTitleOf(screen, highlight.chapterId) || t('reading')),
+                    chapterTitleById.get(highlight.chapterId) || t('reading')),
                   h('div', { className: 'dsh-readpilot-note-quote' }, highlight.quote),
                   highlight.annotation
                     ? h('div', { className: 'dsh-readpilot-note-body' }, highlight.annotation)
@@ -162,7 +163,7 @@ export function NotesBody({ t, notesError, notesLoading, notes, highlights, book
                     className: 'dsh-readpilot-note-main',
                     onClick: () => openNote(note),
                   },
-                  h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleOf(screen, note.chapterId) || t('reading')),
+                  h('div', { className: 'dsh-readpilot-note-chapter' }, chapterTitleById.get(note.chapterId) || t('reading')),
                   note.quote ? h('div', { className: 'dsh-readpilot-note-quote' }, note.quote) : null,
                   h('div', { className: 'dsh-readpilot-note-body' }, note.note)),
                   ...markActions({ t, item: note, noteDeletingId, deleteNote, openNote }))))

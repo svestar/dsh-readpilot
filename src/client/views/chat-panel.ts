@@ -3,6 +3,9 @@ import type { StateSetter } from '../runtime.ts'
 import { linkifyPageReferences } from '../page-jump.ts'
 import type { TextFn } from '../types.ts'
 
+/** Assistant streaming mutates text on every token; scan at a readable cadence. */
+const LINKIFY_DEBOUNCE_MS = 120
+
 interface ChatPanelProps {
   t: TextFn
   chatOpen: boolean
@@ -56,21 +59,21 @@ export function ChatPanel({
     if (!chatOpen || !onPageJump) return
     const panel = panelRef.current
     if (!panel) return
-    let frame = 0
+    let timer = 0
     const process = () => {
-      frame = 0
+      timer = 0
       panel.querySelectorAll<HTMLElement>('.dsh-readpilot-chat-body, .dsh-readpilot-native-chat')
         .forEach(root => linkifyPageReferences(root, onPageJump))
     }
     const schedule = () => {
-      if (!frame) frame = requestAnimationFrame(process)
+      if (!timer) timer = window.setTimeout(process, LINKIFY_DEBOUNCE_MS)
     }
     const observer = new MutationObserver(schedule)
     observer.observe(panel, { childList: true, subtree: true, characterData: true })
     schedule()
     return () => {
       observer.disconnect()
-      if (frame) cancelAnimationFrame(frame)
+      if (timer) window.clearTimeout(timer)
     }
   }, [chatOpen, chatTab, onPageJump])
 

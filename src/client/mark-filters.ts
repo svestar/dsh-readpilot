@@ -26,8 +26,12 @@ export function filterMarks<T extends MarkLike>(marks: readonly T[], filter: Mar
 /** Chapter ids that actually contain marks, in first-seen order. */
 export function markChapterIds(marks: readonly MarkLike[]): string[] {
   const ids: string[] = []
+  const seen = new Set<string>()
   for (const mark of marks) {
-    if (mark.chapterId && !ids.includes(mark.chapterId)) ids.push(mark.chapterId)
+    if (mark.chapterId && !seen.has(mark.chapterId)) {
+      seen.add(mark.chapterId)
+      ids.push(mark.chapterId)
+    }
   }
   return ids
 }

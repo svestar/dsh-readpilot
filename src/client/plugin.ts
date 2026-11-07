@@ -150,9 +150,10 @@ export function createPlugin(require: (name: string) => any) {
 
       React.useEffect(() => {
         if (!snapshot) return
+        const bookById = new Map(snapshot.books.map(book => [book.id, book]))
         for (const [bookId, entry] of Object.entries(snapshot.sessions ?? {})) {
           if (!entry?.sessionId) continue
-          const book = snapshot.books.find(candidate => candidate.id === bookId)
+          const book = bookById.get(bookId)
           if (!book) continue
           const title = companionSessionTitle(book.title)
           const key = `${entry.sessionId}\u0000${title}`

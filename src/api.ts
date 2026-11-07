@@ -535,6 +535,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     const visibleChapters = parsed.chapters.filter(chapter => !chapter.skip)
     const tocSource = visibleChapters.length > 0 ? visibleChapters : parsed.chapters
+    const chapterByPage = new Map<number, Chapter>()
+    for (const chapter of parsed.chapters) {
+      if (Number.isInteger(chapter.page) && !chapterByPage.has(chapter.page as number)) {
+        chapterByPage.set(chapter.page as number, chapter)
+      }
+    }
     return {
       book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
       supported: true,
@@ -545,7 +551,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         return item
       }),
       outline: (Array.isArray(parsed.outline) ? parsed.outline : []).map(item => {
-        const chapter = parsed.chapters.find(entry => entry.page === item.page)
+        const chapter = chapterByPage.get(item.page)
         const outlineItem: OutlineItem = {
           id: item.id,
           title: item.title,
@@ -775,10 +781,11 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       loadCompanionSettings(dataDir),
     ])
     companionSettings = companion
+    const bookById = new Map(books.map(book => [book.id, book]))
     const entries = Object.entries(sessions).sort((left, right) => (left[1].updatedAt ?? 0) - (right[1].updatedAt ?? 0))
     for (const [bookId, entry] of entries) {
       if (companionReadings.has(entry.sessionId)) continue
-      const book = books.find(candidate => candidate.id === bookId)
+      const book = bookById.get(bookId)
       if (!book) continue
       await setCompanionContext({
         sessionId: entry.sessionId,

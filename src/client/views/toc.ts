@@ -1,4 +1,4 @@
-import { h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import type { BookDetail, TextFn } from '../types.ts'
 
 interface TocProps {
@@ -23,7 +23,17 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
     ? detail.outline
     : null
   const items = (outline ?? detail.toc) as TocRow[]
-  const activePage = detail.toc.find(item => item.id === activeChapter)?.page
+  const index = React.useMemo(() => {
+    const chapterPage = new Map<string, number>()
+    const chapterByPage = new Map<number, string>()
+    for (const item of detail.toc) {
+      if (typeof item.page !== 'number') continue
+      if (!chapterPage.has(item.id)) chapterPage.set(item.id, item.page)
+      if (!chapterByPage.has(item.page)) chapterByPage.set(item.page, item.id)
+    }
+    return { chapterPage, chapterByPage }
+  }, [detail.toc])
+  const activePage = index.chapterPage.get(activeChapter)
   return h('aside', { className: 'dsh-readpilot-toc' },
     h('div', { className: 'dsh-readpilot-toc-title' }, t('toc')),
     items.length === 0
@@ -31,7 +41,7 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
       : h('div', { className: 'dsh-readpilot-toc-list' },
         items.map(item => {
           const chapterId = outline
-            ? item.chapterId ?? detail.toc.find(entry => entry.page === item.page)?.id
+            ? item.chapterId ?? (typeof item.page === 'number' ? index.chapterByPage.get(item.page) : undefined)
             : item.id
           const active = outline
             ? item.chapterId === activeChapter || item.page === activePage

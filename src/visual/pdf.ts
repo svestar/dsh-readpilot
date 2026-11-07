@@ -7,6 +7,8 @@ const MIN_SCALE = 0.5
 const MAX_SCALE = 3
 const MAX_PAGES = 2000
 const DEFAULT_MAX_CACHE_BYTES = 500 * 1024 * 1024
+/** The cache walk stats every page; keep it off the per-page render path. */
+const PRUNE_INTERVAL_MS = 60 * 1000
 
 export interface PdfTextItem {
   text: string
@@ -149,6 +151,7 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
   if (typeof cacheDir !== 'string' || !cacheDir) throw new Error('cacheDir is required')
   const cacheRoot = cacheDir
   const inflight = new Map<string, Promise<PdfPageResult>>()
+  let lastPruneAt = 0
 
   async function renderPage({ bookId, filePath, page, scale = 1.5 }: PdfRenderRequest): Promise<PdfPageResult> {
     const id = assertBookId(bookId)
@@ -216,7 +219,11 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
           pageCount: result.pageCount,
           textItems,
         })
-        await pruneCache(cacheRoot, maxCacheBytes)
+        const now = Date.now()
+        if (now - lastPruneAt >= PRUNE_INTERVAL_MS) {
+          lastPruneAt = now
+          await pruneCache(cacheRoot, maxCacheBytes)
+        }
         return result
       } finally {
         await loadingTask.destroy()
