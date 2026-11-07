@@ -3,6 +3,7 @@ import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path'
 import type { BookFormat, Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
+import { buildBookDigest } from './digest.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
 import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './library-meta.ts'
@@ -267,6 +268,7 @@ export interface ReaderApi {
   setBookRating(payload?: { bookId?: unknown; rating?: unknown }): Promise<{ bookId: string; rating: number | null }>
   toolBooks(): Promise<any>
   toolOpen(payload?: any): Promise<any>
+  toolDigest(payload?: any): Promise<any>
   toolContext(payload?: any): Promise<any>
   toolRead(payload?: any): Promise<any>
   toolSearch(payload?: any): Promise<any>
@@ -890,6 +892,28 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
   }
 
+  async function toolDigest({ book, maxChars, perChapterChars }: any = {}): Promise<any> {
+    const books = await libraryBooks()
+    const found = findBookByKey(books, book)
+    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    const parsed = await ensureParsed(found)
+    const digest = buildBookDigest(
+      parsed.chapters.map(chapter => ({
+        id: chapter.id,
+        title: chapter.title,
+        text: chapterText(chapter),
+      })),
+      { maxChars, perChapterChars },
+    )
+    return {
+      bookId: found.id,
+      title: parsed.title || found.title,
+      format: found.format,
+      ...digest,
+      note: '这是抽取式全书摘要，不是逐字全文；需要细节时用 reader_read 读取指定章节。',
+    }
+  }
+
   async function toolContext({ book, sessionId }: any = {}): Promise<any> {
     const books = await libraryBooks()
     const activeReading = typeof sessionId === 'string' ? await ensureSessionReading(sessionId) : undefined
@@ -1356,6 +1380,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     setBookRating,
     toolBooks,
     toolOpen,
+    toolDigest,
     toolContext,
     toolRead,
     toolSearch,

@@ -92,6 +92,29 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       },
     },
     {
+      name: 'reader_digest',
+      description:
+        'Return an extractive whole-book digest: every chapter title plus selected key excerpts under a character budget. Use it when the user explicitly asks for a whole-book summary or to read the whole book. It is not full text; disclose the extractive coverage and use reader_read for details in specific chapters. Do not loop reader_read over every chapter just to write a whole-book summary.',
+      parameters: {
+        type: 'object',
+        properties: {
+          book: { type: 'string', description: 'Book id or title from reader_books.' },
+          maxChars: { type: 'number', description: 'Total excerpt budget, default 12000, capped at 30000.' },
+          perChapterChars: { type: 'number', description: 'Per-chapter excerpt budget, default 600, capped at 2000.' },
+        },
+        required: ['book'],
+        additionalProperties: false,
+      },
+      output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
+      async execute(args) {
+        try {
+          return await api.toolDigest(args ?? {})
+        } catch (error) {
+          return jsonError(error)
+        }
+      },
+    },
+    {
       name: 'reader_context',
       description:
         'Return the current or most recently read book, its chapter progress, TOC and recent notes. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Call this first when the user says "this book" or asks about what they are reading. Read-only.',

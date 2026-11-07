@@ -11,7 +11,7 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 - **AI 伴读**：每本书一个原生会话，共享 Chat 工具、推理与审批；选段问伴读带引用，PDF 页码可点；伴读对话标题统一为“《书名》· 伴读”；只读沙箱；会话失效自动重建。
 - **笔记**：长笔记存 `notes/`，可用外部编辑器；草稿先看 diff，可自动应用；按书注入笔记上下文；历史可恢复/删除/清空。
 - **记忆与导出**：记忆默认关闭，可手动开启，每卡最多 600 字；导出 Markdown。
-- **工具**：`reader_books/context/open/read/search/note/notes/memory` 八个；阅读纪律写入书库 `AGENTS.md`。
+- **工具**：`reader_books/context/open/read/search/digest/note/notes/memory` 九个；`reader_digest` 提供抽取式全书摘要；阅读纪律写入书库 `AGENTS.md`。
 
 ## 安装
 
