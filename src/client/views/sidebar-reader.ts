@@ -53,6 +53,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
   const progressSkipRef = React.useRef(true)
   const palette = resolveReaderPalette(readPaletteId())
   const contentRef = React.useRef<HTMLDivElement | null>(null)
+  const rootRef = React.useRef<HTMLDivElement | null>(null)
   const visualBookRef = React.useRef('')
 
   const selectChapter = React.useCallback(async (bookId: string, chapterId: string) => {
@@ -105,35 +106,58 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
     return () => { cancelled = true }
   }, [call, revision, sessionId, t])
 
-  const onContentMouseUp = React.useCallback(() => {
-    window.setTimeout(() => {
-      const active = window.getSelection()
-      const container = contentRef.current
-      if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
-        setSelection(null)
-        return
-      }
-      const range = active.getRangeAt(0)
-      if (!container.contains(range.commonAncestorContainer)) {
-        setSelection(null)
-        return
-      }
-      const text = active.toString().trim()
-      if (!text) {
-        setSelection(null)
-        return
-      }
-      const rect = range.getBoundingClientRect()
+  const captureSelection = React.useCallback((target: EventTarget | null) => {
+    const targetElement = target instanceof Element ? target : null
+    if (targetElement?.closest('.dsh-readpilot-selection, .dsh-readpilot-note-overlay')) return
+    const root = rootRef.current
+    const active = window.getSelection()
+    if (!root || !active || active.isCollapsed || active.rangeCount === 0) return
+    const range = active.getRangeAt(0)
+    if (!root.contains(range.commonAncestorContainer)) return
+    const text = active.toString().trim()
+    if (!text) return
+    const rect = range.getBoundingClientRect()
+    const node = range.startContainer.nodeType === 1
+      ? range.startContainer as Element
+      : range.startContainer.parentElement
+    let blockIndex: number | null = null
+    let offset = 0
+    const container = contentRef.current
+    if (container?.contains(range.commonAncestorContainer)) {
       const anchor = selectionAnchor(range, container)
-      setSelection({
-        text: text.slice(0, 2000),
-        x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
-        y: rect.top,
-        blockIndex: anchor ? anchor.blockIndex : null,
-        offset: anchor ? anchor.offset : 0,
-      })
-    }, 10)
+      if (anchor) {
+        blockIndex = anchor.blockIndex
+        offset = anchor.offset
+      }
+    } else if (node?.closest?.('.dsh-readpilot-pdf-text')) {
+      const span = node?.closest?.('[data-offset]') as HTMLElement | null
+      if (span) {
+        const raw = active.toString()
+        const leading = raw.length - raw.trimStart().length
+        const before = range.cloneRange()
+        before.selectNodeContents(span)
+        before.setEnd(range.startContainer, range.startOffset)
+        blockIndex = 0
+        offset = (Number(span.getAttribute('data-offset')) || 0) + before.toString().length + leading
+      }
+    }
+    if (blockIndex === null) return
+    setSelection({
+      text: text.slice(0, 2000),
+      x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
+      y: rect.top,
+      blockIndex,
+      offset,
+    })
   }, [])
+
+  React.useEffect(() => {
+    const onUp = (event: MouseEvent) => {
+      window.setTimeout(() => captureSelection(event.target), 10)
+    }
+    document.addEventListener('mouseup', onUp)
+    return () => document.removeEventListener('mouseup', onUp)
+  }, [captureSelection])
   const textPageWidth = usePageWidth({
     enabled: mode === 'text' && screen.kind === 'book',
     containerRef: contentRef,
@@ -385,7 +409,6 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       className: 'dsh-readpilot-reader dsh-readpilot-sidebar-reader',
       'data-paged': 'true',
       ref: contentRef,
-      onMouseUp: onContentMouseUp,
       style: { fontSize: `${SIDEBAR_FONT_SIZE}px` },
     },
     h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
@@ -414,7 +437,7 @@ export function SidebarReader({ call, t, sessionId, useTabInfo }: SidebarReaderP
       epubFrameRef,
     })
 
-  return h('div', { className: 'dsh-readpilot-sidebar-reader-root' },
+  return h('div', { className: 'dsh-readpilot-sidebar-reader-root', ref: rootRef },
     h('div', { className: 'dsh-readpilot-sidebar-reader-head' },
       h('div', { className: 'dsh-readpilot-sidebar-reader-title', title: book.title }, book.title),
       h('div', { className: 'dsh-readpilot-segmented' },
