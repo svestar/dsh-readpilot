@@ -325,9 +325,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-main>.dsh-readpilot-reader{flex:1;min-height:0}
 .dsh-readpilot-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
-.dsh-readpilot-bar-history{position:relative}
 .dsh-readpilot-bar button.dsh-readpilot-secondary{background:var(--dsw-alias-bg-layer-1)!important;color:var(--dsw-alias-label-primary)!important;border-color:var(--dsw-alias-border-l2)!important}
-.dsh-readpilot-bar-history-count{position:absolute;top:-5px;right:-5px;display:inline-flex;align-items:center;justify-content:center;min-width:14px;height:14px;padding:0 3px;border-radius:999px;background:#2563eb;color:#fff;font-size:9px;line-height:1;pointer-events:none}
 .dsh-readpilot-bar-title{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}
 .dsh-readpilot-bar-position{flex:none;white-space:nowrap;color:var(--dsw-alias-label-secondary);font-size:12px;font-variant-numeric:tabular-nums}
 .dsh-readpilot-bar .dsh-readpilot-secondary{height:28px;padding:0 9px;border-radius:7px;font-size:12px}
@@ -355,9 +353,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-action-history{width:min(660px,100%);max-height:min(82vh,680px);display:flex;flex-direction:column;gap:12px}
 .dsh-readpilot-action-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-readpilot-action-history-heading{min-width:0}
-.dsh-readpilot-action-history-title-row{display:flex;align-items:center;gap:8px}
 .dsh-readpilot-action-history-head h3{margin:0;font-size:15px;font-weight:650}
-.dsh-readpilot-action-history-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;padding:0 6px;border-radius:999px;background:color-mix(in srgb,var(--dsw-alias-brand-primary) 12%,transparent);color:var(--dsw-alias-brand-primary);font-size:10px;font-weight:600}
 .dsh-readpilot-action-history-head p{margin:5px 0 0;color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.55}
 .dsh-readpilot-action-history-refresh{flex:none}
 .dsh-readpilot-action-history-list{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto;padding-right:4px}

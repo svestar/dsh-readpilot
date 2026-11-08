@@ -26,7 +26,6 @@ interface ReaderBarProps {
   zoom?: number
   onZoom?: (delta: number) => void
   onHistory?: () => void
-  historyCount?: number
 }
 
 export function ReaderBar({
@@ -52,7 +51,6 @@ export function ReaderBar({
   zoom,
   onZoom,
   onHistory,
-  historyCount,
 }: ReaderBarProps) {
   const paged = mode === 'paged'
   const prevLabel = t(paged ? 'pagePrev' : 'chapterPrev')
@@ -140,9 +138,6 @@ export function ReaderBar({
               className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
               'aria-label': t('actionHistory'),
               onClick: onHistory,
-            }, t('actionHistoryShort'))),
-          historyCount && historyCount > 0
-            ? h('span', { className: 'dsh-readpilot-bar-history-count' }, String(historyCount))
-            : null)
+            }, t('actionHistoryShort'))))
         : null))
 }

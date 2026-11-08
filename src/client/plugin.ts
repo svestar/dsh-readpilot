@@ -1434,7 +1434,6 @@ export function createPlugin(require: (name: string) => any) {
             setHistoryOpen(true)
             void refreshActionReceipts()
           },
-          historyCount: actionReceipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length,
         })
         : null
 

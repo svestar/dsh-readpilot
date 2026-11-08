@@ -635,7 +635,6 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
         setHistoryOpen(true)
         void refreshActionReceipts()
       },
-      historyCount: actionReceipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length,
     }),
     noteEditor
       ? h(NoteDialog, {

@@ -22,7 +22,6 @@ const LABELS: Record<string, string> = {
 }
 
 export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose }: ActionHistoryProps) {
-  const undoable = receipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length
   return h(Modal, {
     open: true,
     onClose,
@@ -33,9 +32,7 @@ export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose 
   },
   h('header', { className: 'dsh-readpilot-action-history-head' },
     h('div', { className: 'dsh-readpilot-action-history-heading' },
-      h('div', { className: 'dsh-readpilot-action-history-title-row' },
-        h('h3', null, t('actionHistory')),
-        h('span', { className: 'dsh-readpilot-action-history-count' }, `${undoable}`)),
+      h('h3', null, t('actionHistory')),
       h('p', null, t('actionHistoryHint'))),
     h('button', {
       type: 'button',
