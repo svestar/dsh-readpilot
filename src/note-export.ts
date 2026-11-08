@@ -14,7 +14,7 @@ export interface ExportLongNote {
 }
 
 export interface ExportMark {
-  kind: 'highlight' | 'note' | 'bookmark'
+  kind: 'annotation' | 'note' | 'highlight' | 'bookmark'
   chapterTitle?: string
   quote?: string
   note?: string
@@ -82,11 +82,9 @@ function metadataBlock(book: ExportBook, exportedAt: number | undefined): string
 
 function renderMark(mark: ExportMark): string {
   const quote = text(mark.quote)
-  if (mark.kind === 'highlight') {
-    return joinBlocks([quote ? quoteBlock(quote) : '', block(mark.annotation)])
-  }
-  if (mark.kind === 'note') {
-    return joinBlocks([quote ? quoteBlock(quote) : '', block(mark.note)])
+  if (mark.kind === 'annotation' || mark.kind === 'highlight' || mark.kind === 'note') {
+    const body = text(mark.note) || text(mark.annotation)
+    return joinBlocks([quote ? quoteBlock(quote) : '', block(body)])
   }
   if (mark.kind === 'bookmark') {
     const label = inline(mark.note)
@@ -113,7 +111,7 @@ function marksSection(marks: unknown): string {
   const chapters = [...groups.entries()].map(([chapter, items]) => {
     return `### ${inline(chapter)}\n\n${items.join('\n\n')}`
   })
-  return `## 划线、批注与书签\n\n${chapters.join('\n\n')}`
+  return `## 批注与书签\n\n${chapters.join('\n\n')}`
 }
 
 export function buildNotesMarkdown(input: {

@@ -178,17 +178,18 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_note',
       description:
-        'Create or list SHORT, passage-anchored notes (a sentence or two attached to a quote) for one book. Use only when the user selects or quotes a passage and wants a brief note or annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter, quoted passage, and note text; blockIndex/offset come from a reader_read locator when available. Short notes are stored per book under the reader data directory.',
+        'Create or list passage-anchored annotations for one book. An annotation is a quote plus optional note text; a highlight is the same annotation with empty note text. Use only when the user selects or quotes a passage and wants a brief annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter and quoted passage; blockIndex/offset come from a reader_read locator when available. Color is optional and defaults to yellow.',
       parameters: {
         type: 'object',
         properties: {
-          action: { type: 'string', enum: ['add', 'list'], description: 'add a short note or list existing short notes.' },
+          action: { type: 'string', enum: ['add', 'list'], description: 'add an annotation or list existing annotations and bookmarks.' },
           book: { type: 'string', description: 'Book id or title from reader_books.' },
           chapter: { type: 'string', description: 'Chapter id or title; required for add.' },
           blockIndex: { type: 'number', description: '0-based block index inside the chapter.' },
           offset: { type: 'number', description: '0-based character offset inside the chapter text.' },
           quote: { type: 'string', description: 'The quoted passage being annotated.' },
-          note: { type: 'string', description: 'The note text to save.' },
+          note: { type: 'string', description: 'Annotation text; leave empty to create a highlight.' },
+          color: { type: 'string', enum: ['yellow', 'green', 'blue', 'pink', 'purple'], description: 'Annotation color; defaults to yellow.' },
         },
         required: ['action', 'book'],
         additionalProperties: false,

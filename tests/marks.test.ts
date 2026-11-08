@@ -21,13 +21,14 @@ test('highlight_and_bookmark_lifecycle', async t => {
     note: '',
     annotation: '这里要回看',
   })
-  assert.equal(highlight.kind, 'highlight')
+  assert.equal(highlight.kind, 'annotation')
   assert.equal(highlight.color, 'green')
-  assert.equal(highlight.annotation, '这里要回看')
+  assert.equal(highlight.note, '这里要回看')
+  assert.equal(highlight.annotation, '')
 
-  const updated = await store.update('book-a', highlight.id, { color: 'blue', annotation: '改过的批注' })
+  const updated = await store.update('book-a', highlight.id, { color: 'blue', note: '改过的批注' })
   assert.equal(updated.color, 'blue')
-  assert.equal(updated.annotation, '改过的批注')
+  assert.equal(updated.note, '改过的批注')
 
   const bookmark = await store.add('book-a', {
     kind: 'bookmark',
@@ -41,10 +42,29 @@ test('highlight_and_bookmark_lifecycle', async t => {
   assert.equal(bookmark.note, '第二章')
 
   const list = await store.list('book-a')
-  assert.deepEqual(list.map(item => item.kind).sort(), ['bookmark', 'highlight'])
+  assert.deepEqual(list.map(item => item.kind).sort(), ['annotation', 'bookmark'])
   await assert.rejects(() => store.add('book-a', {
-    kind: 'highlight', color: 'orange', chapterId: 'c001', blockIndex: 0, offset: 0, quote: 'x', note: '',
+    kind: 'annotation', color: 'orange', chapterId: 'c001', blockIndex: 0, offset: 0, quote: 'x', note: '',
   }), /unknown highlight color/)
+})
+
+test('annotation_with_empty_note_is_a_highlight', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-marks-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const store = createNotesStore(root)
+  const plain = await store.add('book-a', {
+    kind: 'annotation',
+    color: 'pink',
+    chapterId: 'c001',
+    blockIndex: 0,
+    offset: 0,
+    quote: '重点',
+    note: '',
+  })
+  assert.equal(plain.kind, 'annotation')
+  assert.equal(plain.note, '')
+  assert.equal(plain.color, 'pink')
+  assert.deepEqual((await store.list('book-a')).map(item => item.kind), ['annotation'])
 })
 
 test('bookmark_uses_pdf_outline_chapter', () => {

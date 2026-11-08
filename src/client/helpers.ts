@@ -1,4 +1,5 @@
 import type { BookFormat } from '../formats.ts'
+import { isAnnotationKind } from './mark-filters.ts'
 import type { NoteRecord } from '../notes.ts'
 import type { ChatMessage, Screen } from './types.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
@@ -578,7 +579,7 @@ export function applyEpubNoteMarks(
     const range = rangeForNote(doc.body, match.start, match.end)
     if (!range) continue
     const mark = doc.createElement('mark')
-    mark.className = note.kind === 'highlight'
+    mark.className = isAnnotationKind(note.kind)
       ? `dsh-readpilot-note-mark dsh-readpilot-highlight-${note.color ?? 'yellow'}`
       : 'dsh-readpilot-note-mark'
     mark.dataset.noteId = note.id

@@ -1056,7 +1056,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return search({ bookId: found?.id, query, limit })
   }
 
-  async function toolNote({ action, book, chapter, blockIndex, offset, quote, note }: any = {}): Promise<any> {
+  async function toolNote({ action, book, chapter, blockIndex, offset, quote, note, color }: any = {}): Promise<any> {
     const books = await libraryBooks()
     const found = findBookByKey(books, book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
@@ -1067,10 +1067,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       throw new ReaderError('invalid-note-action', `未知笔记操作：${String(action)}`)
     }
     if (typeof quote !== 'string' || !quote.trim()) {
-      throw new ReaderError('invalid-note', '笔记需要引用原文')
-    }
-    if (typeof note !== 'string' || !note.trim()) {
-      throw new ReaderError('invalid-note', '笔记内容不能为空')
+      throw new ReaderError('invalid-note', '批注需要引用原文')
     }
     const parsed = await ensureParsed(found)
     const target = parsed.chapters.find(item => item.id === chapter)
@@ -1078,6 +1075,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       ?? parsed.chapters[0]
     if (!target) throw new ReaderError('chapter-not-found', '这本书没有可读的章节')
     const record = await notesStore.add(found.id, {
+      kind: 'annotation',
+      color,
       chapterId: target.id,
       blockIndex: Number.isInteger(blockIndex) && blockIndex >= 0 ? blockIndex : 0,
       offset: Number.isInteger(offset) && offset >= 0 ? offset : 0,
@@ -1124,8 +1123,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         }
       }
       const highlights: ReadingHighlight[] = (await notesStore.list(book.id))
-        .filter(note => note.kind === 'highlight' && note.annotation.trim())
-        .map(note => ({ quote: note.quote, annotation: note.annotation }))
+        .filter(note => note.kind === 'annotation' && note.note.trim())
+        .map(note => ({ quote: note.quote, annotation: note.note }))
       const text = buildReadingNotes({ bookTitle: book.title, notes, highlights })
       notesContextCache.set(book.id, { text, characters: text.length, updatedAt: Date.now() })
       if (notesContextCache.size > 50) {

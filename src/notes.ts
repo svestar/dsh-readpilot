@@ -6,10 +6,9 @@ import { enqueueWrite } from './write-queue.ts'
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const MAX_TEXT_LENGTH = 4000
 const EDITABLE_FIELDS = ['note', 'quote', 'annotation', 'color']
-const KINDS = new Set(['note', 'highlight', 'bookmark'])
 const COLORS = new Set(['yellow', 'green', 'blue', 'pink', 'purple'])
 
-export type NoteKind = 'note' | 'highlight' | 'bookmark'
+export type NoteKind = 'annotation' | 'bookmark'
 
 export type HighlightColor = 'yellow' | 'green' | 'blue' | 'pink' | 'purple'
 
@@ -83,7 +82,23 @@ interface NoteFields {
 }
 
 function normalizeKind(kind: unknown): NoteKind {
-  return KINDS.has(kind as string) ? kind as NoteKind : 'note'
+  return kind === 'bookmark' ? 'bookmark' : 'annotation'
+}
+
+function normalizeNote(note: any): NoteRecord {
+  const kind = normalizeKind(note.kind)
+  const body = typeof note.note === 'string' && note.note
+    ? note.note
+    : typeof note.annotation === 'string'
+      ? note.annotation
+      : ''
+  return {
+    ...note,
+    kind,
+    color: normalizeColor(note.color),
+    note: kind === 'annotation' ? body : (typeof note.note === 'string' ? note.note : ''),
+    annotation: kind === 'bookmark' && typeof note.annotation === 'string' ? note.annotation : '',
+  }
 }
 
 function normalizeColor(color: unknown): HighlightColor {
@@ -143,8 +158,9 @@ function validateNewNote(input: NewNoteInput | undefined): NoteFields {
     throw new Error(`unknown highlight color: ${String(input.color)}`)
   }
   const quote = assertText('quote', input.quote ?? '')
-  const note = assertText('note', input.note ?? '')
+  const rawNote = assertText('note', input.note ?? '')
   const annotation = assertText('annotation', input.annotation ?? '')
+  const note = kind === 'annotation' ? (rawNote || annotation) : rawNote
   if (kind === 'bookmark' && !note.trim()) {
     throw new Error('bookmark label must not be empty')
   }
@@ -162,7 +178,7 @@ function validateNewNote(input: NewNoteInput | undefined): NoteFields {
     offset,
     quote,
     note,
-    annotation,
+    annotation: kind === 'bookmark' ? annotation : '',
     ...(quotePrefix ? { quotePrefix } : {}),
     ...(quoteSuffix ? { quoteSuffix } : {}),
     ...(textHash ? { textHash } : {}),
@@ -209,12 +225,7 @@ export function createNotesStore(dataDir: string): NotesStore {
   return {
     async list(bookId) {
       const notes = await readNotes(notesPath(dataDir, bookId))
-      return notes.map(note => ({
-        ...note,
-        kind: normalizeKind(note.kind),
-        color: normalizeColor(note.color),
-        annotation: typeof note.annotation === 'string' ? note.annotation : '',
-      })).sort((left, right) => right.createdAt - left.createdAt)
+      return notes.map(normalizeNote).sort((left, right) => right.createdAt - left.createdAt)
     },
 
     async add(bookId, input) {
@@ -244,7 +255,7 @@ export function createNotesStore(dataDir: string): NotesStore {
         const notes = await readNotes(path)
         const index = notes.findIndex(note => note.id === noteId)
         if (index === -1) throw new Error(`note not found: ${noteId}`)
-        const updated: NoteRecord = { ...notes[index], ...changes, updatedAt: Date.now() }
+        const updated: NoteRecord = normalizeNote({ ...notes[index], ...changes, updatedAt: Date.now() })
         notes[index] = updated
         await writeJson(path, notes)
         return updated

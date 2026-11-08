@@ -21,7 +21,7 @@
 | `FTR-015` | 文本编码 | `docs/features/FTR-015-text-encoding.md` | `src/formats.ts` | `tests/formats.test.ts` | active |
 | `FTR-016` | 阅读锚点 | `docs/features/FTR-016-reading-anchor.md` | `src/client/anchor.ts` | `tests/reading-anchor.test.ts` | active |
 | `FTR-017` | 阅读助手 | `docs/features/FTR-017-reading-assistant.md` | `src/workspace-prompt.ts` | `tests/prompt.test.ts` | active |
-| `FTR-018` | 划线、批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
+| `FTR-018` | 批注与书签 | `docs/features/FTR-018-marks.md` | `src/notes.ts` | `tests/marks.test.ts` | active |
 | `FTR-019` | 分页阅读 | `docs/features/FTR-019-paged-reading.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/client-assembly.test.ts;tests/api.test.ts` | active |
 | `FTR-020` | 长笔记 | `docs/features/FTR-020-long-notes.md` | `src/note-files.ts` | `tests/note-files.test.ts;tests/api.test.ts;tests/note-resource.test.ts` | active |
 | `FTR-021` | 笔记上下文 | `docs/features/FTR-021-note-context.md` | `src/notes-context.ts` | `tests/notes-context.test.ts;tests/api.test.ts` | active |

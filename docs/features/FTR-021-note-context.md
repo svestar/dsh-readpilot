@@ -8,7 +8,7 @@
 
 ## 行为
 
-右栏“长笔记”顶部有按书的开关“让伴读知道本书笔记”，默认关闭；状态保存在 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`。开关打开时，Host 读取该书全部长笔记与有批注的划线，生成 `<reading_notes>` 文本并缓存；`systemPrompt.context` 的笔记条目只向当前阅读该书卷的伴读会话注入，关闭时返回空字符串。注入总量上限约 24k 字符，单篇长笔记 4k，批注合计 4k；超出的单篇截断并写明 `notes/...` 路径，未注入的笔记列在“未注入的笔记”下。开关、长笔记增删改、短笔记增删改和打开书籍都会重建缓存；开关状态在下次打开阅读器时从设置恢复。
+右栏“长笔记”顶部有按书的开关“让伴读知道本书笔记”，默认关闭；状态保存在 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`。开关打开时，Host 读取该书全部长笔记与有正文的批注，生成 `<reading_notes>` 文本并缓存；`systemPrompt.context` 的笔记条目只向当前阅读该书卷的伴读会话注入，关闭时返回空字符串。注入总量上限约 24k 字符，单篇长笔记 4k，批注合计 4k；超出的单篇截断并写明 `notes/...` 路径，未注入的笔记列在“未注入的笔记”下。开关、长笔记增删改、短笔记增删改和打开书籍都会重建缓存；开关状态在下次打开阅读器时从设置恢复。
 
 ## 接口与代码映射
 
@@ -28,6 +28,6 @@
 
 ## 验收与测试
 
-- 正常路径：长笔记与有批注的划线被拼进 `<reading_notes>`，包含书名、标题、正文与批注（`notes_context_builds_notes_and_highlights`）。
+- 正常路径：长笔记与有正文的批注被拼进 `<reading_notes>`，包含书名、标题、正文与批注（`notes_context_builds_notes_and_highlights`）。
 - 边界：单篇超长时截断、总量超限时省略并列出未注入路径（`notes_context_truncates_and_lists_paths`）。
 - 边界：没有笔记和批注时返回空字符串（`notes_context_empty_returns_empty`）。

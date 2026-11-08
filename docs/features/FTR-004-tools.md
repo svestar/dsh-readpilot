@@ -8,7 +8,7 @@
 
 ## 行为
 
-Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录与最近笔记；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_digest` 返回全书章节标题与抽取式关键摘录，供全书概括；`reader_note` 按书新增或列出短笔记；`reader_notes` 查看/读取长笔记，或为 `create`/`write`/`append` 生成待确认草稿；自动应用开启时直接应用并返回 `applied`；`reader_memory` 读取/更新记忆，默认关闭，开启后才写入。短笔记用 `reader_note`，长文用 `reader_notes`；含糊时先问。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_books` 与 `reader_search` 声明结构化输出字段（书籍/命中数组、截断与扫描计数），其余工具仍为宽松对象。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节、引用原文与笔记正文。
+Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录与最近笔记；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_digest` 返回全书章节标题与抽取式关键摘录，供全书概括；`reader_note` 按书新增或列出批注；`reader_notes` 查看/读取长笔记，或为 `create`/`write`/`append` 生成待确认草稿；自动应用开启时直接应用并返回 `applied`；`reader_memory` 读取/更新记忆，默认关闭，开启后才写入。批注用 `reader_note`，长文用 `reader_notes`；含糊时先问。工具返回 JSON 文本；读取默认 4000 字符、上限 8000，返回 `nextOffset`、`hasMore` 与 `locator`，模型可据此续读和引用。`reader_books` 与 `reader_search` 声明结构化输出字段（书籍/命中数组、截断与扫描计数），其余工具仍为宽松对象。`reader_open` 的目录最多返回 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` 的 add 需要书名、章节与引用原文；`note` 可空（空即划线），`color` 可选。
 
 ## 接口与代码映射
 
@@ -20,7 +20,7 @@ Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书�
 | `toolContext` | `src/api.ts:toolContext` | 最近阅读/指定书的进度、目录与笔记摘要 |
 | `toolRead` | `src/api.ts:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
 | `toolSearch` | `src/api.ts:toolSearch` | 把书名解析为书 id 后调用检索 |
-| `toolNote` | `src/api.ts:toolNote` | 解析书名/章节并读写该书的短笔记 |
+| `toolNote` | `src/api.ts:toolNote` | 解析书名/章节并读写该书的批注 |
 | `toolNoteFiles` | `src/api-note-files.ts:toolNoteFiles` | 工具侧的 list/read 长笔记 |
 | `noteDraftCreate` | `src/api-drafts.ts:noteDraftCreate` | 工具侧生成草稿；自动应用开启时立即应用 |
 | `memoryTool` | `src/api-memory.ts:memoryTool` | 工具侧读取/更新/忘记记忆 |
@@ -28,7 +28,7 @@ Host 插件向 `ctx.tools` 注册九个全局工具：`reader_books` 列出书�
 
 ## 约束与失败行为
 
-工具依赖用户已配置书库；找不到书或未知操作时抛出错误，由宿主标记为工具失败。`reader_notes` 自动应用失败时的 `error` 是草稿结果字段，不是工具失败。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，结果带 `booksScanned`/`booksTotal`；被上限截断或解析失败时分别标记 `truncated`/`unreadable`。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`；`reader_digest` 只返回摘录和覆盖范围，需要细节时仍用 `reader_read`。，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 默认关闭（`off`），关闭时更新返回 `memory-off`；开启后只记录长期有效的偏好与结论，每卡上限 600 字，超限返回 `memory-too-large` 要求先压缩。`reader_note` 仍按用户明确要求写短笔记。工具结果在返回前归一为无损 JSON：丢弃 `undefined` 字段，非有限数与 `-0` 分别转成 `null` 与 `0`，否则 DSH 会以 invalid output 拒绝整次调用。
+工具依赖用户已配置书库；找不到书或未知操作时抛出错误，由宿主标记为工具失败。`reader_notes` 自动应用失败时的 `error` 是草稿结果字段，不是工具失败。读取上限会被强制收敛，避免一次把整章塞进上下文。全库检索最多解析 20 本书，结果带 `booksScanned`/`booksTotal`；被上限截断或解析失败时分别标记 `truncated`/`unreadable`。`reader_notes` 的 index/read 只读，create/write/append 默认只生成草稿；自动应用开启时直接应用，仍校验 `baseHash` 并写历史。应用草稿也可由用户在笔记面板完成。`reader_read`、`reader_search`、`reader_context` 的结果带 `jumpUrl`；`reader_digest` 只返回摘录和覆盖范围，需要细节时仍用 `reader_read`。，供伴读生成可点击的原文链接（见 [FTR-026](FTR-026-chat-jump.md)）。`reader_memory` 默认关闭（`off`），关闭时更新返回 `memory-off`；开启后只记录长期有效的偏好与结论，每卡上限 600 字，超限返回 `memory-too-large` 要求先压缩。`reader_note` 仍按用户明确要求写批注。工具结果在返回前归一为无损 JSON：丢弃 `undefined` 字段，非有限数与 `-0` 分别转成 `null` 与 `0`，否则 DSH 会以 invalid output 拒绝整次调用。
 
 ## 验收与测试
 

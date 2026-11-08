@@ -937,8 +937,7 @@ export function createPlugin(require: (name: string) => any) {
 
 
       const {
-        notes,
-        highlights,
+        annotations,
         bookmarks,
         notesLoading,
         notesError,
@@ -1176,8 +1175,7 @@ export function createPlugin(require: (name: string) => any) {
         t,
         notesError,
         notesLoading,
-        notes,
-        highlights,
+        annotations,
         bookmarks,
         screen,
         openNote,

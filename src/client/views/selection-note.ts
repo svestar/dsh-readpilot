@@ -129,8 +129,8 @@ export function NoteDialog({
   saveNote,
 }: NoteDialogProps) {
   if (!noteEditor) return null
-  const isHighlight = noteEditor.kind === 'highlight'
-  const title = isHighlight ? t('annotationTitle') : noteEditor.noteId ? t('noteEditTitle') : t('noteDialogTitle')
+  const isBookmark = noteEditor.kind === 'bookmark'
+  const title = isBookmark ? t('bookmark') : t('annotationTitle')
   return h(Modal, {
     open: true,
     onClose: closeNoteEditor,
@@ -141,8 +141,9 @@ export function NoteDialog({
   },
   h('h3', null, title),
   h('div', { className: 'dsh-readpilot-note-dialog-quote' }, noteEditor.quote),
-  isHighlight
-    ? h('div', { className: 'dsh-readpilot-note-colors', role: 'group', 'aria-label': t('highlight') },
+  isBookmark
+    ? null
+    : h('div', { className: 'dsh-readpilot-note-colors', role: 'group', 'aria-label': t('annotationTitle') },
       COLORS.map(color => h('button', {
         key: color,
         type: 'button',
@@ -152,13 +153,12 @@ export function NoteDialog({
         title: t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
         'aria-label': t(`highlight${color[0].toUpperCase()}${color.slice(1)}`),
         onClick: () => setNoteColor(color),
-      })))
-    : null,
+      }))),
   h('textarea', {
     ref: noteInputRef,
     value: noteDraft,
     rows: 4,
-    placeholder: isHighlight ? t('annotationPlaceholder') : t('notePlaceholder'),
+    placeholder: isBookmark ? t('notePlaceholder') : t('annotationPlaceholder'),
     disabled: noteSaving,
     onChange: (event: any) => setNoteDraft(event.target.value),
   }),
@@ -184,7 +184,7 @@ export function NoteDialog({
     h('button', {
       type: 'button',
       className: 'dsh-readpilot-primary',
-      disabled: noteSaving || (!isHighlight && !noteDraft.trim()),
+      disabled: noteSaving || (isBookmark && !noteDraft.trim()),
       onClick: () => void saveNote(),
     }, noteSaving ? t('noteSaving') : t('save'))))
 }

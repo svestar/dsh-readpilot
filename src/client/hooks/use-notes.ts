@@ -214,7 +214,7 @@ export function useNotes({
     try {
       await call('notes.add', {
         bookId: screen.detail.book.id,
-        kind: 'highlight',
+        kind: 'annotation',
         color,
         annotation: '',
         note: '',
@@ -238,13 +238,13 @@ export function useNotes({
     if (note) {
       setNoteEditor({
         noteId: note.id,
-        kind: note.kind ?? 'note',
+        kind: note.kind ?? 'annotation',
         chapterId: note.chapterId,
         blockIndex: note.blockIndex,
         offset: note.offset,
         quote: note.quote,
       })
-      setNoteDraft(note.kind === 'highlight' ? (note.annotation ?? '') : (note.note ?? ''))
+      setNoteDraft(note.note || note.annotation || '')
       setNoteColor(note.color ?? 'yellow')
       setNoteError('')
       setSelection(null)
@@ -253,7 +253,7 @@ export function useNotes({
     }
     const fields = await selectionFields()
     if (!fields) return
-    setNoteEditor({ kind: 'note', ...fields })
+    setNoteEditor({ kind: 'annotation', ...fields })
     setNoteDraft('')
     setNoteColor('yellow')
     setNoteError('')
@@ -290,30 +290,24 @@ export function useNotes({
   const saveNote = React.useCallback(async () => {
     const editor = noteEditor
     const text = noteDraft.trim()
-    if (!editor || (!text && editor.kind !== 'highlight') || noteSaving || screen.kind !== 'book') return
+    if (!editor || noteSaving || screen.kind !== 'book') return
+    if (editor.kind === 'bookmark' && !text) return
     const noteId = editor.noteId
-    const highlightNoteId = editor.kind === 'highlight' ? noteId : null
-    if (editor.kind === 'highlight' && !highlightNoteId) return
     setNoteSaving(true)
     setNoteError('')
     try {
-      if (highlightNoteId) {
-        await call('notes.update', {
-          bookId: screen.detail.book.id,
-          noteId: highlightNoteId,
-          annotation: text,
-          color: noteColor,
-        })
-      } else if (noteId) {
+      if (noteId) {
         await call('notes.update', {
           bookId: screen.detail.book.id,
           noteId,
           note: text,
+          ...(editor.kind === 'bookmark' ? {} : { color: noteColor, annotation: '' }),
         })
       } else {
         await call('notes.add', {
           bookId: screen.detail.book.id,
-          kind: 'note',
+          kind: editor.kind === 'bookmark' ? 'bookmark' : 'annotation',
+          color: editor.kind === 'bookmark' ? 'yellow' : noteColor,
           chapterId: editor.chapterId,
           blockIndex: editor.blockIndex,
           offset: editor.offset,
@@ -325,6 +319,7 @@ export function useNotes({
           end: editor.end,
           blockHash: editor.blockHash,
           note: text,
+          annotation: '',
         })
       }
     } catch (cause) {
@@ -427,7 +422,7 @@ export function useNotes({
         for (const rect of rects) {
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')
-          hit.className = note.kind === 'highlight'
+          hit.className = note.kind === 'annotation'
             ? `dsh-readpilot-note-hit dsh-readpilot-highlight-${note.color ?? 'yellow'}`
             : 'dsh-readpilot-note-hit'
           hit.dataset.noteId = note.id
@@ -481,13 +476,11 @@ export function useNotes({
     return result.cleanup
   }, [epubFrameRef, epubJumpToken, epubReady, layout, notes, openNoteEditor, paged, palette, screen, visual?.kind, visual?.kind === 'epub' ? visual.href : null])
 
-  const noteItems = notes.filter(note => note.kind !== 'highlight' && note.kind !== 'bookmark')
-  const highlights = notes.filter(note => note.kind === 'highlight')
+  const annotations = notes.filter(note => note.kind !== 'bookmark')
   const bookmarks = notes.filter(note => note.kind === 'bookmark')
 
   return {
-    notes: noteItems,
-    highlights,
+    annotations,
     bookmarks,
     notesLoading,
     notesError,

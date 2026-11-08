@@ -39,11 +39,11 @@ test('note_export_full_export_includes_sections_and_metadata', () => {
   assert.ok(output.includes('\n## 整书笔记\n\n总览：黑暗森林。\n'))
   assert.ok(output.includes('\n## 主题笔记\n\n### 权力\n\n黑暗森林法则。\n'))
   assert.ok(output.includes('### 人物\n\n罗辑。'))
-  assert.ok(output.includes('\n## 划线、批注与书签\n\n### 第一章\n\n> 给岁月以文明\n\n时间尺度'))
+  assert.ok(output.includes('\n## 批注与书签\n\n### 第一章\n\n> 给岁月以文明\n\n时间尺度'))
   assert.ok(output.includes('> 弱小和无知不是生存的障碍\n\n傲慢才是。'))
   assert.ok(output.includes('### 第二章\n\n- 书签：关键转折 · 第 12 页'))
 
-  const sectionOrder = ['## 整书笔记', '## 主题笔记', '## 划线、批注与书签']
+  const sectionOrder = ['## 整书笔记', '## 主题笔记', '## 批注与书签']
     .map(heading => output.indexOf(heading))
   assert.ok(sectionOrder.every(index => index >= 0))
   assert.deepEqual([...sectionOrder].sort((left, right) => left - right), sectionOrder)
@@ -124,9 +124,10 @@ test('note_export_omits_empty_sections_and_handles_missing_text', () => {
   })
 
   assert.ok(!output.includes('## 整书笔记'))
-  assert.ok(!output.includes('## 划线、批注与书签'))
+  assert.ok(!output.includes('## 批注与书签'))
   assert.ok(output.includes('## 主题笔记\n\n### 有标题\n\n### 未命名\n\n有正文'))
   assert.doesNotMatch(output, /undefined|null/)
   assert.ok(output.endsWith('\n'))
   assert.ok(!output.endsWith('\n\n'))
 })
+
