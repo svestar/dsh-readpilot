@@ -1,10 +1,18 @@
 import type { BookFormat } from '../formats.ts'
 import type { NoteRecord } from '../notes.ts'
-import type { ChatMessage } from './types.ts'
+import type { ChatMessage, Screen } from './types.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 
 export function messageOf(error: unknown): string {
   return error instanceof Error ? error.message : String(error)
+}
+
+export function pdfChapterIdForPage(screen: Screen, page: number, fallbackChapterId: string): string {
+  if (screen.kind !== 'book') return fallbackChapterId
+  const entry = screen.detail.toc.find(item => item.page === page)
+  if (entry) return entry.id
+  const match = /^c(\d+)$/.exec(fallbackChapterId)
+  return match ? `c${String(page).padStart(3, '0')}` : fallbackChapterId
 }
 
 export function downloadText(fileName: string, text: string): void {

@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createNotesStore } from '../src/notes.ts'
 import { bookmarkContext } from '../src/client/bookmark-label.ts'
-import { pdfNoteRects } from '../src/client/helpers.ts'
+import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/helpers.ts'
 
 test('highlight_and_bookmark_lifecycle', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-marks-'))
@@ -64,6 +64,16 @@ test('bookmark_uses_pdf_outline_chapter', () => {
     chapterTitle: '第二章',
     pageLabel: '第 10 页',
   })
+})
+
+test('pdf_double_page_resolves_next_chapter_by_page', () => {
+  const screen = {
+    kind: 'book',
+    detail: { toc: [{ page: 3, id: 'outline-3' }] },
+  } as any
+  assert.equal(pdfChapterIdForPage(screen, 3, 'c003'), 'outline-3')
+  assert.equal(pdfChapterIdForPage(screen, 4, 'c003'), 'c004')
+  assert.equal(pdfChapterIdForPage(screen, 4, 'custom'), 'custom')
 })
 
 test('pdf_highlight_rects_do_not_overlap', () => {

@@ -952,6 +952,7 @@ export function createPlugin(require: (name: string) => any) {
         noteError,
         noteInputRef,
         noteLayerRef,
+        noteLayersRef,
         openNote,
         deleteNote,
         closeNoteEditor,
@@ -967,6 +968,7 @@ export function createPlugin(require: (name: string) => any) {
         activeChapterId,
         visual,
         pageView,
+        pageViews,
         palette,
         fontSize,
         paged: effectiveMode === 'paged',
@@ -1330,6 +1332,7 @@ export function createPlugin(require: (name: string) => any) {
         visualError,
         onPdfMouseUp,
         noteLayerRef,
+        noteLayersRef,
         onEpubLoad,
         epubFrameRef,
       }) : null

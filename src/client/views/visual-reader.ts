@@ -29,6 +29,7 @@ interface VisualReaderProps {
   visualError: string
   onPdfMouseUp: (pageIndex?: number) => void
   noteLayerRef: MutableRef<HTMLDivElement | null>
+  noteLayersRef?: MutableRef<Array<HTMLDivElement | null>>
   onEpubLoad: (event: any) => void
   epubFrameRef: MutableRef<HTMLIFrameElement | null>
 }
@@ -85,6 +86,7 @@ export function VisualReader({
   visualError,
   onPdfMouseUp,
   noteLayerRef,
+  noteLayersRef,
   onEpubLoad,
   epubFrameRef,
 }: VisualReaderProps) {
@@ -243,7 +245,11 @@ export function VisualReader({
           }, renderPdfTextItems(view)),
           h('div', {
             className: 'dsh-readpilot-note-layer',
-            ref: index === 0 ? noteLayerRef : undefined,
+            ref: (element: HTMLDivElement | null) => {
+              const layers = noteLayersRef?.current
+              if (layers) layers[index] = element
+              if (index === 0) noteLayerRef.current = element
+            },
           })))))
         : visualLoading
           ? h('div', { className: 'dsh-readpilot-muted' }, t('loading'))

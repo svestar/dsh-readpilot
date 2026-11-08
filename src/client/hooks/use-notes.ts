@@ -7,6 +7,7 @@ import {
   compactAnchorText,
   findNoteOccurrence,
   messageOf,
+  pdfChapterIdForPage,
   pdfNoteRects,
   rangeForNodes,
   timestampOf,
@@ -36,6 +37,7 @@ interface NotesOptions {
   activeChapterId: string
   visual: Visual | null
   pageView: PageView | null
+  pageViews: PageView[]
   palette: ReaderPalette
   fontSize: number
   paged: boolean
@@ -56,6 +58,7 @@ export function useNotes({
   activeChapterId,
   visual,
   pageView,
+  pageViews,
   palette,
   fontSize,
   paged,
@@ -79,6 +82,7 @@ export function useNotes({
   const [epubJumpToken, setEpubJumpToken] = React.useState(0)
   const noteInputRef = React.useRef<HTMLTextAreaElement | null>(null)
   const noteLayerRef = React.useRef<HTMLDivElement | null>(null)
+  const noteLayersRef = React.useRef<Array<HTMLDivElement | null>>([])
   const pendingEpubNoteRef = React.useRef<string | null>(null)
   const notesRequestRef = React.useRef(0)
 
@@ -336,27 +340,62 @@ export function useNotes({
   }, [call, loadNotes, noteColor, noteDraft, noteEditor, noteSaving, screen, t])
 
   React.useEffect(() => {
-    const layer = noteLayerRef.current
-    if (!layer) return
-    const root = visual?.kind === 'pdf'
-      ? layer.parentElement
-      : contentRef.current?.querySelector('.dsh-readpilot-reader-inner')
-    const currentChapter = activeChapterId
-    const relevant = screen.kind === 'book'
-      ? notes.filter(note => note.chapterId === currentChapter && typeof note.quote === 'string' && note.quote)
-      : []
-    layer.textContent = ''
-    if (!root || relevant.length === 0) return
+    const targets: Array<{
+      layer: HTMLDivElement
+      view: PageView | null
+      chapterId: string
+      root: Element | null
+      pdf: boolean
+    }> = []
+    if (visual?.kind === 'pdf') {
+      const basePage = visual.page
+      const layers = noteLayersRef.current
+      const views = pageViews
+      for (let index = 0; index < Math.max(layers.length, views.length); index += 1) {
+        const layer = layers[index]
+        if (!layer) continue
+        const chapterId = screen.kind === 'book'
+          ? pdfChapterIdForPage(screen, basePage + index, activeChapterId)
+          : activeChapterId
+        targets.push({
+          layer,
+          view: views[index] ?? null,
+          chapterId,
+          root: layer.parentElement,
+          pdf: true,
+        })
+      }
+    } else {
+      const layer = noteLayerRef.current
+      if (layer) {
+        targets.push({
+          layer,
+          view: pageView,
+          chapterId: activeChapterId,
+          root: visual?.kind === 'epub'
+            ? null
+            : contentRef.current?.querySelector('.dsh-readpilot-reader-inner') ?? null,
+          pdf: false,
+        })
+      }
+    }
+    for (const target of targets) target.layer.textContent = ''
+    if (targets.length === 0 || screen.kind !== 'book') return
 
     let frame = 0
-    const paint = () => {
-      frame = 0
+    const paintTarget = (target: typeof targets[number]) => {
+      const { layer } = target
       layer.textContent = ''
-      if (!root.isConnected) return
+      const root = target.pdf ? layer.parentElement : target.root
+      if (!root || !root.isConnected) return
+      const relevant = notes.filter(note =>
+        note.chapterId === target.chapterId
+        && typeof note.quote === 'string'
+        && note.quote)
+      if (relevant.length === 0) return
       const { nodes, text } = collectTextNodes(root)
       const doc = root.ownerDocument ?? document
       const layerRect = layer.getBoundingClientRect()
-      const isPdf = visual?.kind === 'pdf'
       let compact: CompactAnchor | null = null
       const compactText = () => (compact ??= compactAnchorText(text))
       for (const note of relevant) {
@@ -374,7 +413,7 @@ export function useNotes({
           if (candidate && (!note.blockHash || hashText(candidate.textContent ?? '') === note.blockHash)) block = candidate
         }
         if (!match && !block) continue
-        const pdfRects = match && isPdf ? pdfNoteRects(pageView, match) : null
+        const pdfRects = match && target.pdf && target.view ? pdfNoteRects(target.view, match) : null
         let rects: Array<{ left: number; top: number; width: number; height: number }>
         if (pdfRects) rects = pdfRects
         else if (block) {
@@ -392,13 +431,17 @@ export function useNotes({
             ? `dsh-readpilot-note-hit dsh-readpilot-highlight-${note.color ?? 'yellow'}`
             : 'dsh-readpilot-note-hit'
           hit.dataset.noteId = note.id
-          hit.style.left = `${isPdf ? rect.left : rect.left - layerRect.left}px`
-          hit.style.top = `${isPdf ? rect.top : rect.top - layerRect.top}px`
+          hit.style.left = `${target.pdf ? rect.left : rect.left - layerRect.left}px`
+          hit.style.top = `${target.pdf ? rect.top : rect.top - layerRect.top}px`
           hit.style.width = `${rect.width}px`
           hit.style.height = `${rect.height}px`
           layer.appendChild(hit)
         }
       }
+    }
+    const paint = () => {
+      frame = 0
+      for (const target of targets) paintTarget(target)
     }
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint)
@@ -410,16 +453,18 @@ export function useNotes({
       const note = notes.find(entry => entry.id === hit.dataset.noteId)
       if (note) openNoteEditor(note)
     }
-    layer.addEventListener('click', onClick)
+    for (const target of targets) target.layer.addEventListener('click', onClick)
     window.addEventListener('resize', schedule)
     paint()
     return () => {
       if (frame) cancelAnimationFrame(frame)
-      layer.removeEventListener('click', onClick)
+      for (const target of targets) {
+        target.layer.removeEventListener('click', onClick)
+        target.layer.textContent = ''
+      }
       window.removeEventListener('resize', schedule)
-      layer.textContent = ''
     }
-  }, [activeChapterId, contentRef, fontSize, layout, notes, openNoteEditor, paged, pageView, palette, screen, visual?.kind, visual?.kind === 'pdf' ? visual.page : null])
+  }, [activeChapterId, contentRef, fontSize, layout, notes, openNoteEditor, paged, pageView, pageViews, screen, visual])
 
   React.useEffect(() => {
     const frame = epubFrameRef.current
@@ -456,6 +501,7 @@ export function useNotes({
     noteError,
     noteInputRef,
     noteLayerRef,
+    noteLayersRef,
     loadNotes,
     openNote,
     deleteNote,

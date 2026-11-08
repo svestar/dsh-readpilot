@@ -316,6 +316,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
   const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
   const {
     noteLayerRef,
+    noteLayersRef,
     noteEditor,
     noteDraft,
     setNoteDraft,
@@ -337,6 +338,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     activeChapterId: activeChapterId ?? '',
     visual,
     pageView,
+    pageViews,
     palette,
     fontSize: SIDEBAR_FONT_SIZE,
     paged: true,
@@ -533,6 +535,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
       visualError,
       onPdfMouseUp,
       noteLayerRef,
+      noteLayersRef,
       onEpubLoad,
       epubFrameRef,
     })

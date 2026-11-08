@@ -1,5 +1,5 @@
 import { React } from '../runtime.ts'
-import { applyPaletteToFrame, messageOf } from '../helpers.ts'
+import { applyPaletteToFrame, messageOf, pdfChapterIdForPage } from '../helpers.ts'
 import type { ReaderPalette } from '../helpers.ts'
 import type { StateSetter } from '../runtime.ts'
 import {
@@ -206,7 +206,7 @@ export function useVisual({
     const rect = range.getBoundingClientRect()
     const page = (visual?.kind === 'pdf' ? visual.page : 0) + pageIndex
     const chapterId = screen.kind === 'book'
-      ? screen.detail.toc.find(item => item.page === page)?.id ?? screen.content.chapterId
+      ? pdfChapterIdForPage(screen, page, screen.content.chapterId)
       : undefined
     setSelection({
       text: text.slice(0, 2000),
