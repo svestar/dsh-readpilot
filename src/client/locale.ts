@@ -212,6 +212,7 @@ export const zh = {
       undo: '撤销',
       undone: '已撤销',
       actionHistory: '操作历史',
+      actionHistoryShort: '历史',
       actionHistoryHint: '最近 10 分钟的 Agent 写操作，可在这里撤销',
       actionHistoryEmpty: '还没有操作记录',
       actionAdded: '新增批注',
@@ -473,6 +474,7 @@ export const en = {
       undo: 'Undo',
       undone: 'Undone',
       actionHistory: 'Action history',
+      actionHistoryShort: 'History',
       actionHistoryHint: 'Agent write actions from the last 10 minutes; undo them here',
       actionHistoryEmpty: 'No actions yet',
       actionAdded: 'Annotation added',
@@ -520,6 +522,7 @@ export const en = {
       zoomOut: 'Zoom out',
       zoomIn: 'Zoom in',
     }
+
 
 
 

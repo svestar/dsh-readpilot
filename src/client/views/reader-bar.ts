@@ -140,7 +140,7 @@ export function ReaderBar({
               className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
               'aria-label': t('actionHistory'),
               onClick: onHistory,
-            }, '↺')),
+            }, t('actionHistoryShort'))),
           historyCount && historyCount > 0
             ? h('span', { className: 'dsh-readpilot-bar-history-count' }, String(historyCount))
             : null)
