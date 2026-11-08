@@ -26,7 +26,7 @@ function setup() {
         },
       }
     }
-    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast', Button: 'Button' }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast' }
     throw new Error(`unexpected require: ${name}`)
   })
   return { body, portals }
@@ -62,5 +62,6 @@ test('quote_draft_prefixes_every_line_and_ends_with_a_blank_line', () => {
   assert.equal(quoteDraft('a\nb'), '> a\n> b\n\n')
   assert.equal(quoteDraft('single'), '> single\n\n')
 })
+
 
 

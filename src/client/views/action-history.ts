@@ -1,4 +1,4 @@
-import { Button, Modal, h } from '../runtime.ts'
+import { Modal, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
 import type { ReaderActionReceipt } from '../../reader-actions.ts'
 
@@ -34,7 +34,7 @@ export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose 
     h('div', null,
       h('h3', null, t('actionHistory')),
       h('p', null, t('actionHistoryHint'))),
-    h(Button, { variant: 'outline', onClick: () => void onRefresh() }, t('refresh'))),
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: () => void onRefresh() }, t('refresh'))),
   receipts.length === 0
     ? h('div', { className: 'dsh-readpilot-action-history-empty' }, t('actionHistoryEmpty'))
     : h('div', { className: 'dsh-readpilot-action-history-list' },
@@ -49,12 +49,11 @@ export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose 
           h('span', { className: 'dsh-readpilot-action-history-time' }, new Date(receipt.createdAt).toLocaleTimeString())),
         h('div', { className: 'dsh-readpilot-action-history-summary' }, receipt.summary)),
       receipt.undoable && !receipt.undoneAt
-        ? h(Button, {
-          variant: 'outline',
+        ? h('button', { type: 'button', className: 'dsh-readpilot-secondary',
           disabled: busyId === receipt.id,
           onClick: () => void onUndo(receipt.id),
         }, t('undo'))
         : h('span', { className: 'dsh-readpilot-action-history-done' }, t('undone'))))),
   h('div', { className: 'dsh-readpilot-action-history-footer' },
-    h(Button, { variant: 'outline', onClick: onClose }, t('close'))))
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: onClose }, t('close'))))
 }

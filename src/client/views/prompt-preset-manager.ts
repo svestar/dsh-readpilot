@@ -1,4 +1,4 @@
-import { Button, Modal, React, h } from '../runtime.ts'
+import { Modal, React, h } from '../runtime.ts'
 import { renderPrompt } from '../../prompt-render.ts'
 import type { TextFn } from '../types.ts'
 import type { PromptPreset } from '../../prompt-presets.ts'
@@ -128,7 +128,7 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
     h('div', null,
       h('h3', null, t('managePresets')),
       h('span', { className: 'dsh-readpilot-preset-count' }, `${presets.length}`)),
-    h(Button, { variant: 'outline', disabled: busy, onClick: startNew }, t('presetNew'))),
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: startNew }, t('presetNew'))),
   h('div', { className: 'dsh-readpilot-preset-columns' },
     h('div', { className: 'dsh-readpilot-preset-list' },
       presets.length === 0
@@ -187,11 +187,11 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
         ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, localError || error)
         : null,
       h('div', { className: 'dsh-readpilot-preset-actions' },
-        h(Button, { variant: 'outline', disabled: busy, onClick: reset }, t('presetReset')),
+        h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: reset }, t('presetReset')),
         selectedId
-          ? h(Button, { variant: 'outline', disabled: busy, onClick: () => void remove() }, t('delete'))
+          ? h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: () => void remove() }, t('delete'))
           : null,
-        h(Button, { variant: 'primary', disabled: busy, onClick: () => void save() }, busy ? t('loading') : t('save'))))),
+        h('button', { type: 'button', className: 'dsh-readpilot-primary', disabled: busy, onClick: () => void save() }, busy ? t('loading') : t('save'))))),
   h('div', { className: 'dsh-readpilot-preset-footer' },
-    h(Button, { variant: 'outline', disabled: busy, onClick: onClose }, t('close'))))
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: onClose }, t('close'))))
 }
