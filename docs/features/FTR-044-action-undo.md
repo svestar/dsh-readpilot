@@ -14,7 +14,8 @@
 
 - 新增批注 → 删除该批注；
 - 重写/删除批注 → 恢复操作前的完整记录（同一 noteId）；
-- 自动应用的长笔记写入 → 恢复旧正文；新建长笔记 → 删除新文件；\n- 删除长笔记 → 用原 `fileName`、标题、正文与 id 恢复文件；
+- 自动应用的长笔记写入 → 恢复旧正文；新建长笔记 → 删除新文件；
+- 删除长笔记 → 用原 `fileName`、标题、正文与 id 恢复文件；
 - 标签/状态 → 写回操作前的值。
 
 撤销成功后排入 `notesRefresh` 或 `libraryRefresh`，阅读器/书库随即刷新；撤销本身不再生成新回执。历史每 2 秒刷新，最多显示 50 条当前书回执。Agent 侧同时可见：`reader_context.recentActions` 与 `reader_note list.recentActions` 返回 `status: applied|undone_by_user`；伴读上下文 `<recent_agent_actions>` 自动带最近 5 条并注明“用户已撤销不是工具失败”。因此后续动作发现记录缺失时，应先查看该状态，而不是推断工具失败。
@@ -29,7 +30,10 @@
 | `readerReceipts` | `src/api.ts:readerReceipts` | 客户端 `list` 与 `undo` |
 | `NotesStore.restore` | `src/notes.ts:restore` | 按原 id 恢复批注记录 |
 | `NoteFileStore.restore` | `src/note-files.ts:restore` | 按原文件名恢复长笔记 |
-| `recentActionSummary` | `src/api.ts:recentActionSummary` | 给 `reader_context` 与 `reader_note list` 提供动作状态 |\n| `setCompanionContext` | `src/api.ts:setCompanionContext` | 把最近动作写入 `<recent_agent_actions>` |\n| `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |\n| `ReaderBar` / `ActionHistory` | `src/client/views/reader-bar.ts`；`src/client/views/action-history.ts` | 操作历史入口与回执列表弹窗 |
+| `recentActionSummary` | `src/api.ts:recentActionSummary` | 给 `reader_context` 与 `reader_note list` 提供动作状态 |
+| `setCompanionContext` | `src/api.ts:setCompanionContext` | 把最近动作写入 `<recent_agent_actions>` |
+| `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |
+| `ReaderBar` / `ActionHistory` | `src/client/views/reader-bar.ts`；`src/client/views/action-history.ts` | 操作历史入口与回执列表弹窗 |
 
 ## 约束与失败行为
 

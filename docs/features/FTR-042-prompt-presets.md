@@ -31,6 +31,7 @@
 ## 验收与测试
 
 - 正常路径：默认种子、编辑内置预设、新建/删除自定义预设、恢复默认（`prompt_presets_seed_edit_reset_and_delete`）。
-- 正常路径：v1 数组迁移只补新增内置，不复活已删除旧内置（`prompt_presets_migrate_new_defaults_once`）。\n- 正常路径：v2 未编辑内置模板简化为新版，自定义模板保留（`prompt_presets_simplify_untouched_defaults_on_v2`）。
+- 正常路径：v1 数组迁移只补新增内置，不复活已删除旧内置（`prompt_presets_migrate_new_defaults_once`）。
+- 正常路径：v2 未编辑内置模板简化为新版，自定义模板保留（`prompt_presets_simplify_untouched_defaults_on_v2`）。
 - 边界：空标题/空模板、超长模板、未知 id、非法 id 被拒绝（`prompt_presets_validate_input`）。
 - 正常路径：四个占位符替换，选区/书名字面量中的 `$&`、`$1` 不被展开（`render_prompt_replaces_placeholders_literally`）。
