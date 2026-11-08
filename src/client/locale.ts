@@ -119,7 +119,8 @@ export const zh = {
       presetVariables: '插入变量',
       presetReset: '恢复默认',
       presetRequired: '标题和模板不能为空',
-      presetSaveFailed: '预设保存失败',
+      presetSaveFailed: '提示词保存失败',
+      presetLoadFailed: '提示词加载失败',
       presetNoNotes: '（暂无批注）',
       presetSampleSelection: '这段选中的文字',
       presetSampleBook: '《示例书》',
@@ -367,7 +368,8 @@ export const en = {
       presetVariables: 'Insert variable',
       presetReset: 'Reset defaults',
       presetRequired: 'Title and template are required',
-      presetSaveFailed: 'Could not save the preset',
+      presetSaveFailed: 'Could not save the prompt',
+      presetLoadFailed: 'Could not load prompts',
       presetNoNotes: '(no annotations yet)',
       presetSampleSelection: 'the selected passage',
       presetSampleBook: 'the sample book',
@@ -494,6 +496,7 @@ export const en = {
       zoomOut: 'Zoom out',
       zoomIn: 'Zoom in',
     }
+
 
 
 

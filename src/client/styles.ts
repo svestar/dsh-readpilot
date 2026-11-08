@@ -353,7 +353,8 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-preset-empty{padding:6px 8px;color:var(--dsw-alias-label-secondary);font-size:12px}
 .dsh-readpilot-preset-manager{width:min(820px,100%);max-height:min(86vh,720px);display:flex;flex-direction:column;gap:10px}
 .dsh-readpilot-preset-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
-.dsh-readpilot-preset-header h3{margin:0;font-size:14px;font-weight:650}
+.dsh-readpilot-preset-header>div{display:flex;align-items:center;gap:6px;min-width:0;flex:1}
+.dsh-readpilot-preset-header h3{margin:0;font-size:14px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dsh-readpilot-preset-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:18px;margin-left:6px;padding:0 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10px}
 .dsh-readpilot-preset-columns{display:flex;gap:16px;min-height:0;flex:1}
 .dsh-readpilot-preset-list{display:flex;flex-direction:column;gap:5px;width:230px;flex:none;overflow:auto;padding-right:4px}

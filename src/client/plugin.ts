@@ -208,7 +208,7 @@ export function createPlugin(require: (name: string) => any) {
           setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
           setPresetError('')
         } catch (cause) {
-          setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+          setPresetError(`${t('presetLoadFailed')}：${messageOf(cause)}`)
         }
       }, [call, t])
 
