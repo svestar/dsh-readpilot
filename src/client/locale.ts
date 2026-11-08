@@ -209,6 +209,7 @@ export const zh = {
       memoryReaderCard: '读者卡',
       memoryBookPlaceholder: '这本书的阅读关系、读者观点与未解决问题。',
       memoryReaderPlaceholder: '跨书的读者偏好，例如语言、深度、回答风格。',
+      undo: '撤销',
       memoryUndo: '撤销最近一次',
       memoryHistoryCount: '历史',
       memoryHint: '记忆默认关闭；开启后伴读只记录长期有效的偏好、观点与结论，不记情节。每张卡最多 600 字，每次更新可撤销。',
@@ -458,6 +459,7 @@ export const en = {
       memoryReaderCard: 'Reader card',
       memoryBookPlaceholder: 'Reading relationship, the reader’s views and open questions for this book.',
       memoryReaderPlaceholder: 'Cross-book preferences such as language, depth and answer style.',
+      undo: 'Undo',
       memoryUndo: 'Undo last',
       memoryHistoryCount: 'history',
       memoryHint: 'Off by default. When on, the companion records only durable preferences, views and conclusions, never plot facts. Each card is capped at 600 characters and every update can be undone.',
@@ -496,6 +498,7 @@ export const en = {
       zoomOut: 'Zoom out',
       zoomIn: 'Zoom in',
     }
+
 
 
 

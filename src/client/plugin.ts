@@ -31,7 +31,7 @@ import {
 
 import { zh, en } from './locale.ts'
 import { CSS } from './styles.ts'
-import { React, h, bindRuntime } from './runtime.ts'
+import { React, Toast, h, bindRuntime } from './runtime.ts'
 import { Toc } from './views/toc.ts'
 import { renderBlocks, selectionAnchor } from './views/markdown.ts'
 import { PanelIcon, Setup } from './views/panels.ts'
@@ -61,6 +61,7 @@ import { ReaderBooksToolView, ReaderOpenToolView, ReaderSearchToolView } from '.
 import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useReaderActions } from './hooks/use-reader-actions.ts'
+import { useActionReceipts } from './hooks/use-action-receipts.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
@@ -1025,6 +1026,15 @@ export function createPlugin(require: (name: string) => any) {
 
       useReaderActions({ call, bookId: activeBookId, onAction: onReaderAction })
 
+      const { toast: actionToast, undo: undoAgentAction, dismiss: dismissAgentToast } = useActionReceipts({
+        call,
+        bookId: activeBookId,
+        onUndone: async () => {
+          await refresh()
+          if (activeBookId) await loadNotes()
+        },
+      })
+
       React.useEffect(() => {
         if (screen.kind !== 'book') {
           readerShortcutBridge = null
@@ -1631,6 +1641,15 @@ export function createPlugin(require: (name: string) => any) {
             onDelete: deletePromptPreset,
             onReset: resetPromptPresets,
             onClose: () => setPresetManagerOpen(false),
+          })
+          : null,
+        actionToast
+          ? h(Toast, {
+            text: actionToast.text,
+            tone: 'info',
+            holdMs: 8000,
+            actions: [{ label: t('undo'), onClick: () => void undoAgentAction() }],
+            onDone: dismissAgentToast,
           })
           : null,
         h(DraftNotice, { t, state: longNotes }))

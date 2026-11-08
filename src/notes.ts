@@ -62,6 +62,7 @@ export interface NotesStore {
   add(bookId: string, input?: NewNoteInput): Promise<NoteRecord>
   update(bookId: string, noteId: string, patch: NotePatch): Promise<NoteRecord>
   remove(bookId: string, noteId: string): Promise<boolean>
+  restore(record: NoteRecord): Promise<NoteRecord>
 }
 
 interface NoteFields {
@@ -272,6 +273,18 @@ export function createNotesStore(dataDir: string): NotesStore {
         notes.splice(index, 1)
         await writeJson(path, notes)
         return true
+      })
+    },
+
+    async restore(record) {
+      const path = notesPath(dataDir, record.bookId)
+      return enqueueWrite(path, async () => {
+        const notes = await readNotes(path)
+        const index = notes.findIndex(note => note.id === record.id)
+        if (index === -1) notes.unshift(record)
+        else notes[index] = record
+        await writeJson(path, notes)
+        return record
       })
     },
   }

@@ -139,8 +139,20 @@ test('tools_read_bounded', async t => {
   assert.equal(deleted.deleted, true)
   assert.equal((await noteTool.execute({ action: 'list', book: state.books[0].title })).notes.length, 0)
 
+  const receipts = await api.readerReceipts({ action: 'list', bookId: state.books[0].id })
+  const deleteReceipt = receipts.receipts.find((receipt: any) => receipt.type === 'annotation.delete')
+  assert.ok(deleteReceipt)
+  assert.equal((await api.readerReceipts({ action: 'undo', receiptId: deleteReceipt.id })).undone, true)
+  assert.equal((await noteTool.execute({ action: 'list', book: state.books[0].title })).notes.length, 1)
+
   const deletedBook = await registered.get('reader_notes')!.execute({ action: 'delete', book: state.books[0].title, id: 'book' })
   assert.equal(deletedBook.deleted, true)
+  const longDeleteReceipt = (await api.readerReceipts({ action: 'list', bookId: state.books[0].id }))
+    .receipts.find((receipt: any) => receipt.type === 'longNote.delete')
+  assert.ok(longDeleteReceipt)
+  assert.equal((await api.readerReceipts({ action: 'undo', receiptId: longDeleteReceipt.id })).undone, true)
+  const restoredNotes = await registered.get('reader_notes')!.execute({ action: 'index', book: state.books[0].title })
+  assert.ok(restoredNotes.notes.some((note: any) => note.id === 'book'))
 
   const books = await registered.get('reader_books')!.execute({})
   assert.equal(books.books.length, 1)

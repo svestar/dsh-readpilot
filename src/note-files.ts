@@ -335,6 +335,7 @@ export interface NoteFileStore {
   create(book: NoteBookRef, input: { title?: unknown; kind?: unknown; body?: unknown }): Promise<NoteFileContent>
   write(book: NoteBookRef, id: string, input: { title?: unknown; body?: unknown; baseHash?: unknown }): Promise<NoteFileContent>
   remove(book: NoteBookRef, id: string): Promise<boolean>
+  restore(book: NoteBookRef, record: NoteFileRecord, body: string): Promise<NoteFileContent>
   listHistory(book: NoteBookRef, noteId: string): Promise<NoteHistoryEntry[]>
   readHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<{ id: string; body: string; content: string; createdAt: number; characters: number }>
   restoreHistory(book: NoteBookRef, noteId: string, historyId: string): Promise<NoteFileContent>
@@ -509,6 +510,24 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     return true
   }
 
+  async function restore(book: NoteBookRef, record: NoteFileRecord, body: string): Promise<NoteFileContent> {
+    const bookId = assertBookId(book.id)
+    const dir = await ensureBookDir(root, book)
+    const path = join(dir, record.fileName)
+    assertInside(dir, path)
+    const raw = serializeNote({
+      id: record.id,
+      kind: record.kind,
+      title: record.title,
+      bookId,
+      created: record.createdAt,
+      updated: record.updatedAt,
+    }, bodyOf(body))
+    await atomicWrite(path, raw)
+    forgetMeta(path)
+    return read(book, record.id)
+  }
+
   async function listHistory(book: NoteBookRef, noteId: string): Promise<NoteHistoryEntry[]> {
     const { dir, note } = await requireNote(book, assertNoteId(noteId))
     const historyDir = historyDirOf(dir, note.id)
@@ -603,7 +622,7 @@ export function createNoteFileStore(root: string, options: NoteFileStoreOptions 
     return ids.length
   }
 
-  return { list, read, create, write, remove, listHistory, readHistory, restoreHistory, removeHistory, clearHistory }
+  return { list, read, create, write, remove, restore, listHistory, readHistory, restoreHistory, removeHistory, clearHistory }
 }
 
 async function writeHistory(dir: string, id: string, raw: string, maxHistory: number): Promise<void> {

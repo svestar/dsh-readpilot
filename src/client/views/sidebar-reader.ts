@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { React, Toast, h } from '../runtime.ts'
 import type { CallRpc, ComposerInputActions, Screen, SelectTarget, TextFn, Visual } from '../types.ts'
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
@@ -12,6 +12,7 @@ import { useVisual } from '../hooks/use-visual.ts'
 import { useSelectionDismiss } from '../hooks/use-selection-dismiss.ts'
 import { useChatJump } from '../hooks/use-chat-jump.ts'
 import { useReaderActions } from '../hooks/use-reader-actions.ts'
+import { useActionReceipts } from '../hooks/use-action-receipts.ts'
 import type { ReaderAction, ReaderActionType } from '../../reader-actions.ts'
 
 const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh']
@@ -381,6 +382,14 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     onAction: onReaderAction,
   })
 
+  const { toast: actionToast, undo: undoAgentAction, dismiss: dismissAgentToast } = useActionReceipts({
+    call,
+    bookId: activeBookId,
+    onUndone: async () => {
+      await loadNotes()
+    },
+  })
+
   const canAskCompanion = typeof inputActions?.insertQuote === 'function' || typeof inputActions?.setDraft === 'function'
   const askCompanion = React.useCallback(() => {
     if (!selection || screen.kind !== 'book') return
@@ -631,6 +640,15 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
         deleteNote,
         closeNoteEditor,
         saveNote,
+      })
+      : null,
+    actionToast
+      ? h(Toast, {
+        text: actionToast.text,
+        tone: 'info',
+        holdMs: 8000,
+        actions: [{ label: t('undo'), onClick: () => void undoAgentAction() }],
+        onDone: dismissAgentToast,
       })
       : null)
 }

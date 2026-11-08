@@ -356,8 +356,17 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         const books = await api.toolBooks()
         const found = (books?.books ?? []).find((book: any) => book.id === args?.book || book.title === args?.book)
         if (!found) throw new Error(`书库中找不到书籍：${String(args?.book)}`)
+        const meta = await api.libraryMeta()
+        const previous = meta.tags[found.id] ?? []
         const result = await api.setBookTags({ bookId: found.id, tags: args?.tags })
         const action = await api.pushReaderAction({ type: 'libraryRefresh' })
+        await api.recordReaderReceipt({
+          type: 'tag.update',
+          bookId: found.id,
+          bookTitle: found.title,
+          summary: `修改标签：${found.title}`,
+          undo: { kind: 'setTags', bookId: found.id, tags: previous },
+        })
         return { actionId: action.id, queued: true, bookId: found.id, tags: result.tags, message: '标签已保存，书库将在 1 秒内刷新。' }
       },
     },
@@ -379,9 +388,18 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
         const books = await api.toolBooks()
         const found = (books?.books ?? []).find((book: any) => book.id === args?.book || book.title === args?.book)
         if (!found) throw new Error(`书库中找不到书籍：${String(args?.book)}`)
+        const meta = await api.libraryMeta()
+        const previous = meta.status[found.id] ?? null
         const status = args?.status === 'none' ? null : args?.status
         const result = await api.setBookStatus({ bookId: found.id, status })
         const action = await api.pushReaderAction({ type: 'libraryRefresh' })
+        await api.recordReaderReceipt({
+          type: 'status.update',
+          bookId: found.id,
+          bookTitle: found.title,
+          summary: `修改阅读状态：${found.title}`,
+          undo: { kind: 'setStatus', bookId: found.id, status: previous },
+        })
         return { actionId: action.id, queued: true, bookId: found.id, status: result.status, message: '阅读状态已保存，书库将在 1 秒内刷新。' }
       },
     },
@@ -411,9 +429,36 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
       async execute(args) {
         const action = args?.action
         if (action === 'index' || action === 'read') return await api.toolNoteFiles(args ?? {})
-        if (action === 'delete') return await api.toolNoteFiles({ ...args, action: 'remove' })
+        if (action === 'delete') {
+          const content = await api.toolNoteFiles({ action: 'read', book: args?.book, id: args?.id })
+          const result = await api.toolNoteFiles({ ...args, action: 'remove' })
+          if (result.deleted) {
+            await api.recordReaderReceipt({
+              type: 'longNote.delete',
+              bookId: result.bookId,
+              bookTitle: result.bookTitle,
+              summary: `删除长笔记：${content.note.title}`,
+              undo: { kind: 'restoreNoteFile', bookId: result.bookId, note: content.note, body: content.body },
+            })
+          }
+          return result
+        }
         if (action === 'create' || action === 'write' || action === 'append') {
+          const previous = (action === 'write' || action === 'append') && args?.id
+            ? await api.toolNoteFiles({ action: 'read', book: args?.book, id: args?.id }).catch(() => null)
+            : null
           const result = await api.noteDraftCreate(args ?? {})
+          if (result.autoApplied && result.note?.id) {
+            await api.recordReaderReceipt({
+              type: 'longNote.write',
+              bookId: result.draft.bookId,
+              bookTitle: result.note.title,
+              summary: `自动应用长笔记：${result.note.title}`,
+              undo: previous
+                ? { kind: 'restoreNoteFile', bookId: result.draft.bookId, note: previous.note, body: previous.body }
+                : { kind: 'deleteNoteFile', bookId: result.draft.bookId, noteId: result.note.id },
+            })
+          }
           return {
             draft: {
               id: result.draft.id,

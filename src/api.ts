@@ -13,7 +13,7 @@ import { createMemoryHandlers } from './api-memory.ts'
 import { createNoteFileHandlers } from './api-note-files.ts'
 import { createNotesHandlers } from './api-notes.ts'
 import { createPromptHandlers } from './api-prompts.ts'
-import type { ReaderAction, ReaderActionInput, ReaderActionType } from './reader-actions.ts'
+import type { ReaderAction, ReaderActionInput, ReaderActionReceipt, ReaderReceiptInput, ReaderActionType } from './reader-actions.ts'
 import { createReaderActionStore } from './reader-actions.ts'
 import { createLimiter } from './limit.ts'
 import { ReaderError } from './reader-error.ts'
@@ -260,7 +260,9 @@ export interface ReaderApi {
   memoryContextFor(sessionId: unknown): string
   prompts(payload?: any): Promise<any>
   readerActions(payload?: any): Promise<any>
+  readerReceipts(payload?: any): Promise<any>
   pushReaderAction(action: ReaderActionInput): Promise<ReaderAction>
+  recordReaderReceipt(input: ReaderReceiptInput): Promise<ReaderActionReceipt>
   noteDrafts(payload?: any): Promise<any>
   noteDraftCreate(payload?: any): Promise<{
     draft: NoteDraftRecord
@@ -1074,8 +1076,18 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     if (action === 'update' || action === 'delete') {
       const id = typeof noteId === 'string' ? noteId : ''
       if (!id) throw new ReaderError('invalid-note', 'noteId 不能为空')
+      const previous = (await notesStore.list(found.id)).find(note => note.id === id)
       if (action === 'delete') {
         const deleted = await notesStore.remove(found.id, id)
+        if (deleted && previous) {
+          await recordReaderReceipt({
+            type: 'annotation.delete',
+            bookId: found.id,
+            bookTitle: found.title,
+            summary: `删除批注：${previous.quote.slice(0, 40) || previous.note.slice(0, 40)}`,
+            undo: { kind: 'restoreNote', bookId: found.id, note: previous },
+          })
+        }
         if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
         return { bookId: found.id, bookTitle: found.title, noteId: id, deleted }
       }
@@ -1085,6 +1097,15 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       if (typeof color === 'string') patch.color = color
       if (Object.keys(patch).length === 0) throw new ReaderError('invalid-note', '更新批注需要 note、quote 或 color')
       const record = await notesStore.update(found.id, id, patch)
+      if (previous) {
+        await recordReaderReceipt({
+          type: 'annotation.update',
+          bookId: found.id,
+          bookTitle: found.title,
+          summary: `修改批注：${previous.quote.slice(0, 40) || id}`,
+          undo: { kind: 'restoreNote', bookId: found.id, note: previous },
+        })
+      }
       if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
       return { bookId: found.id, bookTitle: found.title, noteId: id, note: record }
     }
@@ -1109,6 +1130,13 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       note: typeof note === 'string' ? note : '',
     })
     if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
+    await recordReaderReceipt({
+      type: 'annotation.add',
+      bookId: found.id,
+      bookTitle: found.title,
+      summary: `新增批注：${record.quote.slice(0, 40) || '划线'}`,
+      undo: { kind: 'deleteNote', bookId: found.id, noteId: record.id },
+    })
     return {
       bookId: found.id,
       bookTitle: parsed.title || found.title,
@@ -1139,6 +1167,62 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   async function pushReaderAction(action: ReaderActionInput): Promise<ReaderAction> {
     return readerActionStore.push(action)
+  }
+
+  async function recordReaderReceipt(input: ReaderReceiptInput): Promise<ReaderActionReceipt> {
+    return readerActionStore.addReceipt(input)
+  }
+
+  async function readerReceipts(payload: any = {}): Promise<any> {
+    if (payload.action === 'list') {
+      const bookId = typeof payload.bookId === 'string' ? payload.bookId : undefined
+      return {
+        receipts: readerActionStore.listReceipts({
+          bookId,
+          limit: Number.isInteger(payload.limit) ? payload.limit : undefined,
+        }),
+      }
+    }
+    if (payload.action !== 'undo') {
+      throw new ReaderError('invalid-reader-action', `未知动作回执操作：${String(payload.action)}`)
+    }
+    const receiptId = typeof payload.receiptId === 'string' ? payload.receiptId : ''
+    const receipt = readerActionStore.getReceipt(receiptId)
+    if (!receipt) throw new ReaderError('receipt-not-found', '动作回执不存在或已过期')
+    if (receipt.undoneAt) throw new ReaderError('already-undone', '这个动作已经撤销')
+    if (!receipt.undo) throw new ReaderError('not-undoable', '这个动作不可撤销')
+    const undo = receipt.undo
+    try {
+      if (undo.kind === 'deleteNote') {
+        await notesStore.remove(undo.bookId, undo.noteId)
+        if (companionSettings.notes[undo.bookId]) await rebuildNotesContext(undo.bookId)
+        readerActionStore.push({ type: 'notesRefresh', bookId: undo.bookId })
+      } else if (undo.kind === 'restoreNote') {
+        await notesStore.restore(undo.note)
+        if (companionSettings.notes[undo.bookId]) await rebuildNotesContext(undo.bookId)
+        readerActionStore.push({ type: 'notesRefresh', bookId: undo.bookId })
+      } else if (undo.kind === 'restoreNoteFile') {
+        const book = await resolveBook(undo.bookId)
+        const store = await ensureNoteFileStore()
+        await store.restore(book, undo.note, undo.body)
+        readerActionStore.push({ type: 'notesRefresh', bookId: undo.bookId })
+      } else if (undo.kind === 'deleteNoteFile') {
+        const book = await resolveBook(undo.bookId)
+        const store = await ensureNoteFileStore()
+        await store.remove(book, undo.noteId)
+        readerActionStore.push({ type: 'notesRefresh', bookId: undo.bookId })
+      } else if (undo.kind === 'setTags') {
+        await libraryMetaStore.setTags(undo.bookId, undo.tags)
+        readerActionStore.push({ type: 'libraryRefresh' })
+      } else if (undo.kind === 'setStatus') {
+        await libraryMetaStore.setStatus(undo.bookId, undo.status)
+        readerActionStore.push({ type: 'libraryRefresh' })
+      }
+      return { receipt: readerActionStore.markUndone(receiptId), undone: true }
+    } catch (error) {
+      if (error instanceof ReaderError) throw error
+      throw new ReaderError('undo-failed', error instanceof Error ? error.message : String(error))
+    }
   }
 
   async function readerActions(payload: any = {}): Promise<{ actions: ReaderAction[] }> {
@@ -1429,6 +1513,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       notes: handleNotes,
       prompts,
       readerActions,
+      readerReceipts,
       noteFiles: handleNoteFiles,
       noteDrafts,
       openNoteFile,
@@ -1474,7 +1559,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     memoryContextFor,
     prompts,
     readerActions,
+    readerReceipts,
     pushReaderAction,
+    recordReaderReceipt,
     noteDrafts,
     noteDraftCreate,
     toolNoteFiles,

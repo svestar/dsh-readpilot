@@ -47,3 +47,4 @@
 | `FTR-041` | 工具结果卡片 | `docs/features/FTR-041-tool-cards.md` | `src/client/views/reader-tool-view.ts` | `tests/reader-tool-view.test.ts` | active |
 | `FTR-042` | 提示词预设 | `docs/features/FTR-042-prompt-presets.md` | `src/prompt-presets.ts` | `tests/prompt-presets.test.ts` | active |
 | `FTR-043` | Agent 阅读动作 | `docs/features/FTR-043-agent-actions.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
+| `FTR-044` | 动作回执与撤销 | `docs/features/FTR-044-action-undo.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |

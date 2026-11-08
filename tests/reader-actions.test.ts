@@ -21,3 +21,22 @@ test('reader_actions_take_all_returns_every_type', () => {
   store.push({ type: 'libraryRefresh' })
   assert.deepEqual(store.take().map(action => action.type), ['open_panel', 'libraryRefresh'])
 })
+
+test('reader_receipts_can_be_listed_and_marked_undone', () => {
+  const store = createReaderActionStore()
+  const receipt = store.addReceipt({
+    type: 'annotation.add',
+    bookId: 'a',
+    bookTitle: '书',
+    summary: '新增批注',
+    undo: { kind: 'deleteNote', bookId: 'a', noteId: 'n1' },
+  })
+  assert.equal(receipt.undoable, true)
+  const listed = store.listReceipts({ bookId: 'a' })
+  assert.equal(listed.length, 1)
+  assert.equal(listed[0].id, receipt.id)
+  assert.equal(store.listReceipts({ bookId: 'b' }).length, 0)
+  assert.equal(store.getReceipt(receipt.id)?.summary, '新增批注')
+  assert.ok(store.markUndone(receipt.id)?.undoneAt)
+  assert.equal(store.getReceipt(receipt.id)?.undoneAt !== undefined, true)
+})
