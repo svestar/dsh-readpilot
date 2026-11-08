@@ -1,6 +1,6 @@
 {
   "name": "dsh-readpilot",
-  "version": "0.2.4",
+  "version": "0.3.0",
   "description": "AI-assisted reading for DeepSeek Harness: TXT, Markdown, EPUB and PDF with a companion session, notes, memory and export.",
   "license": "MIT",
   "type": "module",
@@ -47,6 +47,8 @@
     "locale/*.json",
     "icon.svg",
     "README.md",
+    "CHANGELOG.md",
+    "USAGE.md",
     "LICENSE"
   ],
   "publishConfig": {
