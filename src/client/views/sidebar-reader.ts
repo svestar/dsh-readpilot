@@ -3,7 +3,7 @@ import type { CallRpc, ComposerInputActions, Screen, SelectTarget, TextFn, Visua
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
 import { readPaletteId, resolveReaderPalette } from '../helpers.ts'
-import { parseReaderResource } from '../reader-resource.ts'
+import { buildReaderResource, parseReaderResource } from '../reader-resource.ts'
 import { publishProgressSync } from '../progress-sync.ts'
 import { usePageWidth } from '../hooks/use-page-width.ts'
 import { useNotes } from '../hooks/use-notes.ts'
@@ -42,7 +42,13 @@ export interface SidebarReaderProps {
   t: TextFn
   sessionId?: string
   inputActions?: ComposerInputActions | null
-  useTabInfo?: () => { tab?: { contentId?: string; navigation?: { revision?: number } } } | null
+  useTabInfo?: () => {
+    tab?: {
+      contentId?: string
+      navigation?: { revision?: number; params?: { address?: string } }
+    }
+  } | null
+  openResource?: (address: string) => void
 }
 
 /**
@@ -75,10 +81,12 @@ interface SidebarBook {
 
 type SidebarMode = 'text' | 'original'
 
-export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: SidebarReaderProps) {
+export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, openResource }: SidebarReaderProps) {
   const tab = useTabInfo ? useTabInfo() : null
   const revision = tab?.tab?.navigation?.revision ?? 0
-  const resourceAddress = tab?.tab?.contentId ?? ''
+  const resourceAddress = tab?.tab?.contentId
+    || tab?.tab?.navigation?.params?.address
+    || ''
   const [book, setBook] = React.useState<SidebarBook | null>(null)
   const [screen, setScreen] = React.useState<Screen>({ kind: 'library' })
   const [mode, setMode] = React.useState<SidebarMode>('text')
@@ -108,6 +116,12 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
     }
   }, [call, t])
 
+  const openOtherBook = React.useCallback((target: any) => {
+    const address = buildReaderResource(target.bookId, target.chapterId, target.offset)
+    if (openResource) openResource(address)
+    else setError(t('chatJumpOtherBook'))
+  }, [openResource, t])
+
   useChatJump({
     call,
     screen,
@@ -115,6 +129,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo }: 
     selectChapter,
     setChatError: setError,
     setChatOpen: noopSetChatOpen,
+    openOtherBook,
   })
 
   React.useEffect(() => {

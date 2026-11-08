@@ -60,6 +60,9 @@ import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
 import { parseNoteResource } from './note-resource.ts'
+import { buildReaderResource } from './reader-resource.ts'
+import { parseReaderJumpUrl } from '../jump-url.ts'
+import type { ReaderJumpTarget } from '../jump-url.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
 import { useMemory } from './hooks/use-memory.ts'
 import { useTextPager } from './hooks/use-text-pager.ts'
@@ -550,6 +553,20 @@ export function createPlugin(require: (name: string) => any) {
         if (typeof window !== 'undefined' && window.innerWidth <= 1100) setChatOpen(false)
       }, [screen, selectChapter, setChatOpen])
 
+      const openOtherBook = React.useCallback((target: ReaderJumpTarget) => {
+        const sidebar = runtime.sidebarRight
+        if (!sidebar || typeof sidebar.openResource !== 'function') {
+          setChatError(t('chatJumpOtherBook'))
+          return
+        }
+        try {
+          const address = buildReaderResource(target.bookId, target.chapterId, target.offset)
+          sidebar.openResource(address, { params: { address } })
+        } catch {
+          setChatError(t('chatJumpOtherBook'))
+        }
+      }, [runtime, setChatError, t])
+
       useChatJump({
         call,
         screen,
@@ -557,6 +574,7 @@ export function createPlugin(require: (name: string) => any) {
         selectChapter,
         setChatError,
         setChatOpen,
+        openOtherBook,
       })
 
       const {
@@ -1576,6 +1594,44 @@ export function createPlugin(require: (name: string) => any) {
             },
           }), 'dsh-readpilot: note resource')
         }
+        const openReaderResource = typeof ctx.sidebarRight?.openResource === 'function'
+          ? (address: string) => {
+            try {
+              ctx.sidebarRight.openResource(address, { params: { address } })
+            } catch (error) {
+              console.warn('dsh-readpilot: could not open reader resource', error)
+            }
+          }
+          : undefined
+        if (typeof document !== 'undefined' && openReaderResource) {
+          const onJumpClick = (event: MouseEvent) => {
+            const anchor = (event.target as Element | null)?.closest?.('a[href*="dsh-readpilot.invalid/jump"]') as HTMLAnchorElement | null
+            if (!anchor) return
+            if (document.querySelector('.dsh-readpilot-reader, .dsh-readpilot-sidebar-reader-root')) return
+            const target = parseReaderJumpUrl(anchor.href)
+            if (!target) return
+            event.preventDefault()
+            event.stopImmediatePropagation()
+            if (target.offset === undefined && target.q) {
+              const query = target.q
+              void (async () => {
+                try {
+                  const result = await call('search', { bookId: target.bookId, query, limit: 20 })
+                  const match = result.matches.find((item: any) => item.chapterId === target.chapterId)
+                  openReaderResource(match
+                    ? buildReaderResource(target.bookId, match.chapterId, match.offset)
+                    : buildReaderResource(target.bookId, target.chapterId))
+                } catch (error) {
+                  console.warn('dsh-readpilot: jump search failed', error)
+                }
+              })()
+              return
+            }
+            openReaderResource(buildReaderResource(target.bookId, target.chapterId, target.offset))
+          }
+          document.addEventListener('click', onJumpClick, true)
+          ctx.effect(() => () => document.removeEventListener('click', onJumpClick, true), 'dsh-readpilot: global jump links')
+        }
         if (ctx.sidebarRightTabs) {
           ctx.effect(
             () => ctx.sidebarRightTabs.register({
@@ -1597,7 +1653,7 @@ export function createPlugin(require: (name: string) => any) {
               name: 'sidebar.right.pane.tab',
               key: 'dsh-readpilot.sidebar',
               locale: NS,
-            }, (props: any) => h(SidebarReader, { ...props, call, t: props.t ?? boundText }))),
+            }, (props: any) => h(SidebarReader, { ...props, call, t: props.t ?? boundText, openResource: openReaderResource }))),
             'dsh-readpilot: sidebar tab body',
           )
         }
@@ -1609,15 +1665,6 @@ export function createPlugin(require: (name: string) => any) {
           }, (props: any) => h(ReaderBooksToolView, { ...props, t: props.t ?? boundText }))),
           'dsh-readpilot: reader_books tool view',
         )
-        const openReaderResource = typeof ctx.sidebarRight?.openResource === 'function'
-          ? (address: string) => {
-            try {
-              ctx.sidebarRight.openResource(address)
-            } catch (error) {
-              console.warn('dsh-readpilot: could not open reader resource', error)
-            }
-          }
-          : undefined
         ctx.effect(
           () => ctx.slots.inject('tool.call.toolview', () => ctx.slots.register({
             name: 'tool.call.toolview',

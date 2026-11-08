@@ -87,7 +87,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_open',
       description:
-        'Open one book and return metadata plus its table of contents. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Use the returned chapter ids with reader_read. The book may be addressed by id or by title.',
+        'Open one book for this conversation and return metadata plus its table of contents. This only loads data for the model; it does not change the reader panel. The tool result card has a jump button that opens the sidebar reader. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Use the returned chapter ids with reader_read. The book may be addressed by id or by title.',
       parameters: {
         type: 'object',
         properties: {
@@ -159,7 +159,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_search',
       description:
-        'Search the library or one book for a literal phrase and return snippets with stable locators. Use it to find a passage before reader_read; do not use it to dump whole chapters.',
+        'Search the library or one book for a literal phrase and return snippets with stable locators. Use it to find a passage before reader_read; do not use it to dump whole chapters. The tool result card has a jump button that opens the sidebar reader at the match.',
       parameters: {
         type: 'object',
         properties: {
