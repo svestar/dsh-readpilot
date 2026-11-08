@@ -10,14 +10,14 @@
 
 写类 Agent 动作在 Host 生成一条回执：新增/重写/删除批注、自动应用的长笔记写入、删除长笔记、修改标签、修改阅读状态。回执包含 `id`、类型、书名、摘要、创建时间、`undoable` 与撤销描述；导航类 `reader_goto`/`reader_open_panel` 不改变数据，不进入撤销历史。
 
-客户端每秒读取当前书最近回执；发现新的可撤销回执时显示 Toast，附带“撤销”按钮。撤销按回执类型执行：
+阅读栏提供“操作历史”入口；打开后列出当前书最近回执，每条可撤销项带“撤销”按钮，不弹 Toast。撤销按回执类型执行：
 
 - 新增批注 → 删除该批注；
 - 重写/删除批注 → 恢复操作前的完整记录（同一 noteId）；
 - 自动应用的长笔记写入 → 恢复旧正文；新建长笔记 → 删除新文件；\n- 删除长笔记 → 用原 `fileName`、标题、正文与 id 恢复文件；
 - 标签/状态 → 写回操作前的值。
 
-撤销成功后排入 `notesRefresh` 或 `libraryRefresh`，阅读器/书库随即刷新；撤销本身不再生成新回执。Toast 8 秒后自动消失，每个回执只提示一次。
+撤销成功后排入 `notesRefresh` 或 `libraryRefresh`，阅读器/书库随即刷新；撤销本身不再生成新回执。历史每 2 秒刷新，最多显示 50 条当前书回执。
 
 ## 接口与代码映射
 
@@ -29,7 +29,7 @@
 | `readerReceipts` | `src/api.ts:readerReceipts` | 客户端 `list` 与 `undo` |
 | `NotesStore.restore` | `src/notes.ts:restore` | 按原 id 恢复批注记录 |
 | `NoteFileStore.restore` | `src/note-files.ts:restore` | 按原文件名恢复长笔记 |
-| `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询新回执、去重、Toast 撤销 |
+| `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |\n| `ReaderBar` / `ActionHistory` | `src/client/views/reader-bar.ts`；`src/client/views/action-history.ts` | 操作历史入口与回执列表弹窗 |
 
 ## 约束与失败行为
 

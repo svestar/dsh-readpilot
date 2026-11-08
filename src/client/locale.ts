@@ -210,6 +210,17 @@ export const zh = {
       memoryBookPlaceholder: '这本书的阅读关系、读者观点与未解决问题。',
       memoryReaderPlaceholder: '跨书的读者偏好，例如语言、深度、回答风格。',
       undo: '撤销',
+      undone: '已撤销',
+      actionHistory: '操作历史',
+      actionHistoryHint: '最近 10 分钟的 Agent 写操作，可在这里撤销',
+      actionHistoryEmpty: '还没有操作记录',
+      actionAdded: '新增批注',
+      actionUpdated: '修改批注',
+      actionDeleted: '删除批注',
+      actionLongWrite: '写入长笔记',
+      actionLongDelete: '删除长笔记',
+      actionTags: '修改标签',
+      actionStatus: '修改状态',
       memoryUndo: '撤销最近一次',
       memoryHistoryCount: '历史',
       memoryHint: '记忆默认关闭；开启后伴读只记录长期有效的偏好、观点与结论，不记情节。每张卡最多 600 字，每次更新可撤销。',
@@ -460,6 +471,17 @@ export const en = {
       memoryBookPlaceholder: 'Reading relationship, the reader’s views and open questions for this book.',
       memoryReaderPlaceholder: 'Cross-book preferences such as language, depth and answer style.',
       undo: 'Undo',
+      undone: 'Undone',
+      actionHistory: 'Action history',
+      actionHistoryHint: 'Agent write actions from the last 10 minutes; undo them here',
+      actionHistoryEmpty: 'No actions yet',
+      actionAdded: 'Annotation added',
+      actionUpdated: 'Annotation updated',
+      actionDeleted: 'Annotation deleted',
+      actionLongWrite: 'Long note written',
+      actionLongDelete: 'Long note deleted',
+      actionTags: 'Tags updated',
+      actionStatus: 'Status updated',
       memoryUndo: 'Undo last',
       memoryHistoryCount: 'history',
       memoryHint: 'Off by default. When on, the companion records only durable preferences, views and conclusions, never plot facts. Each card is capped at 600 characters and every update can be undone.',
@@ -498,6 +520,7 @@ export const en = {
       zoomOut: 'Zoom out',
       zoomIn: 'Zoom in',
     }
+
 
 
 

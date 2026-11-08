@@ -2,8 +2,6 @@ import { React } from '../runtime.ts'
 import type { CallRpc } from '../types.ts'
 import type { ReaderActionReceipt } from '../../reader-actions.ts'
 
-const SEEN_RECEIPTS = new Set<string>()
-
 interface ActionReceiptOptions {
   call: CallRpc
   bookId?: string | null
@@ -11,56 +9,52 @@ interface ActionReceiptOptions {
   intervalMs?: number
 }
 
-/** Poll recent agent receipts and expose one undoable toast at a time. */
-export function useActionReceipts({ call, bookId, onUndone, intervalMs = 1000 }: ActionReceiptOptions) {
-  const [toast, setToast] = React.useState<{ id: string; text: string } | null>(null)
+/** Poll recent agent receipts for the operation history panel. */
+export function useActionReceipts({ call, bookId, onUndone, intervalMs = 2000 }: ActionReceiptOptions) {
+  const [receipts, setReceipts] = React.useState<ReaderActionReceipt[]>([])
+  const [busyId, setBusyId] = React.useState<string | null>(null)
   const undoneRef = React.useRef(onUndone)
   undoneRef.current = onUndone
 
+  const load = React.useCallback(async () => {
+    try {
+      const value = await call('readerReceipts', {
+        action: 'list',
+        ...(bookId ? { bookId } : {}),
+        limit: 50,
+      })
+      setReceipts(Array.isArray(value.receipts) ? value.receipts : [])
+    } catch {
+      // Old Host builds may not expose receipts; keep the panel empty.
+    }
+  }, [bookId, call])
+
   React.useEffect(() => {
     let stopped = false
-    const startedAt = Date.now() - 60_000
-    const tick = async () => {
-      if (stopped) return
-      try {
-        const value = await call('readerReceipts', {
-          action: 'list',
-          ...(bookId ? { bookId } : {}),
-          limit: 10,
-        })
-        const next = (value.receipts ?? []).find((receipt: ReaderActionReceipt) =>
-          receipt.undoable
-          && !receipt.undoneAt
-          && receipt.createdAt >= startedAt
-          && !SEEN_RECEIPTS.has(receipt.id))
-        if (!next) return
-        SEEN_RECEIPTS.add(next.id)
-        setToast({ id: next.id, text: next.summary })
-      } catch {
-        // Old Host builds may not expose receipts; polling stays silent.
-      }
+    const tick = () => {
+      if (!stopped) void load()
     }
-    const timer = window.setInterval(() => void tick(), intervalMs)
-    void tick()
+    void load()
+    const timer = window.setInterval(tick, intervalMs)
     return () => {
       stopped = true
       window.clearInterval(timer)
     }
-  }, [bookId, call, intervalMs])
+  }, [intervalMs, load])
 
-  const undo = React.useCallback(async () => {
-    if (!toast) return
-    const id = toast.id
-    setToast(null)
+  const undo = React.useCallback(async (receiptId: string) => {
+    if (busyId) return
+    setBusyId(receiptId)
     try {
-      await call('readerReceipts', { action: 'undo', receiptId: id })
+      await call('readerReceipts', { action: 'undo', receiptId })
       await undoneRef.current?.()
+      await load()
     } catch (error) {
       console.warn('dsh-readpilot: undo failed', error)
+    } finally {
+      setBusyId(null)
     }
-  }, [call, toast])
+  }, [busyId, call, load])
 
-  const dismiss = React.useCallback(() => setToast(null), [])
-
-  return { toast, undo, dismiss }
+  return { receipts, busyId, undo, refresh: load }
 }

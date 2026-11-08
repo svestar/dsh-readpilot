@@ -25,6 +25,8 @@ interface ReaderBarProps {
   onPageCommit?: (page: number) => void
   zoom?: number
   onZoom?: (delta: number) => void
+  onHistory?: () => void
+  historyCount?: number
 }
 
 export function ReaderBar({
@@ -49,6 +51,8 @@ export function ReaderBar({
   onPageCommit,
   zoom,
   onZoom,
+  onHistory,
+  historyCount,
 }: ReaderBarProps) {
   const paged = mode === 'paged'
   const prevLabel = t(paged ? 'pagePrev' : 'chapterPrev')
@@ -127,5 +131,18 @@ export function ReaderBar({
               'aria-label': t('zoomIn'),
               onClick: () => onZoom(0.25),
             }, '+')))
+        : null,
+      onHistory
+        ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-history' },
+          h(Tooltip, { label: t('actionHistory'), side: 'top', delayMs: 300 },
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-secondary dsh-readpilot-bar-btn',
+              'aria-label': t('actionHistory'),
+              onClick: onHistory,
+            }, '↺')),
+          historyCount && historyCount > 0
+            ? h('span', { className: 'dsh-readpilot-bar-history-count' }, String(historyCount))
+            : null)
         : null))
 }

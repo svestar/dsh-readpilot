@@ -31,7 +31,7 @@ import {
 
 import { zh, en } from './locale.ts'
 import { CSS } from './styles.ts'
-import { React, Toast, h, bindRuntime } from './runtime.ts'
+import { React, h, bindRuntime } from './runtime.ts'
 import { Toc } from './views/toc.ts'
 import { renderBlocks, selectionAnchor } from './views/markdown.ts'
 import { PanelIcon, Setup } from './views/panels.ts'
@@ -54,6 +54,7 @@ import type { PromptPreset } from '../prompt-presets.ts'
 import type { ReaderAction } from '../reader-actions.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
+import { ActionHistory } from './views/action-history.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
@@ -199,6 +200,7 @@ export function createPlugin(require: (name: string) => any) {
       const [promptPresets, setPromptPresets] = React.useState<PromptPreset[]>([])
       const [presetManagerOpen, setPresetManagerOpen] = React.useState(false)
       const [presetError, setPresetError] = React.useState('')
+      const [historyOpen, setHistoryOpen] = React.useState(false)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
@@ -1026,7 +1028,12 @@ export function createPlugin(require: (name: string) => any) {
 
       useReaderActions({ call, bookId: activeBookId, onAction: onReaderAction })
 
-      const { toast: actionToast, undo: undoAgentAction, dismiss: dismissAgentToast } = useActionReceipts({
+      const {
+        receipts: actionReceipts,
+        busyId: undoBusyId,
+        undo: undoAgentAction,
+        refresh: refreshActionReceipts,
+      } = useActionReceipts({
         call,
         bookId: activeBookId,
         onUndone: async () => {
@@ -1423,6 +1430,11 @@ export function createPlugin(require: (name: string) => any) {
           chapterTotal,
           ...readerBarProps,
           reflow: reflowMode,
+          onHistory: () => {
+            setHistoryOpen(true)
+            void refreshActionReceipts()
+          },
+          historyCount: actionReceipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length,
         })
         : null
 
@@ -1643,13 +1655,14 @@ export function createPlugin(require: (name: string) => any) {
             onClose: () => setPresetManagerOpen(false),
           })
           : null,
-        actionToast
-          ? h(Toast, {
-            text: actionToast.text,
-            tone: 'info',
-            holdMs: 8000,
-            actions: [{ label: t('undo'), onClick: () => void undoAgentAction() }],
-            onDone: dismissAgentToast,
+        historyOpen
+          ? h(ActionHistory, {
+            t,
+            receipts: actionReceipts,
+            busyId: undoBusyId,
+            onUndo: undoAgentAction,
+            onRefresh: refreshActionReceipts,
+            onClose: () => setHistoryOpen(false),
           })
           : null,
         h(DraftNotice, { t, state: longNotes }))

@@ -1,4 +1,4 @@
-import { React, Toast, h } from '../runtime.ts'
+import { React, h } from '../runtime.ts'
 import type { CallRpc, ComposerInputActions, Screen, SelectTarget, TextFn, Visual } from '../types.ts'
 import type { PageLayout, ReadingAnchor } from '../paging.ts'
 import { chapterPercent, pageSpanWidth, pdfPagePercent } from '../paging.ts'
@@ -20,6 +20,7 @@ import { visualForChapter } from '../reader-screen.ts'
 import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
 import { NoteDialog, SelectionToolbar, quoteDraft } from './selection-note.ts'
+import { ActionHistory } from './action-history.ts'
 import { VisualReader } from './visual-reader.ts'
 
 const SIDEBAR_FONT_SIZE = 15
@@ -319,6 +320,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
       : screen.content.chapterId)
     : null
   const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
+  const [historyOpen, setHistoryOpen] = React.useState(false)
   const {
     noteLayerRef,
     noteLayersRef,
@@ -382,7 +384,12 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     onAction: onReaderAction,
   })
 
-  const { toast: actionToast, undo: undoAgentAction, dismiss: dismissAgentToast } = useActionReceipts({
+  const {
+    receipts: actionReceipts,
+    busyId: undoBusyId,
+    undo: undoAgentAction,
+    refresh: refreshActionReceipts,
+  } = useActionReceipts({
     call,
     bookId: activeBookId,
     onUndone: async () => {
@@ -624,6 +631,11 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
       canNext: barProps.canNext,
       onPrev: barProps.onPrev,
       onNext: barProps.onNext,
+      onHistory: () => {
+        setHistoryOpen(true)
+        void refreshActionReceipts()
+      },
+      historyCount: actionReceipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length,
     }),
     noteEditor
       ? h(NoteDialog, {
@@ -642,13 +654,14 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
         saveNote,
       })
       : null,
-    actionToast
-      ? h(Toast, {
-        text: actionToast.text,
-        tone: 'info',
-        holdMs: 8000,
-        actions: [{ label: t('undo'), onClick: () => void undoAgentAction() }],
-        onDone: dismissAgentToast,
+    historyOpen
+      ? h(ActionHistory, {
+        t,
+        receipts: actionReceipts,
+        busyId: undoBusyId,
+        onUndo: undoAgentAction,
+        onRefresh: refreshActionReceipts,
+        onClose: () => setHistoryOpen(false),
       })
       : null)
 }
