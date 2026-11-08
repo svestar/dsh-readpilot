@@ -14,7 +14,7 @@
 - `reader_search`：书名 · 章节、两行片段，最多 6 条；每条提供“跳转”按钮。
 - `reader_open`：书名、作者、目录条数，最多 6 章；提供“跳转”按钮到第一章。
 
-卡片在 `phase !== 'result'` 时显示“加载中…”。结果不是单个 `text` block 时返回 null，交给宿主的通用行；JSON 解析失败时显示原始文本（最多 4000 字符）。“跳转”按钮用 `buildReaderResource(bookId, chapterId, offset)` 生成 `dsh-resource://dsh-readpilot/book/...` 地址并调用 `ctx.sidebarRight.openResource`；没有 `openResource` 时不渲染按钮。
+卡片在 `phase !== 'result'` 时显示“加载中…”。结果不是单个 `text` block 时返回 null，交给宿主的通用行；JSON 解析失败时显示原始文本（最多 4000 字符）。“跳转”按钮用 `buildReaderResource(bookId, chapterId, offset)` 生成 `dsh-resource://dsh-readpilot/book/...` 地址，并交给阅读器路由：目标书是主阅读当前书时跳主阅读，否则调用 `ctx.sidebarRight.openResource` 打开侧栏；没有 `openResource` 时不渲染按钮。
 
 ## 接口与代码映射
 

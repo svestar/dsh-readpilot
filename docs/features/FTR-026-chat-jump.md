@@ -14,7 +14,7 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 
 阅读工具的 `reader_open`、`reader_read`、`reader_search`、`reader_context` 结果仍保留 `jumpUrl`，`src/jump-url.ts` 与 `useChatJump` 的解析能力也保留：如果历史消息或手工消息里已有 `https://dsh-readpilot.invalid/jump?...` 链接，客户端仍会拦截并跳转。提示词不再要求模型生成这些链接，自动页码按钮不依赖它们。
 
-客户端在 document 捕获阶段拦截指向该地址的 `<a>`，解析 book/chapter/offset/q；当前书内直接调用 `selectChapter(..., { offset, flash: true })` 跳转并高亮。没有 offset 而带 q 时，先在本书检索并要求命中同一章节；找不到则显示错误。窄屏跳转后收起伴读抽屉，宽屏保留伴读栏。主阅读面板与工作区侧栏阅读都挂载 `useChatJump`；侧栏把 offset 映射为章节文本比例写入阅读锚点，窄屏收起动作为 no-op。目标书不是当前书时，主阅读/侧栏通过 `openOtherBook` 生成 `dsh-resource://` 地址并打开侧栏阅读器，而不是只报“另一本书”；没有任何阅读器挂载时，插件根部的全局捕获处理器用同一资源地址打开侧栏，因此工作区对话里的历史链接也能点击。
+客户端在 document 捕获阶段拦截指向该地址的 `<a>`，解析 book/chapter/offset/q；当前书内直接调用 `selectChapter(..., { offset, flash: true })` 跳转并高亮。没有 offset 而带 q 时，先在本书检索并要求命中同一章节；找不到则显示错误。窄屏跳转后收起伴读抽屉，宽屏保留伴读栏。主阅读面板与工作区侧栏阅读都挂载 `useChatJump`；侧栏把 offset 映射为章节文本比例写入阅读锚点，窄屏收起动作为 no-op。目标书不是当前书时，主阅读/侧栏通过 `openOtherBook` 生成 `dsh-resource://` 地址并打开侧栏阅读器，而不是只报“另一本书”；没有任何阅读器挂载时，插件根部的全局捕获处理器用同一资源地址打开侧栏，因此工作区对话里的历史链接也能点击。工具结果卡的“跳转”也走同一路由：目标书是主阅读当前书时跳主阅读，否则打开侧栏。
 
 ## 接口与代码映射
 

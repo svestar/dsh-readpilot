@@ -60,7 +60,7 @@ import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
 import { parseNoteResource } from './note-resource.ts'
-import { buildReaderResource } from './reader-resource.ts'
+import { buildReaderResource, parseReaderResource } from './reader-resource.ts'
 import { parseReaderJumpUrl } from '../jump-url.ts'
 import type { ReaderJumpTarget } from '../jump-url.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
@@ -90,6 +90,10 @@ export function createPlugin(require: (name: string) => any) {
     const NS = 'dshReader'
     const hostShortcutActions = new Set<'search' | 'bookmark'>()
     let readerShortcutBridge: { search: () => void; bookmark: () => void } | null = null
+    let mainReaderNavigation: {
+      bookId: string
+      jump: (target: { bookId: string; chapterId: string; offset?: number }) => void
+    } | null = null
 
 
     const style = document.createElement('style')
@@ -486,6 +490,23 @@ export function createPlugin(require: (name: string) => any) {
           setBusy(false)
         }
       }, [screen, t, reflowMode])
+
+      React.useEffect(() => {
+        if (screen.kind !== 'book') {
+          mainReaderNavigation = null
+          return
+        }
+        const bookId = screen.detail.book.id
+        mainReaderNavigation = {
+          bookId,
+          jump: target => {
+            void selectChapter(bookId, target.chapterId, { offset: target.offset, flash: true })
+          },
+        }
+        return () => {
+          if (mainReaderNavigation?.bookId === bookId) mainReaderNavigation = null
+        }
+      }, [screen, selectChapter])
 
       const applyRemoteProgress = React.useCallback(async (detail: { bookId: string; chapterId: string; chapterFraction: number }) => {
         if (screen.kind !== 'book' || screen.detail.book.id !== detail.bookId) return
@@ -1603,6 +1624,19 @@ export function createPlugin(require: (name: string) => any) {
             }
           }
           : undefined
+        const openReaderTarget = (target: { bookId: string; chapterId: string; offset?: number }) => {
+          if (mainReaderNavigation?.bookId === target.bookId) {
+            mainReaderNavigation.jump(target)
+            return
+          }
+          openReaderResource?.(buildReaderResource(target.bookId, target.chapterId, target.offset))
+        }
+        const openReaderTargetFromAddress = (address: string) => {
+          const target = parseReaderResource(address)
+          if (!target) return
+          if (target.chapterId) openReaderTarget({ bookId: target.bookId, chapterId: target.chapterId, offset: target.offset })
+          else openReaderResource?.(address)
+        }
         if (typeof document !== 'undefined' && openReaderResource) {
           const onJumpClick = (event: MouseEvent) => {
             const anchor = (event.target as Element | null)?.closest?.('a[href*="dsh-readpilot.invalid/jump"]') as HTMLAnchorElement | null
@@ -1618,16 +1652,16 @@ export function createPlugin(require: (name: string) => any) {
                 try {
                   const result = await call('search', { bookId: target.bookId, query, limit: 20 })
                   const match = result.matches.find((item: any) => item.chapterId === target.chapterId)
-                  openReaderResource(match
-                    ? buildReaderResource(target.bookId, match.chapterId, match.offset)
-                    : buildReaderResource(target.bookId, target.chapterId))
+                  openReaderTarget(match
+                    ? { bookId: target.bookId, chapterId: match.chapterId, offset: match.offset }
+                    : { bookId: target.bookId, chapterId: target.chapterId })
                 } catch (error) {
                   console.warn('dsh-readpilot: jump search failed', error)
                 }
               })()
               return
             }
-            openReaderResource(buildReaderResource(target.bookId, target.chapterId, target.offset))
+            openReaderTarget({ bookId: target.bookId, chapterId: target.chapterId, offset: target.offset })
           }
           document.addEventListener('click', onJumpClick, true)
           ctx.effect(() => () => document.removeEventListener('click', onJumpClick, true), 'dsh-readpilot: global jump links')
@@ -1673,7 +1707,7 @@ export function createPlugin(require: (name: string) => any) {
           }, (props: any) => h(ReaderSearchToolView, {
             ...props,
             t: props.t ?? boundText,
-            onOpen: openReaderResource,
+            onOpen: openReaderTargetFromAddress,
           }))),
           'dsh-readpilot: reader_search tool view',
         )
@@ -1685,7 +1719,7 @@ export function createPlugin(require: (name: string) => any) {
           }, (props: any) => h(ReaderOpenToolView, {
             ...props,
             t: props.t ?? boundText,
-            onOpen: openReaderResource,
+            onOpen: openReaderTargetFromAddress,
           }))),
           'dsh-readpilot: reader_open tool view',
         )
@@ -1720,3 +1754,4 @@ export function createPlugin(require: (name: string) => any) {
       },
     }
 }
+
