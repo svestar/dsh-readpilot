@@ -1,6 +1,7 @@
 import { React, createPortal, Modal, Tooltip, h } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
+import type { PromptPreset } from '../../prompt-presets.ts'
 
 const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']
 
@@ -10,6 +11,9 @@ interface SelectionToolbarProps {
   onAsk?: () => void
   onNote: () => void
   onHighlight: (color: string) => void
+  presets?: PromptPreset[]
+  onPreset?: (preset: PromptPreset) => void
+  onManagePresets?: () => void
 }
 
 const EDGE = 8
@@ -24,9 +28,10 @@ export function quoteDraft(text: string): string {
   return `${text.split('\n').map(line => `> ${line}`).join('\n')}\n\n`
 }
 
-export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: SelectionToolbarProps) {
+export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight, presets, onPreset, onManagePresets }: SelectionToolbarProps) {
   const menuRef = React.useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = React.useState<{ left: number; top: number } | null>(null)
+  const [presetOpen, setPresetOpen] = React.useState(false)
 
   React.useEffect(() => {
     if (!selection) {
@@ -93,6 +98,37 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight }: S
         'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         onClick: () => onHighlight(color),
       })))),
+  presets && onPreset
+    ? h('div', { className: 'dsh-readpilot-preset-picker' },
+      h('button', {
+        type: 'button',
+        'aria-expanded': presetOpen,
+        onClick: () => setPresetOpen(open => !open),
+      }, t('presetAction')),
+      presetOpen
+        ? h('div', { className: 'dsh-readpilot-preset-menu' },
+          presets.length > 0
+            ? presets.map(preset => h('button', {
+              key: preset.id,
+              type: 'button',
+              onClick: () => {
+                setPresetOpen(false)
+                onPreset(preset)
+              },
+            }, preset.title))
+            : h('div', { className: 'dsh-readpilot-preset-empty' }, t('presetEmpty')),
+          onManagePresets
+            ? h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-preset-manage',
+              onClick: () => {
+                setPresetOpen(false)
+                onManagePresets()
+              },
+            }, t('managePresets'))
+            : null)
+        : null)
+    : null,
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
   h('button', { type: 'button', onClick: () => onNote() }, t('noteAction'))), document.body)
 }

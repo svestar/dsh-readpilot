@@ -3,6 +3,7 @@ import type { LibraryMeta } from './library-meta.ts'
 import type { NoteKind, NoteRecord } from './notes.ts'
 import type { NoteFileKind, NoteFileRecord, NoteHistoryEntry } from './note-files.ts'
 import type { NoteDraftRecord } from './note-drafts.ts'
+import type { PromptPreset } from './prompt-presets.ts'
 
 export interface ProgressPayload {
   bookId: string
@@ -240,6 +241,14 @@ export interface Operations {
   sessionAlive: { payload: { sessionId: string }; result: { sessionId: string; alive: boolean } }
   sessionBook: { payload: { sessionId: string }; result: import('./api.ts').SessionBookResult | null }
   companionPolicy: { payload: CompanionPolicyPayload; result: CompanionPolicyResult }
+  prompts: {
+    payload:
+      | { action: 'list' }
+      | { action: 'save'; id?: string; title: string; template: string }
+      | { action: 'delete'; id: string }
+      | { action: 'reset' }
+    result: { presets?: PromptPreset[]; preset?: PromptPreset; deleted?: boolean }
+  }
   companionContext: { payload: CompanionContextPayload; result: CompanionContextResult }
   search: { payload: SearchPayload; result: SearchResult }
   exportNotes: { payload: ExportNotesPayload; result: ExportNotesResult }
@@ -295,6 +304,7 @@ export const OPERATIONS: readonly Operation[] = [
   'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive', 'sessionBook',
   'companionPolicy', 'companionContext', 'search', 'exportNotes', 'openNoteFile',
   'setNoteContext', 'setAutoApplyNotes', 'pageView', 'libraryMeta',
+  'prompts',
   'setBookTags', 'setBookStatus', 'setBookRating',
   'notes.list', 'notes.add', 'notes.update', 'notes.delete',
   'noteFiles.list', 'noteFiles.read', 'noteFiles.create', 'noteFiles.write',

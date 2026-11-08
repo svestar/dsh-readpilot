@@ -45,3 +45,4 @@
 | `FTR-039` | 全书概括 | `docs/features/FTR-039-whole-book-digest.md` | `src/digest.ts` | `tests/digest.test.ts;tests/tools.test.ts` | active |
 | `FTR-040` | 跨模式划线锚点 | `docs/features/FTR-040-cross-mode-anchor.md` | `src/notes.ts` | `tests/anchor.test.ts;tests/notes.test.ts` | active |
 | `FTR-041` | 工具结果卡片 | `docs/features/FTR-041-tool-cards.md` | `src/client/views/reader-tool-view.ts` | `tests/reader-tool-view.test.ts` | active |
+| `FTR-042` | 提示词预设 | `docs/features/FTR-042-prompt-presets.md` | `src/prompt-presets.ts` | `tests/prompt-presets.test.ts` | active |

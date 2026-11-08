@@ -12,6 +12,7 @@ import { createDraftHandlers } from './api-drafts.ts'
 import { createMemoryHandlers } from './api-memory.ts'
 import { createNoteFileHandlers } from './api-note-files.ts'
 import { createNotesHandlers } from './api-notes.ts'
+import { createPromptHandlers } from './api-prompts.ts'
 import { createLimiter } from './limit.ts'
 import { ReaderError } from './reader-error.ts'
 import { enqueueWrite } from './write-queue.ts'
@@ -26,6 +27,8 @@ import type { MemoryStore } from './memory-store.ts'
 import { createMemoryStore } from './memory-store.ts'
 import type { NoteDraftRecord, NoteDraftStore } from './note-drafts.ts'
 import { createNoteDraftStore } from './note-drafts.ts'
+import type { PromptPresetStore } from './prompt-presets.ts'
+import { createPromptPresetStore } from './prompt-presets.ts'
 import type { ExportLongNote, ExportMark } from './note-export.ts'
 import { buildNotesMarkdown } from './note-export.ts'
 import { buildReadingNotes } from './notes-context.ts'
@@ -253,6 +256,7 @@ export interface ReaderApi {
   memory(payload?: any): Promise<any>
   memoryTool(payload?: any): Promise<any>
   memoryContextFor(sessionId: unknown): string
+  prompts(payload?: any): Promise<any>
   noteDrafts(payload?: any): Promise<any>
   noteDraftCreate(payload?: any): Promise<{
     draft: NoteDraftRecord
@@ -1107,6 +1111,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     },
   })
   const { store: ensureNoteFileStore, handleNoteFiles, toolNoteFiles } = noteFileHandlers
+  const promptPresetStore: PromptPresetStore = createPromptPresetStore(dataDir)
+  const { prompts } = createPromptHandlers({ store: promptPresetStore })
 
   async function rebuildNotesContext(bookId: string): Promise<number> {
     try {
@@ -1382,6 +1388,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       memory,
       search,
       notes: handleNotes,
+      prompts,
       noteFiles: handleNoteFiles,
       noteDrafts,
       openNoteFile,
@@ -1425,6 +1432,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     memory,
     memoryTool,
     memoryContextFor,
+    prompts,
     noteDrafts,
     noteDraftCreate,
     toolNoteFiles,

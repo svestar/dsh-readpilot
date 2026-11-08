@@ -48,6 +48,9 @@ import { SidebarReader } from './views/sidebar-reader.ts'
 import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './session-title.ts'
 import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
 import { NoteDialog, SelectionToolbar, quoteDraft } from './views/selection-note.ts'
+import { PromptPresetManager } from './views/prompt-preset-manager.ts'
+import { renderPrompt } from '../prompt-render.ts'
+import type { PromptPreset } from '../prompt-presets.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
@@ -190,9 +193,26 @@ export function createPlugin(require: (name: string) => any) {
       const progressSkipRef = React.useRef(false)
       const scrollAnchorAppliedRef = React.useRef(0)
       const [selection, setSelection] = React.useState<Selection | null>(null)
+      const [promptPresets, setPromptPresets] = React.useState<PromptPreset[]>([])
+      const [presetManagerOpen, setPresetManagerOpen] = React.useState(false)
+      const [presetError, setPresetError] = React.useState('')
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
+
+      const refreshPromptPresets = React.useCallback(async () => {
+        try {
+          const value = await call('prompts', { action: 'list' })
+          setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
+          setPresetError('')
+        } catch (cause) {
+          setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+        }
+      }, [call, t])
+
+      React.useEffect(() => {
+        void refreshPromptPresets()
+      }, [refreshPromptPresets])
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const bookId = screen.kind === 'book' ? screen.detail.book.id : null
       const reflowMode = bookId && format ? reflowEnabledFor(reflowBooks, bookId, format) : false
@@ -1068,11 +1088,7 @@ export function createPlugin(require: (name: string) => any) {
         }
       }, [])
 
-      const askCompanion = React.useCallback(() => {
-        if (!selection || screen.kind !== 'book') return
-        window.getSelection()?.removeAllRanges()
-        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
-        const text = quoteDraft(selection.text)
+      const prefillComposer = React.useCallback((text: string) => {
         const nativeInput = nativeInputRef.current?.inputActions
         let prefilledNative = false
         if (nativeInput && typeof nativeInput.setDraft === 'function') {
@@ -1090,7 +1106,65 @@ export function createPlugin(require: (name: string) => any) {
         setChatTab('chat')
         setChatError('')
         requestAnimationFrame(() => chatInputRef.current?.focus())
-      }, [selection, screen])
+      }, [setChatError, setChatOpen, setDraft, setSelection])
+
+      const askCompanion = React.useCallback(() => {
+        if (!selection || screen.kind !== 'book') return
+        window.getSelection()?.removeAllRanges()
+        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
+        prefillComposer(quoteDraft(selection.text))
+      }, [epubFrameRef, prefillComposer, screen.kind, selection])
+
+      const savePromptPreset = React.useCallback(async (input: { id?: string; title: string; template: string }) => {
+        try {
+          const value = await call('prompts', { action: 'save', ...input })
+          setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
+          setPresetError('')
+        } catch (cause) {
+          setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+          throw cause
+        }
+      }, [call, t])
+
+      const deletePromptPreset = React.useCallback(async (id: string) => {
+        try {
+          const value = await call('prompts', { action: 'delete', id })
+          setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
+          setPresetError('')
+        } catch (cause) {
+          setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+          throw cause
+        }
+      }, [call, t])
+
+      const resetPromptPresets = React.useCallback(async () => {
+        try {
+          const value = await call('prompts', { action: 'reset' })
+          setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
+          setPresetError('')
+        } catch (cause) {
+          setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+          throw cause
+        }
+      }, [call, t])
+
+      const applyPromptPreset = React.useCallback((preset: PromptPreset) => {
+        if (!selection || screen.kind !== 'book') return
+        const notesText = annotations.slice(0, 8).map(note => {
+          const quote = note.quote.trim()
+          const body = (note.note || note.annotation || '').trim()
+          return quote && body ? `- ${quote}：${body}` : quote ? `- ${quote}` : body ? `- ${body}` : ''
+        }).filter(Boolean).join('\n') || t('presetNoNotes')
+        const prompt = renderPrompt(preset.template, {
+          selection: selection.text,
+          book: screen.detail.book.title,
+          chapter: screen.content.title,
+          notes: notesText,
+        })
+        window.getSelection()?.removeAllRanges()
+        epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
+        prefillComposer(prompt)
+      }, [annotations, epubFrameRef, prefillComposer, screen, selection, t])
 
       const onContentMouseUp = React.useCallback(() => {
         const active = window.getSelection()
@@ -1504,6 +1578,9 @@ export function createPlugin(require: (name: string) => any) {
           onAsk: askCompanion,
           onNote: () => openNoteEditor(),
           onHighlight: (color: string) => void addHighlight(color),
+          presets: promptPresets,
+          onPreset: applyPromptPreset,
+          onManagePresets: () => setPresetManagerOpen(true),
         }),
         h(NoteDialog, {
           t,
@@ -1520,6 +1597,17 @@ export function createPlugin(require: (name: string) => any) {
           closeNoteEditor,
           saveNote,
         }),
+        presetManagerOpen
+          ? h(PromptPresetManager, {
+            t,
+            presets: promptPresets,
+            error: presetError,
+            onSave: savePromptPreset,
+            onDelete: deletePromptPreset,
+            onReset: resetPromptPresets,
+            onClose: () => setPresetManagerOpen(false),
+          })
+          : null,
         h(DraftNotice, { t, state: longNotes }))
     }
 
