@@ -58,6 +58,48 @@ export const DEFAULT_PROMPT_PRESETS: PromptPreset[] = [
     template: '请总结下面这段内容，并列出三个要点：\n\n{{selection}}\n\n本书相关批注：\n{{notes}}',
     builtin: true,
   },
+  {
+    id: 'character',
+    title: '人物关系',
+    template: '请梳理这段内容涉及的人物、关系与动机，并指出前后文可能对应的线索：\n\n{{selection}}',
+    builtin: true,
+  },
+  {
+    id: 'craft',
+    title: '写作手法',
+    template: '请分析这段文字的写作手法，包括叙述视角、节奏、修辞和意象，并举例说明：\n\n{{selection}}',
+    builtin: true,
+  },
+  {
+    id: 'background',
+    title: '背景知识',
+    template: '请补充理解这段内容所需的时代、文化、作者或典故背景，并说明它如何影响理解：\n\n{{selection}}',
+    builtin: true,
+  },
+  {
+    id: 'argument',
+    title: '观点与论证',
+    template: '请提炼这段内容的核心观点、论据和隐含假设，并指出可以质疑的地方：\n\n{{selection}}',
+    builtin: true,
+  },
+  {
+    id: 'quote',
+    title: '金句摘录',
+    template: '请从这段内容中摘出最值得记诵的句子，并说明理由：\n\n{{selection}}\n\n本书相关批注：\n{{notes}}',
+    builtin: true,
+  },
+  {
+    id: 'questions',
+    title: '提问清单',
+    template: '请基于这段内容生成五个由浅入深的问题，帮助我检查理解：\n\n{{selection}}',
+    builtin: true,
+  },
+  {
+    id: 'connect',
+    title: '联系全书',
+    template: '请把这段内容与《{{book}}》的前后文或全书主题联系起来，指出呼应、反差和伏笔：\n\n{{selection}}\n\n本书相关批注：\n{{notes}}',
+    builtin: true,
+  },
 ]
 
 function presetsPath(dataDir: string): string {
@@ -95,11 +137,44 @@ function normalize(value: unknown): PromptPreset | null {
   return { id, title, template, builtin: source.builtin === true }
 }
 
-async function readPresets(path: string): Promise<PromptPreset[]> {
-  const value = await readJson<unknown>(path, null)
-  if (value === null) return DEFAULT_PROMPT_PRESETS.map(item => ({ ...item }))
-  if (!Array.isArray(value)) throw new Error(`presets file is not an array: ${path}`)
-  return value.map(normalize).filter((item): item is PromptPreset => item !== null)
+const PRESET_FILE_VERSION = 2
+const NEW_DEFAULT_IDS = ['character', 'craft', 'background', 'argument', 'quote', 'questions', 'connect']
+
+function presetState(value: unknown): { presets: PromptPreset[]; version: number } {
+  if (value === null) {
+    return { presets: DEFAULT_PROMPT_PRESETS.map(item => ({ ...item })), version: PRESET_FILE_VERSION }
+  }
+  if (Array.isArray(value)) {
+    return {
+      presets: value.map(normalize).filter((item): item is PromptPreset => item !== null),
+      version: 1,
+    }
+  }
+  if (value && typeof value === 'object' && Array.isArray((value as Record<string, unknown>).presets)) {
+    return {
+      presets: ((value as Record<string, unknown>).presets as unknown[])
+        .map(normalize)
+        .filter((item): item is PromptPreset => item !== null),
+      version: Number((value as Record<string, unknown>).version) || 0,
+    }
+  }
+  throw new Error('presets file must be an array or { version, presets } object')
+}
+
+async function readPresetState(path: string): Promise<{ presets: PromptPreset[]; needsWrite: boolean }> {
+  const state = presetState(await readJson<unknown>(path, null))
+  if (state.version >= PRESET_FILE_VERSION) return { presets: state.presets, needsWrite: false }
+  const ids = new Set(state.presets.map(item => item.id))
+  for (const id of NEW_DEFAULT_IDS) {
+    if (ids.has(id)) continue
+    const preset = DEFAULT_PROMPT_PRESETS.find(item => item.id === id)
+    if (preset) state.presets.push({ ...preset })
+  }
+  return { presets: state.presets, needsWrite: true }
+}
+
+async function writePresetState(path: string, presets: PromptPreset[]): Promise<void> {
+  await writeJson(path, { version: PRESET_FILE_VERSION, presets })
 }
 
 export function createPromptPresetStore(dataDir: string): PromptPresetStore {
@@ -107,7 +182,13 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
 
   return {
     async list() {
-      return await readPresets(path)
+      const state = await readPresetState(path)
+      if (!state.needsWrite) return state.presets
+      return enqueueWrite(path, async () => {
+        const current = await readPresetState(path)
+        if (current.needsWrite) await writePresetState(path, current.presets)
+        return current.presets
+      })
     },
 
     async save(input) {
@@ -115,12 +196,12 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
       const template = assertTemplate(input.template)
       const id = typeof input.id === 'string' && input.id.trim() ? assertId(input.id.trim()) : null
       return enqueueWrite(path, async () => {
-        const presets = await readPresets(path)
+        const { presets } = await readPresetState(path)
         const index = id ? presets.findIndex(item => item.id === id) : -1
         if (id && index === -1) throw new Error(`preset not found: ${id}`)
         if (index >= 0) {
           presets[index] = { ...presets[index], title, template }
-          await writeJson(path, presets)
+          await writePresetState(path, presets)
           return presets[index]
         }
         const preset: PromptPreset = {
@@ -130,7 +211,7 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
           builtin: false,
         }
         presets.push(preset)
-        await writeJson(path, presets)
+        await writePresetState(path, presets)
         return preset
       })
     },
@@ -138,11 +219,11 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
     async remove(id) {
       const presetId = assertId(id)
       return enqueueWrite(path, async () => {
-        const presets = await readPresets(path)
+        const { presets } = await readPresetState(path)
         const index = presets.findIndex(item => item.id === presetId)
         if (index === -1) return false
         presets.splice(index, 1)
-        await writeJson(path, presets)
+        await writePresetState(path, presets)
         return true
       })
     },
@@ -150,7 +231,7 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
     async reset() {
       return enqueueWrite(path, async () => {
         const presets = DEFAULT_PROMPT_PRESETS.map(item => ({ ...item }))
-        await writeJson(path, presets)
+        await writePresetState(path, presets)
         return presets
       })
     },
