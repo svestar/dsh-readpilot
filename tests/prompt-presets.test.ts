@@ -58,10 +58,30 @@ test('prompt_presets_migrate_new_defaults_once', async t => {
   assert.ok(migrated.some(item => item.id === 'character'))
   assert.equal(migrated.some(item => item.id === 'terms'), false)
   const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
-  assert.equal(file.version, 2)
+  assert.equal(file.version, 3)
 
   assert.equal(await store.remove('character'), true)
   assert.equal((await store.list()).some(item => item.id === 'character'), false)
+})
+
+test('prompt_presets_simplify_untouched_defaults_on_v2', async t => {
+  const { dataDir, store } = await tempStore(t)
+  await writeFile(join(dataDir, 'presets.json'), JSON.stringify({
+    version: 2,
+    presets: [
+      {
+        id: 'explain',
+        title: '解释这段',
+        template: '请解释下面这段内容，并结合《{{book}}》{{chapter}} 的上下文说明它的意思：\n\n{{selection}}',
+        builtin: true,
+      },
+      { id: 'custom', title: '自定义', template: '自定义 {{selection}}', builtin: false },
+    ],
+  }), 'utf8')
+  const list = await store.list()
+  assert.equal(list.find(item => item.id === 'explain')?.template, '解释这段，结合《{{book}}》{{chapter}} 的上下文：\n\n{{selection}}')
+  assert.equal(list.find(item => item.id === 'custom')?.template, '自定义 {{selection}}')
+  assert.equal(list.some(item => item.id === 'character'), false)
 })
 
 test('render_prompt_replaces_placeholders_literally', () => {
@@ -73,3 +93,4 @@ test('render_prompt_replaces_placeholders_literally', () => {
   })
   assert.equal(output, '《书名$&》第一章：选中 $1 文本\n批注 A')
 })
+
