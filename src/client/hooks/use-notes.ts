@@ -1,6 +1,7 @@
 import { React } from '../runtime.ts'
 import { blocksText, contextAround, hashText, offsetInChapter } from '../anchor.ts'
 import { bookmarkContext } from '../bookmark-label.ts'
+import { isAnnotationKind } from '../mark-filters.ts'
 import {
   applyEpubNoteMarks,
   collectTextNodes,
@@ -422,7 +423,7 @@ export function useNotes({
         for (const rect of rects) {
           if (!rect.width || !rect.height) continue
           const hit = document.createElement('div')
-          hit.className = note.kind === 'annotation'
+          hit.className = isAnnotationKind(note.kind)
             ? `dsh-readpilot-note-hit dsh-readpilot-highlight-${note.color ?? 'yellow'}`
             : 'dsh-readpilot-note-hit'
           hit.dataset.noteId = note.id
