@@ -86,6 +86,12 @@ export function createNoteFileHandlers({ settings, books, resolveBook, refreshNo
       if (payload.action === 'read') {
         return await files.read(found, String(payload.id ?? ''))
       }
+      if (payload.action === 'remove') {
+        const id = String(payload.id ?? '')
+        const deleted = await files.remove(found, id)
+        await refreshNotes(found.id)
+        return { bookId: found.id, bookTitle: found.title, noteId: id, deleted }
+      }
       throw new ReaderError('invalid-note-action', `未知笔记操作：${String(payload.action)}`)
     } catch (error) {
       if (error instanceof NoteFileError) throw new ReaderError(error.code, error.message)

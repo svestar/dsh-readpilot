@@ -124,6 +124,24 @@ test('tools_read_bounded', async t => {
   assert.equal(listed.notes[0].note, '我的想法')
   assertLossless(listed)
 
+  const updated = await noteTool.execute({
+    action: 'update',
+    book: state.books[0].title,
+    noteId: added.note.id,
+    note: '改后的批注',
+    color: 'blue',
+  })
+  assert.equal(updated.note.note, '改后的批注')
+  assert.equal(updated.note.color, 'blue')
+  const noteRefresh = await api.readerActions({ action: 'take', types: ['notesRefresh'] })
+  assert.ok(noteRefresh.actions.some((action: any) => action.bookId === state.books[0].id))
+  const deleted = await noteTool.execute({ action: 'delete', book: state.books[0].title, noteId: added.note.id })
+  assert.equal(deleted.deleted, true)
+  assert.equal((await noteTool.execute({ action: 'list', book: state.books[0].title })).notes.length, 0)
+
+  const deletedBook = await registered.get('reader_notes')!.execute({ action: 'delete', book: state.books[0].title, id: 'book' })
+  assert.equal(deletedBook.deleted, true)
+
   const books = await registered.get('reader_books')!.execute({})
   assert.equal(books.books.length, 1)
   assertLossless(books)

@@ -1064,12 +1064,29 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return search({ bookId: found?.id, query, limit })
   }
 
-  async function toolNote({ action, book, chapter, blockIndex, offset, quote, note, color }: any = {}): Promise<any> {
+  async function toolNote({ action, book, chapter, blockIndex, offset, quote, note, color, noteId }: any = {}): Promise<any> {
     const books = await libraryBooks()
     const found = findBookByKey(books, book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
     if (action === 'list') {
       return { bookId: found.id, bookTitle: found.title, notes: await notesStore.list(found.id) }
+    }
+    if (action === 'update' || action === 'delete') {
+      const id = typeof noteId === 'string' ? noteId : ''
+      if (!id) throw new ReaderError('invalid-note', 'noteId 不能为空')
+      if (action === 'delete') {
+        const deleted = await notesStore.remove(found.id, id)
+        if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
+        return { bookId: found.id, bookTitle: found.title, noteId: id, deleted }
+      }
+      const patch: Record<string, string> = {}
+      if (typeof note === 'string') patch.note = note
+      if (typeof quote === 'string') patch.quote = quote
+      if (typeof color === 'string') patch.color = color
+      if (Object.keys(patch).length === 0) throw new ReaderError('invalid-note', '更新批注需要 note、quote 或 color')
+      const record = await notesStore.update(found.id, id, patch)
+      if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
+      return { bookId: found.id, bookTitle: found.title, noteId: id, note: record }
     }
     if (action !== 'add') {
       throw new ReaderError('invalid-note-action', `未知笔记操作：${String(action)}`)
@@ -1091,6 +1108,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       quote: typeof quote === 'string' ? quote : '',
       note: typeof note === 'string' ? note : '',
     })
+    if (companionSettings.notes[found.id]) await rebuildNotesContext(found.id)
     return {
       bookId: found.id,
       bookTitle: parsed.title || found.title,
