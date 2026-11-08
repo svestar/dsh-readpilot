@@ -11,6 +11,10 @@ import { useTextPager } from '../hooks/use-text-pager.ts'
 import { useVisual } from '../hooks/use-visual.ts'
 import { useSelectionDismiss } from '../hooks/use-selection-dismiss.ts'
 import { useChatJump } from '../hooks/use-chat-jump.ts'
+import { useReaderActions } from '../hooks/use-reader-actions.ts'
+import type { ReaderAction, ReaderActionType } from '../../reader-actions.ts'
+
+const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh']
 import { visualForChapter } from '../reader-screen.ts'
 import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
@@ -330,6 +334,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     addHighlight,
     deleteNote,
     saveNote,
+    loadNotes,
   } = useNotes({
     call,
     t,
@@ -351,6 +356,31 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     selectChapter,
   })
   useSelectionDismiss(selection, setSelection, epubFrameRef)
+
+  const onReaderAction = React.useCallback(async (action: ReaderAction) => {
+    if (action.type === 'notesRefresh') {
+      if (action.bookId === activeBookId) await loadNotes()
+      return
+    }
+    if (action.type === 'libraryRefresh') return
+    if (!action.bookId || !action.chapterId) return
+    if (action.bookId === activeBookId) {
+      await selectChapter(action.bookId, action.chapterId, {
+        ...(typeof action.offset === 'number' ? { offset: action.offset } : {}),
+        flash: true,
+      })
+    } else if (openResource) {
+      openResource(buildReaderResource(action.bookId, action.chapterId, action.offset))
+    }
+  }, [activeBookId, loadNotes, openResource, selectChapter])
+
+  useReaderActions({
+    call,
+    bookId: activeBookId,
+    types: SIDEBAR_ACTION_TYPES,
+    onAction: onReaderAction,
+  })
+
   const canAskCompanion = typeof inputActions?.insertQuote === 'function' || typeof inputActions?.setDraft === 'function'
   const askCompanion = React.useCallback(() => {
     if (!selection || screen.kind !== 'book') return

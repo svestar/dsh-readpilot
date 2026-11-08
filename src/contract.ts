@@ -4,6 +4,7 @@ import type { NoteKind, NoteRecord } from './notes.ts'
 import type { NoteFileKind, NoteFileRecord, NoteHistoryEntry } from './note-files.ts'
 import type { NoteDraftRecord } from './note-drafts.ts'
 import type { PromptPreset } from './prompt-presets.ts'
+import type { ReaderAction, ReaderActionType } from './reader-actions.ts'
 
 export interface ProgressPayload {
   bookId: string
@@ -249,6 +250,10 @@ export interface Operations {
       | { action: 'reset' }
     result: { presets?: PromptPreset[]; preset?: PromptPreset; deleted?: boolean }
   }
+  readerActions: {
+    payload: { action: 'take'; types?: ReaderActionType[]; bookId?: string }
+    result: { actions: ReaderAction[] }
+  }
   companionContext: { payload: CompanionContextPayload; result: CompanionContextResult }
   search: { payload: SearchPayload; result: SearchResult }
   exportNotes: { payload: ExportNotesPayload; result: ExportNotesResult }
@@ -304,7 +309,7 @@ export const OPERATIONS: readonly Operation[] = [
   'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive', 'sessionBook',
   'companionPolicy', 'companionContext', 'search', 'exportNotes', 'openNoteFile',
   'setNoteContext', 'setAutoApplyNotes', 'pageView', 'libraryMeta',
-  'prompts',
+  'prompts', 'readerActions',
   'setBookTags', 'setBookStatus', 'setBookRating',
   'notes.list', 'notes.add', 'notes.update', 'notes.delete',
   'noteFiles.list', 'noteFiles.read', 'noteFiles.create', 'noteFiles.write',

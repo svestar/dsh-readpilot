@@ -13,6 +13,8 @@ import { createMemoryHandlers } from './api-memory.ts'
 import { createNoteFileHandlers } from './api-note-files.ts'
 import { createNotesHandlers } from './api-notes.ts'
 import { createPromptHandlers } from './api-prompts.ts'
+import type { ReaderAction, ReaderActionInput, ReaderActionType } from './reader-actions.ts'
+import { createReaderActionStore } from './reader-actions.ts'
 import { createLimiter } from './limit.ts'
 import { ReaderError } from './reader-error.ts'
 import { enqueueWrite } from './write-queue.ts'
@@ -257,6 +259,8 @@ export interface ReaderApi {
   memoryTool(payload?: any): Promise<any>
   memoryContextFor(sessionId: unknown): string
   prompts(payload?: any): Promise<any>
+  readerActions(payload?: any): Promise<any>
+  pushReaderAction(action: ReaderActionInput): Promise<ReaderAction>
   noteDrafts(payload?: any): Promise<any>
   noteDraftCreate(payload?: any): Promise<{
     draft: NoteDraftRecord
@@ -1113,6 +1117,23 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   const { store: ensureNoteFileStore, handleNoteFiles, toolNoteFiles } = noteFileHandlers
   const promptPresetStore: PromptPresetStore = createPromptPresetStore(dataDir)
   const { prompts } = createPromptHandlers({ store: promptPresetStore })
+  const readerActionStore = createReaderActionStore()
+
+  async function pushReaderAction(action: ReaderActionInput): Promise<ReaderAction> {
+    return readerActionStore.push(action)
+  }
+
+  async function readerActions(payload: any = {}): Promise<{ actions: ReaderAction[] }> {
+    if (payload.action !== 'take') {
+      throw new ReaderError('invalid-reader-action', `未知阅读动作操作：${String(payload.action)}`)
+    }
+    const types = Array.isArray(payload.types)
+      ? payload.types.filter((value: unknown): value is ReaderActionType =>
+        value === 'goto' || value === 'open_panel' || value === 'notesRefresh' || value === 'libraryRefresh')
+      : undefined
+    const bookId = typeof payload.bookId === 'string' ? payload.bookId : undefined
+    return { actions: readerActionStore.take({ types, bookId }) }
+  }
 
   async function rebuildNotesContext(bookId: string): Promise<number> {
     try {
@@ -1389,6 +1410,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       search,
       notes: handleNotes,
       prompts,
+      readerActions,
       noteFiles: handleNoteFiles,
       noteDrafts,
       openNoteFile,
@@ -1433,6 +1455,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     memoryTool,
     memoryContextFor,
     prompts,
+    readerActions,
+    pushReaderAction,
     noteDrafts,
     noteDraftCreate,
     toolNoteFiles,

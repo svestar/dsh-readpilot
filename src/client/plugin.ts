@@ -51,6 +51,7 @@ import { NoteDialog, SelectionToolbar, quoteDraft } from './views/selection-note
 import { PromptPresetManager } from './views/prompt-preset-manager.ts'
 import { renderPrompt } from '../prompt-render.ts'
 import type { PromptPreset } from '../prompt-presets.ts'
+import type { ReaderAction } from '../reader-actions.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
@@ -59,6 +60,7 @@ import { NativeCompanion, createNativeChatBoundary } from './views/native-compan
 import { ReaderBooksToolView, ReaderOpenToolView, ReaderSearchToolView } from './views/reader-tool-view.ts'
 import { useSearch } from './hooks/use-search.ts'
 import { useChatJump } from './hooks/use-chat-jump.ts'
+import { useReaderActions } from './hooks/use-reader-actions.ts'
 import { useNotes } from './hooks/use-notes.ts'
 import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
@@ -979,6 +981,7 @@ export function createPlugin(require: (name: string) => any) {
         addHighlight,
         addBookmark,
         saveNote,
+        loadNotes,
       } = useNotes({
         call,
         t,
@@ -999,6 +1002,28 @@ export function createPlugin(require: (name: string) => any) {
         setSelection,
         selectChapter,
       })
+
+      const onReaderAction = React.useCallback(async (action: ReaderAction) => {
+        if (action.type === 'libraryRefresh') {
+          await refresh()
+          return
+        }
+        if (action.type === 'notesRefresh') {
+          if (action.bookId === activeBookId) await loadNotes()
+          return
+        }
+        if (!action.bookId || !action.chapterId) return
+        if (action.bookId === activeBookId) {
+          await selectChapter(action.bookId, action.chapterId, {
+            ...(typeof action.offset === 'number' ? { offset: action.offset } : {}),
+            flash: true,
+          })
+        } else {
+          openOtherBook({ bookId: action.bookId, chapterId: action.chapterId, offset: action.offset })
+        }
+      }, [activeBookId, loadNotes, openOtherBook, refresh, selectChapter])
+
+      useReaderActions({ call, bookId: activeBookId, onAction: onReaderAction })
 
       React.useEffect(() => {
         if (screen.kind !== 'book') {
