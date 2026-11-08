@@ -60,6 +60,10 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin:4px 0 10px}
 .dsh-readpilot-section-head h3{margin:0;font-size:13px;font-weight:650}
 .dsh-readpilot-section-head span{color:var(--dsw-alias-label-secondary);font-size:11px}
+.dsh-readpilot-section-toggle{display:flex;align-items:center;gap:6px;width:100%;padding:0;border:0;background:transparent;color:inherit;font:inherit;cursor:pointer;text-align:left}
+.dsh-readpilot-section-toggle h4{margin:0;color:inherit;font:inherit;font-weight:650}
+.dsh-readpilot-section-chevron{flex:none;width:12px;color:var(--dsw-alias-label-secondary);font-size:10px;line-height:1;text-align:center}
+.dsh-readpilot-section-toggle .dsh-readpilot-section-count{margin-left:auto}
 .dsh-readpilot-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:12px}
 .dsh-readpilot-library-scroll[data-virtual="true"]{display:flex;flex-direction:column;overflow:hidden}
 .dsh-readpilot-library-scroll[data-virtual="true"] .dsh-readpilot-all-section{display:flex;flex-direction:column;flex:1;min-height:0}

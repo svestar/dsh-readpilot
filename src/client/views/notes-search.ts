@@ -57,7 +57,7 @@ function colorLabel(t: TextFn, color: string): string {
 }
 
 type MarkListRow =
-  | { type: 'header'; key: string; title: string; count: number }
+  | { type: 'header'; key: string; section: 'annotations' | 'bookmarks'; title: string; count: number }
   | { type: 'mark'; key: string; kind: 'annotation' | 'bookmark'; item: Note }
 
 function VirtualMarkList({ rows, renderRow }: {
@@ -88,6 +88,10 @@ function VirtualMarkList({ rows, renderRow }: {
 export function NotesBody({ t, notesError, notesLoading, annotations, bookmarks, screen, openNote, noteDeletingId, deleteNote }: NotesBodyProps) {
   const [chapterFilter, setChapterFilter] = React.useState('all')
   const [colorFilter, setColorFilter] = React.useState('all')
+  const [collapsed, setCollapsed] = React.useState({ annotations: false, bookmarks: false })
+  const toggleSection = (section: 'annotations' | 'bookmarks') => {
+    setCollapsed(previous => ({ ...previous, [section]: !previous[section] }))
+  }
   const allMarks = [...annotations, ...bookmarks]
   const chapterIds = markChapterIds(allMarks)
   const chapterIdSet = new Set(chapterIds)
@@ -126,24 +130,42 @@ export function NotesBody({ t, notesError, notesLoading, annotations, bookmarks,
   const visibleBookmarks = filterMarks(bookmarks, filter)
   const total = visibleAnnotations.length + visibleBookmarks.length
   const allTotal = allMarks.length
-  const virtual = typeof useVirtualizer === 'function' && total > 40
+  const renderedItems = (collapsed.annotations ? 0 : visibleAnnotations.length)
+    + (collapsed.bookmarks ? 0 : visibleBookmarks.length)
+  const virtual = typeof useVirtualizer === 'function' && renderedItems > 40
   const rows: MarkListRow[] = []
   if (virtual) {
     if (visibleAnnotations.length > 0) {
-      rows.push({ type: 'header', key: 'header:annotations', title: t('annotations'), count: visibleAnnotations.length })
-      for (const item of visibleAnnotations) rows.push({ type: 'mark', key: `annotation:${item.id}`, kind: 'annotation', item })
+      rows.push({ type: 'header', key: 'header:annotations', section: 'annotations', title: t('annotations'), count: visibleAnnotations.length })
+      if (!collapsed.annotations) {
+        for (const item of visibleAnnotations) rows.push({ type: 'mark', key: `annotation:${item.id}`, kind: 'annotation', item })
+      }
     }
     if (visibleBookmarks.length > 0) {
-      rows.push({ type: 'header', key: 'header:bookmarks', title: t('bookmarks'), count: visibleBookmarks.length })
-      for (const item of visibleBookmarks) rows.push({ type: 'mark', key: `bookmark:${item.id}`, kind: 'bookmark', item })
+      rows.push({ type: 'header', key: 'header:bookmarks', section: 'bookmarks', title: t('bookmarks'), count: visibleBookmarks.length })
+      if (!collapsed.bookmarks) {
+        for (const item of visibleBookmarks) rows.push({ type: 'mark', key: `bookmark:${item.id}`, kind: 'bookmark', item })
+      }
     }
   }
+  const sectionHead = (section: 'annotations' | 'bookmarks', title: string, count: number) =>
+    h('div', { className: 'dsh-readpilot-mark-section-head' },
+      h('div', { className: 'dsh-readpilot-section-head' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-section-toggle',
+          'aria-expanded': !collapsed[section],
+          onClick: () => toggleSection(section),
+        },
+        h('span', {
+          className: 'dsh-readpilot-section-chevron',
+          'data-collapsed': collapsed[section] ? 'true' : 'false',
+        }, collapsed[section] ? '▸' : '▾'),
+        h('h4', null, title),
+        h('span', { className: 'dsh-readpilot-section-count' }, String(count)))))
   const renderMarkRow = (row: MarkListRow) => {
     if (row.type === 'header') {
-      return h('div', { className: 'dsh-readpilot-mark-section-head' },
-        h('div', { className: 'dsh-readpilot-section-head' },
-          h('h4', null, row.title),
-          h('span', { className: 'dsh-readpilot-section-count' }, String(row.count))))
+      return sectionHead(row.section, row.title, row.count)
     }
     if (row.kind === 'annotation') {
       const body = row.item.note || row.item.annotation
@@ -225,10 +247,8 @@ export function NotesBody({ t, notesError, notesLoading, annotations, bookmarks,
             : h('div', { className: 'dsh-readpilot-page-content' },
             visibleAnnotations.length > 0
               ? h('section', { key: 'annotations', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
-                h('div', { className: 'dsh-readpilot-section-head' },
-                  h('h4', null, t('annotations')),
-                  h('span', { className: 'dsh-readpilot-section-count' }, String(visibleAnnotations.length))),
-                visibleAnnotations.map(annotation => {
+                sectionHead('annotations', t('annotations'), visibleAnnotations.length),
+                collapsed.annotations ? null : visibleAnnotations.map(annotation => {
                   const body = annotation.note || annotation.annotation
                   return h('div', { key: annotation.id, className: 'dsh-readpilot-note dsh-readpilot-mark-annotation' },
                     h('button', {
@@ -246,10 +266,8 @@ export function NotesBody({ t, notesError, notesLoading, annotations, bookmarks,
               : null,
             visibleBookmarks.length > 0
               ? h('section', { key: 'bookmarks', className: 'dsh-readpilot-card dsh-readpilot-mark-section' },
-                h('div', { className: 'dsh-readpilot-section-head' },
-                  h('h4', null, t('bookmarks')),
-                  h('span', { className: 'dsh-readpilot-section-count' }, String(visibleBookmarks.length))),
-                visibleBookmarks.map(bookmark => {
+                sectionHead('bookmarks', t('bookmarks'), visibleBookmarks.length),
+                collapsed.bookmarks ? null : visibleBookmarks.map(bookmark => {
                   const context = bookmarkContexts(bookmark.chapterId)
                   const title = context.chapterTitle || bookmark.note || t('bookmark')
                   const detail = bookmark.annotation
