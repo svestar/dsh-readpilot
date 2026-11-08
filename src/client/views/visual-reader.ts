@@ -27,7 +27,7 @@ interface VisualReaderProps {
   stepPdfPage: (delta: number) => void
   visualLoading: boolean
   visualError: string
-  onPdfMouseUp: () => void
+  onPdfMouseUp: (pageIndex?: number) => void
   noteLayerRef: MutableRef<HTMLDivElement | null>
   onEpubLoad: (event: any) => void
   epubFrameRef: MutableRef<HTMLIFrameElement | null>
@@ -239,7 +239,7 @@ export function VisualReader({
           }),
           h('div', {
             className: 'dsh-readpilot-pdf-text',
-            onMouseUp: index === 0 ? onPdfMouseUp : undefined,
+            onMouseUp: () => onPdfMouseUp(index),
           }, renderPdfTextItems(view)),
           h('div', {
             className: 'dsh-readpilot-note-layer',

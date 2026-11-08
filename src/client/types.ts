@@ -43,6 +43,8 @@ export interface Selection {
   offset: number
   x: number
   y: number
+  /** PDF double-page selection may come from the right page's chapter. */
+  chapterId?: string
 }
 
 export interface VisualPdf {

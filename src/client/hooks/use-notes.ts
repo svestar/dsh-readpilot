@@ -164,20 +164,30 @@ export function useNotes({
     setNoteError('')
   }, [])
 
-  const selectionFields = React.useCallback(() => {
+  const selectionFields = React.useCallback(async () => {
     if (!selection || screen.kind !== 'book') return null
+    const chapterId = selection.chapterId || activeChapterId
+    let blocks = screen.content.blocks
+    if (chapterId !== screen.content.chapterId) {
+      try {
+        const content = await call('chapter', { bookId: screen.detail.book.id, chapterId })
+        blocks = content.blocks
+      } catch {
+        return null
+      }
+    }
     const blockIndex = Number.isInteger(selection.blockIndex) ? selection.blockIndex as number : 0
-    const block = screen.content.blocks[blockIndex]
-    const chapter = blocksText(screen.content.blocks)
+    const block = blocks[blockIndex]
+    const chapter = blocksText(blocks)
     const stripped = selection.text.replace(/^[\s•·▪◦●]+/, '')
     const quote = stripped || selection.text
     const shift = selection.text.length - quote.length
-    const preferred = offsetInChapter(screen.content.blocks, blockIndex, selection.offset) + shift
+    const preferred = offsetInChapter(blocks, blockIndex, selection.offset) + shift
     const occurrence = findNoteOccurrence(chapter, quote, preferred)
     const start = occurrence?.start ?? preferred
     const context = contextAround(chapter, start, start + quote.length)
     return {
-      chapterId: activeChapterId,
+      chapterId,
       blockIndex,
       offset: selection.offset + shift,
       quote,
@@ -188,10 +198,10 @@ export function useNotes({
       end: start + quote.length,
       ...(block?.text ? { blockHash: hashText(block.text) } : {}),
     }
-  }, [activeChapterId, screen, selection])
+  }, [activeChapterId, call, screen, selection])
 
   const addHighlight = React.useCallback(async (color: string) => {
-    const fields = selectionFields()
+    const fields = await selectionFields()
     if (!fields || screen.kind !== 'book' || noteSaving) return
     window.getSelection()?.removeAllRanges()
     epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
@@ -218,7 +228,7 @@ export function useNotes({
     epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
   }, [call, epubFrameRef, loadNotes, noteSaving, screen, selectionFields, setSelection, t])
 
-  const openNoteEditor = React.useCallback((note?: Note) => {
+  const openNoteEditor = React.useCallback(async (note?: Note) => {
     window.getSelection()?.removeAllRanges()
     epubFrameRef.current?.contentWindow?.getSelection()?.removeAllRanges()
     if (note) {
@@ -237,7 +247,7 @@ export function useNotes({
       requestAnimationFrame(() => noteInputRef.current?.focus())
       return
     }
-    const fields = selectionFields()
+    const fields = await selectionFields()
     if (!fields) return
     setNoteEditor({ kind: 'note', ...fields })
     setNoteDraft('')

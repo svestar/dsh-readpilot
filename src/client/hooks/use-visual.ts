@@ -186,7 +186,7 @@ export function useVisual({
       : previous)
   }, [])
 
-  const onPdfMouseUp = React.useCallback(() => {
+  const onPdfMouseUp = React.useCallback((pageIndex = 0) => {
     const active = window.getSelection()
     if (!active || active.isCollapsed || active.rangeCount === 0) return
     const range = active.getRangeAt(0)
@@ -204,14 +204,19 @@ export function useVisual({
     before.selectNodeContents(span)
     before.setEnd(range.startContainer, range.startOffset)
     const rect = range.getBoundingClientRect()
+    const page = (visual?.kind === 'pdf' ? visual.page : 0) + pageIndex
+    const chapterId = screen.kind === 'book'
+      ? screen.detail.toc.find(item => item.page === page)?.id ?? screen.content.chapterId
+      : undefined
     setSelection({
       text: text.slice(0, 2000),
       blockIndex: 0,
       offset: base + before.toString().length + leading,
       x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
       y: rect.top,
+      ...(chapterId ? { chapterId } : {}),
     })
-  }, [setSelection])
+  }, [screen, setSelection, visual])
 
   const onEpubLoad = React.useCallback((event: any) => {
     const frame = event.currentTarget as HTMLIFrameElement
