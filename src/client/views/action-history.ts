@@ -22,6 +22,7 @@ const LABELS: Record<string, string> = {
 }
 
 export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose }: ActionHistoryProps) {
+  const undoable = receipts.filter(receipt => receipt.undoable && !receipt.undoneAt).length
   return h(Modal, {
     open: true,
     onClose,
@@ -30,15 +31,21 @@ export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose 
     headless: true,
     className: 'dsh-readpilot-action-history',
   },
-  h('div', { className: 'dsh-readpilot-action-history-head' },
-    h('div', null,
-      h('h3', null, t('actionHistory')),
+  h('header', { className: 'dsh-readpilot-action-history-head' },
+    h('div', { className: 'dsh-readpilot-action-history-heading' },
+      h('div', { className: 'dsh-readpilot-action-history-title-row' },
+        h('h3', null, t('actionHistory')),
+        h('span', { className: 'dsh-readpilot-action-history-count' }, `${undoable}`)),
       h('p', null, t('actionHistoryHint'))),
-    h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: () => void onRefresh() }, t('refresh'))),
+    h('button', {
+      type: 'button',
+      className: 'dsh-readpilot-secondary dsh-readpilot-action-history-refresh',
+      onClick: () => void onRefresh(),
+    }, t('refresh'))),
   receipts.length === 0
     ? h('div', { className: 'dsh-readpilot-action-history-empty' }, t('actionHistoryEmpty'))
     : h('div', { className: 'dsh-readpilot-action-history-list' },
-      receipts.map(receipt => h('div', {
+      receipts.map(receipt => h('article', {
         key: receipt.id,
         className: 'dsh-readpilot-action-history-row',
         'data-undone': receipt.undoneAt ? 'true' : 'false',
@@ -49,11 +56,13 @@ export function ActionHistory({ t, receipts, busyId, onUndo, onRefresh, onClose 
           h('span', { className: 'dsh-readpilot-action-history-time' }, new Date(receipt.createdAt).toLocaleTimeString())),
         h('div', { className: 'dsh-readpilot-action-history-summary' }, receipt.summary)),
       receipt.undoable && !receipt.undoneAt
-        ? h('button', { type: 'button', className: 'dsh-readpilot-secondary',
+        ? h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary dsh-readpilot-action-history-undo',
           disabled: busyId === receipt.id,
           onClick: () => void onUndo(receipt.id),
         }, t('undo'))
         : h('span', { className: 'dsh-readpilot-action-history-done' }, t('undone'))))),
-  h('div', { className: 'dsh-readpilot-action-history-footer' },
+  h('footer', { className: 'dsh-readpilot-action-history-footer' },
     h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: onClose }, t('close'))))
 }
