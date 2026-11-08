@@ -366,7 +366,10 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-action-history-summary{margin-top:3px;color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.45;word-break:break-word}
 .dsh-readpilot-action-history-done{flex:none;color:var(--dsw-alias-label-secondary);font-size:10px}
 .dsh-readpilot-action-history-footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-primary,.dsh-readpilot-chat-send{background:var(--dsw-alias-brand-primary);color:var(--dsw-alias-label-primary-inverted,#fff)}
+.dsh-readpilot-panel .dsh-readpilot-primary,.dsh-readpilot-panel .dsh-readpilot-chat-send{background:var(--reader-fg,var(--dsw-alias-label-primary));color:var(--readpilot-on-accent,var(--dsw-alias-label-primary-inverted,#fff))}
 .dsh-readpilot-preset-picker{position:relative}
+
 .dsh-readpilot-preset-menu{position:absolute;left:0;top:calc(100% + 6px);z-index:3;display:flex;flex-direction:column;min-width:180px;max-height:240px;overflow:auto;padding:4px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1);box-shadow:0 8px 24px rgba(0,0,0,.2)}
 .dsh-readpilot-preset-menu button{display:block;width:100%;padding:6px 8px;border:0;border-radius:5px;background:transparent;color:inherit;text-align:left;font:inherit;font-size:12px;cursor:pointer}
 .dsh-readpilot-preset-menu button:hover{background:var(--dsw-alias-bg-layer-2)}
