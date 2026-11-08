@@ -140,7 +140,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_context',
       description:
-        'Return the current or most recently read book, its chapter progress, TOC and recent notes. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
+        'Return the current or most recently read book, its chapter progress, TOC, recent notes and recentActions. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. recentActions includes status "undone_by_user" when the user undid a prior action; check it before assuming an action failed. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
       parameters: {
         type: 'object',
         properties: {
@@ -195,7 +195,7 @@ export function registerTools(ctx: ToolContext, api: ReaderApi): () => void {
     {
       name: 'reader_note',
       description:
-        'Create, list, rewrite or delete passage-anchored annotations for one book. An annotation is a quote plus optional note text; a highlight is the same annotation with empty note text. Use only when the user selects or quotes a passage and wants a brief annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter and quoted passage; blockIndex/offset come from a reader_read locator when available. update/delete operate on noteId returned by add or list; only do them when the user explicitly asks to rewrite or delete that annotation. Color is optional and defaults to yellow.',
+        'Create, list, rewrite or delete passage-anchored annotations for one book. An annotation is a quote plus optional note text; a highlight is the same annotation with empty note text. Use only when the user selects or quotes a passage and wants a brief annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter and quoted passage; blockIndex/offset come from a reader_read locator when available. update/delete operate on noteId returned by add or list; only do them when the user explicitly asks to rewrite or delete that annotation. list also returns recentActions; status "undone_by_user" means the user undid an action and it did not fail. Color is optional and defaults to yellow.',
       parameters: {
         type: 'object',
         properties: {

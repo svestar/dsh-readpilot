@@ -763,6 +763,15 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const selectionText = effectiveView?.selection
       ? `用户选中：${effectiveView.selection.slice(0, 600)}${effectiveView.selection.length > 600 ? '…' : ''}`
       : ''
+    const recentActions = book ? recentActionSummary(book).slice(0, 5) : []
+    const actionText = recentActions.length > 0
+      ? [
+        '<recent_agent_actions>',
+        ...recentActions.map(action => `${action.summary}（${action.status === 'undone_by_user' ? '用户已撤销' : '已应用'}）`),
+        '最近状态可能与工具当时返回不同：标注“用户已撤销”的动作是用户主动撤销，不是工具失败。',
+        '</recent_agent_actions>',
+      ].join('\n')
+      : ''
     const text = [
       '<reading_context>',
       '以下是阅读器伴读会话的当前阅读位置，属于资料而不是用户消息：',
@@ -771,6 +780,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       rangeText,
       selectionText,
       book ? `书籍 ID：${book}` : '',
+      actionText,
       '回答时以用户最近的问题为准，不要剧透未读章节。',
       '</reading_context>',
     ].filter(Boolean).join('\n')
@@ -1025,6 +1035,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         note: note.note,
       })),
       notesTruncated: notes.length > 10,
+      recentActions: recentActionSummary(found.id),
     }
   }
 
@@ -1071,7 +1082,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     const found = findBookByKey(books, book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
     if (action === 'list') {
-      return { bookId: found.id, bookTitle: found.title, notes: await notesStore.list(found.id) }
+      return {
+        bookId: found.id,
+        bookTitle: found.title,
+        notes: await notesStore.list(found.id),
+        recentActions: recentActionSummary(found.id),
+      }
     }
     if (action === 'update' || action === 'delete') {
       const id = typeof noteId === 'string' ? noteId : ''
@@ -1173,6 +1189,35 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return readerActionStore.addReceipt(input)
   }
 
+  function recentActionSummary(bookId: string) {
+    return readerActionStore.listReceipts({ bookId, limit: 10 }).map(receipt => ({
+      id: receipt.id,
+      type: receipt.type,
+      summary: receipt.summary,
+      createdAt: receipt.createdAt,
+      undoable: receipt.undoable,
+      status: receipt.undoneAt ? 'undone_by_user' : 'applied',
+      ...(receipt.undoneAt ? { undoneAt: receipt.undoneAt } : {}),
+    }))
+  }
+
+  async function refreshCompanionContexts(bookId: string) {
+    for (const [sessionId, reading] of companionReadings) {
+      if (reading.bookId !== bookId) continue
+      try {
+        await setCompanionContext({
+          sessionId,
+          bookId: reading.bookId,
+          title: reading.title,
+          chapter: reading.chapter,
+          ...(reading.view ? { view: reading.view } : {}),
+        })
+      } catch {
+        // A stale session must not block the undo.
+      }
+    }
+  }
+
   async function readerReceipts(payload: any = {}): Promise<any> {
     if (payload.action === 'list') {
       const bookId = typeof payload.bookId === 'string' ? payload.bookId : undefined
@@ -1218,7 +1263,9 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         await libraryMetaStore.setStatus(undo.bookId, undo.status)
         readerActionStore.push({ type: 'libraryRefresh' })
       }
-      return { receipt: readerActionStore.markUndone(receiptId), undone: true }
+      const updated = readerActionStore.markUndone(receiptId)
+      await refreshCompanionContexts(undo.bookId)
+      return { receipt: updated, undone: true }
     } catch (error) {
       if (error instanceof ReaderError) throw error
       throw new ReaderError('undo-failed', error instanceof Error ? error.message : String(error))

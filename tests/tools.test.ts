@@ -144,6 +144,9 @@ test('tools_read_bounded', async t => {
   assert.ok(deleteReceipt)
   assert.equal((await api.readerReceipts({ action: 'undo', receiptId: deleteReceipt.id })).undone, true)
   assert.equal((await noteTool.execute({ action: 'list', book: state.books[0].title })).notes.length, 1)
+  const contextAfterUndo = await registered.get('reader_context')!.execute({ book: state.books[0].title })
+  assert.ok(contextAfterUndo.recentActions.some((action: any) =>
+    action.type === 'annotation.delete' && action.status === 'undone_by_user'))
 
   const deletedBook = await registered.get('reader_notes')!.execute({ action: 'delete', book: state.books[0].title, id: 'book' })
   assert.equal(deletedBook.deleted, true)
