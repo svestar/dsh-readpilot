@@ -350,7 +350,7 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-highlight-pink{background:rgba(244,114,182,.30)!important}
 .dsh-readpilot-highlight-purple{background:rgba(192,132,252,.30)!important}
 .dsh-readpilot-selection-colors{display:flex;align-items:center;gap:4px;padding-right:5px;margin-right:1px;border-right:1px solid var(--dsw-alias-border-l2)}
-.dsh-readpilot-action-history{width:min(660px,100%);max-height:min(82vh,680px);display:flex;flex-direction:column;gap:12px}
+.dsh-readpilot-action-history{width:min(660px,100%);max-height:min(82vh,680px);display:flex;flex-direction:column;gap:12px;padding:18px 20px;box-sizing:border-box}
 .dsh-readpilot-action-history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-readpilot-action-history-heading{min-width:0}
 .dsh-readpilot-action-history-head h3{margin:0;font-size:15px;font-weight:650}
