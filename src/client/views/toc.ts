@@ -9,6 +9,7 @@ interface TocProps {
   onSelect: (chapterId: string) => void
   onPageSelect?: (page: number) => void
   scanOnly?: boolean
+  pageJump?: boolean
 }
 
 interface TocRow {
@@ -56,7 +57,7 @@ function VirtualTocList({ items, renderRow }: { items: TocRow[]; renderRow: (ite
     })))
 }
 
-export function Toc({ t, detail, activeChapter, activePage: currentPage, onSelect, onPageSelect, scanOnly = false }: TocProps) {
+export function Toc({ t, detail, activeChapter, activePage: currentPage, onSelect, onPageSelect, scanOnly = false, pageJump = false }: TocProps) {
   const outline = detail.book.format === 'pdf' && Array.isArray(detail.outline) && detail.outline.length > 0
     ? detail.outline
     : null
@@ -77,7 +78,7 @@ export function Toc({ t, detail, activeChapter, activePage: currentPage, onSelec
     const chapterId = outline
       ? item.chapterId ?? (typeof item.page === 'number' ? index.chapterByPage.get(item.page) : undefined)
       : item.id
-    const pageMode = Boolean(scanOnly)
+    const pageMode = Boolean(pageJump && (outline || scanOnly))
     const active = pageMode
       ? page === currentPage
       : outline

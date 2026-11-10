@@ -1550,6 +1550,7 @@ export function createPlugin(require: (name: string) => any) {
           activeChapter: screen.content.chapterId,
           activePage: pdfVisualPage,
           scanOnly,
+          pageJump: supportedFormat === 'pdf' && !reflowMode,
           onSelect: (chapterId: string) => void selectChapter(screen.detail.book.id, chapterId),
           onPageSelect: (page: number) => void goPdfPage(page),
         }) : null,
