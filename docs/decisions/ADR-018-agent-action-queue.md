@@ -27,6 +27,6 @@
 
 收益：不改 Host 事件协议即可让 Agent 驱动界面；写入与刷新分离，重复轮询安全；主/侧栏共用一条队列。
 
-代价：最多约 1 秒延迟；没有阅读器时动作等待并可能超时；队列不跨重启；动作不可撤销（RDM-004）；轮询产生固定 RPC 开销。
+代价：最多约 1 秒延迟；没有阅读器时动作等待并可能超时；队列不跨重启；动作队列本身不提供撤销，可撤销性由 FTR-044 的回执机制补充（见 ADR-019）；轮询产生固定 RPC 开销。
 
 验证：队列过滤与取出（`reader_actions_take_filters_and_removes`、`reader_actions_take_all_returns_every_type`）；`reader_goto` 入队与回执（`tools_read_bounded`）；真实宿主的主/侧栏轮询仍需手动回归。
