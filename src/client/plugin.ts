@@ -1357,6 +1357,7 @@ export function createPlugin(require: (name: string) => any) {
         t,
         open: searchOpen && !scanOnly,
         screen,
+        call,
         searchInputRef,
         searchQuery,
         setSearchQuery,

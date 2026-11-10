@@ -68,6 +68,7 @@ const PDF_COVER_SCALE = 0.5
 const MAX_CONCURRENT_COVERS = 4
 const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
 const MAX_SEARCH_BOOKS = 20
+const MAX_SEARCH_RESULTS = 5000
 const MAX_SEARCH_PARSE_BYTES = 128 * 1024 * 1024
 const MAX_SEARCH_PARSE_MS = 3000
 const SCAN_TTL_MS = 30_000
@@ -1002,7 +1003,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     const wanted = query.trim()
     const lowered = wanted.toLowerCase()
-    const maxResults = Math.min(positiveInteger(limit, 20), 50)
+    const allResults = limit === 0 || limit === 'all'
+    const maxResults = allResults ? MAX_SEARCH_RESULTS : Math.min(positiveInteger(limit, 20), 50)
     const scoped = typeof bookId === 'string' && bookId.length > 0
     const supported = (scoped ? [await resolveBook(bookId)] : await libraryBooks())
       .filter(book => book.supported)

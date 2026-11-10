@@ -779,3 +779,22 @@ test('kindle_book_is_listed_but_not_opened', async t => {
   assert.equal(opened.supported, false)
   assert.equal(opened.book.format, 'kindle')
 })
+
+test('search_all_returns_all_matches', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  const text = `第一章 开始\n\n${'目标词 '.repeat(60)}`
+  await writeFile(join(library, 'many.txt'), text, 'utf8')
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  const partial = await api.search({ bookId, query: '目标词', limit: 20 })
+  assert.equal(partial.matches.length, 20)
+  assert.equal(partial.truncated, true)
+  const all = await api.search({ bookId, query: '目标词', limit: 0 })
+  assert.equal(all.matches.length, 60)
+  assert.equal(all.truncated, false)
+})

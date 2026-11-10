@@ -11,7 +11,7 @@
 | `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts;tests/client-assembly.test.ts` | active |
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.ts` | `tests/epub.test.ts` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.ts` | `tests/pdf.test.ts` | active |
-| `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.ts` | `tests/notes.test.ts` | active |
+| `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.ts` | `tests/notes.test.ts;tests/api.test.ts` | active |
 | `FTR-009` | PDF 视觉 | `docs/features/FTR-009-pdf-visual.md` | `src/visual/pdf.ts` | `tests/pdf-visual.test.ts` | active |
 | `FTR-010` | EPUB 视觉 | `docs/features/FTR-010-epub-visual.md` | `src/visual/epub.ts` | `tests/epub-visual.test.ts` | active |
 | `FTR-011` | 阅读配色 | `docs/features/FTR-011-palette.md` | `src/client/helpers.ts` | `tests/palette.test.ts` | active |
