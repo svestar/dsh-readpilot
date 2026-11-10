@@ -68,6 +68,8 @@ test('backup_restore_overwrites_matched_book_on_another_path', async t => {
 
   await copyFile(join(sourceLibrary, 'demo.txt'), join(targetLibrary, 'renamed-on-new-pc.txt'))
   const target = createReaderApi({ ctx: fakeContext() as any, dataDir: targetData })
+  const seedState = await target.configureLibrary({ path: targetLibrary })
+  await target.setCompanionSession({ bookId: seedState.books[0].id, sessionId: 'session-keep' })
   const restored = await target.backupRestore({
     archivePath: backup.path,
     libraryPath: targetLibrary,
@@ -89,6 +91,7 @@ test('backup_restore_overwrites_matched_book_on_another_path', async t => {
   assert.equal(notes.value.notes[0].note, '跨 PC 批注')
   assert.equal(notes.value.notes[0].bookId, targetBookId)
   assert.equal(targetState.progress[targetBookId].percent, 42)
+  assert.equal(targetState.sessions[targetBookId].sessionId, 'session-keep')
   assert.deepEqual(targetState.tags[targetBookId], ['迁移'])
   const longNotes = await target.handleRpc('noteFiles', { action: 'list', bookId: targetBookId })
   assert.equal(longNotes.value.notes.length, 1)

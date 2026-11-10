@@ -388,10 +388,6 @@ async function applyRestore(
   const presets = zip.file(`${BACKUP_PREFIX}/presets.json`)
   if (presets) await writeFile(join(dataDir, 'presets.json'), await presets.async('nodebuffer'))
 
-  const sessions = await readJson<Record<string, unknown>>(join(dataDir, 'sessions.json'), {})
-  for (const targetId of mapping.values()) delete sessions[targetId]
-  await writeJson(join(dataDir, 'sessions.json'), sessions)
-
   await remapMemory(zip, dataDir, mapping)
   const longNotes = await remapLongNotes(zip, libraryDir, mapping, targetById)
   return {
