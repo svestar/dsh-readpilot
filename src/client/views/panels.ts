@@ -1,5 +1,6 @@
 import { React, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
+import type { BackupExportResult, BackupRestoreResult } from '../../backup.ts'
 
 export function PanelIcon({ size = 20, active }: { size?: number; active?: boolean }) {
   return h('svg', {
@@ -27,6 +28,113 @@ export function PanelIcon({ size = 20, active }: { size?: number; active?: boole
   h('path', { d: 'M12 4v15.5', stroke: 'currentColor', strokeWidth: 1.2, opacity: 0.55 }))
 }
 
+interface BackupPanelProps {
+  t: TextFn
+  defaultLibraryPath: string
+  onPick: (setPath: (value: string) => void) => void
+  onExport: () => Promise<BackupExportResult>
+  onRestore: (archivePath: string, libraryPath: string) => Promise<BackupRestoreResult & { state: unknown }>
+}
+
+function BackupPanel({ t, defaultLibraryPath, onPick, onExport, onRestore }: BackupPanelProps) {
+  const [archivePath, setArchivePath] = React.useState('')
+  const [libraryPath, setLibraryPath] = React.useState(defaultLibraryPath)
+  const [busy, setBusy] = React.useState(false)
+  const [confirming, setConfirming] = React.useState(false)
+  const [message, setMessage] = React.useState('')
+  const [error, setError] = React.useState('')
+
+  React.useEffect(() => {
+    setLibraryPath(defaultLibraryPath)
+  }, [defaultLibraryPath])
+
+  const exportNow = async () => {
+    if (busy) return
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const result = await onExport()
+      setArchivePath(result.path)
+      setMessage(`${t('backupExported')}：${result.path}`)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const restoreNow = async () => {
+    if (busy || !archivePath.trim() || !libraryPath.trim()) return
+    if (!confirming) {
+      setConfirming(true)
+      setError('')
+      return
+    }
+    setBusy(true)
+    setError('')
+    setMessage('')
+    try {
+      const result = await onRestore(archivePath.trim(), libraryPath.trim())
+      setMessage(`${t('backupRestored')}：${t('backupMatched')} ${result.matched}，${t('backupSkipped')} ${result.skipped}，${t('backupNotes')} ${result.notes}，${t('backupLongNotes')} ${result.longNotes}。${t('backupSnapshot')}：${result.snapshotPath}`)
+      setConfirming(false)
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+      setConfirming(false)
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return h('section', { className: 'dsh-readpilot-backup' },
+    h('h3', null, t('backupTitle')),
+    h('p', { className: 'dsh-readpilot-backup-hint' }, t('backupHint')),
+    h('div', { className: 'dsh-readpilot-backup-actions' },
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-secondary',
+        disabled: busy,
+        onClick: () => void exportNow(),
+      }, busy ? t('loading') : t('exportBackup'))),
+    h('label', { className: 'dsh-readpilot-backup-field' },
+      h('span', null, t('backupArchive')),
+      h('input', {
+        value: archivePath,
+        placeholder: t('backupArchivePlaceholder'),
+        spellCheck: false,
+        onChange: (event: any) => {
+          setArchivePath(event.target.value)
+          setConfirming(false)
+        },
+      })),
+    h('label', { className: 'dsh-readpilot-backup-field' },
+      h('span', null, t('backupTarget')),
+      h('div', { className: 'dsh-readpilot-path-row' },
+        h('input', {
+          value: libraryPath,
+          placeholder: t('pathPlaceholder'),
+          spellCheck: false,
+          onChange: (event: any) => {
+            setLibraryPath(event.target.value)
+            setConfirming(false)
+          },
+        }),
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-secondary',
+          onClick: () => onPick(setLibraryPath),
+        }, t('chooseDir')))),
+    h('button', {
+      type: 'button',
+      className: confirming ? 'dsh-readpilot-primary' : 'dsh-readpilot-secondary',
+      disabled: busy || !archivePath.trim() || !libraryPath.trim(),
+      onClick: () => void restoreNow(),
+    }, confirming ? t('backupRestoreConfirm') : t('restoreBackup')),
+    confirming ? h('p', { className: 'dsh-readpilot-backup-warning' }, t('backupWarning')) : null,
+    message ? h('p', { className: 'dsh-readpilot-backup-result' }, message) : null,
+    error ? h('p', { className: 'dsh-readpilot-backup-error' }, error) : null)
+}
+
 interface SetupProps {
   t: TextFn
   initialPath?: string
@@ -34,9 +142,11 @@ interface SetupProps {
   onConfigure: (path: string) => void | Promise<void>
   onPick: (setPath: (value: string) => void) => void
   onCancel?: (() => void) | null
+  onBackupExport: () => Promise<BackupExportResult>
+  onBackupRestore: (archivePath: string, libraryPath: string) => Promise<BackupRestoreResult & { state: unknown }>
 }
 
-export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }: SetupProps) {
+export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel, onBackupExport, onBackupRestore }: SetupProps) {
   const [path, setPath] = React.useState(initialPath ?? '')
   const row = h('div', { className: 'dsh-readpilot-path-row' },
     h('input', {
@@ -69,5 +179,6 @@ export function Setup({ t, initialPath, busy, onConfigure, onPick, onCancel }: S
       h('h2', null, t('setupTitle')),
       h('p', null, t('setupHint')),
       row,
-      actions))
+      actions,
+      h(BackupPanel, { t, defaultLibraryPath: path, onPick, onExport: onBackupExport, onRestore: onBackupRestore })))
 }

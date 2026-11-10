@@ -316,6 +316,12 @@ export function createPlugin(require: (name: string) => any) {
         const next = await call('deleteDuplicate', { bookId: book.id })
         setSnapshot(next)
       }, [])
+      const backupExport = React.useCallback(async () => call('backupExport'), [])
+      const backupRestore = React.useCallback(async (archivePath: string, libraryPath: string) => {
+        const result = await call('backupRestore', { archivePath, libraryPath })
+        setSnapshot(result.state)
+        return result
+      }, [])
 
       React.useEffect(() => {
         void refresh()
@@ -1597,6 +1603,8 @@ export function createPlugin(require: (name: string) => any) {
               busy,
               onConfigure: configure,
               onPick: pickDirectory,
+              onBackupExport: backupExport,
+              onBackupRestore: backupRestore,
               onCancel: snapshot.settings.libraryDir
                 ? () => setScreen({ kind: 'library' })
                 : null,

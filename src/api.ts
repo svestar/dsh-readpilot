@@ -4,6 +4,8 @@ import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } 
 import type { BookFormat, Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import { buildBookDigest } from './digest.ts'
+import { exportBackup, restoreBackup } from './backup.ts'
+import type { BackupExportResult, BackupRestoreResult } from './backup.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
 import {
@@ -58,6 +60,7 @@ import type { PdfRenderer, PdfTextItem } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
 
 const PARSER_VERSION = 11
+const APP_VERSION = '0.4.0-dev'
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
 const MAX_READ_LIMIT = 8000
@@ -251,6 +254,8 @@ export interface ReaderApi {
   syncPrompt(): Promise<void>
   configureLibrary(payload?: { path?: unknown }): Promise<ReaderState>
   deleteDuplicate(payload?: { bookId?: unknown }): Promise<ReaderState>
+  backupExport(): Promise<BackupExportResult>
+  backupRestore(payload?: { archivePath?: unknown; libraryPath?: unknown }): Promise<BackupRestoreResult & { state: ReaderState }>
   open(payload?: { bookId?: unknown }): Promise<OpenResult>
   chapter(payload?: { bookId?: unknown; chapterId?: unknown }): Promise<ChapterContent>
   saveReadingProgress(payload?: any): Promise<{ bookId: string; chapterId: string }>
@@ -497,6 +502,36 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
     invalidateScan()
     return state()
+  }
+
+  async function backupExport(): Promise<BackupExportResult> {
+    const settings = await currentSettings()
+    return exportBackup(dataDir, settings.libraryDir, await libraryBooks(), APP_VERSION)
+  }
+
+  async function backupRestore({ archivePath, libraryPath }: any = {}): Promise<BackupRestoreResult & { state: ReaderState }> {
+    if (typeof archivePath !== 'string' || !archivePath.trim() || !isAbsolute(archivePath)) {
+      throw new ReaderError('invalid-backup', '备份文件必须是绝对路径')
+    }
+    if (typeof libraryPath !== 'string' || !libraryPath.trim() || !isAbsolute(libraryPath)) {
+      throw new ReaderError('invalid-path', '目标书库必须是绝对路径')
+    }
+    const archive = await realpath(archivePath.trim())
+    const archiveInfo = await stat(archive)
+    if (!archiveInfo.isFile()) throw new ReaderError('invalid-backup', '备份路径不是文件')
+    const library = await realpath(libraryPath.trim())
+    const libraryInfo = await stat(library)
+    if (!libraryInfo.isDirectory()) throw new ReaderError('invalid-path', '目标书库不是目录')
+    const targetBooks = reconcileBooks(await scanLibrary(library), await loadLibraryIndex(dataDir))
+    const result = await restoreBackup(archive, dataDir, library, targetBooks, APP_VERSION)
+    let next: ReaderState
+    try {
+      next = await configureLibrary({ path: library })
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error)
+      throw new ReaderError('workspace-bind-failed', `${message}（数据已恢复，恢复前快照：${result.snapshotPath}）`)
+    }
+    return { ...result, state: next }
   }
 
   let promptDir: string | null = null
@@ -1627,6 +1662,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       rescan,
       configure: configureLibrary,
       deleteDuplicate,
+      backupExport,
+      backupRestore,
       open,
       chapter,
       progress: saveReadingProgress,
@@ -1672,6 +1709,8 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     syncPrompt,
     configureLibrary,
     deleteDuplicate,
+    backupExport,
+    backupRestore,
     open,
     chapter,
     saveReadingProgress,

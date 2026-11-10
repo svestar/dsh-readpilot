@@ -49,3 +49,4 @@
 | `FTR-043` | Agent 阅读动作 | `docs/features/FTR-043-agent-actions.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
 | `FTR-044` | 动作回执与撤销 | `docs/features/FTR-044-action-undo.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
 | `FTR-045` | 书籍身份与迁移 | `docs/features/FTR-045-book-identity.md` | `src/library.ts` | `tests/library-index.test.ts;tests/api.test.ts` | active |
+| `FTR-046` | 备份与覆盖恢复 | `docs/features/FTR-046-backup-restore.md` | `src/backup.ts` | `tests/backup.test.ts` | active |
