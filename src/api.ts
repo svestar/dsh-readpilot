@@ -1,11 +1,17 @@
 import { spawn } from 'node:child_process'
-import { mkdir, readFile, realpath, stat, writeFile } from 'node:fs/promises'
-import { basename, dirname, extname, isAbsolute, join, resolve, sep } from 'node:path'
+import { mkdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
+import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
 import type { BookFormat, Chapter, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import { buildBookDigest } from './digest.ts'
 import type { Book } from './library.ts'
 import { findBookByKey, scanLibrary } from './library.ts'
+import {
+  deleteLibraryRecord,
+  loadLibraryIndex,
+  reconcileBooks,
+  saveLibraryIndex,
+} from './library-index.ts'
 import type { LibraryMeta, RatingMap, ReadStatus, StatusMap, TagMap } from './library-meta.ts'
 import { createLibraryMetaStore } from './library-meta.ts'
 import { createDraftHandlers } from './api-drafts.ts'
@@ -37,6 +43,7 @@ import { buildReadingNotes } from './notes-context.ts'
 import type { ReadingHighlight, ReadingNote } from './notes-context.ts'
 import type { BookCacheRecord, ProgressMap, ReadingProgress, SessionMap, Settings } from './store.ts'
 import {
+  cachePath,
   loadBookCache,
   loadProgress,
   loadSessions,
@@ -239,9 +246,11 @@ export interface RpcResult {
 
 export interface ReaderApi {
   state(): Promise<ReaderState>
+  rescan(): Promise<ReaderState>
   dispose(): Promise<void>
   syncPrompt(): Promise<void>
   configureLibrary(payload?: { path?: unknown }): Promise<ReaderState>
+  deleteDuplicate(payload?: { bookId?: unknown }): Promise<ReaderState>
   open(payload?: { bookId?: unknown }): Promise<OpenResult>
   chapter(payload?: { bookId?: unknown; chapterId?: unknown }): Promise<ChapterContent>
   saveReadingProgress(payload?: any): Promise<{ bookId: string; chapterId: string }>
@@ -402,9 +411,12 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     if (!options.fresh && scanInflight && scanInflight.dir === dir) return scanInflight.promise
     const promise = scanLibrary(dir)
-      .then(books => {
-        scanCache = { dir, at: Date.now(), books }
-        return books
+      .then(async books => {
+        const index = await loadLibraryIndex(dataDir)
+        const reconciled = reconcileBooks(books, index)
+        await enqueueWrite(`library-index:${dataDir}`, () => saveLibraryIndex(dataDir, index))
+        scanCache = { dir, at: Date.now(), books: reconciled }
+        return reconciled
       })
       .finally(() => {
         if (scanInflight?.promise === promise) scanInflight = null
@@ -414,6 +426,75 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
   }
 
   async function rescan(): Promise<ReaderState> {
+    invalidateScan()
+    return state()
+  }
+
+  async function bookHasUserData(book: Book): Promise<boolean> {
+    const [notes, progress, sessions, meta] = await Promise.all([
+      notesStore.list(book.id),
+      loadProgress(dataDir),
+      loadSessions(dataDir),
+      libraryMetaStore.list(),
+    ])
+    const hasMeta = Boolean(meta.tags[book.id] || meta.status[book.id] || meta.rating[book.id])
+    let hasLongNotes = false
+    try {
+      const store = await ensureNoteFileStore()
+      hasLongNotes = (await store.list(book)).length > 0
+    } catch {
+      // A broken note store must not block duplicate handling.
+    }
+    return notes.length > 0 || Boolean(progress[book.id]) || Boolean(sessions[book.id]) || hasMeta || hasLongNotes
+  }
+
+  async function bookFileTarget(book: Book): Promise<string> {
+    const settings = await currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const root = await realpath(settings.libraryDir)
+    const target = await realpath(book.path)
+    const rel = relative(root, target)
+    if (!rel || rel.startsWith('..') || isAbsolute(rel)) {
+      throw new ReaderError('invalid-path', '只能删除书库目录内的书籍文件')
+    }
+    return target
+  }
+
+  async function deleteDuplicate({ bookId }: any = {}): Promise<ReaderState> {
+    const books = await libraryBooks()
+    const book = books.find(candidate => candidate.id === bookId)
+    if (!book) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(bookId)}`)
+    const group = books.filter(candidate => candidate.contentKey === book.contentKey)
+    if (group.length < 2) throw new ReaderError('not-duplicate', '这本书没有同内容副本')
+
+    const index = await loadLibraryIndex(dataDir)
+    if (book.duplicateOf) {
+      if (await bookHasUserData(book)) {
+        throw new ReaderError('duplicate-has-data', '副本已有批注、进度或笔记，不能直接删除；请保留两份')
+      }
+      await rm(await bookFileTarget(book))
+      deleteLibraryRecord(index, book.id)
+      await enqueueWrite(`library-index:${dataDir}`, () => saveLibraryIndex(dataDir, index))
+      await rm(cachePath(dataDir, book.id), { force: true }).catch(() => undefined)
+    } else {
+      const replacement = group.find(candidate => candidate.id !== book.id)
+      if (!replacement) throw new ReaderError('not-duplicate', '没有可提升的副本')
+      if (await bookHasUserData(replacement)) {
+        throw new ReaderError('duplicate-has-data', '剩余副本已有批注、进度或笔记，不能删除主记录；请改为删除该副本')
+      }
+      await rm(await bookFileTarget(book))
+      const record = index.records[book.id]
+      if (record) {
+        record.path = replacement.path
+        record.title = replacement.title
+        record.size = replacement.size
+        record.mtimeMs = replacement.mtimeMs
+        record.duplicateOf = undefined
+      }
+      deleteLibraryRecord(index, replacement.id)
+      await enqueueWrite(`library-index:${dataDir}`, () => saveLibraryIndex(dataDir, index))
+    }
+
     invalidateScan()
     return state()
   }
@@ -1545,6 +1626,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
       state,
       rescan,
       configure: configureLibrary,
+      deleteDuplicate,
       open,
       chapter,
       progress: saveReadingProgress,
@@ -1586,8 +1668,10 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   return {
     state,
+    rescan,
     syncPrompt,
     configureLibrary,
+    deleteDuplicate,
     open,
     chapter,
     saveReadingProgress,

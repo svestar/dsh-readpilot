@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { access, readdir, stat } from 'node:fs/promises'
+import { access, open, readdir, stat } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import type { BookFormat } from './formats.ts'
 import { formatOf, isSupportedFormat } from './formats.ts'
@@ -7,6 +7,7 @@ import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
 
 export const MAX_LIBRARY_FILES = 2000
 const SCAN_STAT_CONCURRENCY = 16
+const CONTENT_SAMPLE_BYTES = 64 * 1024
 
 interface BookCandidate {
   path: string
@@ -35,6 +36,8 @@ export interface Book {
   supported: boolean
   size: number
   mtimeMs: number
+  contentKey: string
+  duplicateOf?: string
 }
 
 export interface ScanOptions {
@@ -45,6 +48,26 @@ export interface ScanOptions {
 export function bookIdFor(realPath: string): string {
   const identity = process.platform === 'win32' ? realPath.toLowerCase() : realPath
   return createHash('sha1').update(identity).digest('hex').slice(0, 16)
+}
+
+/** Sample the head and tail so large PDFs do not need a full read. */
+export async function contentKeyFor(filePath: string, size: number): Promise<string> {
+  const handle = await open(filePath, 'r')
+  try {
+    const headSize = Math.min(size, CONTENT_SAMPLE_BYTES)
+    const tailSize = Math.min(Math.max(size - headSize, 0), CONTENT_SAMPLE_BYTES)
+    const head = Buffer.alloc(headSize)
+    const tail = Buffer.alloc(tailSize)
+    if (headSize > 0) await handle.read(head, 0, headSize, 0)
+    if (tailSize > 0) await handle.read(tail, 0, tailSize, size - tailSize)
+    const hash = createHash('sha256')
+    hash.update(`size:${size}\n`)
+    hash.update(head)
+    if (tailSize > 0) hash.update(tail)
+    return hash.digest('hex')
+  } finally {
+    await handle.close()
+  }
 }
 
 export function findBookByKey(books: readonly Book[], key: unknown): Book | undefined {
@@ -106,6 +129,12 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
       return null
     }
     if (!info.isFile() || info.size === 0) return null
+    let contentKey: string
+    try {
+      contentKey = await contentKeyFor(candidate.path, info.size)
+    } catch {
+      return null
+    }
     return {
       id: bookIdFor(candidate.path),
       title: candidate.title,
@@ -114,6 +143,7 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
       supported: isSupportedFormat(candidate.format),
       size: info.size,
       mtimeMs: info.mtimeMs,
+      contentKey,
     } satisfies Book
   })
   return books

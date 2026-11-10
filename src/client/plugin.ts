@@ -312,6 +312,11 @@ export function createPlugin(require: (name: string) => any) {
         return result.rating
       }, [])
 
+      const deleteDuplicate = React.useCallback(async (book: ClientBook) => {
+        const next = await call('deleteDuplicate', { bookId: book.id })
+        setSnapshot(next)
+      }, [])
+
       React.useEffect(() => {
         void refresh()
       }, [refresh])
@@ -1607,6 +1612,7 @@ export function createPlugin(require: (name: string) => any) {
                 onSetTags: setBookTags,
                 onSetStatus: setBookStatus,
                 onSetRating: setBookRating,
+                onDeleteDuplicate: deleteDuplicate,
               })
               : screen.kind === 'unsupported'
                 ? h('div', { className: 'dsh-readpilot-empty' },

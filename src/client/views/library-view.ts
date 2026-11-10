@@ -236,6 +236,9 @@ function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags
       : null),
   h('div', { className: 'dsh-readpilot-book-info' },
     h('div', { className: 'dsh-readpilot-book-title' }, book.title),
+    book.duplicateOf
+      ? h('span', { className: 'dsh-readpilot-book-duplicate' }, t('duplicateBadge'))
+      : null,
     h('div', { className: 'dsh-readpilot-book-meta' },
       h('span', { className: 'dsh-readpilot-book-format-chip' }, book.format.toUpperCase()),
       h('span', null, formatSize(book.size)),
@@ -259,6 +262,76 @@ function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags
     }, t('tags'))))
 }
 
+interface DuplicateDialogProps {
+  t: TextFn
+  books: ClientBook[]
+  onDelete: (book: ClientBook) => Promise<void> | void
+  onClose: () => void
+}
+
+function DuplicateDialog({ t, books, onDelete, onClose }: DuplicateDialogProps) {
+  const [busy, setBusy] = React.useState<string | null>(null)
+  const [confirmId, setConfirmId] = React.useState<string | null>(null)
+  const [error, setError] = React.useState('')
+  const groups = new Map<string, ClientBook[]>()
+  for (const book of books) {
+    if (!book.duplicateOf) continue
+    const group = books.filter(candidate => candidate.contentKey === book.contentKey)
+    if (group.length > 1) groups.set(book.contentKey, group)
+  }
+
+  const remove = async (book: ClientBook) => {
+    if (busy) return
+    if (confirmId !== book.id) {
+      setConfirmId(book.id)
+      setError('')
+      return
+    }
+    setBusy(book.id)
+    setError('')
+    try {
+      await onDelete(book)
+      onClose()
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return h(Modal, {
+    open: true,
+    onClose,
+    closeLabel: t('close'),
+    title: t('duplicateTitle'),
+    headless: true,
+    className: 'dsh-readpilot-duplicate-dialog',
+  },
+  h('header', { className: 'dsh-readpilot-duplicate-dialog-head' },
+    h('h3', null, t('duplicateTitle')),
+    h('p', null, t('duplicateHint'))),
+  h('div', { className: 'dsh-readpilot-duplicate-list' },
+    [...groups.entries()].map(([contentKey, group]) => h('section', { key: contentKey, className: 'dsh-readpilot-duplicate-group' },
+      h('div', { className: 'dsh-readpilot-duplicate-group-head' }, `${group.length} ${t('duplicateFiles')}`),
+      group.map(book => h('div', { key: book.id, className: 'dsh-readpilot-duplicate-row' },
+        h('div', { className: 'dsh-readpilot-duplicate-main' },
+          h('div', { className: 'dsh-readpilot-duplicate-name' },
+            h('span', null, book.title),
+            h('span', { className: 'dsh-readpilot-duplicate-role' },
+              book.duplicateOf ? t('duplicateBadge') : t('duplicatePrimary'))),
+          h('div', { className: 'dsh-readpilot-duplicate-path' }, book.path)),
+        h('button', {
+          type: 'button',
+          className: confirmId === book.id ? 'dsh-readpilot-primary' : 'dsh-readpilot-secondary',
+          disabled: busy === book.id,
+          title: t('duplicateDeleteHint'),
+          onClick: () => void remove(book),
+        }, confirmId === book.id ? t('duplicateConfirmDelete') : t('duplicateDelete'))))))),
+  error ? h('div', { className: 'dsh-readpilot-chat-error' }, error) : null,
+  h('footer', { className: 'dsh-readpilot-duplicate-footer' },
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: onClose }, t('close'))))
+}
+
 interface LibraryProps {
   t: TextFn
   snapshot: Snapshot
@@ -269,6 +342,7 @@ interface LibraryProps {
   onSetTags: (book: ClientBook, tags: string[]) => Promise<string[]>
   onSetStatus: (book: ClientBook, status: string | null) => Promise<string | null>
   onSetRating: (book: ClientBook, rating: number) => Promise<number | null>
+  onDeleteDuplicate: (book: ClientBook) => Promise<void>
 }
 
 function VirtualBookGrid({ items, renderCard }: {
@@ -319,7 +393,7 @@ function VirtualBookGrid({ items, renderCard }: {
       })))
 }
 
-export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating }: LibraryProps) {
+export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSetTags, onSetStatus, onSetRating, onDeleteDuplicate }: LibraryProps) {
   const books = snapshot.books
   const tags = snapshot.tags ?? {}
   const statuses = snapshot.status ?? {}
@@ -335,6 +409,8 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
     })
   }, [])
   const [tagEditor, setTagEditor] = React.useState<{ book: ClientBook; initialTags: string[] } | null>(null)
+  const [duplicateOpen, setDuplicateOpen] = React.useState(false)
+  const duplicates = books.filter(book => book.duplicateOf)
   const counts = React.useMemo(() => categoryCounts(books, tags, statuses), [books, tags, statuses])
   const tagStats = React.useMemo(() => tagCatalogue(books, tags), [books, tags])
   const visible = React.useMemo(
@@ -401,6 +477,13 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
           h('h2', null, `${t('library')} · ${books.length}`),
           h('div', { className: 'dsh-readpilot-library-subtitle' }, t('librarySubtitle'))),
         h('div', { className: 'dsh-readpilot-header-actions' },
+          duplicates.length > 0
+            ? h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-secondary',
+              onClick: () => setDuplicateOpen(true),
+            }, t('reviewDuplicates'))
+            : null,
           h('button', { type: 'button', className: 'dsh-readpilot-secondary', onClick: onSettings }, t('settings')),
           h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: onRefresh }, t('rescan')))),
       h('div', { className: 'dsh-readpilot-library-toolbar' },
@@ -461,6 +544,14 @@ export function Library({ t, snapshot, busy, onOpen, onRefresh, onSettings, onSe
           }
           setTagEditor(null)
         },
+      })
+      : null,
+    duplicateOpen
+      ? h(DuplicateDialog, {
+        t,
+        books,
+        onDelete: onDeleteDuplicate,
+        onClose: () => setDuplicateOpen(false),
       })
       : null)
 }

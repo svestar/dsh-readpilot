@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdir, mkdtemp, readFile, rm, truncate, utimes, writeFile } from 'node:fs/promises'
+import { copyFile, mkdir, mkdtemp, readFile, rename, rm, stat, truncate, utimes, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi, normalizeReadingView, noteFilePath } from '../src/api.ts'
@@ -124,6 +124,94 @@ test('search_returns_locator', async t => {
   assert.match(result.matches[0].locator, /:c002:/)
   assert.match(result.matches[0].jumpUrl, /dsh-readpilot\.invalid\/jump\?book=/)
   assert.equal(result.matches[0].chapterTitle, '第二章 继续')
+})
+
+test('rename_preserves_book_id_and_notes', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.handleRpc('notes', {
+    action: 'add',
+    bookId,
+    chapterId: 'c001',
+    blockIndex: 0,
+    offset: 0,
+    quote: '测试引用',
+    note: '改名后仍在',
+  })
+
+  await rename(join(library, 'demo.txt'), join(library, 'renamed.txt'))
+  const after = await api.rescan()
+  assert.equal(after.books.length, 1)
+  assert.equal(after.books[0].id, bookId)
+  assert.equal(after.books[0].path, join(library, 'renamed.txt'))
+  const notes = await api.handleRpc('notes', { action: 'list', bookId })
+  assert.equal(notes.value.notes.length, 1)
+})
+
+test('duplicate_with_user_data_cannot_delete', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library })
+  await copyFile(join(library, 'demo.txt'), join(library, 'demo-copy.txt'))
+  const duplicated = await api.rescan()
+  const duplicate = duplicated.books.find(book => book.duplicateOf)!
+  await api.handleRpc('notes', {
+    action: 'add',
+    bookId: duplicate.id,
+    chapterId: 'c001',
+    blockIndex: 0,
+    offset: 0,
+    quote: '副本引用',
+    note: '副本笔记',
+  })
+  await assert.rejects(
+    () => api.deleteDuplicate({ bookId: duplicate.id }),
+    /不能直接删除/,
+  )
+})
+
+test('duplicate_copy_can_be_deleted', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const canonicalId = state.books[0].id
+  await copyFile(join(library, 'demo.txt'), join(library, 'demo-copy.txt'))
+
+  const duplicated = await api.rescan()
+  assert.equal(duplicated.books.length, 2)
+  const duplicate = duplicated.books.find(book => book.duplicateOf)!
+  assert.equal(duplicate.duplicateOf, canonicalId)
+
+  const deleted = await api.deleteDuplicate({ bookId: duplicate.id })
+  assert.deepEqual(deleted.books.map(book => book.id), [canonicalId])
+  await assert.rejects(() => stat(join(library, 'demo-copy.txt')))
+})
+
+test('delete_primary_promotes_copy_and_keeps_notes', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const canonicalId = state.books[0].id
+  await api.handleRpc('notes', {
+    action: 'add',
+    bookId: canonicalId,
+    chapterId: 'c001',
+    blockIndex: 0,
+    offset: 0,
+    quote: '主记录引用',
+    note: '主记录笔记',
+  })
+  await copyFile(join(library, 'demo.txt'), join(library, 'demo-copy.txt'))
+  await api.rescan()
+
+  const after = await api.deleteDuplicate({ bookId: canonicalId })
+  assert.equal(after.books.length, 1)
+  assert.equal(after.books[0].id, canonicalId)
+  assert.equal(after.books[0].path, join(library, 'demo-copy.txt'))
+  const notes = await api.handleRpc('notes', { action: 'list', bookId: canonicalId })
+  assert.equal(notes.value.notes.length, 1)
 })
 
 test('library_search_reports_scan_scope', async t => {

@@ -235,6 +235,7 @@ export interface Operations {
   state: { payload: void; result: ReaderState }
   rescan: { payload: void; result: ReaderState }
   configure: { payload: { path: string }; result: ReaderState }
+  deleteDuplicate: { payload: { bookId: string }; result: ReaderState }
   open: { payload: { bookId: string }; result: OpenResult }
   chapter: { payload: { bookId: string; chapterId: string }; result: ChapterContent }
   progress: { payload: ProgressPayload; result: { bookId: string; chapterId: string } }
@@ -312,7 +313,7 @@ export type CallRpc = <K extends Operation>(
 ) => Promise<OperationResult<K>>
 
 export const OPERATIONS: readonly Operation[] = [
-  'state', 'rescan', 'configure', 'open', 'chapter', 'progress', 'session', 'sessionAlive', 'sessionBook',
+  'state', 'rescan', 'configure', 'deleteDuplicate', 'open', 'chapter', 'progress', 'session', 'sessionAlive', 'sessionBook',
   'companionPolicy', 'companionContext', 'search', 'exportNotes', 'openNoteFile',
   'setNoteContext', 'setAutoApplyNotes', 'pageView', 'libraryMeta',
   'prompts', 'readerActions', 'readerReceipts',

@@ -48,3 +48,4 @@
 | `FTR-042` | 提示词预设 | `docs/features/FTR-042-prompt-presets.md` | `src/prompt-presets.ts` | `tests/prompt-presets.test.ts` | active |
 | `FTR-043` | Agent 阅读动作 | `docs/features/FTR-043-agent-actions.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
 | `FTR-044` | 动作回执与撤销 | `docs/features/FTR-044-action-undo.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
+| `FTR-045` | 书籍身份与迁移 | `docs/features/FTR-045-book-identity.md` | `src/library.ts` | `tests/library-index.test.ts;tests/api.test.ts` | active |

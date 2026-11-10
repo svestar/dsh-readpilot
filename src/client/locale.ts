@@ -2,6 +2,15 @@ export const zh = {
       panel: '智读',
       library: '书库',
       librarySubtitle: '整理、分类并继续阅读',
+      duplicateBadge: '副本',
+      reviewDuplicates: '处理副本',
+      duplicateTitle: '同内容副本',
+      duplicateHint: '这些文件内容相同。删除会从磁盘永久移除所选文件，不可恢复；有批注、进度或笔记的副本不能删除。',
+      duplicateFiles: '个文件',
+      duplicatePrimary: '主记录',
+      duplicateDelete: '删除此文件',
+      duplicateConfirmDelete: '确认删除',
+      duplicateDeleteHint: '从磁盘永久删除，不可恢复',
       categories: '分类',
       allBooks: '全部书籍',
       recentReading: '最近阅读',
@@ -264,6 +273,15 @@ export const en = {
       panel: 'ReadPilot',
       library: 'Library',
       librarySubtitle: 'Organize, tag and continue reading',
+      duplicateBadge: 'Copy',
+      reviewDuplicates: 'Review copies',
+      duplicateTitle: 'Duplicate content',
+      duplicateHint: 'These files have identical content. Deleting permanently removes the selected file from disk; copies with annotations, progress or notes cannot be deleted.',
+      duplicateFiles: 'files',
+      duplicatePrimary: 'Primary',
+      duplicateDelete: 'Delete this file',
+      duplicateConfirmDelete: 'Confirm delete',
+      duplicateDeleteHint: 'Permanently delete from disk; this cannot be undone',
       categories: 'Categories',
       allBooks: 'All books',
       recentReading: 'Recently read',
@@ -522,11 +540,3 @@ export const en = {
       zoomOut: 'Zoom out',
       zoomIn: 'Zoom in',
     }
-
-
-
-
-
-
-
-
