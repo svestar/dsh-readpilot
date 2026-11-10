@@ -5,7 +5,10 @@ interface TocProps {
   t: TextFn
   detail: BookDetail
   activeChapter: string
+  activePage?: number
   onSelect: (chapterId: string) => void
+  onPageSelect?: (page: number) => void
+  scanOnly?: boolean
 }
 
 interface TocRow {
@@ -53,7 +56,7 @@ function VirtualTocList({ items, renderRow }: { items: TocRow[]; renderRow: (ite
     })))
 }
 
-export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
+export function Toc({ t, detail, activeChapter, activePage: currentPage, onSelect, onPageSelect, scanOnly = false }: TocProps) {
   const outline = detail.book.format === 'pdf' && Array.isArray(detail.outline) && detail.outline.length > 0
     ? detail.outline
     : null
@@ -70,12 +73,16 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
   }, [detail.toc])
   const activePage = index.chapterPage.get(activeChapter)
   const renderRow = (item: TocRow, rowIndex: number) => {
+    const page = typeof item.page === 'number' ? item.page : undefined
     const chapterId = outline
       ? item.chapterId ?? (typeof item.page === 'number' ? index.chapterByPage.get(item.page) : undefined)
       : item.id
-    const active = outline
-      ? item.chapterId === activeChapter || item.page === activePage
-      : item.id === activeChapter
+    const pageMode = Boolean(scanOnly)
+    const active = pageMode
+      ? page === currentPage
+      : outline
+        ? item.chapterId === activeChapter || item.page === activePage
+        : item.id === activeChapter
     return h('button', {
       key: item.id,
       type: 'button',
@@ -83,9 +90,9 @@ export function Toc({ t, detail, activeChapter, onSelect }: TocProps) {
       'data-active': active ? 'true' : 'false',
       'data-level': item.level ?? 0,
       'data-index': rowIndex,
-      disabled: !chapterId,
+      disabled: pageMode ? !page : !chapterId,
       style: outline ? { paddingLeft: `${10 + (item.level ?? 0) * 14}px` } : undefined,
-      onClick: () => chapterId && onSelect(chapterId),
+      onClick: () => pageMode ? (page && onPageSelect?.(page)) : (chapterId && onSelect(chapterId)),
     }, item.title)
   }
   const virtual = typeof useVirtualizer === 'function'
