@@ -372,7 +372,6 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-help-footer{display:flex;align-items:center;gap:12px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l2)}
 .dsh-readpilot-help-footer a{color:var(--dsw-alias-brand-primary);font-size:11px}
 .dsh-readpilot-help-footer button{margin-left:auto}
-.dsh-readpilot-scan-notice{flex:none;padding:7px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary) 8%,transparent);color:var(--dsw-alias-state-warning-primary);font-size:11px;line-height:1.5}
 .dsh-readpilot-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
 .dsh-readpilot-bar button.dsh-readpilot-secondary{background:var(--dsw-alias-bg-layer-1)!important;color:var(--dsw-alias-label-primary)!important;border-color:var(--dsw-alias-border-l2)!important}
 .dsh-readpilot-bar-title{flex:1 1 120px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.5}

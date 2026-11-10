@@ -233,6 +233,7 @@ export function createPlugin(require: (name: string) => any) {
         || (supportedFormat === 'epub' && reflowMode))
       const textLayout: PageLayout = supportedFormat === 'pdf' && reflowMode ? 'single' : pageLayout
       const effectiveMode: ReaderMode = supportedFormat === 'pdf' ? 'paged' : readingMode
+
       const contentRef = React.useRef<HTMLDivElement | null>(null)
       const pendingScrollRef = React.useRef<PendingScroll | null>(null)
 
@@ -1594,7 +1595,6 @@ export function createPlugin(require: (name: string) => any) {
           onHelp: () => setHelpOpen(true),
           scanOnly,
         }),
-        scanOnly ? h('div', { className: 'dsh-readpilot-scan-notice' }, t('scanPdfNotice')) : null,
         settingsOpen && screen.kind === 'book'
           ? h(ReaderSettings, {
             t,

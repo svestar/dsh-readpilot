@@ -637,7 +637,6 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
         onHighlight: (color: string) => { void addHighlight(color) },
       })
       : null,
-    screen.detail.scanOnly ? h('div', { className: 'dsh-readpilot-scan-notice' }, t('scanPdfNotice')) : null,
     h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
     h(ReaderBar, {
       t,

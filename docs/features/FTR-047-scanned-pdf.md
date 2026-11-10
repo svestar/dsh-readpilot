@@ -17,7 +17,7 @@ PDF 解析完成后若没有任何可提取文本、但页数大于 0，解析�
 - PDF 自带 outline（若存在）；
 - 阅读进度按 PDF 页码记录。
 
-搜索、书签、重排、划选批注、提示词、摘要和伴读引用不提供；Header 隐藏搜索/书签按钮，阅读设置隐藏来源与字号，快捷键拦截 search/bookmark，主阅读与侧栏显示固定提示“当前不支持 OCR”。有文本层的 PDF 行为不变，仍走原有解析、重排、批注和检索。
+搜索、书签、重排、划选批注、提示词、摘要和伴读引用不提供；Header 隐藏搜索/书签按钮，阅读设置隐藏来源与字号，快捷键拦截 search/bookmark；阅读界面不显示额外提示，限制说明放在帮助手册 FAQ。有文本层的 PDF 行为不变，仍走原有解析、重排、批注和检索。
 
 ## 接口与代码映射
 
@@ -28,7 +28,7 @@ PDF 解析完成后若没有任何可提取文本、但页数大于 0，解析�
 | `openBook` | `src/client/plugin.ts:openBook` | 合成扫描版章节并初始化 PDF 页码 |
 | `readerCapabilities` | `src/client/paging.ts:readerCapabilities` | 扫描版只保留分页、缩放 |
 | `Header` | `src/client/views/header.ts:Header` | 隐藏搜索与书签入口 |
-| `SidebarReader` | `src/client/views/sidebar-reader.ts:SidebarReader` | 侧栏原版查看与提示 |
+| `SidebarReader` | `src/client/views/sidebar-reader.ts:SidebarReader` | 侧栏原版查看 |
 
 ## 约束与失败行为
 
