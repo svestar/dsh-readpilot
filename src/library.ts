@@ -1,8 +1,8 @@
 import { createHash } from 'node:crypto'
 import { access, open, readdir, stat } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
-import type { LibraryFormat } from './formats.ts'
-import { isSupportedFormat, libraryFormatOf } from './formats.ts'
+import type { BookFormat } from './formats.ts'
+import { formatOf, isSupportedFormat } from './formats.ts'
 import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
 
 export const MAX_LIBRARY_FILES = 2000
@@ -12,7 +12,7 @@ const CONTENT_SAMPLE_BYTES = 64 * 1024
 interface BookCandidate {
   path: string
   title: string
-  format: LibraryFormat
+  format: BookFormat
 }
 
 async function mapLimit<T, R>(items: readonly T[], limit: number, mapper: (item: T) => Promise<R>): Promise<R[]> {
@@ -32,7 +32,7 @@ export interface Book {
   id: string
   title: string
   path: string
-  format: LibraryFormat
+  format: BookFormat
   supported: boolean
   size: number
   mtimeMs: number
@@ -110,7 +110,7 @@ export async function scanLibrary(root: string, options: ScanOptions = {}): Prom
         continue
       }
       if (!entry.isFile()) continue
-      const format = libraryFormatOf(entry.name)
+      const format = formatOf(entry.name)
       if (!format) continue
       candidates.push({
         path: full,

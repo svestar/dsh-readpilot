@@ -45,13 +45,3 @@ test('scan_skips_reader_notes_dir', async t => {
   assert.equal(after.some(book => book.title === 'fake'), false)
   assert.ok(after.some(book => book.title === 'a'))
 })
-
-test('scan_lists_kindle_files_as_unsupported', async t => {
-  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-library-'))
-  t.after(() => rm(root, { recursive: true, force: true }))
-  await writeFile(join(root, 'book.mobi'), 'mobi', 'utf8')
-  await writeFile(join(root, 'book.azw3'), 'azw3', 'utf8')
-  const books = await scanLibrary(root)
-  assert.deepEqual(books.map(book => book.format).sort(), ['kindle', 'kindle'])
-  assert.equal(books.every(book => book.supported === false), true)
-})

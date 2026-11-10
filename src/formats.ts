@@ -1,7 +1,6 @@
 import { basename, extname } from 'node:path'
 
 export type BookFormat = 'txt' | 'md' | 'epub' | 'pdf'
-export type LibraryFormat = BookFormat | 'kindle'
 
 export type BlockType = 'p' | 'h' | 'quote' | 'code' | 'li' | 'table' | 'image'
 
@@ -63,13 +62,6 @@ const CHAPTER_LINE = /^(第\s*[0-9零一二三四五六七八九十百千两]+\s
 
 export function formatOf(filePath: string): BookFormat | null {
   return FORMAT_BY_EXTENSION.get(extname(filePath).toLowerCase()) ?? null
-}
-
-const KINDLE_EXTENSIONS = new Set(['.mobi', '.azw', '.azw3'])
-
-/** Kindle files are listed so the library can explain that they must be converted first. */
-export function libraryFormatOf(filePath: string): LibraryFormat | null {
-  return formatOf(filePath) ?? (KINDLE_EXTENSIONS.has(extname(filePath).toLowerCase()) ? 'kindle' : null)
 }
 
 export function isSupportedFormat(format: string | null | undefined): format is BookFormat {

@@ -56,7 +56,7 @@ export const zh = {
       helpShortcutsTitle: '快捷键',
       helpShortcutsBody: 'F 或 Ctrl/Cmd+F 搜索，B 添加书签，方向键翻页/滚动，Esc 关闭搜索或清除选区。具体组合可在宿主快捷键设置中调整。',
       helpFaqTitle: '常见问题',
-      helpFaqBody: '扫描版 PDF 不支持 OCR；MOBI/AZW/AZW3 请先转换为 EPUB；备份不含原书、工作区和会话；同内容副本可在书库“处理副本”中删除；搜索结果截断时用“更多条目”打开全部结果。',
+      helpFaqBody: '扫描版 PDF 不支持 OCR；备份不含原书、工作区和会话；同内容副本可在书库“处理副本”中删除；搜索结果截断时用“更多条目”打开全部结果。',
       helpDocs: '完整使用说明',
       helpGithub: 'GitHub 项目',
 
@@ -87,8 +87,6 @@ export const zh = {
       inProgress: '在读',
       unsupported: '暂不支持',
       unsupportedHint: '这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。',
-      kindleBadge: '需转 EPUB',
-      kindleConvertHint: '请先将 MOBI/AZW/AZW3 转换为 EPUB 后导入；当前不解析该格式。',
       unread: '未读',
       readStatus: '阅读状态',
       statusNone: '未标记',
@@ -372,7 +370,7 @@ export const en = {
       helpShortcutsTitle: 'Shortcuts',
       helpShortcutsBody: 'F or Ctrl/Cmd+F searches, B adds a bookmark, arrow keys page/scroll, Esc closes search or clears selection. Host shortcut settings can override these.',
       helpFaqTitle: 'FAQ',
-      helpFaqBody: 'Scanned PDFs have no OCR; convert MOBI/AZW/AZW3 to EPUB first; backups exclude books, workspaces and sessions; duplicate copies can be deleted from “Review copies”; “More results” opens the full search result list.',
+      helpFaqBody: 'Scanned PDFs have no OCR; backups exclude books, workspaces and sessions; duplicate copies can be deleted from “Review copies”; “More results” opens the full search result list.',
       helpDocs: 'Full usage guide',
       helpGithub: 'GitHub project',
 

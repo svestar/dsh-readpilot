@@ -1659,7 +1659,7 @@ export function createPlugin(require: (name: string) => any) {
               : screen.kind === 'unsupported'
                 ? h('div', { className: 'dsh-readpilot-empty' },
                   h('h2', null, screen.book.title),
-                  h('p', null, screen.book.format === 'kindle' ? t('kindleConvertHint') : t('unsupportedHint')),
+                  h('p', null, t('unsupportedHint')),
                   h('button', {
                     type: 'button',
                     className: 'dsh-readpilot-secondary',
