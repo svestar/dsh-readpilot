@@ -3,7 +3,7 @@
 - **ID：** FTR-009
 - **名称：** PDF 视觉
 - **状态：** active
-- **代码：** `src/visual/pdf.ts`（`createPdfPageRenderer`）；`src/api.ts`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/visual/pdf.ts`（`createPdfPageRenderer`）；`src/api.ts`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/pdfjs.ts`（`pdfWasmUrl`）
 - **测试：** `tests/pdf-visual.test.ts`
 
 ## 行为
@@ -23,11 +23,12 @@
 
 ## 约束与失败行为
 
-Host 接受 0.5–3 的 scale，工具栏缩放按钮限制在 1–3，默认 1.5；页码必须是 1..pageCount；超过 2000 页、渲染失败、非法页码都返回明确错误，不写半截缓存。缓存总量超过 500 MB 时按修改时间淘汰。页面尺寸只由 PDF 页面与视觉容器决定，不按 A4 比例裁切或加边；容器尺寸变化会重新适配。页面组在上下内边距之间垂直居中，双页高度不同时各页居中对齐。单页或双页显示受可用高度限制时，继续提高缩放只增加 PNG 分辨率，显示高度保持在可用高度。文本层坐标由 PDF.js 文本项换算，和图片可能有 1–2px 偏差；CJK 字体度量不完美时仍可选择，但高亮可能偏移。页面是 PDF.js 光栅化结果，不是 MuPDF，复杂 PDF 的像素级效果不保证。页面图片本身不参与配色，只有页面周围背景与选区颜色由 FTR-011 控制。书签解析失败或条目没有有效页目标时，该条目不会显示；整本书没有书签时仍显示页码目录。
+Host 接受 0.5–3 的 scale，工具栏缩放按钮限制在 1–3，默认 1.5；页码必须是 1..pageCount；超过 2000 页、渲染失败、非法页码都返回明确错误，不写半截缓存。缓存总量超过 500 MB 时按修改时间淘汰。页面尺寸只由 PDF 页面与视觉容器决定，不按 A4 比例裁切或加边；容器尺寸变化会重新适配。页面组在上下内边距之间垂直居中，双页高度不同时各页居中对齐。单页或双页显示受可用高度限制时，继续提高缩放只增加 PNG 分辨率，显示高度保持在可用高度。文本层坐标由 PDF.js 文本项换算，和图片可能有 1–2px 偏差；CJK 字体度量不完美时仍可选择，但高亮可能偏移。页面是 PDF.js 光栅化结果，不是 MuPDF，复杂 PDF 的像素级效果不保证。JBIG2/JPX 图片需要 PDF.js WASM 解码器；`wasmUrl` 指向依赖包内 `wasm/`，页面缓存带渲染版本，旧版本缓存会自动失效。页面图片本身不参与配色，只有页面周围背景与选区颜色由 FTR-011 控制。书签解析失败或条目没有有效页目标时，该条目不会显示；整本书没有书签时仍显示页码目录。
 
 ## 验收与测试
 
 - 正常路径：单页 PDF 渲染出 PNG、页面尺寸与页数正确，文本项包含原文（`render_pdf_page_png`）。
+- 正常路径：PDF.js 的 JBIG2/OpenJPEG WASM 资源随依赖存在（`pdfjs_wasm_decoder_assets_are_present`）。
 - 正常路径：PDF 书签按层级和页目标解析为 outline（`parse_pdf_outline_hierarchy`）。
 - 失败：越界页码或非法缩放被拒绝（`pdf_page_rejects_out_of_range`）。
 - 正常路径：按章节恢复 PDF 的视觉目标，文本格式或缺失章节返回空（`visual_target_restores_pdf_page`）。

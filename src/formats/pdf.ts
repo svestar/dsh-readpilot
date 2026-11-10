@@ -1,5 +1,6 @@
 import { basename, extname } from 'node:path'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { pdfWasmUrl } from '../pdfjs.ts'
 import type { Chapter, OutlineEntry, ParsedBook, TextBlock } from '../formats.ts'
 
 const MAX_PAGES = 2000
@@ -354,6 +355,7 @@ export async function parsePdf(buffer: Buffer, filePath: string): Promise<Parsed
     useSystemFonts: false,
     isEvalSupported: false,
     disableFontFace: true,
+    wasmUrl: pdfWasmUrl(),
     verbosity: 0,
   } as any)
 

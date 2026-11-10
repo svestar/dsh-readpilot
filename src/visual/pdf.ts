@@ -2,6 +2,7 @@ import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promi
 import { join } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
+import { pdfWasmUrl } from '../pdfjs.ts'
 
 const MIN_SCALE = 0.5
 const MAX_SCALE = 3
@@ -9,6 +10,7 @@ const MAX_PAGES = 2000
 const DEFAULT_MAX_CACHE_BYTES = 500 * 1024 * 1024
 /** The cache walk stats every page; keep it off the per-page render path. */
 const PRUNE_INTERVAL_MS = 60 * 1000
+const RENDER_VERSION = 2
 
 export interface PdfTextItem {
   text: string
@@ -39,6 +41,7 @@ export interface PdfRenderer {
 }
 
 interface PdfCacheMeta {
+  rendererVersion: number
   sourceMtimeMs: number
   sourceSize: number
   width: number
@@ -110,7 +113,8 @@ async function readCache(cacheDir: string, bookId: string, page: number, scale: 
       readFile(`${base}.png`),
       readFile(`${base}.json`, 'utf8'),
     ])
-    return { png, meta: JSON.parse(metaText) }
+    const meta = JSON.parse(metaText) as PdfCacheMeta
+    return meta.rendererVersion === RENDER_VERSION ? { png, meta } : null
   } catch {
     return null
   }
@@ -194,6 +198,7 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
         useSystemFonts: false,
         isEvalSupported: false,
         disableFontFace: true,
+        wasmUrl: pdfWasmUrl(),
         verbosity: 0,
       } as any)
       try {
@@ -283,6 +288,7 @@ export function createPdfPageRenderer({ cacheDir, maxCacheBytes = DEFAULT_MAX_CA
           textItems,
         }
         await writeCache(cacheRoot, bookId, page, scale, png, {
+          rendererVersion: RENDER_VERSION,
           sourceMtimeMs: entry.mtimeMs,
           sourceSize: entry.size,
           width: result.width,

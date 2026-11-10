@@ -1,10 +1,11 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
+import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createPdfPageRenderer } from '../src/visual/pdf.ts'
 import { parsePdf } from '../src/formats/pdf.ts'
+import { pdfWasmUrl } from '../src/pdfjs.ts'
 import { visualForChapter } from '../src/client/reader-screen.ts'
 
 function makePdf(text: string) {
@@ -144,4 +145,9 @@ test('visual_target_restores_pdf_page', () => {
   assert.deepEqual(visualForChapter(detail, 'c2'), { kind: 'pdf', page: 1, scale: 1.5 })
   assert.equal(visualForChapter(detail, 'missing'), null)
   assert.equal(visualForChapter({ ...detail, book: { format: 'txt' } }, 'c1'), null)
+})
+
+test('pdfjs_wasm_decoder_assets_are_present', async () => {
+  await access(join(pdfWasmUrl(), 'jbig2.wasm'))
+  await access(join(pdfWasmUrl(), 'openjpeg.wasm'))
 })
