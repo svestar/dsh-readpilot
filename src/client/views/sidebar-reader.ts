@@ -82,7 +82,7 @@ export function prefillCompanionQuote(actions: ComposerInputActions | null | und
 interface SidebarBook {
   bookId: string
   title: string
-  format: 'txt' | 'md' | 'epub' | 'pdf'
+  format: 'txt' | 'md' | 'epub' | 'pdf' | 'kindle'
 }
 
 type SidebarMode = 'text' | 'original'
@@ -641,7 +641,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
     h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
     h(ReaderBar, {
       t,
-      format: screen.detail.book.format,
+      format: (screen.detail.book.format === 'kindle' ? 'txt' : screen.detail.book.format),
       mode: 'paged',
       layout: 'single',
       chapterTitle: screen.content.title,

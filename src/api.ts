@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { mkdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
-import type { BookFormat, Chapter, TextBlock } from './formats.ts'
+import type { Chapter, LibraryFormat, TextBlock } from './formats.ts'
 import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
 import { buildBookDigest } from './digest.ts'
 import { exportBackup, restoreBackup } from './backup.ts'
@@ -172,7 +172,7 @@ export function normalizeReadingView(value: unknown): CompanionReadingView | und
 export interface SessionBookResult {
   bookId: string
   title: string
-  format: BookFormat
+  format: LibraryFormat
   progress: ReadingProgress | null
 }
 

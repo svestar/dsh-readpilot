@@ -1,7 +1,7 @@
 import { join } from 'node:path'
 import { readJson, writeJson } from './fsjson.ts'
 import type { Book } from './library.ts'
-import type { BookFormat } from './formats.ts'
+import type { LibraryFormat } from './formats.ts'
 
 export const LIBRARY_INDEX_VERSION = 1
 
@@ -10,7 +10,7 @@ export interface LibraryRecord {
   contentKey: string
   path: string
   title: string
-  format: BookFormat
+  format: LibraryFormat
   size: number
   mtimeMs: number
   duplicateOf?: string

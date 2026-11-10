@@ -243,8 +243,9 @@ function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags
       h('span', { className: 'dsh-readpilot-book-format-chip' }, book.format.toUpperCase()),
       h('span', null, formatSize(book.size)),
       h('span', { className: 'dsh-readpilot-book-progress' }, book.progress ? book.progress.chapterTitle || t('reading') : t('unread'))),
-    label || rating > 0
+    label || rating > 0 || book.format === 'kindle'
       ? h('div', { className: 'dsh-readpilot-book-badges' },
+        book.format === 'kindle' ? h('span', { className: 'dsh-readpilot-book-status' }, t('kindleBadge')) : null,
         label ? h('span', { className: 'dsh-readpilot-book-status', 'data-status': status ?? '' }, label) : null,
         rating > 0 ? h('span', { className: 'dsh-readpilot-book-rating', title: `${rating}/5` }, '★'.repeat(rating)) : null)
       : null,

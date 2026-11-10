@@ -66,6 +66,8 @@ export const zh = {
       inProgress: '在读',
       unsupported: '暂不支持',
       unsupportedHint: '这本书暂时无法打开；请检查文件是否损坏，或 PDF 是否缺少可提取的文本层。',
+      kindleBadge: '需转 EPUB',
+      kindleConvertHint: '请先将 MOBI/AZW/AZW3 转换为 EPUB 后导入；当前不解析该格式。',
       unread: '未读',
       readStatus: '阅读状态',
       statusNone: '未标记',

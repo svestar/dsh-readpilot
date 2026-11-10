@@ -221,15 +221,16 @@ export function createPlugin(require: (name: string) => any) {
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const bookId = screen.kind === 'book' ? screen.detail.book.id : null
       const scanOnly = screen.kind === 'book' ? Boolean(screen.detail.scanOnly) : false
-      const reflowMode = !scanOnly && bookId && format ? reflowEnabledFor(reflowBooks, bookId, format) : false
+      const supportedFormat = format === 'txt' || format === 'md' || format === 'epub' || format === 'pdf' ? format : null
+      const reflowMode = !scanOnly && bookId && supportedFormat ? reflowEnabledFor(reflowBooks, bookId, supportedFormat) : false
       const reflowModeRef = React.useRef(reflowMode)
       reflowModeRef.current = reflowMode
-      const capabilities = readerCapabilities(format ?? 'txt', reflowMode, scanOnly)
-      const isTextFormat = !scanOnly && (format === 'txt' || format === 'md'
-        || (format === 'pdf' && reflowMode)
-        || (format === 'epub' && reflowMode))
-      const textLayout: PageLayout = format === 'pdf' && reflowMode ? 'single' : pageLayout
-      const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
+      const capabilities = readerCapabilities(supportedFormat ?? 'txt', reflowMode, scanOnly)
+      const isTextFormat = !scanOnly && (supportedFormat === 'txt' || supportedFormat === 'md'
+        || (supportedFormat === 'pdf' && reflowMode)
+        || (supportedFormat === 'epub' && reflowMode))
+      const textLayout: PageLayout = supportedFormat === 'pdf' && reflowMode ? 'single' : pageLayout
+      const effectiveMode: ReaderMode = supportedFormat === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
       const pendingScrollRef = React.useRef<PendingScroll | null>(null)
 
@@ -509,7 +510,14 @@ export function createPlugin(require: (name: string) => any) {
               token: ++anchorTokenRef.current,
             }
             : null)
-          setVisual(visualForItem(detail, target, reflowEnabledFor(reflowBooks, book.id, detail.book.format)))
+          setVisual(visualForItem(detail, target, reflowEnabledFor(
+            reflowBooks,
+            book.id,
+            detail.book.format === 'txt' || detail.book.format === 'md'
+              || detail.book.format === 'epub' || detail.book.format === 'pdf'
+              ? detail.book.format
+              : 'txt',
+          )))
           setScreen({ kind: 'book', detail, content })
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
@@ -1388,7 +1396,7 @@ export function createPlugin(require: (name: string) => any) {
       const pdfVisual = visual?.kind === 'pdf' ? visual : null
       const pdfPage = pdfVisual?.page ?? 1
 
-      const readerBarProps = format === 'pdf'
+      const readerBarProps = supportedFormat === 'pdf'
         ? {
           pageStart: pdfPage,
           pageEnd: Math.min(pdfPage + columnsFor(pageLayout) - 1, pdfPageCount || pdfPage),
@@ -1405,7 +1413,7 @@ export function createPlugin(require: (name: string) => any) {
           zoom: pdfVisual?.scale ?? 1,
           onZoom: zoomPdf,
         }
-        : format === 'epub'
+        : supportedFormat === 'epub'
           ? effectiveMode === 'paged'
             ? {
               pageStart: epubPage + 1,
@@ -1453,7 +1461,7 @@ export function createPlugin(require: (name: string) => any) {
       const readerBar = screen.kind === 'book'
         ? h(ReaderBar, {
           t,
-          format: screen.detail.book.format,
+          format: supportedFormat ?? 'txt',
           mode: effectiveMode,
           layout: textLayout,
           chapterTitle: screen.content.title,
@@ -1586,7 +1594,7 @@ export function createPlugin(require: (name: string) => any) {
         settingsOpen && screen.kind === 'book'
           ? h(ReaderSettings, {
             t,
-            format: screen.detail.book.format,
+            format: supportedFormat ?? 'txt',
             source: reflowMode,
             flow: effectiveMode,
             spread: format === 'pdf' && reflowMode ? 'single' : pageLayout,
@@ -1647,7 +1655,7 @@ export function createPlugin(require: (name: string) => any) {
               : screen.kind === 'unsupported'
                 ? h('div', { className: 'dsh-readpilot-empty' },
                   h('h2', null, screen.book.title),
-                  h('p', null, t('unsupportedHint')),
+                  h('p', null, screen.book.format === 'kindle' ? t('kindleConvertHint') : t('unsupportedHint')),
                   h('button', {
                     type: 'button',
                     className: 'dsh-readpilot-secondary',
