@@ -55,6 +55,7 @@ import type { ReaderAction } from '../reader-actions.ts'
 import { createReaderErrorBoundary } from './views/error-boundary.ts'
 import { ReaderBar } from './views/reader-bar.ts'
 import { ActionHistory } from './views/action-history.ts'
+import { HelpManual } from './views/help-manual.ts'
 import { companionMode, useCompanion } from './hooks/use-companion.ts'
 import { ChatBody, ChatCompose } from './views/chat-content.ts'
 import { NativeCompanion, createNativeChatBoundary } from './views/native-companion.ts'
@@ -201,6 +202,7 @@ export function createPlugin(require: (name: string) => any) {
       const [presetManagerOpen, setPresetManagerOpen] = React.useState(false)
       const [presetError, setPresetError] = React.useState('')
       const [historyOpen, setHistoryOpen] = React.useState(false)
+      const [helpOpen, setHelpOpen] = React.useState(false)
       const [paletteId, setPaletteId] = React.useState<string>(readPaletteId)
       const [glassBlur, setGlassBlur] = React.useState<number>(readGlassBlur)
       const palette = resolveReaderPalette(paletteId)
@@ -1589,6 +1591,7 @@ export function createPlugin(require: (name: string) => any) {
           onToggleChat: () => setChatOpen(previous => !previous),
           onToggleToc: () => setTocOpen(previous => !previous),
           onBookmark: addBookmark,
+          onHelp: () => setHelpOpen(true),
           scanOnly,
         }),
         scanOnly ? h('div', { className: 'dsh-readpilot-scan-notice' }, t('scanPdfNotice')) : null,
@@ -1699,6 +1702,7 @@ export function createPlugin(require: (name: string) => any) {
             onClose: () => setPresetManagerOpen(false),
           })
           : null,
+        helpOpen ? h(HelpManual, { t, onClose: () => setHelpOpen(false) }) : null,
         historyOpen
           ? h(ActionHistory, {
             t,

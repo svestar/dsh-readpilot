@@ -357,6 +357,21 @@ body[data-ds-dark-theme] .dsh-readpilot-panel{--dsh-readpilot-surface:rgba(0,0,0
 .dsh-readpilot-main{display:flex;flex-direction:column;min-width:0;min-height:0}
 .dsh-readpilot-main>.dsh-readpilot-reader{flex:1;min-height:0}
 .dsh-readpilot-bar{flex:none;display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-help{width:min(760px,100%);max-height:min(84vh,720px);display:flex;flex-direction:column;gap:12px;padding:18px 20px;box-sizing:border-box}
+.dsh-readpilot-help-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-help-head h3{margin:0;font-size:15px}
+.dsh-readpilot-help-head p{margin:5px 0 0;color:var(--dsw-alias-label-secondary);font-size:11px;line-height:1.5}
+.dsh-readpilot-help-layout{display:grid;grid-template-columns:170px minmax(0,1fr);gap:14px;min-height:0;flex:1}
+.dsh-readpilot-help-nav{display:flex;flex-direction:column;gap:3px;overflow:auto;padding-right:4px}
+.dsh-readpilot-help-topic{width:100%;padding:7px 9px;border:0;border-radius:7px;background:transparent;color:var(--dsw-alias-label-secondary);text-align:left;font:inherit;font-size:11px;cursor:pointer}
+.dsh-readpilot-help-topic:hover{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-help-topic[data-active="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary);font-weight:600}
+.dsh-readpilot-help-body{min-width:0;overflow:auto;padding-right:4px}
+.dsh-readpilot-help-body h4{margin:0 0 8px;font-size:14px}
+.dsh-readpilot-help-body p{margin:0;color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.75;white-space:pre-line}
+.dsh-readpilot-help-footer{display:flex;align-items:center;gap:12px;padding-top:10px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-help-footer a{color:var(--dsw-alias-brand-primary);font-size:11px}
+.dsh-readpilot-help-footer button{margin-left:auto}
 .dsh-readpilot-scan-notice{flex:none;padding:7px 14px;border-bottom:1px solid var(--dsw-alias-border-l2);background:color-mix(in srgb,var(--dsw-alias-state-warning-primary) 8%,transparent);color:var(--dsw-alias-state-warning-primary);font-size:11px;line-height:1.5}
 .dsh-readpilot-bar-group{display:flex;align-items:center;gap:4px;min-width:0;flex-wrap:wrap}
 .dsh-readpilot-bar button.dsh-readpilot-secondary{background:var(--dsw-alias-bg-layer-1)!important;color:var(--dsw-alias-label-primary)!important;border-color:var(--dsw-alias-border-l2)!important}

@@ -16,6 +16,7 @@ interface HeaderProps {
   onToggleChat: () => void
   onToggleToc: () => void
   onBookmark: () => void
+  onHelp: () => void
   scanOnly?: boolean
 }
 
@@ -34,6 +35,7 @@ export function Header({
   onToggleChat,
   onToggleToc,
   onBookmark,
+  onHelp,
   scanOnly = false,
 }: HeaderProps) {
   return h('div', { className: 'dsh-readpilot-header' },
@@ -61,6 +63,13 @@ export function Header({
         }, openingWorkspace ? '…' : t('openWorkspace')))
       : null,
     h('div', { className: 'dsh-readpilot-header-actions' },
+      h(Tooltip, { label: t('helpTitle'), side: 'bottom', delayMs: 300 },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-icon-btn',
+          'aria-label': t('helpTitle'),
+          onClick: onHelp,
+        }, '?')),
       screen.kind === 'book'
         ? h(Tooltip, { label: t('readerSettings'), side: 'bottom', delayMs: 300 },
           h('button', {
