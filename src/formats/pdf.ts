@@ -439,6 +439,8 @@ export async function parsePdf(buffer: Buffer, filePath: string): Promise<Parsed
       author,
       chapters,
       outline,
+      pageCount: pdf.numPages,
+      scanOnly: chapters.length === 0,
       chars: chapters.reduce((sum, chapter) => sum + chapter.chars, 0),
       reflowConfidence: Math.max(0, Math.min(1, confidence)),
       reflowNotes: notes,

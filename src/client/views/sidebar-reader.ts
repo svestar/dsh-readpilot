@@ -159,6 +159,18 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
           ?? detail.toc.find((item: any) => item.id === detail.progress?.chapterId)
           ?? detail.toc[0]
         if (!target) throw new Error(t('unsupported'))
+        if (detail.scanOnly) {
+          setBook({ bookId: resource.bookId, title: detail.book.title, format: detail.book.format })
+          setMode('original')
+          setAnchor(null)
+          progressSkipRef.current = true
+          setScreen({
+            kind: 'book',
+            detail,
+            content: { chapterId: target.id, title: target.title, blocks: [], locator: `${resource.bookId}:${target.id}:0` },
+          })
+          return
+        }
         const content = await call('chapter', { bookId: resource.bookId, chapterId: target.id })
         if (cancelled) return
         setBook({ bookId: resource.bookId, title: detail.book.title, format: detail.book.format })
@@ -187,6 +199,17 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
       if (!detail.supported) throw new Error(t('unsupported'))
       const target = detail.toc.find((item: any) => item.id === detail.progress?.chapterId) ?? detail.toc[0]
       if (!target) throw new Error(t('unsupported'))
+      if (detail.scanOnly) {
+        setMode('original')
+        setAnchor(null)
+        progressSkipRef.current = true
+        setScreen({
+          kind: 'book',
+          detail,
+          content: { chapterId: target.id, title: target.title, blocks: [], locator: `${found.bookId}:${target.id}:0` },
+        })
+        return
+      }
       const content = await call('chapter', { bookId: found.bookId, chapterId: target.id })
       if (cancelled) return
       const fraction = detail.progress?.chapterFraction
@@ -483,6 +506,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
   const canOriginal = screen.kind === 'book' && (screen.detail.book.format === 'epub' || screen.detail.book.format === 'pdf')
   const switchMode = (next: SidebarMode) => {
     if (next === mode || (next === 'original' && !canOriginal)) return
+    if (screen.kind === 'book' && screen.detail.scanOnly && next === 'text') return
     const fraction = screen.kind === 'book'
       ? mode === 'text'
         ? textPager.page / Math.max(1, textPager.pageCount)
@@ -589,7 +613,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
   return h('div', { className: 'dsh-readpilot-sidebar-reader-root', ref: rootRef },
     h('div', { className: 'dsh-readpilot-sidebar-reader-head' },
       h('div', { className: 'dsh-readpilot-sidebar-reader-title', title: book.title }, book.title),
-      h('div', { className: 'dsh-readpilot-segmented' },
+      screen.detail.scanOnly ? null : h('div', { className: 'dsh-readpilot-segmented' },
         h('button', {
           type: 'button',
           className: 'dsh-readpilot-segment',
@@ -613,6 +637,7 @@ export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, op
         onHighlight: (color: string) => { void addHighlight(color) },
       })
       : null,
+    screen.detail.scanOnly ? h('div', { className: 'dsh-readpilot-scan-notice' }, t('scanPdfNotice')) : null,
     h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
     h(ReaderBar, {
       t,

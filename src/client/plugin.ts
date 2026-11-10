@@ -220,13 +220,14 @@ export function createPlugin(require: (name: string) => any) {
       }, [refreshPromptPresets])
       const format = screen.kind === 'book' ? screen.detail.book.format : null
       const bookId = screen.kind === 'book' ? screen.detail.book.id : null
-      const reflowMode = bookId && format ? reflowEnabledFor(reflowBooks, bookId, format) : false
+      const scanOnly = screen.kind === 'book' ? Boolean(screen.detail.scanOnly) : false
+      const reflowMode = !scanOnly && bookId && format ? reflowEnabledFor(reflowBooks, bookId, format) : false
       const reflowModeRef = React.useRef(reflowMode)
       reflowModeRef.current = reflowMode
-      const capabilities = readerCapabilities(format ?? 'txt', reflowMode)
-      const isTextFormat = format === 'txt' || format === 'md'
+      const capabilities = readerCapabilities(format ?? 'txt', reflowMode, scanOnly)
+      const isTextFormat = !scanOnly && (format === 'txt' || format === 'md'
         || (format === 'pdf' && reflowMode)
-        || (format === 'epub' && reflowMode)
+        || (format === 'epub' && reflowMode))
       const textLayout: PageLayout = format === 'pdf' && reflowMode ? 'single' : pageLayout
       const effectiveMode: ReaderMode = format === 'pdf' ? 'paged' : readingMode
       const contentRef = React.useRef<HTMLDivElement | null>(null)
@@ -478,6 +479,24 @@ export function createPlugin(require: (name: string) => any) {
           const target = detail.toc.find((item: TocItem) => item.id === detail.progress?.chapterId) ?? detail.toc[0]
           if (!target) {
             setScreen({ kind: 'unsupported', book: detail.book })
+            return
+          }
+          if (detail.scanOnly) {
+            const pageCount = Math.max(1, detail.pageCount ?? 1)
+            const percent = Number(detail.progress?.percent ?? 0)
+            const page = Math.max(1, Math.min(pageCount, Math.round((percent / 100) * (pageCount - 1)) + 1))
+            setReadingAnchor(null)
+            setVisual({ kind: 'pdf', page, scale: 1.5 })
+            setScreen({
+              kind: 'book',
+              detail,
+              content: {
+                chapterId: target.id,
+                title: target.title,
+                blocks: [],
+                locator: `${book.id}:${target.id}:0`,
+              },
+            })
             return
           }
           const content = await call('chapter', { bookId: book.id, chapterId: target.id })
@@ -1086,6 +1105,7 @@ export function createPlugin(require: (name: string) => any) {
             paged: effectiveMode === 'paged',
           })
           if (!action) return
+          if (scanOnly && (action === 'search' || action === 'bookmark')) return
           if (action === 'bookmark' && hostShortcutActions.has('bookmark')) return
           if (action === 'search' && hostShortcutActions.has('search') && (event.ctrlKey || event.metaKey)) return
           event.preventDefault()
@@ -1327,7 +1347,7 @@ export function createPlugin(require: (name: string) => any) {
 
       const searchPanel = h(SearchPanel, {
         t,
-        open: searchOpen,
+        open: searchOpen && !scanOnly,
         screen,
         searchInputRef,
         searchQuery,
@@ -1560,7 +1580,9 @@ export function createPlugin(require: (name: string) => any) {
           onToggleChat: () => setChatOpen(previous => !previous),
           onToggleToc: () => setTocOpen(previous => !previous),
           onBookmark: addBookmark,
+          scanOnly,
         }),
+        scanOnly ? h('div', { className: 'dsh-readpilot-scan-notice' }, t('scanPdfNotice')) : null,
         settingsOpen && screen.kind === 'book'
           ? h(ReaderSettings, {
             t,

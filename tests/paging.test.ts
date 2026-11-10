@@ -323,3 +323,12 @@ test('anchor_page_restores_fraction', () => {
   assert.equal(anchorPage(2, 8), 7)
   assert.equal(anchorPage(0.5, 1), 0)
 })
+
+
+test('scan_only_pdf_has_no_text_reflow', () => {
+  const capabilities = readerCapabilities('pdf', false, true)
+  assert.equal(capabilities.source, false)
+  assert.deepEqual(capabilities.flows, ['paged'])
+  assert.equal(capabilities.zoom, true)
+  assert.equal(capabilities.fontSize, false)
+})

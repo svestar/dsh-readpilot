@@ -111,6 +111,8 @@ test('parse_pdf_without_text_returns_no_chapters', async () => {
   const book = await parsePdf(buffer, join('Books', 'scanned.pdf'))
   assert.deepEqual(book.chapters, [])
   assert.equal(book.chars, 0)
+  assert.equal(book.scanOnly, true)
+  assert.equal(book.pageCount, 1)
   assert.equal(book.title, 'scanned')
   assert.equal(book.author, '')
 })

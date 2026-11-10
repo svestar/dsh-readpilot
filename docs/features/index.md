@@ -50,3 +50,4 @@
 | `FTR-044` | 动作回执与撤销 | `docs/features/FTR-044-action-undo.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
 | `FTR-045` | 书籍身份与迁移 | `docs/features/FTR-045-book-identity.md` | `src/library.ts` | `tests/library-index.test.ts;tests/api.test.ts` | active |
 | `FTR-046` | 备份与覆盖恢复 | `docs/features/FTR-046-backup-restore.md` | `src/backup.ts` | `tests/backup.test.ts` | active |
+| `FTR-047` | 扫描版 PDF | `docs/features/FTR-047-scanned-pdf.md` | `src/formats/pdf.ts` | `tests/pdf.test.ts;tests/paging.test.ts;tests/api.test.ts` | active |

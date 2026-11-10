@@ -38,6 +38,8 @@ export interface ParsedBook {
   outline?: OutlineEntry[]
   reflowConfidence?: number
   reflowNotes?: string[]
+  pageCount?: number
+  scanOnly?: boolean
 }
 
 export interface ChapterSource {

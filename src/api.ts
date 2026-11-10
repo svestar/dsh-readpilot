@@ -59,7 +59,7 @@ import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/e
 import type { PdfRenderer, PdfTextItem } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
 
-const PARSER_VERSION = 11
+const PARSER_VERSION = 12
 const APP_VERSION = '0.4.0-dev'
 const DEFAULT_MAX_BOOK_BYTES = 100 * 1024 * 1024
 const DEFAULT_READ_LIMIT = 4000
@@ -199,6 +199,8 @@ export interface OpenResult {
   progress: ReadingProgress | null
   reflowConfidence?: number
   reflowNotes?: string[]
+  scanOnly?: boolean
+  pageCount?: number
 }
 
 export interface ChapterContent {
@@ -694,6 +696,22 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     }
     const parsed = await ensureParsed(book)
     if (parsed.chapters.length === 0) {
+      if (book.format === 'pdf' && (parsed.pageCount ?? 0) > 0) {
+        return {
+          book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
+          supported: true,
+          toc: [{ id: 'scan', title: parsed.title || book.title, chars: 0, page: 1 }],
+          outline: (Array.isArray(parsed.outline) ? parsed.outline : []).map(item => ({
+            id: item.id,
+            title: item.title,
+            level: item.level,
+            page: item.page,
+          })),
+          progress,
+          scanOnly: true,
+          pageCount: parsed.pageCount,
+        }
+      }
       throw new ReaderError(
         'no-extractable-text',
         book.format === 'pdf'
@@ -1080,6 +1098,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         jumpUrl: buildReaderJumpUrl(found.id, item.id),
       })),
       tocTruncated: detail.toc.length > 200,
+      ...(detail.scanOnly ? { scanOnly: true, pageCount: detail.pageCount } : {}),
       progress: detail.progress?.chapterId
         ? { ...detail.progress, jumpUrl: buildReaderJumpUrl(found.id, detail.progress.chapterId) }
         : detail.progress,
@@ -1141,6 +1160,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
         jumpUrl: buildReaderJumpUrl(found.id, item.id),
       })),
       tocTruncated: detail.toc.length > 60,
+      ...(detail.scanOnly ? { scanOnly: true, pageCount: detail.pageCount } : {}),
       jumpUrl: detail.progress?.chapterId
         ? buildReaderJumpUrl(found.id, detail.progress.chapterId)
         : null,

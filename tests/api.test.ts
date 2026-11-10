@@ -43,6 +43,33 @@ async function makeLibrary(t: any) {
   return { root, library, data }
 }
 
+
+function buildBlankPdf(): Buffer {
+  const objects = [
+    '<< /Type /Catalog /Pages 2 0 R >>',
+    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
+  ]
+  const chunks: Buffer[] = []
+  let offset = 0
+  const write = (value: string) => {
+    const bytes = Buffer.from(value, 'latin1')
+    chunks.push(bytes)
+    offset += bytes.length
+  }
+  write('%PDF-1.4\n')
+  const offsets = objects.map((body, index) => {
+    const start = offset
+    write(`${index + 1} 0 obj\n${body}\nendobj\n`)
+    return start
+  })
+  const xrefOffset = offset
+  write(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`)
+  for (const start of offsets) write(`${String(start).padStart(10, '0')} 00000 n \n`)
+  write(`trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`)
+  return Buffer.concat(chunks)
+}
+
 test('book_tags_persist_and_validate', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
@@ -719,4 +746,20 @@ test('reading_view_is_normalized_and_available_from_tool_context', async t => {
   assert.equal(context.view.selection.length, 4000)
   assert.equal(context.view.selectionBlockIndex, 4)
   assert.equal(normalizeReadingView({ pageStart: 0, pageEnd: 'x' }), undefined)
+})
+
+test('open_scanned_pdf_returns_visual_only', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  await writeFile(join(library, 'scan.pdf'), buildBlankPdf())
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const opened = await api.open({ bookId: state.books[0].id })
+  assert.equal(opened.supported, true)
+  assert.equal(opened.scanOnly, true)
+  assert.equal(opened.pageCount, 1)
+  assert.equal(opened.toc[0].id, 'scan')
 })

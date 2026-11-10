@@ -16,6 +16,7 @@ interface HeaderProps {
   onToggleChat: () => void
   onToggleToc: () => void
   onBookmark: () => void
+  scanOnly?: boolean
 }
 
 export function Header({
@@ -33,6 +34,7 @@ export function Header({
   onToggleChat,
   onToggleToc,
   onBookmark,
+  scanOnly = false,
 }: HeaderProps) {
   return h('div', { className: 'dsh-readpilot-header' },
     h('div', { className: 'dsh-readpilot-header-main' },
@@ -70,7 +72,7 @@ export function Header({
             onClick: onToggleSettings,
           }, 'Aa'))
         : null,
-      screen.kind === 'book'
+      screen.kind === 'book' && !scanOnly
         ? h(Tooltip, { label: t('search'), side: 'bottom', delayMs: 300 },
           h('button', {
             type: 'button',
@@ -87,7 +89,7 @@ export function Header({
             onClick: onToggleChat,
           }, t('companion')))
         : null,
-      screen.kind === 'book'
+      screen.kind === 'book' && !scanOnly
         ? h(Tooltip, { label: t('bookmark'), side: 'bottom', delayMs: 300 },
           h('button', {
             type: 'button',

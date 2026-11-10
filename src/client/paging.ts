@@ -107,7 +107,10 @@ export interface ReaderCapabilities {
   zoom: boolean
 }
 
-export function readerCapabilities(format: 'txt' | 'md' | 'epub' | 'pdf', reflow: boolean): ReaderCapabilities {
+export function readerCapabilities(format: 'txt' | 'md' | 'epub' | 'pdf', reflow: boolean, scanOnly = false): ReaderCapabilities {
+  if (scanOnly) {
+    return { source: false, flows: ['paged'], spread: true, fontSize: false, zoom: true }
+  }
   if (format === 'txt' || format === 'md') {
     return { source: false, flows: ['paged', 'scroll'], spread: true, fontSize: true, zoom: false }
   }
