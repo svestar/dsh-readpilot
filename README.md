@@ -29,7 +29,7 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 
 ## 开发
 
-需要 Node 22.18+。`pnpm run build` 生成 Host 与 `client.js`；`pnpm test` 跑测试；`pnpm run typecheck` 类型检查；`python scripts/check_docs.py` 检查文档。
+需要 Node 22.18+。`pnpm run build` 生成 Host 与 `client.js`；`pnpm test` 跑全量测试；`pnpm smoke` 跑 Host 冒烟流程；`pnpm run typecheck` 类型检查；`python scripts/check_docs.py` 检查文档。
 
 Host 在 `index.ts`、`src/`；Client 在 `src/client/`，产物 `client.js`。功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
 
