@@ -191,6 +191,14 @@ class CheckDocsGateTest(unittest.TestCase):
         path.write_text("# USAGE\n" + "x" * 2992 + "\n", encoding="utf-8")
         self.assert_rejected("上限 3000")
 
+    def test_changelog_limit_is_3000(self):
+        path = self.root / "CHANGELOG.md"
+        path.write_text("# Changelog\n" + "x" * 2987 + "\n", encoding="utf-8")
+        code, output = self.run_checker()
+        self.assertEqual(code, 0, output)
+        path.write_text("# Changelog\n" + "x" * 2990 + "\n", encoding="utf-8")
+        self.assert_rejected("上限 3000")
+
     def test_accepts_feature_document_within_limit(self):
         self.write_feature(2000)
         code, output = self.run_checker()

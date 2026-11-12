@@ -17,7 +17,7 @@
 - 删除副本：从磁盘删除该副本文件并移除其索引记录，主记录保留；
 - 删除主记录：若剩余副本没有用户数据，把它提升为主记录并沿用原 `bookId`，保留原批注/进度；剩余副本已有数据时拒绝；
 - 任何删除都需在弹窗中二次确认；文件永久删除，不进入回收站；
-- 被删除记录已有批注、进度、会话、标签、评分或长笔记时拒绝删除，避免静默丢失数据。
+- 删除副本时，副本自身已有批注、进度、会话、标签、评分或长笔记则拒绝；删除主记录时检查剩余副本的数据。
 
 索引缺失或损坏时从空索引重建，首次扫描为每本书使用路径 `bookId`；读取内容失败的书跳过，不阻塞其余扫描。
 
@@ -31,7 +31,7 @@
 | `deleteDuplicate` | `src/api.ts:deleteDuplicate` | 删除所选文件；主记录删除时提升剩余副本 |
 | `deleteLibraryRecord` | `src/library-index.ts:deleteLibraryRecord` | 删除索引中的书籍记录 |
 | `DuplicateDialog` | `src/client/views/library-view.ts:DuplicateDialog` | 展示同组文件、二次确认与删除动作 |
-| `Library` | `src/client/views/library-view.ts:Library` | 副本提示、徽标与弹窗入口 |
+| `Library` | `src/client/views/library-view.ts:Library` | 处理副本按钮、副本徽标与弹窗入口 |
 
 ## 约束与失败行为
 
