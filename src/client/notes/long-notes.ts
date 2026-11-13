@@ -1,7 +1,7 @@
 import { React, Toast, h, useVirtualizer } from '../common/runtime.ts'
 import { buildNoteResource } from './note-resource.ts'
 import { diffLines, formatSize } from '../common/helpers.ts'
-import { MarkdownMessage } from '../markdown/render.ts'
+import { DshMarkdown } from '../markdown/dsh-markdown.ts'
 import { ConfirmDialog } from '../common/confirm-dialog.ts'
 import { ModalShell } from '../common/modal.ts'
 import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../common/types.ts'
@@ -307,7 +307,7 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
           h('div', { className: 'dsh-readpilot-modal-body' },
             state.historyOpen
               ? historyView(t, state)
-              : h(MarkdownMessage, { text: state.active.body, prefix: 'long-note' })),
+              : h(DshMarkdown, { t, text: state.active.body, prefix: 'long-note' })),
           state.historyOpen
             ? null
             : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),

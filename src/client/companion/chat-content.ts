@@ -1,5 +1,5 @@
 import { h } from '../common/runtime.ts'
-import { MarkdownMessage } from '../markdown/render.ts'
+import { DshMarkdown } from '../markdown/dsh-markdown.ts'
 import type { StateSetter } from '../common/runtime.ts'
 import type { ChatMessage, MutableRef, TextFn } from '../common/types.ts'
 
@@ -46,7 +46,7 @@ export function ChatBody({
       h('div', { className: 'dsh-readpilot-msg-role' },
         message.role === 'user' ? t('you') : t('assistant')),
       message.role === 'assistant'
-        ? h(MarkdownMessage, { text: message.text, prefix: message.key })
+        ? h(DshMarkdown, { t, text: message.text, prefix: message.key })
         : h('div', { className: 'dsh-readpilot-msg-text' }, message.text))),
     sending || running
       ? h('div', { className: 'dsh-readpilot-chat-thinking' },
