@@ -17,7 +17,7 @@ Agent 的阅读上下文系统提示会带上“查看范围：第 X–Y 页 / �
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `setCompanionContext` | `src/api.ts:setCompanionContext` | 接收并保存会话的可见范围与选区 |
-| `normalizeReadingView` | `src/api.ts:normalizeReadingView` | 校验页范围、章节、选区与偏移并截断选区 |
+| `normalizeReadingView` | `src/api/contract.ts:normalizeReadingView` | 校验页范围、章节、选区与偏移并截断选区 |
 | `toolContext` | `src/api.ts:toolContext` | 在 `reader_context` 结果中返回 `view` |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 主阅读页计算并发布可见范围/选区 |
 | `SidebarReader` | `src/client/views/sidebar-reader.ts:SidebarReader` | 侧栏阅读发布当前页范围 |

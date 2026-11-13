@@ -3,7 +3,7 @@
 - **ID：** FTR-045
 - **名称：** 书籍身份与迁移
 - **状态：** active
-- **代码：** `src/library.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/library-index.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/api.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/views/library-view.ts`（`DuplicateDialog`、`Library`）；`src/client/plugin.ts`（`deleteDuplicate`）
+- **代码：** `src/library.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/library-index.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/api.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/views/library-view.ts`（`DuplicateDialog`、`Library`）；`src/client/hooks/use-library-actions.ts`（`deleteDuplicate`）
 - **测试：** `tests/library-index.test.ts`；`tests/api.test.ts`
 
 ## 行为

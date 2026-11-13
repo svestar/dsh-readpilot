@@ -34,7 +34,7 @@
 | `backupExport` | `src/api.ts:backupExport` | 读取当前书库并导出 |
 | `backupRestore` | `src/api.ts:backupRestore` | 校验路径、扫描目标、恢复并重绑工作区 |
 | `BackupPanel` | `src/client/views/panels.ts:BackupPanel` | 导出/恢复入口和两步确认 |
-| `backupExport` / `backupRestore` | `src/client/plugin.ts:backupExport` | 调用 RPC 并刷新快照 |
+| `backupExport` / `backupRestore` | `src/client/hooks/use-library-actions.ts:backupExport` | 调用 RPC 并刷新快照 |
 
 ## 约束与失败行为
 
