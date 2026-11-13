@@ -3,7 +3,7 @@
 - **ID：** FTR-039
 - **名称：** 全书概括
 - **状态：** active
-- **代码：** `src/digest.ts`（`buildBookDigest`）；`src/api.ts`（`toolDigest`）；`src/tools.ts`（`reader_digest`）；`src/workspace-prompt.ts`（`READING_PROMPT`）
+- **代码：** `src/reading/digest.ts`（`buildBookDigest`）；`src/api/index.ts`（`toolDigest`）；`src/agent/tools.ts`（`reader_digest`）；`src/agent/workspace-prompt.ts`（`READING_PROMPT`）
 - **测试：** `tests/digest.test.ts`；`tests/tools.test.ts`
 
 ## 行为
@@ -16,10 +16,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `buildBookDigest` | `src/digest.ts:buildBookDigest` | 按预算生成每章摘录与覆盖信息 |
-| `toolDigest` | `src/api.ts:toolDigest` | 解析书籍并返回工具结果 |
-| `reader_digest` | `src/tools.ts:registerTools` | 暴露给模型的工具定义 |
-| `READING_PROMPT` | `src/workspace-prompt.ts:READING_PROMPT` | 全书请求的阅读纪律 |
+| `buildBookDigest` | `src/reading/digest.ts:buildBookDigest` | 按预算生成每章摘录与覆盖信息 |
+| `toolDigest` | `src/api/index.ts:toolDigest` | 解析书籍并返回工具结果 |
+| `reader_digest` | `src/agent/tools.ts:registerTools` | 暴露给模型的工具定义 |
+| `READING_PROMPT` | `src/agent/workspace-prompt.ts:READING_PROMPT` | 全书请求的阅读纪律 |
 
 ## 约束与失败行为
 

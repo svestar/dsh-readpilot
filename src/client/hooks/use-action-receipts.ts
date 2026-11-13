@@ -1,6 +1,6 @@
 import { React } from '../runtime.ts'
 import type { CallRpc } from '../types.ts'
-import type { ReaderActionReceipt } from '../../reader-actions.ts'
+import type { ReaderActionReceipt } from '../../reading/actions.ts'
 
 interface ActionReceiptOptions {
   call: CallRpc

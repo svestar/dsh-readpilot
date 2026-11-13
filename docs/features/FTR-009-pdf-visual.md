@@ -3,7 +3,7 @@
 - **ID：** FTR-009
 - **名称：** PDF 视觉
 - **状态：** active
-- **代码：** `src/visual/pdf.ts`（`createPdfPageRenderer`）；`src/api.ts`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/pdfjs.ts`（`pdfWasmUrl`）
+- **代码：** `src/visual/pdf.ts`（`createPdfPageRenderer`）；`src/api/index.ts`（`pageView`、`pdfPage`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/visual/pdfjs.ts`（`pdfWasmUrl`）
 - **测试：** `tests/pdf-visual.test.ts`
 
 ## 行为
@@ -15,8 +15,8 @@
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `createPdfPageRenderer` | `src/visual/pdf.ts:createPdfPageRenderer` | 渲染页面 PNG、生成文本项并维护磁盘缓存 |
-| `pageView` | `src/api.ts:pageView` | 返回页面尺寸、页数与文本项 |
-| `pdfPage` | `src/api.ts:pdfPage` | 返回页面 PNG 给 `/api/dsh-readpilot/pdf-page` |
+| `pageView` | `src/api/index.ts:pageView` | 返回页面尺寸、页数与文本项 |
+| `pdfPage` | `src/api/index.ts:pdfPage` | 返回页面 PNG 给 `/api/dsh-readpilot/pdf-page` |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | PDF 页状态、单/双页取图、翻页、缩放、选段与页章节同步 |
 | `VisualReader` | `src/client/reader/visual-reader.ts:VisualReader` | 页面图片、文本层与单/双页容器 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |

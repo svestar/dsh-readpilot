@@ -1,10 +1,10 @@
 import { join } from 'node:path'
-import type { Book } from './library.ts'
-import { findBookByKey } from './library.ts'
-import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from './note-files.ts'
-import type { NoteFileStore } from './note-files.ts'
-import { ReaderError } from './reader-error.ts'
-import type { Settings } from './store.ts'
+import type { Book } from '../books/library.ts'
+import { findBookByKey } from '../books/library.ts'
+import { NOTES_DIR_NAME, NoteFileError, createNoteFileStore } from '../notes/files.ts'
+import type { NoteFileStore } from '../notes/files.ts'
+import { ReaderError } from '../reading/error.ts'
+import type { Settings } from '../storage/store.ts'
 
 export interface NoteFileHandlerDeps {
   settings(): Promise<Settings>

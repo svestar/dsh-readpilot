@@ -1,6 +1,6 @@
-import type { Book } from './library.ts'
-import type { NotesStore } from './notes.ts'
-import { ReaderError } from './reader-error.ts'
+import type { Book } from '../books/library.ts'
+import type { NotesStore } from '../notes/store.ts'
+import { ReaderError } from '../reading/error.ts'
 
 export interface NotesHandlerDeps {
   resolveBook(bookId: unknown): Promise<Book>

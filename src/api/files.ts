@@ -1,7 +1,7 @@
 import { spawn } from 'node:child_process'
 import { resolve, sep } from 'node:path'
-import { NOTES_DIR_NAME } from '../note-files.ts'
-import { ReaderError } from '../reader-error.ts'
+import { NOTES_DIR_NAME } from '../notes/files.ts'
+import { ReaderError } from '../reading/error.ts'
 
 export function openWithExternalEditor(path: string): Promise<void> {
   const command = process.platform === 'win32' ? 'explorer.exe' : process.platform === 'darwin' ? 'open' : 'xdg-open'

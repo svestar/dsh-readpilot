@@ -10,7 +10,7 @@
 
 ## 决策
 
-1. 两层存储：锚定短笔记（note/highlight/bookmark）继续用现有 JSON 与 `src/notes.ts`；长笔记与整书笔记用书库工作区的 markdown 文件。
+1. 两层存储：锚定短笔记（note/highlight/bookmark）继续用现有 JSON 与 `src/notes/store.ts`；长笔记与整书笔记用书库工作区的 markdown 文件。
 2. 可见目录 `<library>/notes/`，首次创建时写入 `.dsh-readpilot-notes` 标记；`scanLibrary` 只在标记存在时跳过该目录，避免误吞用户已有的同名书目录。
 3. 每本书一个子目录（`<book-slug>-<bookId8>`），`book.md` 固定为整书笔记，其余 `.md` 都是自由主题笔记；不生成 `index.md`，索引由 Host 扫描文件名与 front-matter 在内存构建。
 4. front-matter 记录 `id`、`title`、`bookId`、`created`、`updated`；文件名用于展示，`id` 用于链接，重命名由 UI 更新引用。

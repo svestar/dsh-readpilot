@@ -1,9 +1,9 @@
 import JSZip from 'jszip'
 import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
-import type { Book } from './library.ts'
-import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
+import type { Book } from '../books/library.ts'
+import { NOTES_DIR_NAME, NOTES_MARKER } from '../notes/files.ts'
 
 export const BACKUP_VERSION = 1
 const MAX_BACKUP_ENTRIES = 20_000

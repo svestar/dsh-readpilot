@@ -3,7 +3,7 @@ import { access, open, readdir, stat } from 'node:fs/promises'
 import { basename, extname, join } from 'node:path'
 import type { BookFormat } from './formats.ts'
 import { formatOf, isSupportedFormat } from './formats.ts'
-import { NOTES_DIR_NAME, NOTES_MARKER } from './note-files.ts'
+import { NOTES_DIR_NAME, NOTES_MARKER } from '../notes/files.ts'
 
 export const MAX_LIBRARY_FILES = 2000
 const SCAN_STAT_CONCURRENCY = 16

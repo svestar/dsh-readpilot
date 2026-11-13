@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { createReaderActionStore } from '../src/reader-actions.ts'
+import { createReaderActionStore } from '../src/reading/actions.ts'
 
 test('reader_actions_take_filters_and_removes', () => {
   const store = createReaderActionStore()

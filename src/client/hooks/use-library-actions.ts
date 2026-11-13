@@ -1,6 +1,6 @@
 import { React } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
-import type { CallRpc } from '../../rpc.ts'
+import type { CallRpc } from '../../api/rpc.ts'
 import type { ClientBook, Snapshot } from '../types.ts'
 
 export function useLibraryActions(call: CallRpc, setSnapshot: StateSetter<Snapshot | null>) {

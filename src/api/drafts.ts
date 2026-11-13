@@ -1,9 +1,9 @@
-import type { CompanionSettings } from './companion-settings.ts'
-import type { Book } from './library.ts'
-import { NoteDraftError } from './note-drafts.ts'
-import type { NoteDraftRecord, NoteDraftStore } from './note-drafts.ts'
-import { NoteFileError } from './note-files.ts'
-import { ReaderError } from './reader-error.ts'
+import type { CompanionSettings } from '../companion/settings.ts'
+import type { Book } from '../books/library.ts'
+import { NoteDraftError } from '../notes/drafts.ts'
+import type { NoteDraftRecord, NoteDraftStore } from '../notes/drafts.ts'
+import { NoteFileError } from '../notes/files.ts'
+import { ReaderError } from '../reading/error.ts'
 
 export interface DraftHandlerDeps {
   books(): Promise<Book[]>

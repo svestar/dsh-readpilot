@@ -1,8 +1,8 @@
-import type { Book } from '../library.ts'
-import type { BookCacheRecord } from '../store.ts'
-import { chapterText } from '../formats.ts'
-import { buildReaderJumpUrl } from '../jump-url.ts'
-import { ReaderError } from '../reader-error.ts'
+import type { Book } from '../books/library.ts'
+import type { BookCacheRecord } from '../storage/store.ts'
+import { chapterText } from '../books/formats.ts'
+import { buildReaderJumpUrl } from '../reading/jump-url.ts'
+import { ReaderError } from '../reading/error.ts'
 import type { SearchMatch, SearchResult } from './contract.ts'
 
 const MAX_SEARCH_BOOKS = 20

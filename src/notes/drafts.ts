@@ -1,8 +1,8 @@
 import { randomBytes } from 'node:crypto'
 import { mkdir, readdir, readFile, rm } from 'node:fs/promises'
 import { join, resolve, sep } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
-import type { NoteBookRef, NoteFileContent, NoteFileKind, NoteFileStore } from './note-files.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
+import type { NoteBookRef, NoteFileContent, NoteFileKind, NoteFileStore } from './files.ts'
 
 export type NoteDraftAction = 'create' | 'write' | 'append'
 

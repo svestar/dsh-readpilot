@@ -9,7 +9,7 @@
 
 ## 决策
 
-`src/contract.ts` 定义唯一的 `Operations` 表：每个操作声明 `payload` 与 `result`。由此派生：
+`src/api/endpoint.ts` 定义唯一的 `Operations` 表：每个操作声明 `payload` 与 `result`。由此派生：
 
 - `Operation`：全部操作名；
 - `OperationPayload` / `OperationResult`：按操作取类型；
@@ -18,7 +18,7 @@
 
 带动作的操作使用 `端点.动作` 命名（`notes.add`、`memory.setMode`）；客户端 `call` 自动把后缀作为 `action` 注入 payload，Host 仍按端点分发。`api.ts` 的分发表类型为 `Record<BaseEndpoint, Handler>`，漏实现端点会直接编译失败。
 
-`src/rpc.ts` 只做 `export * from './contract.ts'`，已有导入路径不变。
+`src/api/rpc.ts` 只做 `export * from './contract.ts'`，已有导入路径不变。
 
 ## 后果
 

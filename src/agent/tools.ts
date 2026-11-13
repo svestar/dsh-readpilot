@@ -1,4 +1,4 @@
-import type { ReaderApi } from './api.ts'
+import type { ReaderApi } from '../api/index.ts'
 
 interface ToolDefinition {
   name: string

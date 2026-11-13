@@ -1,6 +1,6 @@
 import { React, h } from '../runtime.ts'
 import type { TextFn } from '../types.ts'
-import type { BackupExportResult, BackupRestoreResult } from '../../backup.ts'
+import type { BackupExportResult, BackupRestoreResult } from '../../backup/index.ts'
 
 export function PanelIcon({ size = 20, active }: { size?: number; active?: boolean }) {
   return h('svg', {

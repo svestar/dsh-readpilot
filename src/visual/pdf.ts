@@ -2,7 +2,7 @@ import { mkdir, readFile, readdir, stat, unlink, writeFile } from 'node:fs/promi
 import { join } from 'node:path'
 import { createCanvas } from '@napi-rs/canvas'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { pdfWasmUrl } from '../pdfjs.ts'
+import { pdfWasmUrl } from './pdfjs.ts'
 
 const MIN_SCALE = 0.5
 const MAX_SCALE = 3

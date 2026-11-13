@@ -3,8 +3,8 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createReaderApi } from '../src/api.ts'
-import { losslessJson, registerTools } from '../src/tools.ts'
+import { createReaderApi } from '../src/api/index.ts'
+import { losslessJson, registerTools } from '../src/agent/tools.ts'
 
 /** DSH only accepts tool results that survive a JSON round trip. */
 function assertLossless(value: unknown) {

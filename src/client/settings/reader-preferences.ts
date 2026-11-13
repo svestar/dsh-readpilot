@@ -1,4 +1,4 @@
-import type { BookFormat } from '../../formats.ts'
+import type { BookFormat } from '../../books/formats.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 
 export const READER_PALETTE_KEY = 'dsh-readpilot.palette'

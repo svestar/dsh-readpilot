@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from 'node:crypto'
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, join, resolve, sep } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
 
 export const NOTES_DIR_NAME = 'notes'
 export const NOTES_MARKER = '.dsh-readpilot-notes'

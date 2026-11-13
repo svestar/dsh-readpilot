@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createNotesStore } from '../src/notes.ts'
+import { createNotesStore } from '../src/notes/store.ts'
 import { bookmarkContext } from '../src/client/bookmark-label.ts'
 import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/helpers.ts'
 

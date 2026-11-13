@@ -1,7 +1,7 @@
 import { React } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
-import type { CallRpc } from '../../rpc.ts'
-import type { PromptPreset } from '../../prompt-presets.ts'
+import type { CallRpc } from '../../api/rpc.ts'
+import type { PromptPreset } from '../../prompts/presets.ts'
 import type { TextFn } from '../types.ts'
 import { messageOf } from '../helpers.ts'
 

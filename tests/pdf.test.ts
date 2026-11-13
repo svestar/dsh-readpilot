@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { parsePdf } from '../src/formats/pdf.ts'
+import { parsePdf } from '../src/books/formats/pdf.ts'
 
 function escapePdfString(value: string) {
   return value.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)')

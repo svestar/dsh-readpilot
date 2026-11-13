@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
-import { enqueueWrite } from './write-queue.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
+import { enqueueWrite } from '../storage/write-queue.ts'
 
 export interface PromptPreset {
   id: string

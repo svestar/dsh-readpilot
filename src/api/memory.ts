@@ -1,10 +1,10 @@
-import type { CompanionSettings } from './companion-settings.ts'
-import { effectiveMemoryState } from './companion-settings.ts'
-import type { Book } from './library.ts'
-import { buildReadingMemory } from './memory-context.ts'
-import { MemoryStoreError } from './memory-store.ts'
-import type { MemoryStore } from './memory-store.ts'
-import { ReaderError } from './reader-error.ts'
+import type { CompanionSettings } from '../companion/settings.ts'
+import { effectiveMemoryState } from '../companion/settings.ts'
+import type { Book } from '../books/library.ts'
+import { buildReadingMemory } from '../memory/context.ts'
+import { MemoryStoreError } from '../memory/store.ts'
+import type { MemoryStore } from '../memory/store.ts'
+import { ReaderError } from '../reading/error.ts'
 
 export interface MemoryHandlerDeps {
   resolveBook(bookId: unknown): Promise<Book>

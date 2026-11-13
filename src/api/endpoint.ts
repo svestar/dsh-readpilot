@@ -1,11 +1,11 @@
-import type { ChapterContent, OpenResult, PageViewResult, ReaderState, SearchResult } from './api.ts'
-import type { LibraryMeta } from './library-meta.ts'
-import type { NoteKind, NoteRecord } from './notes.ts'
-import type { NoteFileKind, NoteFileRecord, NoteHistoryEntry } from './note-files.ts'
-import type { NoteDraftRecord } from './note-drafts.ts'
-import type { PromptPreset } from './prompt-presets.ts'
-import type { ReaderAction, ReaderActionReceipt, ReaderActionType } from './reader-actions.ts'
-import type { BackupExportResult, BackupRestoreResult } from './backup.ts'
+import type { ChapterContent, OpenResult, PageViewResult, ReaderState, SearchResult } from './index.ts'
+import type { LibraryMeta } from '../books/library-meta.ts'
+import type { NoteKind, NoteRecord } from '../notes/store.ts'
+import type { NoteFileKind, NoteFileRecord, NoteHistoryEntry } from '../notes/files.ts'
+import type { NoteDraftRecord } from '../notes/drafts.ts'
+import type { PromptPreset } from '../prompts/presets.ts'
+import type { ReaderAction, ReaderActionReceipt, ReaderActionType } from '../reading/actions.ts'
+import type { BackupExportResult, BackupRestoreResult } from '../backup/index.ts'
 
 export interface ProgressPayload {
   bookId: string
@@ -35,7 +35,7 @@ export interface CompanionContextPayload {
   bookId: string
   title: string
   chapter: string
-  view?: import('./api.ts').CompanionReadingView
+  view?: import('./index.ts').CompanionReadingView
 }
 
 export interface CompanionContextResult {
@@ -244,7 +244,7 @@ export interface Operations {
   progress: { payload: ProgressPayload; result: { bookId: string; chapterId: string } }
   session: { payload: SessionPayload; result: { bookId: string; sessionId: string | null } }
   sessionAlive: { payload: { sessionId: string }; result: { sessionId: string; alive: boolean } }
-  sessionBook: { payload: { sessionId: string }; result: import('./api.ts').SessionBookResult | null }
+  sessionBook: { payload: { sessionId: string }; result: import('./index.ts').SessionBookResult | null }
   companionPolicy: { payload: CompanionPolicyPayload; result: CompanionPolicyResult }
   prompts: {
     payload:

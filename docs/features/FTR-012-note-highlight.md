@@ -19,7 +19,7 @@
 | `useSelectionDismiss` | `src/client/hooks/use-selection-dismiss.ts:useSelectionDismiss` | 点击工具栏之外（含 EPUB iframe）清空选区 |
 | `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/reader/selection-note.ts:SelectionToolbar`；`src/client/reader/selection-note.ts:NoteDialog`；`src/client/notes/notes-search.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
-| `handleNotes` | `src/api-notes.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
+| `handleNotes` | `src/api/notes.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
 
 ## 约束与失败行为
 

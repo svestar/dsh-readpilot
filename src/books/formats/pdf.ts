@@ -1,6 +1,6 @@
 import { basename, extname } from 'node:path'
 import { getDocument } from 'pdfjs-dist/legacy/build/pdf.mjs'
-import { pdfWasmUrl } from '../pdfjs.ts'
+import { pdfWasmUrl } from '../../visual/pdfjs.ts'
 import type { Chapter, OutlineEntry, ParsedBook, TextBlock } from '../formats.ts'
 
 const MAX_PAGES = 2000

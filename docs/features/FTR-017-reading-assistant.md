@@ -3,7 +3,7 @@
 - **ID：** FTR-017
 - **名称：** 阅读助手
 - **状态：** active
-- **代码：** `src/workspace-prompt.ts`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/api.ts`（`state`、`toolContext`、`setCompanionContext`、`companionContextOf`）；`src/library.ts`（扫描跳过 `AGENTS.md`）；`src/tools.ts`（`reader_context`）；`index.ts`（`apply`）
+- **代码：** `src/agent/workspace-prompt.ts`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/api/index.ts`（`state`、`toolContext`、`setCompanionContext`、`companionContextOf`）；`src/books/library.ts`（扫描跳过 `AGENTS.md`）；`src/agent/tools.ts`（`reader_context`）；`index.ts`（`apply`）
 - **测试：** `tests/prompt.test.ts`
 
 ## 行为
@@ -18,14 +18,14 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `READING_PROMPT` | `src/workspace-prompt.ts:READING_PROMPT` | 阅读助手纪律文本 |
-| `ensureWorkspacePrompt` | `src/workspace-prompt.ts:ensureWorkspacePrompt` | 创建/更新书库 `AGENTS.md` 管理块 |
-| `state` | `src/api.ts:state` | 首次加载书库时同步提示词文件 |
-| `toolContext` | `src/api.ts:toolContext` | 当前书、进度、目录与最近笔记 |
-| `setCompanionContext` | `src/api.ts:setCompanionContext` | 保存会话的当前书名、章节与书籍 id |
-| `companionContextOf` | `src/api.ts:companionContextOf` | 按会话 id 取 `<reading_context>` 文本 |
+| `READING_PROMPT` | `src/agent/workspace-prompt.ts:READING_PROMPT` | 阅读助手纪律文本 |
+| `ensureWorkspacePrompt` | `src/agent/workspace-prompt.ts:ensureWorkspacePrompt` | 创建/更新书库 `AGENTS.md` 管理块 |
+| `state` | `src/api/index.ts:state` | 首次加载书库时同步提示词文件 |
+| `toolContext` | `src/api/index.ts:toolContext` | 当前书、进度、目录与最近笔记 |
+| `setCompanionContext` | `src/api/index.ts:setCompanionContext` | 保存会话的当前书名、章节与书籍 id |
+| `companionContextOf` | `src/api/index.ts:companionContextOf` | 按会话 id 取 `<reading_context>` 文本 |
 | `apply` | `index.ts:apply` | 注册阅读位置动态上下文 |
-| `reader_context` | `src/tools.ts:reader_context` | Agent 只读入口 |
+| `reader_context` | `src/agent/tools.ts:reader_context` | Agent 只读入口 |
 
 ## 约束与失败行为
 

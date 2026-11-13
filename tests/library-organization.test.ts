@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createLibraryMetaStore, normalizeRating, normalizeReadStatus, normalizeTags } from '../src/library-meta.ts'
+import { createLibraryMetaStore, normalizeRating, normalizeReadStatus, normalizeTags } from '../src/books/library-meta.ts'
 import {
   categoryCounts,
   filterBooks,

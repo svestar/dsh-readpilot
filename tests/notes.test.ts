@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createNotesStore, notesPath } from '../src/notes.ts'
+import { createNotesStore, notesPath } from '../src/notes/store.ts'
 
 async function tempStore(t: any) {
   const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-notes-'))

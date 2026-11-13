@@ -3,7 +3,7 @@
 - **ID：** FTR-043
 - **名称：** Agent 阅读动作
 - **状态：** active
-- **代码：** `src/reader-actions.ts`（`createReaderActionStore`）；`src/api.ts`（`readerActions`、`pushReaderAction`）；`src/tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status`）；`src/client/hooks/use-reader-actions.ts`（`useReaderActions`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
+- **代码：** `src/reading/actions.ts`（`createReaderActionStore`）；`src/api/index.ts`（`readerActions`、`pushReaderAction`）；`src/agent/tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status`）；`src/client/hooks/use-reader-actions.ts`（`useReaderActions`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为
@@ -24,13 +24,13 @@ Agent 可通过五个工具改变阅读状态并收到回执：
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createReaderActionStore` | `src/reader-actions.ts:createReaderActionStore` | 内存队列、TTL、按类型/书过滤取出 |
-| `readerActions` | `src/api.ts:readerActions` | 客户端轮询 `take` |
-| `pushReaderAction` | `src/api.ts:pushReaderAction` | 工具入队并返回动作 id |
-| `reader_goto` / `reader_open_panel` | `src/tools.ts` | 解析书名/章节/页并排队导航 |
-| `reader_mark` / `reader_note` | `src/tools.ts` | 新增、重写、删除批注并排队刷新 |
-| `reader_notes` | `src/tools.ts` | 长笔记草稿与显式删除 |
-| `reader_tag` / `reader_status` | `src/tools.ts` | 写库元数据并排队刷新 |
+| `createReaderActionStore` | `src/reading/actions.ts:createReaderActionStore` | 内存队列、TTL、按类型/书过滤取出 |
+| `readerActions` | `src/api/index.ts:readerActions` | 客户端轮询 `take` |
+| `pushReaderAction` | `src/api/index.ts:pushReaderAction` | 工具入队并返回动作 id |
+| `reader_goto` / `reader_open_panel` | `src/agent/tools.ts` | 解析书名/章节/页并排队导航 |
+| `reader_mark` / `reader_note` | `src/agent/tools.ts` | 新增、重写、删除批注并排队刷新 |
+| `reader_notes` | `src/agent/tools.ts` | 长笔记草稿与显式删除 |
+| `reader_tag` / `reader_status` | `src/agent/tools.ts` | 写库元数据并排队刷新 |
 | `useReaderActions` | `src/client/hooks/use-reader-actions.ts:useReaderActions` | 每秒轮询并串行执行动作 |
 | `ReaderPanel` / `SidebarReader` | `src/client/plugin.ts`、`src/client/reader/sidebar-reader.ts` | 执行跳转、开侧栏、重载批注/书库 |
 

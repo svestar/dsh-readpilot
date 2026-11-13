@@ -49,9 +49,9 @@ import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitl
 import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
 import { NoteDialog, SelectionToolbar, quoteDraft } from './reader/selection-note.ts'
 import { PromptPresetManager } from './companion/prompt-preset-manager.ts'
-import { renderPrompt } from '../prompt-render.ts'
-import type { PromptPreset } from '../prompt-presets.ts'
-import type { ReaderAction } from '../reader-actions.ts'
+import { renderPrompt } from '../prompts/render.ts'
+import type { PromptPreset } from '../prompts/presets.ts'
+import type { ReaderAction } from '../reading/actions.ts'
 import { createReaderErrorBoundary } from './common/error-boundary.ts'
 import { ReaderBar } from './reader/reader-bar.ts'
 import { ActionHistory } from './reader/action-history.ts'
@@ -69,8 +69,8 @@ import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForI
 import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
 import { parseNoteResource } from './note-resource.ts'
 import { buildReaderResource, parseReaderResource } from './reader-resource.ts'
-import { parseReaderJumpUrl } from '../jump-url.ts'
-import type { ReaderJumpTarget } from '../jump-url.ts'
+import { parseReaderJumpUrl } from '../reading/jump-url.ts'
+import type { ReaderJumpTarget } from '../reading/jump-url.ts'
 import { useContentSelection } from './hooks/use-content-selection.ts'
 import { useLibraryActions } from './hooks/use-library-actions.ts'
 import { usePromptPresetActions } from './hooks/use-prompt-preset-actions.ts'
@@ -92,7 +92,7 @@ import type {
   TextFn,
   TocItem,
 } from './types.ts'
-import type { CallRpc } from '../rpc.ts'
+import type { CallRpc } from '../api/rpc.ts'
 
 export function createPlugin(require: (name: string) => any) {
     bindRuntime(require)

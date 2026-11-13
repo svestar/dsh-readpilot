@@ -3,7 +3,7 @@
 - **ID：** FTR-026
 - **名称：** 对话页码跳转
 - **状态：** active
-- **代码：** `src/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/companion/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/client/reader/sidebar-reader.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/reading/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api/index.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/companion/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/client/reader/sidebar-reader.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/agent/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/chat-jump.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为
@@ -12,7 +12,7 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 
 页码统一指阅读器当前显示的 **PDF 页序号（我们的页码）**，不是书内印刷页码或目录页码；提示词要求伴读回答时也使用我们的页码，TOC 的 `page` 字段同义。自动按钮按这个页序号映射起始章节。
 
-阅读工具的 `reader_open`、`reader_read`、`reader_search`、`reader_context` 结果仍保留 `jumpUrl`，`src/jump-url.ts` 与 `useChatJump` 的解析能力也保留：如果历史消息或手工消息里已有 `https://dsh-readpilot.invalid/jump?...` 链接，客户端仍会拦截并跳转。提示词不再要求模型生成这些链接，自动页码按钮不依赖它们。
+阅读工具的 `reader_open`、`reader_read`、`reader_search`、`reader_context` 结果仍保留 `jumpUrl`，`src/reading/jump-url.ts` 与 `useChatJump` 的解析能力也保留：如果历史消息或手工消息里已有 `https://dsh-readpilot.invalid/jump?...` 链接，客户端仍会拦截并跳转。提示词不再要求模型生成这些链接，自动页码按钮不依赖它们。
 
 客户端在 document 捕获阶段拦截指向该地址的 `<a>`，解析 book/chapter/offset/q；当前书内直接调用 `selectChapter(..., { offset, flash: true })` 跳转并高亮。没有 offset 而带 q 时，先在本书检索并要求命中同一章节；找不到则显示错误。窄屏跳转后收起伴读抽屉，宽屏保留伴读栏。主阅读面板与工作区侧栏阅读都挂载 `useChatJump`；侧栏把 offset 映射为章节文本比例写入阅读锚点，窄屏收起动作为 no-op。目标书不是当前书时，主阅读/侧栏通过 `openOtherBook` 生成 `dsh-resource://` 地址并打开侧栏阅读器，而不是只报“另一本书”；没有任何阅读器挂载时，插件根部的全局捕获处理器用同一资源地址打开侧栏，因此工作区对话里的历史链接也能点击。工具结果卡的“跳转”也走同一路由：目标书是主阅读当前书时跳主阅读，否则打开侧栏。
 
@@ -20,8 +20,8 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `buildReaderJumpUrl` / `parseReaderJumpUrl` | `src/jump-url.ts:buildReaderJumpUrl`；`src/jump-url.ts:parseReaderJumpUrl` | 生成/校验带 book/chapter/offset/q 的引用链接 |
-| `toolOpen` / `toolRead` / `toolSearch` / `toolContext` | `src/api.ts:toolOpen`；`src/api.ts:toolRead`；`src/api.ts:toolSearch`；`src/api.ts:toolContext` | 在目录、章节与搜索匹配中返回 `jumpUrl`（搜索匹配精确到 offset） |
+| `buildReaderJumpUrl` / `parseReaderJumpUrl` | `src/reading/jump-url.ts:buildReaderJumpUrl`；`src/reading/jump-url.ts:parseReaderJumpUrl` | 生成/校验带 book/chapter/offset/q 的引用链接 |
+| `toolOpen` / `toolRead` / `toolSearch` / `toolContext` | `src/api/index.ts:toolOpen`；`src/api/index.ts:toolRead`；`src/api/index.ts:toolSearch`；`src/api/index.ts:toolContext` | 在目录、章节与搜索匹配中返回 `jumpUrl`（搜索匹配精确到 offset） |
 | `useChatJump` | `src/client/hooks/use-chat-jump.ts:useChatJump` | 拦截链接、q 检索、章节定位与窄屏收起 |
 | `findPageReferences` / `linkifyPageReferences` | `src/client/page-jump.ts:findPageReferences`；`src/client/page-jump.ts:linkifyPageReferences` | 识别 PDF 页码范围并包装为起始页按钮 |
 | `ChatPanel` | `src/client/companion/chat-panel.ts:ChatPanel` | 错误展示、聊天 DOM 观察与自动页码链接 |

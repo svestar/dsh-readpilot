@@ -1,6 +1,6 @@
-import { createReaderApi } from './src/api.ts'
-import { pluginDataDir, resolveDshHome } from './src/home.ts'
-import { registerTools } from './src/tools.ts'
+import { createReaderApi } from './src/api/index.ts'
+import { pluginDataDir, resolveDshHome } from './src/storage/home.ts'
+import { registerTools } from './src/agent/tools.ts'
 
 export const name = 'dsh-readpilot'
 export const inject = ['tools']

@@ -3,7 +3,7 @@
 - **ID：** FTR-042
 - **名称：** 提示词预设
 - **状态：** active
-- **代码：** `src/prompt-presets.ts`（`createPromptPresetStore`、`DEFAULT_PROMPT_PRESETS`）；`src/prompt-render.ts`（`renderPrompt`）；`src/api-prompts.ts`（`createPromptHandlers`）；`src/client/reader/selection-note.ts`（`SelectionToolbar`）；`src/client/companion/prompt-preset-manager.ts`（`PromptPresetManager`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/prompts/presets.ts`（`createPromptPresetStore`、`DEFAULT_PROMPT_PRESETS`）；`src/prompts/render.ts`（`renderPrompt`）；`src/api/prompts.ts`（`createPromptHandlers`）；`src/client/reader/selection-note.ts`（`SelectionToolbar`）；`src/client/companion/prompt-preset-manager.ts`（`PromptPresetManager`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/prompt-presets.test.ts`
 
 ## 行为
@@ -16,10 +16,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createPromptPresetStore` | `src/prompt-presets.ts:createPromptPresetStore` | 预设 list/save/remove/reset 与校验 |
-| `DEFAULT_PROMPT_PRESETS` | `src/prompt-presets.ts:DEFAULT_PROMPT_PRESETS` | 五个内置模板 |
-| `renderPrompt` | `src/prompt-render.ts:renderPrompt` | 替换四个占位符，按字面量插入 |
-| `createPromptHandlers` | `src/api-prompts.ts:createPromptHandlers` | RPC `prompts` 的 list/save/delete/reset |
+| `createPromptPresetStore` | `src/prompts/presets.ts:createPromptPresetStore` | 预设 list/save/remove/reset 与校验 |
+| `DEFAULT_PROMPT_PRESETS` | `src/prompts/presets.ts:DEFAULT_PROMPT_PRESETS` | 五个内置模板 |
+| `renderPrompt` | `src/prompts/render.ts:renderPrompt` | 替换四个占位符，按字面量插入 |
+| `createPromptHandlers` | `src/api/prompts.ts:createPromptHandlers` | RPC `prompts` 的 list/save/delete/reset |
 | `SelectionToolbar` | `src/client/reader/selection-note.ts:SelectionToolbar` | 选区预设菜单与套用入口 |
 | `PromptPresetManager` | `src/client/companion/prompt-preset-manager.ts:PromptPresetManager` | 预设增删改与恢复默认 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 加载预设、装配变量、填入 composer |

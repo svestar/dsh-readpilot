@@ -3,7 +3,7 @@
 - **ID：** FTR-024
 - **名称：** 笔记导出
 - **状态：** active
-- **代码：** `src/note-export.ts`（`buildNotesMarkdown`）；`src/api.ts`（`exportNotes`）；`src/client/hooks/use-long-notes.ts`（`exportNotes`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/helpers.ts`（`downloadText`）
+- **代码：** `src/notes/export.ts`（`buildNotesMarkdown`）；`src/api/index.ts`（`exportNotes`）；`src/client/hooks/use-long-notes.ts`（`exportNotes`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/helpers.ts`（`downloadText`）
 - **测试：** `tests/note-export.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -16,8 +16,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `buildNotesMarkdown` | `src/note-export.ts:buildNotesMarkdown` | 纯函数拼装标题、元数据、长笔记与标记 |
-| `exportNotes` | `src/api.ts:exportNotes` | 解析书、读取笔记与标记、选择下载或保存 |
+| `buildNotesMarkdown` | `src/notes/export.ts:buildNotesMarkdown` | 纯函数拼装标题、元数据、长笔记与标记 |
+| `exportNotes` | `src/api/index.ts:exportNotes` | 解析书、读取笔记与标记、选择下载或保存 |
 | `exportNotes`（hook） | `src/client/hooks/use-long-notes.ts:exportNotes` | 调用 Host、触发下载或显示保存路径 |
 | `LongNotes` | `src/client/notes/long-notes.ts:LongNotes` | 导出/保存按钮与状态 |
 | `downloadText` | `src/client/helpers.ts:downloadText` | 浏览器端 Blob 下载 |

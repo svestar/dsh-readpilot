@@ -3,7 +3,7 @@
 - **ID：** FTR-033
 - **名称：** 阅读位置锚点
 - **状态：** active
-- **代码：** `src/client/paging.ts`（`ReadingAnchor`、`anchorPage`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/plugin.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`applySource`、`openBook`）；`src/api.ts`（`saveReadingProgress`）；`src/store.ts`（`ReadingProgress.chapterFraction`）
+- **代码：** `src/client/paging.ts`（`ReadingAnchor`、`anchorPage`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/plugin.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`applySource`、`openBook`）；`src/api/index.ts`（`saveReadingProgress`）；`src/storage/store.ts`（`ReadingProgress.chapterFraction`）
 - **测试：** `tests/paging.test.ts`；`tests/api.test.ts`
 
 ## 行为

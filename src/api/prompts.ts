@@ -1,5 +1,5 @@
-import type { PromptPresetStore } from './prompt-presets.ts'
-import { ReaderError } from './reader-error.ts'
+import type { PromptPresetStore } from '../prompts/presets.ts'
+import { ReaderError } from '../reading/error.ts'
 
 export function createPromptHandlers({ store }: { store: PromptPresetStore }) {
   async function prompts(payload: any = {}): Promise<any> {

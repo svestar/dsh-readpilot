@@ -3,7 +3,7 @@
 - **ID：** FTR-037
 - **名称：** Agent 阅读上下文
 - **状态：** active
-- **代码：** `src/tools.ts`（`registerTools`）；`src/api.ts`（`toolContext`、`ensureSessionReading`、`syncCompanionContexts`、`setCompanionContext`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/agent/tools.ts`（`registerTools`）；`src/api/index.ts`（`toolContext`、`ensureSessionReading`、`syncCompanionContexts`、`setCompanionContext`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/api.test.ts`
 
 ## 行为
@@ -16,9 +16,9 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `registerTools` | `src/tools.ts:registerTools` | 注册全局阅读工具并把调用会话传给上下文查询 |
-| `toolContext` | `src/api.ts:toolContext` | 按会话阅读上下文选择当前书 |
-| `setCompanionContext` | `src/api.ts:setCompanionContext` | 写入会话的书、标题与章节上下文 |`n| `ensureSessionReading` / `syncCompanionContexts` | `src/api.ts:ensureSessionReading` | 从 sessions 映射与进度补建会话上下文 |
+| `registerTools` | `src/agent/tools.ts:registerTools` | 注册全局阅读工具并把调用会话传给上下文查询 |
+| `toolContext` | `src/api/index.ts:toolContext` | 按会话阅读上下文选择当前书 |
+| `setCompanionContext` | `src/api/index.ts:setCompanionContext` | 写入会话的书、标题与章节上下文 |`n| `ensureSessionReading` / `syncCompanionContexts` | `src/api/index.ts:ensureSessionReading` | 从 sessions 映射与进度补建会话上下文 |
 | `SidebarReader` | `src/client/reader/sidebar-reader.ts:SidebarReader` | 侧栏阅读时同步会话上下文 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 主阅读时同步会话上下文 |
 

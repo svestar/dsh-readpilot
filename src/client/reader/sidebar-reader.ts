@@ -13,7 +13,7 @@ import { useSelectionDismiss } from '../hooks/use-selection-dismiss.ts'
 import { useChatJump } from '../hooks/use-chat-jump.ts'
 import { useReaderActions } from '../hooks/use-reader-actions.ts'
 import { useActionReceipts } from '../hooks/use-action-receipts.ts'
-import type { ReaderAction, ReaderActionType } from '../../reader-actions.ts'
+import type { ReaderAction, ReaderActionType } from '../../reading/actions.ts'
 
 const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh']
 import { visualForChapter } from '../reader-screen.ts'

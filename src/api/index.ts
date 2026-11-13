@@ -1,48 +1,48 @@
 import { mkdir, readFile, realpath, rm, stat, writeFile } from 'node:fs/promises'
 import { basename, dirname, extname, isAbsolute, join, relative, resolve, sep } from 'node:path'
-import type { Chapter } from './formats.ts'
-import { chapterText, isSupportedFormat, parseBookAsync } from './formats.ts'
-import { buildBookDigest } from './digest.ts'
-import { exportBackup, restoreBackup } from './backup.ts'
-import type { BackupExportResult, BackupRestoreResult } from './backup.ts'
-import type { Book } from './library.ts'
-import { findBookByKey, scanLibrary } from './library.ts'
+import type { Chapter } from '../books/formats.ts'
+import { chapterText, isSupportedFormat, parseBookAsync } from '../books/formats.ts'
+import { buildBookDigest } from '../reading/digest.ts'
+import { exportBackup, restoreBackup } from '../backup/index.ts'
+import type { BackupExportResult, BackupRestoreResult } from '../backup/index.ts'
+import type { Book } from '../books/library.ts'
+import { findBookByKey, scanLibrary } from '../books/library.ts'
 import {
   deleteLibraryRecord,
   loadLibraryIndex,
   reconcileBooks,
   saveLibraryIndex,
-} from './library-index.ts'
-import type { LibraryMeta, ReadStatus } from './library-meta.ts'
-import { createLibraryMetaStore } from './library-meta.ts'
-import { createDraftHandlers } from './api-drafts.ts'
-import { createMemoryHandlers } from './api-memory.ts'
-import { createNoteFileHandlers } from './api-note-files.ts'
-import { createNotesHandlers } from './api-notes.ts'
-import { createPromptHandlers } from './api-prompts.ts'
-import type { ReaderAction, ReaderActionInput, ReaderActionReceipt, ReaderReceiptInput, ReaderActionType } from './reader-actions.ts'
-import { createReaderActionStore } from './reader-actions.ts'
-import { createLimiter } from './limit.ts'
-import { ReaderError } from './reader-error.ts'
-import { enqueueWrite } from './write-queue.ts'
-import type { NotesStore } from './notes.ts'
-import { createNotesStore } from './notes.ts'
-import { NOTES_DIR_NAME } from './note-files.ts'
-import { buildReaderJumpUrl } from './jump-url.ts'
-import type { CompanionSettings } from './companion-settings.ts'
-import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from './companion-settings.ts'
-import type { BaseEndpoint } from './contract.ts'
-import type { MemoryStore } from './memory-store.ts'
-import { createMemoryStore } from './memory-store.ts'
-import type { NoteDraftStore } from './note-drafts.ts'
-import { createNoteDraftStore } from './note-drafts.ts'
-import type { PromptPresetStore } from './prompt-presets.ts'
-import { createPromptPresetStore } from './prompt-presets.ts'
-import type { ExportLongNote, ExportMark } from './note-export.ts'
-import { buildNotesMarkdown } from './note-export.ts'
-import { buildReadingNotes } from './notes-context.ts'
-import type { ReadingHighlight, ReadingNote } from './notes-context.ts'
-import type { BookCacheRecord, Settings } from './store.ts'
+} from '../books/library-index.ts'
+import type { LibraryMeta, ReadStatus } from '../books/library-meta.ts'
+import { createLibraryMetaStore } from '../books/library-meta.ts'
+import { createDraftHandlers } from './drafts.ts'
+import { createMemoryHandlers } from './memory.ts'
+import { createNoteFileHandlers } from './note-files.ts'
+import { createNotesHandlers } from './notes.ts'
+import { createPromptHandlers } from './prompts.ts'
+import type { ReaderAction, ReaderActionInput, ReaderActionReceipt, ReaderReceiptInput, ReaderActionType } from '../reading/actions.ts'
+import { createReaderActionStore } from '../reading/actions.ts'
+import { createLimiter } from '../storage/limit.ts'
+import { ReaderError } from '../reading/error.ts'
+import { enqueueWrite } from '../storage/write-queue.ts'
+import type { NotesStore } from '../notes/store.ts'
+import { createNotesStore } from '../notes/store.ts'
+import { NOTES_DIR_NAME } from '../notes/files.ts'
+import { buildReaderJumpUrl } from '../reading/jump-url.ts'
+import type { CompanionSettings } from '../companion/settings.ts'
+import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from '../companion/settings.ts'
+import type { BaseEndpoint } from './endpoint.ts'
+import type { MemoryStore } from '../memory/store.ts'
+import { createMemoryStore } from '../memory/store.ts'
+import type { NoteDraftStore } from '../notes/drafts.ts'
+import { createNoteDraftStore } from '../notes/drafts.ts'
+import type { PromptPresetStore } from '../prompts/presets.ts'
+import { createPromptPresetStore } from '../prompts/presets.ts'
+import type { ExportLongNote, ExportMark } from '../notes/export.ts'
+import { buildNotesMarkdown } from '../notes/export.ts'
+import { buildReadingNotes } from '../notes/context.ts'
+import type { ReadingHighlight, ReadingNote } from '../notes/context.ts'
+import type { BookCacheRecord, Settings } from '../storage/store.ts'
 import {
   cachePath,
   loadBookCache,
@@ -53,13 +53,13 @@ import {
   saveProgress,
   saveSessions,
   saveSettings,
-} from './store.ts'
-import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/epub.ts'
-import type { PdfRenderer } from './visual/pdf.ts'
-import { ensureWorkspacePrompt } from './workspace-prompt.ts'
-import { createSearch } from './api/search.ts'
-import { noteFilePath, openWithExternalEditor } from './api/files.ts'
-export { noteFilePath } from './api/files.ts'
+} from '../storage/store.ts'
+import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from '../visual/epub.ts'
+import type { PdfRenderer } from '../visual/pdf.ts'
+import { ensureWorkspacePrompt } from '../agent/workspace-prompt.ts'
+import { createSearch } from './search.ts'
+import { noteFilePath, openWithExternalEditor } from './files.ts'
+export { noteFilePath } from './files.ts'
 import type {
   ReaderApiOptions,
   TocItem,
@@ -73,8 +73,8 @@ import type {
   PageViewResult,
   RpcResult,
   ReaderApi,
-} from './api/contract.ts'
-import { normalizeReadingView } from './api/contract.ts'
+} from './contract.ts'
+import { normalizeReadingView } from './contract.ts'
 export { normalizeReadingView }
 export type {
   ReaderContext,
@@ -95,7 +95,7 @@ export type {
   RpcError,
   RpcResult,
   ReaderApi,
-} from './api/contract.ts'
+} from './contract.ts'
 
 const PARSER_VERSION = 12
 const APP_VERSION = '0.4.0-dev'
@@ -117,7 +117,7 @@ const BOOK_IMAGE_TYPES = new Map<string, string>([
   ['.svg', 'image/svg+xml'],
 ])
 
-export { ReaderError } from './reader-error.ts'
+export { ReaderError } from '../reading/error.ts'
 
 function positiveInteger(value: unknown, fallback: number): number {
   return Number.isInteger(value) && (value as number) > 0 ? value as number : fallback
@@ -139,7 +139,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   async function getPdfRenderer(): Promise<PdfRenderer> {
     if (!pdfRendererPromise) {
-      pdfRendererPromise = import('./visual/pdf.ts').then(({ createPdfPageRenderer }) =>
+      pdfRendererPromise = import('../visual/pdf.ts').then(({ createPdfPageRenderer }) =>
         createPdfPageRenderer({ cacheDir: join(dataDir, 'cache', 'pages') }))
     }
     return pdfRendererPromise
@@ -147,7 +147,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
 
   async function getEpubVisual(): Promise<EpubVisual> {
     if (!epubVisualPromise) {
-      epubVisualPromise = import('./visual/epub.ts').then(({ createEpubVisual }) =>
+      epubVisualPromise = import('../visual/epub.ts').then(({ createEpubVisual }) =>
         createEpubVisual({ dataDir }))
     }
     return epubVisualPromise

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { join } from 'node:path'
-import { decodeText, formatOf, parseBook, splitChapters } from '../src/formats.ts'
+import { decodeText, formatOf, parseBook, splitChapters } from '../src/books/formats.ts'
 
 test('split_chinese_chapters', () => {
   const text = [

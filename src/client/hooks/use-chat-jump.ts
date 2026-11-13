@@ -1,8 +1,8 @@
 import { React } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import { messageOf } from '../helpers.ts'
-import { parseReaderJumpUrl } from '../../jump-url.ts'
-import type { ReaderJumpTarget } from '../../jump-url.ts'
+import { parseReaderJumpUrl } from '../../reading/jump-url.ts'
+import type { ReaderJumpTarget } from '../../reading/jump-url.ts'
 import type { CallRpc, Screen, SelectChapter, TextFn } from '../types.ts'
 
 interface ChatJumpOptions {

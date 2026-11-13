@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
-import type { NoteFileRecord } from './note-files.ts'
-import type { NoteRecord } from './notes.ts'
-import type { ReadStatus } from './library-meta.ts'
+import type { NoteFileRecord } from '../notes/files.ts'
+import type { NoteRecord } from '../notes/store.ts'
+import type { ReadStatus } from '../books/library-meta.ts'
 
 export type ReaderActionType = 'goto' | 'open_panel' | 'notesRefresh' | 'libraryRefresh'
 

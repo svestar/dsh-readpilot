@@ -1,5 +1,5 @@
 import { Tooltip, h } from '../runtime.ts'
-import type { BookFormat } from '../../formats.ts'
+import type { BookFormat } from '../../books/formats.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { TextFn } from '../types.ts'
 

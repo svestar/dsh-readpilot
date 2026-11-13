@@ -1,6 +1,6 @@
 import { React } from '../runtime.ts'
 import type { CallRpc } from '../types.ts'
-import type { ReaderAction, ReaderActionType } from '../../reader-actions.ts'
+import type { ReaderAction, ReaderActionType } from '../../reading/actions.ts'
 
 const ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh', 'libraryRefresh']
 

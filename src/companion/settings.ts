@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
 
 export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'

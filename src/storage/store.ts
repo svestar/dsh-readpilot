@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import type { ParsedBook } from './formats.ts'
+import type { ParsedBook } from '../books/formats.ts'
 import { readJson, writeJson } from './fsjson.ts'
 
 export interface Settings {

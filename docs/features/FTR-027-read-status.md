@@ -3,7 +3,7 @@
 - **ID：** FTR-027
 - **名称：** 阅读状态与评分
 - **状态：** active
-- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/api.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/library/library-view.ts`（`Library`、`BookCard`、`TagDialog`）
+- **代码：** `src/books/library-meta.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/api/index.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/library/library-view.ts`（`Library`、`BookCard`、`TagDialog`）
 - **测试：** `tests/library-organization.test.ts`
 
 ## 行为
@@ -14,11 +14,11 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createLibraryMetaStore` | `src/library-meta.ts:createLibraryMetaStore` | 读写 `library-meta.json` 的标签、状态与评分 |
-| `normalizeReadStatus` | `src/library-meta.ts:normalizeReadStatus` | 校验状态取值，空值表示清除 |
-| `normalizeRating` | `src/library-meta.ts:normalizeRating` | 校验 1–5 整数评分，空值表示清除 |
-| `setBookStatus` | `src/api.ts:setBookStatus` | 校验书籍并写入状态，返回规整结果 |
-| `setBookRating` | `src/api.ts:setBookRating` | 校验书籍并写入评分，返回规整结果 |
+| `createLibraryMetaStore` | `src/books/library-meta.ts:createLibraryMetaStore` | 读写 `library-meta.json` 的标签、状态与评分 |
+| `normalizeReadStatus` | `src/books/library-meta.ts:normalizeReadStatus` | 校验状态取值，空值表示清除 |
+| `normalizeRating` | `src/books/library-meta.ts:normalizeRating` | 校验 1–5 整数评分，空值表示清除 |
+| `setBookStatus` | `src/api/index.ts:setBookStatus` | 校验书籍并写入状态，返回规整结果 |
+| `setBookRating` | `src/api/index.ts:setBookRating` | 校验书籍并写入评分，返回规整结果 |
 | `bookStatus` / `bookRating` | `src/client/library-utils.ts:bookStatus` | 从映射中取出合法状态与评分 |
 | `Library` | `src/client/library/library-view.ts:Library` | 已读完分类、书卡徽标与信息弹窗 |
 

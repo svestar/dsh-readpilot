@@ -3,7 +3,7 @@
 - **ID：** FTR-025
 - **名称：** 笔记历史
 - **状态：** active
-- **代码：** `src/note-files.ts`（`listHistory`、`readHistory`、`restoreHistory`、`removeHistory`、`clearHistory`）；`src/api-note-files.ts`（`createNoteFileHandlers`、`handleNoteFiles`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/long-notes.ts`（`LongNotes`）
+- **代码：** `src/notes/files.ts`（`listHistory`、`readHistory`、`restoreHistory`、`removeHistory`、`clearHistory`）；`src/api/note-files.ts`（`createNoteFileHandlers`、`handleNoteFiles`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/long-notes.ts`（`LongNotes`）
 - **测试：** `tests/note-history.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -16,11 +16,11 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `listHistory` | `src/note-files.ts:listHistory` | 按时间倒序列出快照，最多 10 条 |
-| `readHistory` | `src/note-files.ts:readHistory` | 读取快照正文与原始内容 |
-| `restoreHistory` | `src/note-files.ts:restoreHistory` | 先快照当前，再原子恢复所选版本 |
-| `removeHistory` / `clearHistory` | `src/note-files.ts:removeHistory`；`src/note-files.ts:clearHistory` | 删除单条或清空当前笔记历史 |
-| `handleNoteFiles` | `src/api-note-files.ts:handleNoteFiles` | `history` / `restore` / `historyRemove` / `historyClear` RPC，恢复后重建笔记上下文 |
+| `listHistory` | `src/notes/files.ts:listHistory` | 按时间倒序列出快照，最多 10 条 |
+| `readHistory` | `src/notes/files.ts:readHistory` | 读取快照正文与原始内容 |
+| `restoreHistory` | `src/notes/files.ts:restoreHistory` | 先快照当前，再原子恢复所选版本 |
+| `removeHistory` / `clearHistory` | `src/notes/files.ts:removeHistory`；`src/notes/files.ts:clearHistory` | 删除单条或清空当前笔记历史 |
+| `handleNoteFiles` | `src/api/note-files.ts:handleNoteFiles` | `history` / `restore` / `historyRemove` / `historyClear` RPC，恢复后重建笔记上下文 |
 | `useLongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes` | 历史展开、加载、恢复与错误状态 |
 | `LongNotes` | `src/client/notes/long-notes.ts:LongNotes` | 历史按钮、版本列表与恢复确认 |
 

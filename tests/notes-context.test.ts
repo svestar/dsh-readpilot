@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildReadingNotes } from '../src/notes-context.ts'
+import { buildReadingNotes } from '../src/notes/context.ts'
 
 test('notes_context_builds_notes_and_highlights', () => {
   const text = buildReadingNotes({

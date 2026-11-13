@@ -5,17 +5,17 @@
 
 ## 背景
 
-`src/api.ts` 同时承担扫描、解析、缓存、笔记、长笔记、草稿、记忆、会话、工具与视觉渲染的编排，接近 1500 行。任何改动都在同一文件上叠加，review 与单测的影响面难以判断。
+`src/api/index.ts` 同时承担扫描、解析、缓存、笔记、长笔记、草稿、记忆、会话、工具与视觉渲染的编排，接近 1500 行。任何改动都在同一文件上叠加，review 与单测的影响面难以判断。
 
 ## 决策
 
 把成块的域处理逻辑移到独立模块，模块通过显式依赖对象接收能力，不持有全局状态：
 
-- `src/api-notes.ts`：短笔记 RPC（`createNotesHandlers`）；
-- `src/api-drafts.ts`：长笔记草稿的 UI RPC 与工具创建（`createDraftHandlers`）；
-- `src/api-memory.ts`：记忆的读取、写入、注入缓存与三处入口（`createMemoryHandlers`）；
-- `src/api-note-files.ts`：长笔记文件存储与 RPC（`createNoteFileHandlers`）；
-- `src/reader-error.ts`：`ReaderError` 独立，避免模块与 `api.ts` 循环依赖。
+- `src/api/notes.ts`：短笔记 RPC（`createNotesHandlers`）；
+- `src/api/drafts.ts`：长笔记草稿的 UI RPC 与工具创建（`createDraftHandlers`）；
+- `src/api/memory.ts`：记忆的读取、写入、注入缓存与三处入口（`createMemoryHandlers`）；
+- `src/api/note-files.ts`：长笔记文件存储与 RPC（`createNoteFileHandlers`）；
+- `src/reading/error.ts`：`ReaderError` 独立，避免模块与 `api.ts` 循环依赖。
 
 `api.ts` 保留装配职责：创建 store、组合依赖、注册分发表，并继续对外暴露同一组方法。模块不直接读全局 `dataDir` 或可变的 `companionSettings`，而是通过 `getSettings` / `setSettings` / `loadSettings` / `saveSettings` 访问。
 

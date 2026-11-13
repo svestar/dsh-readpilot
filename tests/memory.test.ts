@@ -4,10 +4,10 @@ import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import type { TestContext } from 'node:test'
-import type { BookMemoryState, CompanionSettings, MemoryMode } from '../src/companion-settings.ts'
-import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from '../src/companion-settings.ts'
-import { createMemoryStore } from '../src/memory-store.ts'
-import { buildReadingMemory } from '../src/memory-context.ts'
+import type { BookMemoryState, CompanionSettings, MemoryMode } from '../src/companion/settings.ts'
+import { effectiveMemoryState, loadCompanionSettings, saveCompanionSettings } from '../src/companion/settings.ts'
+import { createMemoryStore } from '../src/memory/store.ts'
+import { buildReadingMemory } from '../src/memory/context.ts'
 
 async function makeDataDir(t: TestContext): Promise<string> {
   const dir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-memory-'))

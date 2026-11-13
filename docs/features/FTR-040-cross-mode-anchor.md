@@ -3,7 +3,7 @@
 - **ID：** FTR-040
 - **名称：** 跨模式划线锚点
 - **状态：** active
-- **代码：** `src/notes.ts`（`NoteRecord.start`、`end`、`blockHash`）；`src/api-notes.ts`（`handleNotes`）；`src/client/notes/anchors.ts`（`findNoteOccurrence`）；`src/client/anchor.ts`（`hashText`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/notes/anchors.ts`（`compactAnchorText`、`applyEpubNoteMarks`）
+- **代码：** `src/notes/store.ts`（`NoteRecord.start`、`end`、`blockHash`）；`src/api/notes.ts`（`handleNotes`）；`src/client/notes/anchors.ts`（`findNoteOccurrence`）；`src/client/anchor.ts`（`hashText`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/notes/anchors.ts`（`compactAnchorText`、`applyEpubNoteMarks`）
 - **测试：** `tests/anchor.test.ts`；`tests/notes.test.ts`
 
 ## 行为
@@ -16,8 +16,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `NoteRecord.start` / `end` / `blockHash` | `src/notes.ts:NoteRecord` | 保存规范偏移与段落哈希 |
-| `handleNotes` | `src/api-notes.ts:handleNotes` | 透传锚点字段并持久化 |
+| `NoteRecord.start` / `end` / `blockHash` | `src/notes/store.ts:NoteRecord` | 保存规范偏移与段落哈希 |
+| `handleNotes` | `src/api/notes.ts:handleNotes` | 透传锚点字段并持久化 |
 | `findNoteOccurrence` | `src/client/notes/anchors.ts:findNoteOccurrence` | 精确偏移、前缀后缀与空白归一化匹配 |
 | `hashText` | `src/client/anchor.ts:hashText` | 段落哈希兜底 |
 | `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 生成锚点、overlay 高亮与块回退 |

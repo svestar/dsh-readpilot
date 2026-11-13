@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
 import type { Book } from './library.ts'
 import type { BookFormat } from './formats.ts'
 

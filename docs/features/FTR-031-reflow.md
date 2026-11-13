@@ -3,7 +3,7 @@
 - **ID：** FTR-031
 - **名称：** 重排阅读
 - **状态：** active
-- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/settings/reader-preferences.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/reader-settings.ts`（`ReaderSettings`）；`src/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/formats/epub.ts`（`parseEpub`、`imageBlock`、`tableRows`）；`src/client/markdown/render.ts`（`renderBlocks`）
+- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/settings/reader-preferences.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/reader-settings.ts`（`ReaderSettings`）；`src/books/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/books/formats/epub.ts`（`parseEpub`、`imageBlock`、`tableRows`）；`src/client/markdown/render.ts`（`renderBlocks`）
 - **测试：** `tests/epub-visual.test.ts`；`tests/pdf.test.ts`；`tests/epub.test.ts`
 
 ## 行为
@@ -22,11 +22,11 @@ PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚�
 | `applySource` | `src/client/plugin.ts:applySource` | 切换模式、重建当前章节的视觉状态 |
 | `readReflowBooks` / `saveReflowBooks` | `src/client/settings/reader-preferences.ts:readReflowBooks` | 读写按书的模式偏好 |
 | `ReaderSettings` | `src/client/reader-settings.ts:ReaderSettings` | 提供“原版/重排”等内容设置 |
-| `parsePdf` | `src/formats/pdf.ts:parsePdf` | PDF 文本重建，返回 `reflowConfidence` / `reflowNotes` |
-| `stripPageFurniture` | `src/formats/pdf.ts:stripPageFurniture` | 过滤页码与重复页眉页脚 |
-| `orderColumns` | `src/formats/pdf.ts:orderColumns` | 双栏页按左右栏重排 |
-| `pageBlocks` | `src/formats/pdf.ts:pageBlocks` | 段落合并、标题/代码/表格识别 |
-| `tableRowsAt` | `src/formats/pdf.ts:tableRowsAt` | 连续同列行合成表格 |
+| `parsePdf` | `src/books/formats/pdf.ts:parsePdf` | PDF 文本重建，返回 `reflowConfidence` / `reflowNotes` |
+| `stripPageFurniture` | `src/books/formats/pdf.ts:stripPageFurniture` | 过滤页码与重复页眉页脚 |
+| `orderColumns` | `src/books/formats/pdf.ts:orderColumns` | 双栏页按左右栏重排 |
+| `pageBlocks` | `src/books/formats/pdf.ts:pageBlocks` | 段落合并、标题/代码/表格识别 |
+| `tableRowsAt` | `src/books/formats/pdf.ts:tableRowsAt` | 连续同列行合成表格 |
 | `renderBlocks` | `src/client/markdown/render.ts:renderBlocks` | 渲染表格块 |
 
 ## 约束与失败行为

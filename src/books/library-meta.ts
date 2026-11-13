@@ -1,6 +1,6 @@
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
-import { enqueueWrite } from './write-queue.ts'
+import { enqueueWrite } from '../storage/write-queue.ts'
 
 const MAX_TAGS = 20
 const MAX_TAG_LENGTH = 24

@@ -3,7 +3,7 @@
 - **ID：** FTR-022
 - **名称：** 笔记草稿
 - **状态：** active
-- **代码：** `src/note-drafts.ts`（`createNoteDraftStore`）；`src/api.ts`（`ensureNoteDraftStore`）；`src/api-note-files.ts`（`toolNoteFiles`）；`src/api-drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/draft-notice.ts`（`DraftNotice`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/diff.ts`（`diffLines`）
+- **代码：** `src/notes/drafts.ts`（`createNoteDraftStore`）；`src/api/index.ts`（`ensureNoteDraftStore`）；`src/api/note-files.ts`（`toolNoteFiles`）；`src/api/drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/agent/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/draft-notice.ts`（`DraftNotice`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/diff.ts`（`diffLines`）
 - **测试：** `tests/note-drafts.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -18,12 +18,12 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createNoteDraftStore` | `src/note-drafts.ts:createNoteDraftStore` | 草稿的 list/create/apply/reject 与路径安全 |
-| `noteDrafts` | `src/api-drafts.ts:noteDrafts` | UI 的 list/apply/reject RPC |
-| `noteDraftCreate` | `src/api-drafts.ts:noteDraftCreate` | 工具创建草稿；自动应用开启时立即应用 |
-| `setAutoApplyNotes` | `src/api.ts:setAutoApplyNotes` | 切换全局自动应用开关 |
-| `toolNoteFiles` | `src/api-note-files.ts:toolNoteFiles` | 工具的 index/read |
-| `reader_notes` | `src/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
+| `createNoteDraftStore` | `src/notes/drafts.ts:createNoteDraftStore` | 草稿的 list/create/apply/reject 与路径安全 |
+| `noteDrafts` | `src/api/drafts.ts:noteDrafts` | UI 的 list/apply/reject RPC |
+| `noteDraftCreate` | `src/api/drafts.ts:noteDraftCreate` | 工具创建草稿；自动应用开启时立即应用 |
+| `setAutoApplyNotes` | `src/api/index.ts:setAutoApplyNotes` | 切换全局自动应用开关 |
+| `toolNoteFiles` | `src/api/note-files.ts:toolNoteFiles` | 工具的 index/read |
+| `reader_notes` | `src/agent/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
 | `useLongNotes` / `LongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes`；`src/client/notes/long-notes.ts:LongNotes` | 草稿轮询、应用/拒绝与 diff UI |
 | `diffLines` | `src/client/notes/diff.ts:diffLines` | 基准/新正文的行级差异 |
 

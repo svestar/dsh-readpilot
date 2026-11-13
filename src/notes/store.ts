@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto'
 import { join } from 'node:path'
-import { readJson, writeJson } from './fsjson.ts'
-import { enqueueWrite } from './write-queue.ts'
+import { readJson, writeJson } from '../storage/fsjson.ts'
+import { enqueueWrite } from '../storage/write-queue.ts'
 
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const MAX_TEXT_LENGTH = 4000
