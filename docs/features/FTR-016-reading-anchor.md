@@ -3,7 +3,7 @@
 - **ID：** FTR-016
 - **名称：** 阅读锚点
 - **状态：** active
-- **代码：** `src/client/anchor.ts`（`blocksText`、`offsetInChapter`、`contextAround`、`hashText`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/helpers.ts`（`findNoteOccurrence`）；`src/api.ts`（`saveReadingProgress`）；`src/notes.ts`（`validateNewNote`）
+- **代码：** `src/client/anchor.ts`（`blocksText`、`offsetInChapter`、`contextAround`、`hashText`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/notes/anchors.ts`（`findNoteOccurrence`）；`src/api.ts`（`saveReadingProgress`）；`src/notes.ts`（`validateNewNote`）
 - **测试：** `tests/reading-anchor.test.ts`
 
 ## 行为
@@ -18,7 +18,7 @@
 | `offsetInChapter` | `src/client/anchor.ts:offsetInChapter` | 把块内偏移换算成章节全局偏移 |
 | `contextAround` | `src/client/anchor.ts:contextAround` | 截取引用前后文 |
 | `hashText` | `src/client/anchor.ts:hashText` | 生成章节文本指纹 |
-| `findNoteOccurrence` | `src/client/helpers.ts:findNoteOccurrence` | 按 quote、偏移与前后文定位 |
+| `findNoteOccurrence` | `src/client/notes/anchors.ts:findNoteOccurrence` | 按 quote、偏移与前后文定位 |
 | `saveReadingProgress` | `src/api.ts:saveReadingProgress` | 保存章节进度与百分比 |
 | `validateNewNote` | `src/notes.ts:validateNewNote` | 接受并校验可选锚点字段 |
 

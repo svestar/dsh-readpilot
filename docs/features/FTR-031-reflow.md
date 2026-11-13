@@ -3,7 +3,7 @@
 - **ID：** FTR-031
 - **名称：** 重排阅读
 - **状态：** active
-- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/helpers.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/reader-settings.ts`（`ReaderSettings`）；`src/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/formats/epub.ts`（`parseEpub`、`imageBlock`、`tableRows`）；`src/client/views/markdown.ts`（`renderBlocks`）
+- **代码：** `src/client/reader-screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/settings/reader-preferences.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/reader-settings.ts`（`ReaderSettings`）；`src/formats/pdf.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/formats/epub.ts`（`parseEpub`、`imageBlock`、`tableRows`）；`src/client/views/markdown.ts`（`renderBlocks`）
 - **测试：** `tests/epub-visual.test.ts`；`tests/pdf.test.ts`；`tests/epub.test.ts`
 
 ## 行为
@@ -20,7 +20,7 @@ PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚�
 |---|---|---|
 | `visualForItem` / `visualForChapter` | `src/client/reader-screen.ts:visualForItem` | 重排时对 EPUB/PDF 返回 `null`，走文本渲染器 |
 | `applySource` | `src/client/plugin.ts:applySource` | 切换模式、重建当前章节的视觉状态 |
-| `readReflowBooks` / `saveReflowBooks` | `src/client/helpers.ts:readReflowBooks` | 读写按书的模式偏好 |
+| `readReflowBooks` / `saveReflowBooks` | `src/client/settings/reader-preferences.ts:readReflowBooks` | 读写按书的模式偏好 |
 | `ReaderSettings` | `src/client/reader-settings.ts:ReaderSettings` | 提供“原版/重排”等内容设置 |
 | `parsePdf` | `src/formats/pdf.ts:parsePdf` | PDF 文本重建，返回 `reflowConfidence` / `reflowNotes` |
 | `stripPageFurniture` | `src/formats/pdf.ts:stripPageFurniture` | 过滤页码与重复页眉页脚 |

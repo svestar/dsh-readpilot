@@ -19,29 +19,14 @@ const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRe
 import { visualForChapter } from '../reader-screen.ts'
 import { renderBlocks, selectionAnchor } from './markdown.ts'
 import { ReaderBar } from './reader-bar.ts'
-import { NoteDialog, SelectionToolbar, quoteDraft } from './selection-note.ts'
+import { chapterFractionForOffset, prefillCompanionQuote, preserveSidebarVisual } from '../sidebar/navigation.ts'
+import type { SidebarBook, SidebarMode } from '../sidebar/navigation.ts'
+import { NoteDialog, SelectionToolbar } from './selection-note.ts'
 import { ActionHistory } from './action-history.ts'
 import { VisualReader } from './visual-reader.ts'
 
 const SIDEBAR_FONT_SIZE = 15
 const SIDEBAR_PROGRESS_DEBOUNCE = 400
-
-export function preserveSidebarVisual(previous: Visual | null, next: Visual | null, bookChanged: boolean): Visual | null {
-  if (bookChanged || previous === null) return next
-  if (previous.kind === 'pdf') return previous
-  if (previous.kind === 'epub' && next?.kind === 'epub' && next.href === previous.href) return previous
-  return next
-}
-
-export function chapterFractionForOffset(
-  blocks: ReadonlyArray<{ text: string }> | null | undefined,
-  offset: number | null,
-): number | null {
-  if (offset === null || !Number.isFinite(offset)) return null
-  const chars = (blocks ?? []).reduce((sum, block) => sum + (block.text?.length ?? 0), 0)
-  if (chars <= 0) return null
-  return Math.max(0, Math.min(1, offset / chars))
-}
 
 export interface SidebarReaderProps {
   call: CallRpc
@@ -56,36 +41,6 @@ export interface SidebarReaderProps {
   } | null
   openResource?: (address: string) => void
 }
-
-/**
- * Put a selected passage into the session composer.
- * @param actions - the session's composer actions, when the host provides them.
- * @param text - selected reader text.
- * @returns whether the quote reached the composer.
- */
-export function prefillCompanionQuote(actions: ComposerInputActions | null | undefined, text: string): boolean {
-  const quote = text.trim()
-  if (!quote) return false
-  try {
-    if (actions?.insertQuote?.(quote)) return true
-  } catch {
-    // Older or busy composers fall through to the plain draft write.
-  }
-  try {
-    actions?.setDraft?.(quoteDraft(quote))
-  } catch {
-    return false
-  }
-  return typeof actions?.setDraft === 'function'
-}
-
-interface SidebarBook {
-  bookId: string
-  title: string
-  format: 'txt' | 'md' | 'epub' | 'pdf'
-}
-
-type SidebarMode = 'text' | 'original'
 
 export function SidebarReader({ call, t, sessionId, inputActions, useTabInfo, openResource }: SidebarReaderProps) {
   const tab = useTabInfo ? useTabInfo() : null

@@ -3,7 +3,7 @@
 - **ID：** FTR-011
 - **名称：** 阅读配色
 - **状态：** active
-- **代码：** `src/client/helpers.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/views/header.ts`（`Header`）；`src/client/plugin.ts`（`ReaderPanel`、`data-palette`）
+- **代码：** `src/client/settings/reader-preferences.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/views/header.ts`（`Header`）；`src/client/plugin.ts`（`ReaderPanel`、`data-palette`）
 - **测试：** `tests/palette.test.ts`
 
 ## 行为
@@ -14,10 +14,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `READER_PALETTES` | `src/client/helpers.ts:READER_PALETTES` | 七种配色的背景、文字、边框、选区与高亮颜色 |
-| `resolveReaderPalette` | `src/client/helpers.ts:resolveReaderPalette` | 解析配色 id，非法值回退 auto |
-| `normalizeGlassBlur` | `src/client/helpers.ts:normalizeGlassBlur` | 把模糊值收敛到 0–80px，非法值回退默认 |
-| `applyPaletteToFrame` | `src/client/helpers.ts:applyPaletteToFrame` | 向 EPUB iframe 注入背景/文字/选区样式 |
+| `READER_PALETTES` | `src/client/settings/reader-preferences.ts:READER_PALETTES` | 七种配色的背景、文字、边框、选区与高亮颜色 |
+| `resolveReaderPalette` | `src/client/settings/reader-preferences.ts:resolveReaderPalette` | 解析配色 id，非法值回退 auto |
+| `normalizeGlassBlur` | `src/client/settings/reader-preferences.ts:normalizeGlassBlur` | 把模糊值收敛到 0–80px，非法值回退默认 |
+| `applyPaletteToFrame` | `src/client/settings/reader-preferences.ts:applyPaletteToFrame` | 向 EPUB iframe 注入背景/文字/选区样式 |
 | `Header` | `src/client/views/header.ts:Header` | 配色选择器与阅读器头部 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 应用面板 CSS 变量与配色状态 |
 

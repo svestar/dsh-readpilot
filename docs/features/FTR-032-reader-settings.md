@@ -3,7 +3,7 @@
 - **ID：** FTR-032
 - **名称：** 阅读设置
 - **状态：** active
-- **代码：** `src/client/reader-settings.ts`（`ReaderSettings`）；`src/client/paging.ts`（`readerCapabilities`）；`src/client/views/header.ts`（`Header`）；`src/client/views/reader-bar.ts`（`ReaderBar`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/helpers.ts`（`readReflowBooks`、`readFontSize`）
+- **代码：** `src/client/reader-settings.ts`（`ReaderSettings`）；`src/client/paging.ts`（`readerCapabilities`）；`src/client/views/header.ts`（`Header`）；`src/client/views/reader-bar.ts`（`ReaderBar`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/settings/reader-preferences.ts`（`readReflowBooks`、`readFontSize`）
 - **测试：** `tests/paging.test.ts`
 
 ## 行为
@@ -20,8 +20,8 @@
 | `readerCapabilities` | `src/client/paging.ts:readerCapabilities` | 按格式与内容模式给出可用项 |
 | `Header` | `src/client/views/header.ts:Header` | 只保留导航动作与“Aa”入口 |
 | `ReaderBar` | `src/client/views/reader-bar.ts:ReaderBar` | 翻页、位置与 PDF 页码/缩放 |
-| `readReflowBooks` / `saveReflowBooks` | `src/client/helpers.ts:readReflowBooks` | 按书读写原版/重排偏好 |
-| `readFontSize` / `saveFontSize` | `src/client/helpers.ts:readFontSize` | 全局字号偏好与夹取 |
+| `readReflowBooks` / `saveReflowBooks` | `src/client/settings/reader-preferences.ts:readReflowBooks` | 按书读写原版/重排偏好 |
+| `readFontSize` / `saveFontSize` | `src/client/settings/reader-preferences.ts:readFontSize` | 全局字号偏好与夹取 |
 
 ## 约束与失败行为
 

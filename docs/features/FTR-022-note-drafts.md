@@ -3,7 +3,7 @@
 - **ID：** FTR-022
 - **名称：** 笔记草稿
 - **状态：** active
-- **代码：** `src/note-drafts.ts`（`createNoteDraftStore`）；`src/api.ts`（`ensureNoteDraftStore`）；`src/api-note-files.ts`（`toolNoteFiles`）；`src/api-drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/draft-notice.ts`（`DraftNotice`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/helpers.ts`（`diffLines`）
+- **代码：** `src/note-drafts.ts`（`createNoteDraftStore`）；`src/api.ts`（`ensureNoteDraftStore`）；`src/api-note-files.ts`（`toolNoteFiles`）；`src/api-drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/views/draft-notice.ts`（`DraftNotice`）；`src/client/views/long-notes.ts`（`LongNotes`）；`src/client/diff.ts`（`diffLines`）
 - **测试：** `tests/note-drafts.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -25,7 +25,7 @@
 | `toolNoteFiles` | `src/api-note-files.ts:toolNoteFiles` | 工具的 index/read |
 | `reader_notes` | `src/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
 | `useLongNotes` / `LongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes`；`src/client/views/long-notes.ts:LongNotes` | 草稿轮询、应用/拒绝与 diff UI |
-| `diffLines` | `src/client/helpers.ts:diffLines` | 基准/新正文的行级差异 |
+| `diffLines` | `src/client/diff.ts:diffLines` | 基准/新正文的行级差异 |
 
 ## 约束与失败行为
 
