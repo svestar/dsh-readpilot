@@ -8,6 +8,8 @@
 
 ## 行为
 
+块模型与架构取舍见 [ADR-023](../decisions/ADR-023-markdown-blocks.md)。
+
 Markdown 文件与聊天/长笔记共用 `parseMarkdownBlocks`。阅读章节由 Host 把解析结果转成 `TextBlock`，客户端继续以 `data-block-index` 渲染，因此分页、搜索和批注锚点仍按块工作。
 
 支持：
