@@ -25,7 +25,7 @@
 | `toolNoteFiles` | `src/api-note-files.ts:toolNoteFiles` | 工具的 index/read |
 | `reader_notes` | `src/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
 | `useLongNotes` / `LongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes`；`src/client/views/long-notes.ts:LongNotes` | 草稿轮询、应用/拒绝与 diff UI |
-| `diffLines` | `src/client/diff.ts:diffLines` | 基准/新正文的行级差异 |
+| `diffLines` | `src/client/notes/diff.ts:diffLines` | 基准/新正文的行级差异 |
 
 ## 约束与失败行为
 
