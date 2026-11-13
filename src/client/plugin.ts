@@ -33,7 +33,7 @@ import { zh, en } from './locale.ts'
 import { CSS } from './styles.ts'
 import { React, h, bindRuntime } from './runtime.ts'
 import { Toc } from './views/toc.ts'
-import { renderBlocks, selectionAnchor } from './views/markdown.ts'
+import { renderBlocks } from './views/markdown.ts'
 import { PanelIcon, Setup } from './views/panels.ts'
 import { Library } from './views/library-view.ts'
 import { NotesBody, SearchPanel } from './views/notes-search.ts'
@@ -71,6 +71,7 @@ import { parseNoteResource } from './note-resource.ts'
 import { buildReaderResource, parseReaderResource } from './reader-resource.ts'
 import { parseReaderJumpUrl } from '../jump-url.ts'
 import type { ReaderJumpTarget } from '../jump-url.ts'
+import { useContentSelection } from './hooks/use-content-selection.ts'
 import { useLibraryActions } from './hooks/use-library-actions.ts'
 import { usePromptPresetActions } from './hooks/use-prompt-preset-actions.ts'
 import { useLongNotes } from './hooks/use-long-notes.ts'
@@ -1169,33 +1170,7 @@ export function createPlugin(require: (name: string) => any) {
         prefillComposer(prompt)
       }, [annotations, epubFrameRef, prefillComposer, screen, selection, t])
 
-      const onContentMouseUp = React.useCallback(() => {
-        const active = window.getSelection()
-        const container = contentRef.current
-        if (!active || active.isCollapsed || active.rangeCount === 0 || !container) {
-          setSelection(null)
-          return
-        }
-        const range = active.getRangeAt(0)
-        if (!container.contains(range.commonAncestorContainer)) {
-          setSelection(null)
-          return
-        }
-        const text = active.toString().trim()
-        if (!text) {
-          setSelection(null)
-          return
-        }
-        const rect = range.getBoundingClientRect()
-        const anchor = selectionAnchor(range, container)
-        setSelection({
-          text: text.slice(0, 2000),
-          x: Math.min(Math.max(rect.left + rect.width / 2, 120), window.innerWidth - 120),
-          y: rect.top,
-          blockIndex: anchor ? anchor.blockIndex : null,
-          offset: anchor ? anchor.offset : 0,
-        })
-      }, [])
+      const onContentMouseUp = useContentSelection({ contentRef, setSelection })
 
       const openSetup = React.useCallback(() => setScreen({ kind: 'setup' }), [])
 

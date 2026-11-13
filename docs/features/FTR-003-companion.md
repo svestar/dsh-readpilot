@@ -17,7 +17,7 @@
 | `setCompanionSession` | `src/api.ts:setCompanionSession` | 持久化或清除书籍与会话的映射 |
 | `sessionAlive` | `src/api.ts:sessionAlive` | 检查会话是否已被归档 |
 | `setCompanionPolicy` | `src/api.ts:setCompanionPolicy` | 把伴读会话切到只读沙箱，已只读时跳过 |
-| `search` | `src/api.ts:search` | 返回带稳定定位符的检索结果 |
+| `search` | `src/api/search.ts:createSearch` | 返回带稳定定位符的检索结果 |
 
 ## 约束与失败行为
 

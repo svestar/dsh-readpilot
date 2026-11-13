@@ -57,6 +57,7 @@ import {
 import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from './visual/epub.ts'
 import type { PdfRenderer } from './visual/pdf.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
+import { createSearch } from './api/search.ts'
 import { noteFilePath, openWithExternalEditor } from './api/files.ts'
 export { noteFilePath } from './api/files.ts'
 import type {
@@ -68,7 +69,6 @@ import type {
   ReaderState,
   OpenResult,
   ChapterContent,
-  SearchMatch,
   SearchResult,
   PageViewResult,
   RpcResult,
@@ -105,10 +105,6 @@ const MAX_READ_LIMIT = 8000
 const PDF_COVER_SCALE = 0.5
 const MAX_CONCURRENT_COVERS = 4
 const coverLimit = createLimiter(MAX_CONCURRENT_COVERS)
-const MAX_SEARCH_BOOKS = 20
-const MAX_SEARCH_RESULTS = 5000
-const MAX_SEARCH_PARSE_BYTES = 128 * 1024 * 1024
-const MAX_SEARCH_PARSE_MS = 3000
 const SCAN_TTL_MS = 30_000
 const MAX_BOOK_IMAGE_BYTES = 20 * 1024 * 1024
 const BOOK_IMAGE_TYPES = new Map<string, string>([
@@ -797,78 +793,7 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return typeof sessionId === 'string' ? companionContexts.get(sessionId)?.text ?? '' : ''
   }
 
-  async function search({ bookId, query, limit }: any = {}): Promise<SearchResult> {
-    if (typeof query !== 'string' || query.trim().length < 2) {
-      throw new ReaderError('invalid-query', '检索词至少需要 2 个字符')
-    }
-    const wanted = query.trim()
-    const lowered = wanted.toLowerCase()
-    const allResults = limit === 0 || limit === 'all'
-    const maxResults = allResults ? MAX_SEARCH_RESULTS : Math.min(positiveInteger(limit, 20), 50)
-    const scoped = typeof bookId === 'string' && bookId.length > 0
-    const supported = (scoped ? [await resolveBook(bookId)] : await libraryBooks())
-      .filter(book => book.supported)
-    const books = scoped ? supported : supported.slice(0, MAX_SEARCH_BOOKS)
-    const matches: SearchMatch[] = []
-    let limited = false
-    let unreadable = false
-    let scanned = 0
-    let parsedBytes = 0
-    const startedAt = Date.now()
-
-    for (const book of books) {
-      if (!book.supported) continue
-      if (!scoped && (
-        parsedBytes + book.size > MAX_SEARCH_PARSE_BYTES
-        || Date.now() - startedAt > MAX_SEARCH_PARSE_MS
-      )) break
-      parsedBytes += book.size
-      scanned += 1
-      let parsed: BookCacheRecord
-      try {
-        parsed = await ensureParsed(book)
-      } catch {
-        unreadable = true
-        continue
-      }
-      for (const chapter of parsed.chapters) {
-        const text = chapterText(chapter)
-        const haystack = text.toLowerCase()
-        let from = 0
-        while (from < haystack.length) {
-          const index = haystack.indexOf(lowered, from)
-          if (index === -1) break
-          const start = Math.max(0, index - 60)
-          const end = Math.min(text.length, index + wanted.length + 120)
-          matches.push({
-            bookId: book.id,
-            bookTitle: parsed.title || book.title,
-            chapterId: chapter.id,
-            chapterTitle: chapter.title,
-            offset: index,
-            snippet: text.slice(start, end).replace(/\s+/g, ' ').trim(),
-            locator: `${book.id}:${chapter.id}:${index}`,
-            jumpUrl: buildReaderJumpUrl(book.id, chapter.id, index),
-          })
-          if (matches.length >= maxResults) {
-            limited = true
-            break
-          }
-          from = index + Math.max(wanted.length, 1)
-        }
-        if (matches.length >= maxResults) break
-      }
-      if (matches.length >= maxResults) break
-    }
-    return {
-      matches,
-      truncated: limited || scanned < supported.length,
-      query: wanted,
-      booksScanned: scanned,
-      booksTotal: supported.length,
-      unreadable,
-    }
-  }
+  const search = createSearch({ resolveBook, libraryBooks, ensureParsed })
 
   async function toolBooks(): Promise<any> {
     const snapshot = await state()
