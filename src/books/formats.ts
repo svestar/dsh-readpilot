@@ -17,6 +17,7 @@ export interface TextBlock {
   rows?: string[][]
   src?: string
   alt?: string
+  footnoteId?: string
 }
 
 export interface Chapter {

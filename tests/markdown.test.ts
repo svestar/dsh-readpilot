@@ -4,8 +4,12 @@ import { parseMarkdownBlocks } from '../src/markdown/blocks.ts'
 import { parseBlocks } from '../src/books/formats.ts'
 import { bindRuntime } from '../src/client/common/runtime.ts'
 import { inline, renderBlocks } from '../src/client/markdown/render.ts'
+import { rewriteInlineImages } from '../src/api/markdown-images.ts'
 
 const source = [
+  'Setext 标题',
+  '============',
+  '',
   '## 标题',
   '',
   '| 名称 | 数量 |',
@@ -25,7 +29,9 @@ const source = [
   'const x = 1',
   '~~~',
   '',
-  '~~删除~~ 和 https://example.com 以及 ![图](./cover.png)',
+  '~~删除~~ 和 https://example.com 以及 ![图](./cover.png)[^1]',
+  '',
+  '[^1]: 脚注内容',
 ].join('\n')
 
 test('markdown_parser_handles_gfm_blocks', () => {
@@ -37,6 +43,8 @@ test('markdown_parser_handles_gfm_blocks', () => {
   assert.equal(blocks.find(block => block.type === 'li' && block.indent === 1)?.text, '嵌套项')
   assert.equal(blocks.find(block => block.type === 'quote')?.text, '第一行\n第二行')
   assert.equal(blocks.find(block => block.type === 'code')?.lang, 'ts')
+  assert.equal(blocks.find(block => block.type === 'h')?.level, 1)
+  assert.equal(blocks.find(block => block.type === 'footnote')?.footnoteId, '1')
 })
 
 test('host_markdown_blocks_share_gfm_parser', () => {
@@ -61,11 +69,18 @@ test('markdown_renderer_keeps_safe_inline_nodes_and_block_indexes', () => {
   assert.equal(table.children[0].type, 'thead')
   const task = nodes.find(node => node.type === 'div' && node.props.className.includes('task'))
   assert.equal(task.children[0].props.checked, false)
-  const paragraph = nodes.at(-1)
+  const paragraph = nodes.find(node => node.type === 'p' && node.children.flat().some((child: any) => child.type === 's'))
   const inlineNodes = paragraph.children.flat()
   assert.ok(inlineNodes.some((child: any) => child.type === 's'))
   assert.ok(inlineNodes.some((child: any) => child.type === 'a'))
   assert.ok(inlineNodes.some((child: any) => child.type === 'img'))
   assert.ok(nodes.every(node => node.props['data-block-index'] !== undefined))
+  assert.ok(nodes.some(node => node.type === 'div' && node.props.className === 'dsh-readpilot-footnote'))
   assert.ok(inline('**粗体**', 'x').some(node => node?.type === 'strong'))
+})
+
+test('relative_inline_images_are_rewritten', () => {
+  const result = rewriteInlineImages('![图](cover.png) ![外链](https://example.com/a.png)', src => `/api/book-asset?path=${encodeURIComponent(src)}`)
+  assert.match(result, /\/api\/book-asset\?path=cover\.png/)
+  assert.match(result, /https:\/\/example\.com\/a\.png/)
 })

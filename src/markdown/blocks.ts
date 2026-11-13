@@ -1,5 +1,5 @@
 export interface MarkdownBlock {
-  type: 'p' | 'h' | 'code' | 'hr' | 'quote' | 'li' | 'table' | 'image'
+  type: 'p' | 'h' | 'code' | 'hr' | 'quote' | 'li' | 'table' | 'image' | 'footnote'
   text?: string
   level?: number
   ordered?: boolean
@@ -10,6 +10,7 @@ export interface MarkdownBlock {
   rows?: string[][]
   src?: string
   alt?: string
+  footnoteId?: string
 }
 
 function tableCells(line: string): string[] {
@@ -80,6 +81,25 @@ export function parseMarkdownBlocks(text: unknown): MarkdownBlock[] {
     }
     if (!line.trim()) {
       flushParagraph()
+      continue
+    }
+    const footnote = /^\[\^([^\]]+)\]:\s*(.*)$/.exec(line)
+    if (footnote) {
+      flushParagraph()
+      let footnoteText = footnote[2]
+      while (index + 1 < lines.length && /^(?:\s{2,}|\t)\S/.test(lines[index + 1])) {
+        index += 1
+        footnoteText += `\n${lines[index].replace(/^\s{2,4}/, '')}`
+      }
+      blocks.push({ type: 'footnote', footnoteId: footnote[1].trim(), text: footnoteText })
+      continue
+    }
+    const setext = index + 1 < lines.length ? /^(=+|-{2,})\s*$/.exec(lines[index + 1]) : null
+    const blockLike = /^(?:>|[-*+]\s|\d+[.)]\s|#{1,6}\s|```|~~~|!\[|\|)/.test(line)
+    if (paragraph.length === 0 && setext && line.trim() && !blockLike) {
+      flushParagraph()
+      blocks.push({ type: 'h', level: setext[1][0] === '=' ? 1 : 2, text: line.trim() })
+      index += 1
       continue
     }
     const heading = /^(#{1,6})\s+(.*?)\s*#*\s*$/.exec(line)

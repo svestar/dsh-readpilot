@@ -15,7 +15,7 @@ function safeImageSrc(value: string): string | null {
 }
 
 export function inline(text: string, prefix: string): any[] {
-  const pattern = /(!\[[^\]]*\]\([^)\s]+\)|`[^`\n]+`|\*\*[^*\n]+\*\*|~~[^~\n]+~~|\*[^*\n]+\*|\[[^\]]+\]\([^)\s]+\)|<(?:https?|mailto):[^>\s]+>|https?:\/\/[^\s<)]+)/g
+  const pattern = /(!\[[^\]]*\]\([^)\s]+\)|`[^`\n]+`|\*\*[^*\n]+\*\*|~~[^~\n]+~~|\*[^*\n]+\*|\[\^[^\]]+\]|\[[^\]]+\]\([^)\s]+\)|<(?:https?|mailto):[^>\s]+>|https?:\/\/[^\s<)]+)/g
   const nodes: any[] = []
   let last = 0
   let index = 0
@@ -25,6 +25,12 @@ export function inline(text: string, prefix: string): any[] {
     const token = match[0]
     const key = `${prefix}-${index}`
     index += 1
+    const footnote = /^\[\^([^\]]+)\]$/.exec(token)
+    if (footnote) {
+      const id = footnote[1].replace(/[^A-Za-z0-9_-]/g, '-')
+      nodes.push(h('sup', { key, className: 'dsh-readpilot-footnote-ref' },
+        h('a', { href: `#dsh-readpilot-fn-${id}`, id: `dsh-readpilot-fnref-${id}` }, id)))
+    } else {
     const image = /^!\[([^\]]*)\]\(([^)\s]+)\)$/.exec(token)
     if (image) {
       const src = safeImageSrc(image[2])
@@ -54,6 +60,7 @@ export function inline(text: string, prefix: string): any[] {
       } else {
         nodes.push(token)
       }
+    }
     }
     last = match.index + token.length
   }
@@ -91,6 +98,17 @@ function taskItem(block: MarkdownBlock, key: string, index: number): any {
 export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): any[] {
   return blocks.map((block, index) => {
     const key = `${prefix}-${index}`
+    if (block.type === 'footnote' && block.footnoteId) {
+      const id = block.footnoteId.replace(/[^A-Za-z0-9_-]/g, '-')
+      return h('div', {
+        key,
+        id: `dsh-readpilot-fn-${id}`,
+        'data-block-index': index,
+        className: 'dsh-readpilot-footnote',
+      },
+      h('span', { className: 'dsh-readpilot-footnote-id' }, `[${id}]`),
+      h('span', null, inline(block.text ?? '', key)))
+    }
     if (block.type === 'h') {
       const level = Math.min(6, Math.max(1, block.level ?? 3))
       return h(`h${level}`, { key, 'data-block-index': index }, inline(block.text ?? '', key))

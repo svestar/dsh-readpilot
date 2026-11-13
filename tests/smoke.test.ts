@@ -110,3 +110,20 @@ test('smoke: scanned pdf opens and renders a page', async t => {
   const page = await api.pdfPage({ bookId, page: 1, scale: 1 })
   assert.ok(page.png.length > 0)
 })
+
+test('smoke_markdown_inline_images_are_rewritten_to_book_assets', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-smoke-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  await writeFile(join(library, 'demo.md'), '# 第一章\n\n第一段 ![封面](images/cover.png)', 'utf8')
+  const api = createReaderApi({ ctx: fakeContext() as any, dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  const opened = await api.open({ bookId })
+  const chapter = await api.chapter({ bookId, chapterId: opened.toc[0].id })
+  const text = chapter.blocks.map(block => block.text).join('\n')
+  assert.match(text, /\/api\/dsh-readpilot\/book-asset\?/)
+  assert.match(text, /images%2Fcover\.png/)
+})

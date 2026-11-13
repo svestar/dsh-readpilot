@@ -58,6 +58,7 @@ import type { EpubAssetResult, EpubDocumentResult, EpubVisual } from '../visual/
 import type { PdfRenderer } from '../visual/pdf.ts'
 import { ensureWorkspacePrompt } from '../agent/workspace-prompt.ts'
 import { createSearch } from './search.ts'
+import { rewriteInlineImages } from './markdown-images.ts'
 import { noteFilePath, openWithExternalEditor } from './files.ts'
 export { noteFilePath } from './files.ts'
 import type {
@@ -563,9 +564,17 @@ export function createReaderApi({ ctx, dataDir, config = {} }: ReaderApiOptions)
     return {
       chapterId: loaded.chapter.id,
       title: loaded.chapter.title,
-      blocks: loaded.chapter.blocks.map(block => block.type === 'image' && block.src
-        ? { ...block, src: imageAssetUrl(loaded.book, block.src) }
-        : block),
+      blocks: loaded.chapter.blocks.map(block => {
+        const next = { ...block }
+        if (block.type === 'image' && block.src) next.src = imageAssetUrl(loaded.book, block.src)
+        if (typeof block.text === 'string') {
+          next.text = rewriteInlineImages(block.text, src => imageAssetUrl(loaded.book, src))
+        }
+        if (block.rows) {
+          next.rows = block.rows.map(row => row.map(cell => rewriteInlineImages(cell, src => imageAssetUrl(loaded.book, src))))
+        }
+        return next
+      }),
       locator: `${loaded.book.id}:${loaded.chapter.id}`,
     }
   }
