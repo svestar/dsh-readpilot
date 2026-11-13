@@ -1,5 +1,5 @@
-import { Modal, h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
+import { Modal, h } from '../common/runtime.ts'
+import type { TextFn } from '../common/types.ts'
 import type { ReaderActionReceipt } from '../../reading/actions.ts'
 
 interface ActionHistoryProps {

@@ -3,7 +3,7 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/companion/native-companion.ts`；`src/client/companion/chat-panel.ts`；`src/client/hooks/use-companion.ts`；`src/client/plugin.ts`；`src/client/reader-screen.ts`；`src/client/helpers.ts`；`src/client/companion/chat-content.ts`
+- **代码：** `src/client/companion/native-companion.ts`；`src/client/companion/chat-panel.ts`；`src/client/hooks/use-companion.ts`；`src/client/plugin.ts`；`src/client/reader/screen.ts`；`src/client/common/helpers.ts`；`src/client/companion/chat-content.ts`
 - **测试：** `tests/client-chat.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为

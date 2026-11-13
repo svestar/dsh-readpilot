@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import { PAGE_ASPECT, pageWidthForHeight } from '../paging.ts'
-import type { MutableRef } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import { PAGE_ASPECT, pageWidthForHeight } from '../reader/paging.ts'
+import type { MutableRef } from '../common/types.ts'
 
 export interface PageWidthOptions {
   enabled: boolean

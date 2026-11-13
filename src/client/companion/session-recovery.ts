@@ -1,4 +1,4 @@
-import { messageOf } from './helpers.ts'
+import { messageOf } from '../common/helpers.ts'
 
 /** True when a companion session was archived, deleted, or otherwise lost. */
 export function isMissingSessionError(error: unknown): boolean {

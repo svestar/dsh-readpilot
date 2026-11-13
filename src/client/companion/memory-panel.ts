@@ -1,5 +1,5 @@
-import { React, h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
+import { React, h } from '../common/runtime.ts'
+import type { TextFn } from '../common/types.ts'
 
 export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'

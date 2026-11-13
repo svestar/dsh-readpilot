@@ -1,5 +1,5 @@
-import { React, h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
+import { React, h } from '../common/runtime.ts'
+import type { TextFn } from '../common/types.ts'
 import type { BackupExportResult, BackupRestoreResult } from '../../backup/index.ts'
 
 export function PanelIcon({ size = 20, active }: { size?: number; active?: boolean }) {

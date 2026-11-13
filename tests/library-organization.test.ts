@@ -9,7 +9,7 @@ import {
   filterBooks,
   recentBooks,
   tagCatalogue,
-} from '../src/client/library-utils.ts'
+} from '../src/client/library/library-utils.ts'
 
 test('normalize_tags_deduplicates_and_trims', () => {
   assert.deepEqual(normalizeTags(['  技术 ', '技术', '待读']), ['技术', '待读'])

@@ -4,8 +4,8 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createNotesStore } from '../src/notes/store.ts'
-import { bookmarkContext } from '../src/client/bookmark-label.ts'
-import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/helpers.ts'
+import { bookmarkContext } from '../src/client/notes/bookmark-label.ts'
+import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/common/helpers.ts'
 
 test('highlight_and_bookmark_lifecycle', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-marks-'))

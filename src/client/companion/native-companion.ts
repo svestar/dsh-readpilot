@@ -1,4 +1,4 @@
-import { React } from '../runtime.ts'
+import { React } from '../common/runtime.ts'
 
 /** Local boundary keeps a failing Factory occurrence from taking down the reader. */
 export function createNativeChatBoundary(): any {

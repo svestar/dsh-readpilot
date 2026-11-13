@@ -1,5 +1,5 @@
-import { Modal, React, h, useVirtualizer } from '../runtime.ts'
-import { formatSize, readCoversEnabled, saveCoversEnabled } from '../helpers.ts'
+import { Modal, React, h, useVirtualizer } from '../common/runtime.ts'
+import { formatSize, readCoversEnabled, saveCoversEnabled } from '../common/helpers.ts'
 import {
   bookRating,
   bookStatus,
@@ -7,12 +7,12 @@ import {
   categoryCounts,
   filterBooks,
   tagCatalogue,
-} from '../library-utils.ts'
+} from './library-utils.ts'
 import type {
   ClientBook,
   Snapshot,
   TextFn,
-} from '../types.ts'
+} from '../common/types.ts'
 
 const FORMATS = ['txt', 'md', 'epub', 'pdf']
 const STATUSES = ['want', 'reading', 'done'] as const

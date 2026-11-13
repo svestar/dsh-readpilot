@@ -1,8 +1,8 @@
-import { React, h } from '../runtime.ts'
+import { React, h } from '../common/runtime.ts'
 import { renderBlocks } from '../markdown/render.ts'
-import { pageSpanWidth, pageWidthForHeight } from '../paging.ts'
-import type { PageLayout, ReaderMode } from '../paging.ts'
-import type { MutableRef, PageView, Screen, TextFn, Visual } from '../types.ts'
+import { pageSpanWidth, pageWidthForHeight } from './paging.ts'
+import type { PageLayout, ReaderMode } from './paging.ts'
+import type { MutableRef, PageView, Screen, TextFn, Visual } from '../common/types.ts'
 
 const PDF_WHEEL_THRESHOLD = 40
 

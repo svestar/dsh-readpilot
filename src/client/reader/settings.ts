@@ -1,8 +1,8 @@
-import { React, h } from './runtime.ts'
-import type { BookFormat } from '../books/formats.ts'
-import { MAX_FONT_SIZE, MIN_FONT_SIZE, READER_PALETTE_IDS } from './helpers.ts'
+import { React, h } from '../common/runtime.ts'
+import type { BookFormat } from '../../books/formats.ts'
+import { MAX_FONT_SIZE, MIN_FONT_SIZE, READER_PALETTE_IDS } from '../common/helpers.ts'
 import type { PageLayout, ReaderCapabilities, ReaderMode } from './paging.ts'
-import type { TextFn } from './types.ts'
+import type { TextFn } from '../common/types.ts'
 
 export type { ReaderCapabilities } from './paging.ts'
 

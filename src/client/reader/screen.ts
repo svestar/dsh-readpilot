@@ -1,4 +1,4 @@
-import type { BookDetail, Screen, TocItem, Visual } from './types.ts'
+import type { BookDetail, Screen, TocItem, Visual } from '../common/types.ts'
 
 let lastScreen: Screen = { kind: 'library' }
 

@@ -1,4 +1,4 @@
-import type { Screen } from './types.ts'
+import type { Screen } from '../common/types.ts'
 
 export function bookmarkContext(screen: Screen, chapterId: string | null): { chapterTitle: string; pageLabel: string } {
   if (!screen || screen.kind !== 'book') return { chapterTitle: '', pageLabel: '' }

@@ -1,6 +1,6 @@
-import { Modal, React, h } from '../runtime.ts'
+import { Modal, React, h } from '../common/runtime.ts'
 import { renderPrompt } from '../../prompts/render.ts'
-import type { TextFn } from '../types.ts'
+import type { TextFn } from '../common/types.ts'
 import type { PromptPreset } from '../../prompts/presets.ts'
 
 interface PromptPresetManagerProps {

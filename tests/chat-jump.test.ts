@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { buildReaderJumpUrl, parseReaderJumpUrl } from '../src/reading/jump-url.ts'
-import { findPageReferences } from '../src/client/page-jump.ts'
+import { findPageReferences } from '../src/client/reader/page-jump.ts'
 
 test('reader_jump_url_roundtrip_and_validation', () => {
   const url = buildReaderJumpUrl('book-1', 'chapter-2', 120, '原文片段')

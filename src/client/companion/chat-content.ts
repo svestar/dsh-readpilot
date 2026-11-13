@@ -1,7 +1,7 @@
-import { h } from '../runtime.ts'
+import { h } from '../common/runtime.ts'
 import { MarkdownMessage } from '../markdown/render.ts'
-import type { StateSetter } from '../runtime.ts'
-import type { ChatMessage, MutableRef, TextFn } from '../types.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import type { ChatMessage, MutableRef, TextFn } from '../common/types.ts'
 
 interface ChatBodyProps {
   t: TextFn

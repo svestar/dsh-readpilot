@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildNoteResource, parseNoteResource } from '../src/client/note-resource.ts'
+import { buildNoteResource, parseNoteResource } from '../src/client/notes/note-resource.ts'
 
 test('note_resource_roundtrips_book_and_note', () => {
   const address = buildNoteResource('b1', 'note-1')

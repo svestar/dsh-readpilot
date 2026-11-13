@@ -1,12 +1,12 @@
-import { React, Toast, h, useVirtualizer } from '../runtime.ts'
-import { buildNoteResource } from '../note-resource.ts'
-import { diffLines, formatSize } from '../helpers.ts'
+import { React, Toast, h, useVirtualizer } from '../common/runtime.ts'
+import { buildNoteResource } from './note-resource.ts'
+import { diffLines, formatSize } from '../common/helpers.ts'
 import { MarkdownMessage } from '../markdown/render.ts'
 import { ConfirmDialog } from '../common/confirm-dialog.ts'
 import { ModalShell } from '../common/modal.ts'
-import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../types.ts'
+import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../common/types.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
-import type { LongNoteHistory } from '../types.ts'
+import type { LongNoteHistory } from '../common/types.ts'
 
 interface LongNotesProps {
   t: TextFn

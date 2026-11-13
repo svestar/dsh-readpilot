@@ -8,12 +8,12 @@ import type {
   ReaderState,
   SearchMatch as ApiSearchMatch,
   TocItem as ApiTocItem,
-} from '../api/index.ts'
-import type { NoteRecord } from '../notes/store.ts'
-import type { NoteFileRecord, NoteHistoryEntry } from '../notes/files.ts'
-import type { NoteDraftRecord } from '../notes/drafts.ts'
+} from '../../api/index.ts'
+import type { NoteRecord } from '../../notes/store.ts'
+import type { NoteFileRecord, NoteHistoryEntry } from '../../notes/files.ts'
+import type { NoteDraftRecord } from '../../notes/drafts.ts'
 
-export type { CallRpc } from '../api/rpc.ts'
+export type { CallRpc } from '../../api/rpc.ts'
 
 export type TextFn = (key: string) => string
 

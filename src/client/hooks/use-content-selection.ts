@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
-import type { Selection } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import type { Selection } from '../common/types.ts'
 import { selectionAnchor } from '../markdown/render.ts'
 
 interface ContentSelectionOptions {

@@ -1,9 +1,9 @@
-import { React } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
-import { messageOf } from '../helpers.ts'
+import { React } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import { messageOf } from '../common/helpers.ts'
 import { parseReaderJumpUrl } from '../../reading/jump-url.ts'
 import type { ReaderJumpTarget } from '../../reading/jump-url.ts'
-import type { CallRpc, Screen, SelectChapter, TextFn } from '../types.ts'
+import type { CallRpc, Screen, SelectChapter, TextFn } from '../common/types.ts'
 
 interface ChatJumpOptions {
   call: CallRpc

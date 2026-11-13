@@ -1,7 +1,7 @@
-import { Tooltip, h } from '../runtime.ts'
+import { Tooltip, h } from '../common/runtime.ts'
 import type { BookFormat } from '../../books/formats.ts'
-import type { PageLayout, ReaderMode } from '../paging.ts'
-import type { TextFn } from '../types.ts'
+import type { PageLayout, ReaderMode } from './paging.ts'
+import type { TextFn } from '../common/types.ts'
 
 interface ReaderBarProps {
   t: TextFn

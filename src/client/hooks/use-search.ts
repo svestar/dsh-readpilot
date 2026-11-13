@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import { messageOf } from '../helpers.ts'
-import type { CallRpc, Screen, SearchMatch, SearchResults, SelectChapter, TextFn } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import { messageOf } from '../common/helpers.ts'
+import type { CallRpc, Screen, SearchMatch, SearchResults, SelectChapter, TextFn } from '../common/types.ts'
 
 interface SearchOptions {
   call: CallRpc

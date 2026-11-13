@@ -3,7 +3,7 @@
 - **ID：** FTR-019
 - **名称：** 分页阅读
 - **状态：** active
-- **代码：** `src/client/paging.ts`（`measurePageMetrics`、`pageBounds`、`chapterPercent`、`pdfPagePercent`、`columnsFor`、`pageWidthForHeight`、`pageSpanWidth`）；`src/client/hooks/use-page-width.ts`（`usePageWidth`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/reader-bar.ts`（`ReaderBar`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/client/reader/paging.ts`（`chapterPercent`、`pdfPagePercent`、`columnsFor`、`pageSpanWidth`）；`src/client/hooks/use-page-width.ts`（`usePageWidth`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/reader-bar.ts`（`ReaderBar`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -22,11 +22,11 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useT
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `measurePageMetrics` | `src/client/paging.ts:measurePageMetrics` | 算栏宽、栏数、页数与步长 |
-| `pageWidthForHeight` / `pageSpanWidth` | `src/client/paging.ts:pageWidthForHeight`；`src/client/paging.ts:pageSpanWidth` | A4 页宽与单/双页跨度 |
-| `pageBounds` | `src/client/paging.ts:pageBounds` | 页索引换算起止栏 |
-| `chapterPercent` | `src/client/paging.ts:chapterPercent` | 按章节字数与页进度算全书百分比 |
-| `pdfPagePercent` | `src/client/paging.ts:pdfPagePercent` | PDF 原版按绝对页算百分比 |
+| `measurePageMetrics` | `src/client/reader/paging.ts:measurePageMetrics` | 算栏宽、栏数、页数与步长 |
+| `pageWidthForHeight` / `pageSpanWidth` | `src/client/reader/paging.ts:pageWidthForHeight`；`src/client/reader/paging.ts:pageSpanWidth` | A4 页宽与单/双页跨度 |
+| `pageBounds` | `src/client/reader/paging.ts:pageBounds` | 页索引换算起止栏 |
+| `chapterPercent` | `src/client/reader/paging.ts:chapterPercent` | 按章节字数与页进度算全书百分比 |
+| `pdfPagePercent` | `src/client/reader/paging.ts:pdfPagePercent` | PDF 原版按绝对页算百分比 |
 | `useTextPager` | `src/client/hooks/use-text-pager.ts:useTextPager` | 文本多栏测量、滚动同步与翻页 |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | PDF 取图、EPUB 分页重测 |
 | `ReaderBar` | `src/client/reader/reader-bar.ts:ReaderBar` | 页码、百分比与布局控件 |

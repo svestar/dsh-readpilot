@@ -1,6 +1,6 @@
-import { React, createPortal, Modal, Tooltip, h } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
-import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../types.ts'
+import { React, createPortal, Modal, Tooltip, h } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import type { MutableRef, NoteEditor, NoteRef, Selection, TextFn } from '../common/types.ts'
 import type { PromptPreset } from '../../prompts/presets.ts'
 
 const COLORS = ['yellow', 'green', 'blue', 'pink', 'purple']

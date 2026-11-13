@@ -1,9 +1,9 @@
-import { React } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
+import { React } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
 import type { CallRpc } from '../../api/rpc.ts'
 import type { PromptPreset } from '../../prompts/presets.ts'
-import type { TextFn } from '../types.ts'
-import { messageOf } from '../helpers.ts'
+import type { TextFn } from '../common/types.ts'
+import { messageOf } from '../common/helpers.ts'
 
 interface PromptPresetActionsOptions {
   call: CallRpc

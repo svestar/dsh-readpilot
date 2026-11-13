@@ -1,13 +1,13 @@
-import { React } from '../runtime.ts'
+import { React } from '../common/runtime.ts'
 import {
   PAGE_GAP,
   clampPageIndex,
   columnsFor,
   anchorPage,
   measurePageMetrics,
-} from '../paging.ts'
-import type { PageLayout, ReadingAnchor } from '../paging.ts'
-import type { MutableRef, Screen, SelectChapter } from '../types.ts'
+} from '../reader/paging.ts'
+import type { PageLayout, ReadingAnchor } from '../reader/paging.ts'
+import type { MutableRef, Screen, SelectChapter } from '../common/types.ts'
 
 const WHEEL_THRESHOLD = 40
 

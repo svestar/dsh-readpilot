@@ -1,7 +1,7 @@
-import { Modal, React, h, useVirtualizer } from '../runtime.ts'
-import { bookmarkContext } from '../bookmark-label.ts'
-import { filterMarks, markChapterIds, markColors } from '../mark-filters.ts'
-import type { StateSetter } from '../runtime.ts'
+import { Modal, React, h, useVirtualizer } from '../common/runtime.ts'
+import { bookmarkContext } from './bookmark-label.ts'
+import { filterMarks, markChapterIds, markColors } from './mark-filters.ts'
+import type { StateSetter } from '../common/runtime.ts'
 import type {
   CallRpc,
   MutableRef,
@@ -11,7 +11,7 @@ import type {
   SearchMatch,
   SearchResults,
   TextFn,
-} from '../types.ts'
+} from '../common/types.ts'
 
 interface MarkActionsArgs {
   t: TextFn

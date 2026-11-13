@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { bindRuntime } from '../src/client/runtime.ts'
+import { bindRuntime } from '../src/client/common/runtime.ts'
 import { SelectionToolbar, quoteDraft } from '../src/client/reader/selection-note.ts'
 
 function setup() {

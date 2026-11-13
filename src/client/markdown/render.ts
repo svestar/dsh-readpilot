@@ -1,6 +1,6 @@
-import { h } from '../runtime.ts'
-import { parseMarkdownBlocks } from '../helpers.ts'
-import type { MarkdownBlock } from '../helpers.ts'
+import { h } from '../common/runtime.ts'
+import { parseMarkdownBlocks } from '../common/helpers.ts'
+import type { MarkdownBlock } from '../common/helpers.ts'
 
 export function inline(text: string, prefix: string): any[] {
   const pattern = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`|\[[^\]]+\]\([^)\s]+\))/g

@@ -1,4 +1,4 @@
-import { React, h } from '../runtime.ts'
+import { React, h } from './runtime.ts'
 
 export function createReaderErrorBoundary(): any {
   if (typeof React.Component !== 'function') {

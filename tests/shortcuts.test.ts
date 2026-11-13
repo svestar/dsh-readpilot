@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { READER_SHORTCUT_DEFAULTS, readerShortcut } from '../src/client/shortcuts.ts'
+import { READER_SHORTCUT_DEFAULTS, readerShortcut } from '../src/client/reader/shortcuts.ts'
 
 const base = { searchOpen: false, hasSelection: false, paged: true }
 

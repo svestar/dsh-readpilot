@@ -1,6 +1,6 @@
-import { Modal, React, h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
-import { HELP_TOPICS } from '../help-content.ts'
+import { Modal, React, h } from './runtime.ts'
+import type { TextFn } from './types.ts'
+import { HELP_TOPICS } from './help-content.ts'
 
 interface HelpManualProps {
   t: TextFn

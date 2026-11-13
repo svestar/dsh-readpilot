@@ -1,5 +1,5 @@
-import { Tooltip, h } from '../runtime.ts'
-import type { Screen, TextFn } from '../types.ts'
+import { Tooltip, h } from '../common/runtime.ts'
+import type { Screen, TextFn } from '../common/types.ts'
 
 interface HeaderProps {
   t: TextFn

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildReaderResource, parseReaderResource } from '../src/client/reader-resource.ts'
+import { buildReaderResource, parseReaderResource } from '../src/client/reader/resource.ts'
 
 test('reader_resource_roundtrips_book_chapter_offset', () => {
   const address = buildReaderResource('b1', 'c2', 42)

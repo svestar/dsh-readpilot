@@ -1,4 +1,4 @@
-import { React } from '../runtime.ts'
+import { React } from '../common/runtime.ts'
 import {
   CHAT_WIDTH_DEFAULT,
   clampChatWidth,
@@ -6,10 +6,10 @@ import {
   messageOf,
   readChatWidth,
   saveChatWidth,
-} from '../helpers.ts'
-import { isMissingSessionError } from '../session-recovery.ts'
-import { companionSessionTitle, renameCompanionSession } from '../session-title.ts'
-import type { CallRpc, ChatMessage, Screen, TextFn } from '../types.ts'
+} from '../common/helpers.ts'
+import { isMissingSessionError } from '../companion/session-recovery.ts'
+import { companionSessionTitle, renameCompanionSession } from '../companion/session-title.ts'
+import type { CallRpc, ChatMessage, Screen, TextFn } from '../common/types.ts'
 
 interface ChatBinding {
   sessionId: string

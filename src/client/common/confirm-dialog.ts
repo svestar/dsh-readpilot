@@ -1,5 +1,5 @@
-import { Modal, h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
+import { Modal, h } from './runtime.ts'
+import type { TextFn } from './types.ts'
 
 interface ConfirmDialogProps {
   t: TextFn

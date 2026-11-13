@@ -3,7 +3,7 @@
 - **ID：** FTR-033
 - **名称：** 阅读位置锚点
 - **状态：** active
-- **代码：** `src/client/paging.ts`（`ReadingAnchor`、`anchorPage`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/plugin.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`applySource`、`openBook`）；`src/api/index.ts`（`saveReadingProgress`）；`src/storage/store.ts`（`ReadingProgress.chapterFraction`）
+- **代码：** `src/client/reader/paging.ts`（`ReadingAnchor`、`anchorPage`）；`src/client/hooks/use-text-pager.ts`（`useTextPager`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/plugin.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`applySource`、`openBook`）；`src/api/index.ts`（`saveReadingProgress`）；`src/storage/store.ts`（`ReadingProgress.chapterFraction`）
 - **测试：** `tests/paging.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -16,8 +16,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `ReadingAnchor` | `src/client/paging.ts:ReadingAnchor` | 章节、比例与一次性 token |
-| `anchorPage` | `src/client/paging.ts:anchorPage` | 比例换算为页索引并夹取 |
+| `ReadingAnchor` | `src/client/reader/paging.ts:ReadingAnchor` | 章节、比例与一次性 token |
+| `anchorPage` | `src/client/reader/paging.ts:anchorPage` | 比例换算为页索引并夹取 |
 | `useTextPager` | `src/client/hooks/use-text-pager.ts:useTextPager` | 文本分页消费锚点 |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | EPUB 视觉分页消费锚点 |
 | `makeReadingAnchor` | `src/client/plugin.ts:makeReadingAnchor` | 从当前渲染器生成锚点 |

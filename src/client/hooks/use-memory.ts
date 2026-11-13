@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import { messageOf } from '../helpers.ts'
-import type { CallRpc, TextFn } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import { messageOf } from '../common/helpers.ts'
+import type { CallRpc, TextFn } from '../common/types.ts'
 import type { BookMemoryState, MemoryMode, MemoryScope, MemoryView } from '../companion/memory-panel.ts'
 
 interface MemoryOptions {

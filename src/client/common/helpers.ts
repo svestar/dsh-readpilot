@@ -89,8 +89,8 @@ export function blockIndexAtOffset(blocks: ReadonlyArray<{ text?: string }> | nu
   return fallback
 }
 
-export * from './settings/reader-preferences.ts'
-export * from './settings/chat-width.ts'
-export * from './notes/anchors.ts'
-export * from './markdown/blocks.ts'
-export * from './notes/diff.ts'
+export * from '../settings/reader-preferences.ts'
+export * from '../settings/chat-width.ts'
+export * from '../notes/anchors.ts'
+export * from '../markdown/blocks.ts'
+export * from '../notes/diff.ts'

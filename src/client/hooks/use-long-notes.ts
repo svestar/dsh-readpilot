@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import { downloadText, messageOf } from '../helpers.ts'
-import type { CallRpc, LongNote, LongNoteHistory, NoteDraft, TextFn } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import { downloadText, messageOf } from '../common/helpers.ts'
+import type { CallRpc, LongNote, LongNoteHistory, NoteDraft, TextFn } from '../common/types.ts'
 
 interface LongNotesOptions {
   call: CallRpc

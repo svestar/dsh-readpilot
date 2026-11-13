@@ -1,5 +1,5 @@
-import { React, h, useVirtualizer } from '../runtime.ts'
-import type { BookDetail, TextFn } from '../types.ts'
+import { React, h, useVirtualizer } from '../common/runtime.ts'
+import type { BookDetail, TextFn } from '../common/types.ts'
 
 interface TocProps {
   t: TextFn

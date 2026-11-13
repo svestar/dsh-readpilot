@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
 import { createEpubVisual } from '../src/visual/epub.ts'
-import { visualForChapter } from '../src/client/reader-screen.ts'
+import { visualForChapter } from '../src/client/reader/screen.ts'
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',

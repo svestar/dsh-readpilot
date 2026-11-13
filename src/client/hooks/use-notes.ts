@@ -1,7 +1,7 @@
-import { React } from '../runtime.ts'
-import { blocksText, contextAround, hashText, offsetInChapter } from '../anchor.ts'
-import { bookmarkContext } from '../bookmark-label.ts'
-import { isAnnotationKind } from '../mark-filters.ts'
+import { React } from '../common/runtime.ts'
+import { blocksText, contextAround, hashText, offsetInChapter } from '../reader/anchor.ts'
+import { bookmarkContext } from '../notes/bookmark-label.ts'
+import { isAnnotationKind } from '../notes/mark-filters.ts'
 import {
   applyEpubNoteMarks,
   collectTextNodes,
@@ -12,10 +12,10 @@ import {
   pdfNoteRects,
   rangeForNodes,
   timestampOf,
-} from '../helpers.ts'
-import type { CompactAnchor, ReaderPalette } from '../helpers.ts'
-import type { PageLayout } from '../paging.ts'
-import type { StateSetter } from '../runtime.ts'
+} from '../common/helpers.ts'
+import type { CompactAnchor, ReaderPalette } from '../common/helpers.ts'
+import type { PageLayout } from '../reader/paging.ts'
+import type { StateSetter } from '../common/runtime.ts'
 import type {
   CallRpc,
   MutableRef,
@@ -28,7 +28,7 @@ import type {
   SelectChapter,
   TextFn,
   Visual,
-} from '../types.ts'
+} from '../common/types.ts'
 
 interface NotesOptions {
   call: CallRpc

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { filterMarks, markChapterIds, markColors } from '../src/client/mark-filters.ts'
+import { filterMarks, markChapterIds, markColors } from '../src/client/notes/mark-filters.ts'
 
 const marks = [
   { kind: 'highlight', chapterId: 'c1', color: 'yellow' },

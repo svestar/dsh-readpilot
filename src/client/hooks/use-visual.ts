@@ -1,7 +1,7 @@
-import { React } from '../runtime.ts'
-import { applyPaletteToFrame, messageOf, pdfChapterIdForPage } from '../helpers.ts'
-import type { ReaderPalette } from '../helpers.ts'
-import type { StateSetter } from '../runtime.ts'
+import { React } from '../common/runtime.ts'
+import { applyPaletteToFrame, messageOf, pdfChapterIdForPage } from '../common/helpers.ts'
+import type { ReaderPalette } from '../common/helpers.ts'
+import type { StateSetter } from '../common/runtime.ts'
 import {
   PAGE_GAP,
   clampPageIndex,
@@ -10,9 +10,9 @@ import {
   measurePageMetrics,
   pageBounds,
   pageStep,
-} from '../paging.ts'
-import type { PageLayout, PageMetrics, ReadingAnchor, ReaderMode } from '../paging.ts'
-import type { CallRpc, PageView, Screen, Selection, SelectChapter, TextFn, Visual } from '../types.ts'
+} from '../reader/paging.ts'
+import type { PageLayout, PageMetrics, ReadingAnchor, ReaderMode } from '../reader/paging.ts'
+import type { CallRpc, PageView, Screen, Selection, SelectChapter, TextFn, Visual } from '../common/types.ts'
 
 interface VisualOptions {
   call: CallRpc

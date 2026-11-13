@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { blocksText, contextAround, hashText, offsetInChapter } from '../src/client/anchor.ts'
+import { blocksText, contextAround, hashText, offsetInChapter } from '../src/client/reader/anchor.ts'
 
 test('anchor_context_roundtrip', () => {
   const blocks = [

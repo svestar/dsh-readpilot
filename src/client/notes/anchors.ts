@@ -1,5 +1,5 @@
 import type { NoteRecord } from '../../notes/store.ts'
-import { isAnnotationKind } from '../mark-filters.ts'
+import { isAnnotationKind } from './mark-filters.ts'
 import { paletteCssColors } from '../settings/reader-preferences.ts'
 import type { ReaderPalette } from '../settings/reader-preferences.ts'
 

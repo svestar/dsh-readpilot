@@ -27,11 +27,11 @@ import {
   saveReadingMode,
   saveReflowBooks,
   saveFontSize,
-} from './helpers.ts'
+} from './common/helpers.ts'
 
-import { zh, en } from './locale.ts'
-import { CSS } from './styles.ts'
-import { React, h, bindRuntime } from './runtime.ts'
+import { zh, en } from './i18n/index.ts'
+import { CSS } from './theme/index.ts'
+import { React, h, bindRuntime } from './common/runtime.ts'
 import { Toc } from './reader/toc.ts'
 import { renderBlocks } from './markdown/render.ts'
 import { PanelIcon, Setup } from './library/panels.ts'
@@ -43,10 +43,10 @@ import { MemoryPanel } from './companion/memory-panel.ts'
 import { VisualReader } from './reader/visual-reader.ts'
 import { ChatPanel } from './companion/chat-panel.ts'
 import { Header } from './reader/header.ts'
-import { ReaderSettings } from './reader-settings.ts'
+import { ReaderSettings } from './reader/settings.ts'
 import { SidebarReader } from './reader/sidebar-reader.ts'
-import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './session-title.ts'
-import { PROGRESS_SYNC_EVENT, readProgressSync } from './progress-sync.ts'
+import { companionSessionTitle, renameCompanionSession, syncCompanionSessionTitles } from './companion/session-title.ts'
+import { PROGRESS_SYNC_EVENT, readProgressSync } from './reader/progress-sync.ts'
 import { NoteDialog, SelectionToolbar, quoteDraft } from './reader/selection-note.ts'
 import { PromptPresetManager } from './companion/prompt-preset-manager.ts'
 import { renderPrompt } from '../prompts/render.ts'
@@ -65,10 +65,10 @@ import { useChatJump } from './hooks/use-chat-jump.ts'
 import { useReaderActions } from './hooks/use-reader-actions.ts'
 import { useActionReceipts } from './hooks/use-action-receipts.ts'
 import { useNotes } from './hooks/use-notes.ts'
-import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader-screen.ts'
-import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './shortcuts.ts'
-import { parseNoteResource } from './note-resource.ts'
-import { buildReaderResource, parseReaderResource } from './reader-resource.ts'
+import { currentReaderScreen, rememberReaderScreen, visualForChapter, visualForItem } from './reader/screen.ts'
+import { READER_SHORTCUT_DEFAULTS, readerShortcut } from './reader/shortcuts.ts'
+import { parseNoteResource } from './notes/note-resource.ts'
+import { buildReaderResource, parseReaderResource } from './reader/resource.ts'
 import { parseReaderJumpUrl } from '../reading/jump-url.ts'
 import type { ReaderJumpTarget } from '../reading/jump-url.ts'
 import { useContentSelection } from './hooks/use-content-selection.ts'
@@ -80,9 +80,9 @@ import { useTextPager } from './hooks/use-text-pager.ts'
 import { usePageWidth } from './hooks/use-page-width.ts'
 import { useVisual } from './hooks/use-visual.ts'
 import { useSelectionDismiss } from './hooks/use-selection-dismiss.ts'
-import { chapterPercent, columnsFor, pageSpanWidth, pdfPagePercent } from './paging.ts'
-import type { PageLayout, ReadingAnchor, ReaderMode } from './paging.ts'
-import { readerCapabilities } from './paging.ts'
+import { chapterPercent, columnsFor, pageSpanWidth, pdfPagePercent } from './reader/paging.ts'
+import type { PageLayout, ReadingAnchor, ReaderMode } from './reader/paging.ts'
+import { readerCapabilities } from './reader/paging.ts'
 import type {
   ClientBook,
   PendingScroll,
@@ -91,7 +91,7 @@ import type {
   Snapshot,
   TextFn,
   TocItem,
-} from './types.ts'
+} from './common/types.ts'
 import type { CallRpc } from '../api/rpc.ts'
 
 export function createPlugin(require: (name: string) => any) {

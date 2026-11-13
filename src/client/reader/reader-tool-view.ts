@@ -1,7 +1,7 @@
-import { formatSize } from '../helpers.ts'
-import { buildReaderResource } from '../reader-resource.ts'
-import { h } from '../runtime.ts'
-import type { TextFn } from '../types.ts'
+import { formatSize } from '../common/helpers.ts'
+import { buildReaderResource } from './resource.ts'
+import { h } from '../common/runtime.ts'
+import type { TextFn } from '../common/types.ts'
 
 export interface ReaderBookSummary {
   id: string

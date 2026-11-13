@@ -1,6 +1,6 @@
-import { React } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
-import type { MutableRef, Selection } from '../types.ts'
+import { React } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import type { MutableRef, Selection } from '../common/types.ts'
 
 /** Whether a pointer gesture dismisses the floating selection toolbar. */
 export function dismissesSelection(target: EventTarget | null): boolean {

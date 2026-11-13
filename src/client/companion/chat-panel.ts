@@ -1,7 +1,7 @@
-import { React, h } from '../runtime.ts'
-import type { StateSetter } from '../runtime.ts'
-import { linkifyPageReferences } from '../page-jump.ts'
-import type { TextFn } from '../types.ts'
+import { React, h } from '../common/runtime.ts'
+import type { StateSetter } from '../common/runtime.ts'
+import { linkifyPageReferences } from '../reader/page-jump.ts'
+import type { TextFn } from '../common/types.ts'
 
 /** Assistant streaming mutates text on every token; scan at a readable cadence. */
 const LINKIFY_DEBOUNCE_MS = 120
