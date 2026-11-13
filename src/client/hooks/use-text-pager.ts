@@ -79,12 +79,17 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     }
     const inner = innerRef.current
     if (!inner) return
+    const view = typeof window === 'undefined' ? null : window
     let rafId = 0
 
     const measure = () => {
       rafId = 0
       if (!inner.isConnected) return
-      const width = inner.clientWidth
+      // Columns are laid out from the fractional used width while clientWidth rounds
+      // to whole pixels; measuring with the rounded width made every page land a
+      // fraction of a pixel left of its column and clip the first characters.
+      const usedWidth = view ? Number.parseFloat(view.getComputedStyle(inner).width) : Number.NaN
+      const width = Number.isFinite(usedWidth) && usedWidth > 0 ? usedWidth : inner.clientWidth
       const height = inner.clientHeight
       const content = inner.scrollWidth
       if (width <= 0 || height <= 0) return
@@ -113,7 +118,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       measure()
     }
 
-    const view = typeof window === 'undefined' ? null : window
     let observer: ResizeObserver | null = null
     if (typeof ResizeObserver === 'function') {
       observer = new ResizeObserver(schedule)

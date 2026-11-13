@@ -69,6 +69,16 @@ export function pageWidthForHeight(height: number, availableWidth: number, ratio
   return Math.min(available, h * r)
 }
 
+/**
+ * Page width used by the text pager: the A4 width clamped to the available space and
+ * rounded to whole pixels. A fractional frame width makes every page column land on a
+ * different subpixel offset than the pager's integer scroll step, so later pages drift
+ * left and clip their first characters.
+ */
+export function alignedPageWidth(height: number, availableWidth: number, ratio = PAGE_ASPECT): number {
+  return Math.round(pageWidthForHeight(height, availableWidth, ratio))
+}
+
 export function pageSpanWidth(pageWidth: number, layout: PageLayout, gap = PAGE_GAP): number {
   const width = finiteOrZero(pageWidth)
   if (width <= 0) return 0

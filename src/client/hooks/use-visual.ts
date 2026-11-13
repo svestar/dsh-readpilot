@@ -54,7 +54,11 @@ function readyEpubDocument(frame: HTMLIFrameElement | null | undefined): Documen
 function measureEpubDocument(doc: Document, layout: PageLayout): PageMetrics {
   applyEpubPagingStyle(doc, layout)
   const html = doc.documentElement
-  return measurePageMetrics(html.clientWidth, html.scrollWidth, layout)
+  // Columns lay out at the fractional iframe width while clientWidth rounds to whole
+  // pixels; the rounded width made every page drift left and clip its first characters.
+  const computedWidth = doc.defaultView ? Number.parseFloat(doc.defaultView.getComputedStyle(html).width) : Number.NaN
+  const width = Number.isFinite(computedWidth) && computedWidth > 0 ? computedWidth : html.clientWidth
+  return measurePageMetrics(width, html.scrollWidth, layout)
 }
 
 function scrollEpubPage(frame: HTMLIFrameElement | null | undefined, page: number, stride: number): void {

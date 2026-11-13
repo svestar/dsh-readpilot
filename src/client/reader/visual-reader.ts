@@ -1,6 +1,6 @@
 import { React, h } from '../common/runtime.ts'
 import { renderBlocks } from '../markdown/render.ts'
-import { pageSpanWidth, pageWidthForHeight } from './paging.ts'
+import { alignedPageWidth, pageSpanWidth } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 import type { MutableRef, PageView, Screen, TextFn, Visual } from '../common/types.ts'
 
@@ -181,7 +181,7 @@ export function VisualReader({
       const key = `${box.width}x${box.height}`
       if (key === lastKey) return
       lastKey = key
-      const width = pageSpanWidth(pageWidthForHeight(box.height, box.width), spanLayout)
+      const width = pageSpanWidth(alignedPageWidth(box.height, box.width), spanLayout)
       setEpubWidth(width > 0 ? width : null)
     }
     measure()

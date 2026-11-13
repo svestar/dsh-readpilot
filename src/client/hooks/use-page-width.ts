@@ -1,5 +1,5 @@
 import { React } from '../common/runtime.ts'
-import { PAGE_ASPECT, pageWidthForHeight } from '../reader/paging.ts'
+import { PAGE_ASPECT, alignedPageWidth } from '../reader/paging.ts'
 import type { MutableRef } from '../common/types.ts'
 
 export interface PageWidthOptions {
@@ -30,7 +30,7 @@ export function usePageWidth({ enabled, containerRef }: PageWidthOptions): numbe
       const style = view.getComputedStyle(container)
       const contentWidth = container.clientWidth - paddingOf(style.paddingLeft) - paddingOf(style.paddingRight)
       const contentHeight = container.clientHeight - paddingOf(style.paddingTop) - paddingOf(style.paddingBottom)
-      setWidth(pageWidthForHeight(contentHeight, contentWidth, PAGE_ASPECT))
+      setWidth(alignedPageWidth(contentHeight, contentWidth, PAGE_ASPECT))
     }
 
     const schedule = () => {

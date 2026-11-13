@@ -4,6 +4,7 @@ import type { TestContext } from 'node:test'
 import {
   PAGE_ASPECT,
   PAGE_GAP,
+  alignedPageWidth,
   anchorPage,
   chapterPercent,
   clampPageIndex,
@@ -199,6 +200,17 @@ test('page_width_custom_ratio', () => {
   assert.equal(pageWidthForHeight(1000, 2000, -1), 0)
   assert.equal(pageWidthForHeight(1000, 2000, NaN), 0)
   assert.equal(pageWidthForHeight(1000, 2000, Infinity), 0)
+})
+
+test('page_width_aligns_to_whole_pixels', () => {
+  assert.equal(alignedPageWidth(1190, 2000), 841)
+  assert.equal(alignedPageWidth(1188, 2000), 840)
+  assert.equal(alignedPageWidth(1188, 600), 600)
+  assert.equal(alignedPageWidth(1188, 500, 0.5), 500)
+  assert.equal(alignedPageWidth(0, 800), 0)
+  assert.equal(alignedPageWidth(-100, 800), 0)
+  assert.equal(alignedPageWidth(NaN, 800), 0)
+  assert.equal(alignedPageWidth(1000, 2000, 0), 0)
 })
 
 test('page_span_single', () => {

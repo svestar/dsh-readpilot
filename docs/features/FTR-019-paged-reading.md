@@ -8,15 +8,15 @@
 
 ## 行为
 
-打开书籍按格式决定初始视图：PDF 始终分页；EPUB/txt/md 沿用全局记忆的阅读模式与单/双页布局，首次默认分页、单页。工具栏只提供翻页/章节切换、标题、位置与 PDF 页码/缩放；阅读模式、单双页与重排由阅读设置面板管理（见 [FTR-032](FTR-032-reader-settings.md)）。
+打开书籍按格式决定初始视图：PDF 始终分页；EPUB/txt/md 沿用记忆的阅读模式与单/双页布局，首次默认分页、单页。工具栏只提供翻页/章节、标题、位置与 PDF 页码/缩放；阅读模式、单双页与重排由阅读设置面板管理（见 [FTR-032](FTR-032-reader-settings.md)）。
 
-位置显示：文本与 EPUB 为“本章第几页 / 本章页数 · 全书百分比”；PDF 原版为“PDF 页 / 总页数 · 百分比”；PDF 重排为“本章页 · 全书百分比”。双页显示跨页序号，不再显示列范围。百分比按章节字数加权，翻页即更新；阅读进度同时记录章节内比例，供重新打开或工作区侧边栏恢复到同一位置。
+位置显示：文本与 EPUB 为“本章第几页 / 本章页数 · 全书百分比”；PDF 原版为“PDF 页 / 总页数 · 百分比”；PDF 重排为“本章页 · 全书百分比”。双页显示跨页序号。百分比按章节字数加权，翻页即更新；进度另记章节内比例，供重新打开或工作区侧边栏恢复同一位置。
 
-Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useTextPager` 测宽并把翻页写为 `scrollLeft`；EPUB 在 iframe 的 `html` 上应用同样栏样式。页数由视口、字号、布局与原书 CSS 决定，不是印刷页。
+Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useTextPager` 测宽、把翻页写为 `scrollLeft`；EPUB 在 iframe 的 `html` 上同样处理。页数由视口、字号、布局与原书 CSS 决定，不是印刷页。
 
-页宽按 A4 比例（210/297）夹取居中；文本左右 56px（窄屏 22），滚动列内 28px（窄屏 16）；PDF/EPUB 视觉页保持原样。双页跨度 `2 × 页宽 + 40px`，窄屏 `max-width: 100%`。尺寸变化或面板重挂载后重测。
+页宽按 A4 比例（210/297）夹取取整后居中；文本左右 56px（窄屏 22），滚动列内 28px（窄屏 16）；PDF/EPUB 视觉页保持原样。分页步长用实际栏宽，翻页不累积偏移。双页跨度 `2 × 页宽 + 40px`，窄屏 `max-width: 100%`。尺寸变化或面板重挂载后重测。
 
-滚轮只在分页模式翻页：文本/EPUB/PDF 各自监听阅读框、iframe、视觉容器，累计超阈值才翻页，忽略 `ctrl`/`meta`/`alt`。搜索/笔记跳转：PDF 按页，EPUB 切章并定位，文本按块定位并同步页码。
+滚轮只在分页模式翻页：文本/EPUB/PDF 分别监听阅读框、iframe 与视觉容器，累计超阈值才翻页，忽略 `ctrl`/`meta`/`alt`。搜索/笔记跳转：PDF 按页，EPUB 切章并定位，文本按块定位并同步页码。
 
 ## 接口与代码映射
 
@@ -35,18 +35,19 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。txt/md 由 `useT
 ## 约束与失败行为
 
 - 模式与布局存 localStorage，换书与重启后沿用；非法值回退分页、单页。PDF 始终分页，不覆盖文本模式记忆。
-- 页数是布局结果，不是印刷页；视口、字号、布局变化会重测并夹取当前页。章节页码与全书百分比分开显示，不再把列数当总页数。
-- 进度保存 `chapterFraction`（0–1）作为跨视图位置；`percent` 只用于显示，不能用页码代替。
+- 页数是布局结果，不是印刷页；视口、字号、布局变化会重测并夹取当前页。
+- 进度保存 `chapterFraction`（0–1）作为跨视图位置；`percent` 只用于显示。
 - 单页页宽由阅读区高度决定；测得 0 时不写内联页宽。
-- 文本分页按栏宽步长把 `scrollLeft` 四舍五入为页码，平滑滚动中可能短暂显示中间栏。
+- 文本分页把 `scrollLeft` 四舍五入为页码，平滑滚动中可能短暂显示中间栏。
 - PDF 双页两页均可划选，笔记/高亮覆盖层分别渲染到左右页；缩放只提高渲染分辨率。
-- EPUB 分页依赖原书 CSS 与浏览器多栏；固定宽高、浮动或分栏可能造成页数或裁切不理想。
+- EPUB 分页依赖原书 CSS 与浏览器多栏；固定宽高、浮动或分栏可能造成页数或裁切不佳。
 - 缩放与页码输入是 PDF 专属；页码提交夹取到 1..pageCount。
 
 ## 验收与测试
 
 - 正常：栏数/页数/边界与栏距（`columns_for_layouts`、`measure_single_column`、`measure_gap_accounting`）。
 - 正常/边界：页宽/跨度夹取与非法输入（`page_width_from_height`、`page_width_clamps_to_available_width`、`page_span_single`、`page_span_double`、`page_span_invalid_inputs`）。
+- 正常：页宽取整到整像素（`page_width_aligns_to_whole_pixels`）。
 - 边界：空内容/非法尺寸/越界页索引（`measure_invalid_inputs`、`clamp_page_index`、`page_bounds`）。
 - 正常：章节页码与全书百分比按字数加权，PDF 页百分比从第一页 0% 到最后一页 100%（`chapter_percent_weights_chapters_and_pages`、`pdf_page_percent_spans_first_to_last_page`）。
 - 正常：进度同时保存章节内比例，重新打开按该比例定位（`progress_percent_persists`）。
