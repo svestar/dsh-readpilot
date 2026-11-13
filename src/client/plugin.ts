@@ -1527,7 +1527,16 @@ export function createPlugin(require: (name: string) => any) {
         error ? h('div', { className: 'dsh-readpilot-error' }, error) : null,
         searchPanel,
         !snapshot
-          ? h('div', { className: 'dsh-readpilot-muted' }, busy ? t('loading') : t('loadFailed'))
+          ? h('div', { className: 'dsh-readpilot-muted' },
+            busy
+              ? t('loading')
+              : h('div', null,
+                h('div', null, error || t('loadFailed')),
+                h('button', {
+                  type: 'button',
+                  className: 'dsh-readpilot-secondary',
+                  onClick: () => { void refresh() },
+                }, t('retry'))))
           : screen.kind === 'setup' || !snapshot.settings.libraryDir
             ? h(Setup, {
               t,

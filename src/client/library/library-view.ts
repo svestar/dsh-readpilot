@@ -202,8 +202,9 @@ interface BookCardProps {
 
 function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags }: BookCardProps) {
   const label = statusLabel(t, status)
+  const supportsCover = book.format === 'epub' || book.format === 'pdf'
   const [coverState, setCoverState] = React.useState<'loading' | 'ready' | 'error'>('loading')
-  const showImage = showCover && coverState !== 'error'
+  const showImage = showCover && supportsCover && coverState !== 'error'
   return h('div', {
     className: 'dsh-readpilot-book-card',
     'data-format': book.format,
@@ -227,7 +228,7 @@ function BookCard({ t, book, tags, status, rating, showCover, onOpen, onEditTags
         onLoad: () => setCoverState('ready'),
         onError: () => setCoverState('error'),
       }),
-    showCover && coverState === 'loading'
+    showCover && supportsCover && coverState === 'loading'
       ? h('span', {
         className: 'dsh-readpilot-book-cover-spinner',
         role: 'status',
