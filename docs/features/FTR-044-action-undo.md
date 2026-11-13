@@ -3,7 +3,7 @@
 - **ID：** FTR-044
 - **名称：** 动作回执与撤销
 - **状态：** active
-- **代码：** `src/reader-actions.ts`（`addReceipt`、`listReceipts`、`markUndone`、`ReaderUndo`）；`src/api.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/tools.ts`（批注/长笔记/标签/状态回执）；`src/notes.ts`（`restore`）；`src/note-files.ts`（`restore`）；`src/client/hooks/use-action-receipts.ts`；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/views/sidebar-reader.ts`（`SidebarReader`）
+- **代码：** `src/reader-actions.ts`（`addReceipt`、`listReceipts`、`markUndone`、`ReaderUndo`）；`src/api.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/tools.ts`（批注/长笔记/标签/状态回执）；`src/notes.ts`（`restore`）；`src/note-files.ts`（`restore`）；`src/client/hooks/use-action-receipts.ts`；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为
@@ -33,7 +33,7 @@
 | `recentActionSummary` | `src/api.ts:recentActionSummary` | 给 `reader_context` 与 `reader_note list` 提供动作状态 |
 | `setCompanionContext` | `src/api.ts:setCompanionContext` | 把最近动作写入 `<recent_agent_actions>` |
 | `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |
-| `ReaderBar` / `ActionHistory` | `src/client/views/reader-bar.ts`；`src/client/views/action-history.ts` | 操作历史入口与回执列表弹窗 |
+| `ReaderBar` / `ActionHistory` | `src/client/reader/reader-bar.ts`；`src/client/reader/action-history.ts` | 操作历史入口与回执列表弹窗 |
 
 ## 约束与失败行为
 

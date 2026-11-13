@@ -17,7 +17,7 @@ import type { ReaderAction, ReaderActionType } from '../../reader-actions.ts'
 
 const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh']
 import { visualForChapter } from '../reader-screen.ts'
-import { renderBlocks, selectionAnchor } from './markdown.ts'
+import { renderBlocks, selectionAnchor } from '../markdown/render.ts'
 import { ReaderBar } from './reader-bar.ts'
 import { chapterFractionForOffset, prefillCompanionQuote, preserveSidebarVisual } from '../sidebar/navigation.ts'
 import type { SidebarBook, SidebarMode } from '../sidebar/navigation.ts'

@@ -1,7 +1,7 @@
 import { React } from '../runtime.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { Selection } from '../types.ts'
-import { selectionAnchor } from '../views/markdown.ts'
+import { selectionAnchor } from '../markdown/render.ts'
 
 interface ContentSelectionOptions {
   contentRef: { current: HTMLDivElement | null }

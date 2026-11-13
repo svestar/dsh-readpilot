@@ -3,7 +3,7 @@
 - **ID：** FTR-011
 - **名称：** 阅读配色
 - **状态：** active
-- **代码：** `src/client/settings/reader-preferences.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/views/header.ts`（`Header`）；`src/client/plugin.ts`（`ReaderPanel`、`data-palette`）
+- **代码：** `src/client/settings/reader-preferences.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/reader/header.ts`（`Header`）；`src/client/plugin.ts`（`ReaderPanel`、`data-palette`）
 - **测试：** `tests/palette.test.ts`
 
 ## 行为
@@ -18,7 +18,7 @@
 | `resolveReaderPalette` | `src/client/settings/reader-preferences.ts:resolveReaderPalette` | 解析配色 id，非法值回退 auto |
 | `normalizeGlassBlur` | `src/client/settings/reader-preferences.ts:normalizeGlassBlur` | 把模糊值收敛到 0–80px，非法值回退默认 |
 | `applyPaletteToFrame` | `src/client/settings/reader-preferences.ts:applyPaletteToFrame` | 向 EPUB iframe 注入背景/文字/选区样式 |
-| `Header` | `src/client/views/header.ts:Header` | 配色选择器与阅读器头部 |
+| `Header` | `src/client/reader/header.ts:Header` | 配色选择器与阅读器头部 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 应用面板 CSS 变量与配色状态 |
 
 ## 约束与失败行为

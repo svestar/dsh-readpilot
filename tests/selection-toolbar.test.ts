@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { bindRuntime } from '../src/client/runtime.ts'
-import { SelectionToolbar, quoteDraft } from '../src/client/views/selection-note.ts'
+import { SelectionToolbar, quoteDraft } from '../src/client/reader/selection-note.ts'
 
 function setup() {
   const body = { id: 'document-body' }

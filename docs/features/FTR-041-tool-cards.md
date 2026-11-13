@@ -3,7 +3,7 @@
 - **ID：** FTR-041
 - **名称：** 工具结果卡片
 - **状态：** active
-- **代码：** `src/client/views/reader-tool-view.ts`（`ReaderBooksToolView`、`ReaderSearchToolView`、`ReaderOpenToolView`、`parseReaderBooksResult`、`parseReaderSearchResult`、`parseReaderOpenResult`）；`src/client/plugin.ts`（`apply` 的 `tool.call.toolview` 注册）；`src/client/reader-resource.ts`（`buildReaderResource`）
+- **代码：** `src/client/reader/reader-tool-view.ts`（`ReaderBooksToolView`、`ReaderSearchToolView`、`ReaderOpenToolView`、`parseReaderBooksResult`、`parseReaderSearchResult`、`parseReaderOpenResult`）；`src/client/plugin.ts`（`apply` 的 `tool.call.toolview` 注册）；`src/client/reader-resource.ts`（`buildReaderResource`）
 - **测试：** `tests/reader-tool-view.test.ts`
 
 ## 行为
@@ -20,9 +20,9 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `ReaderBooksToolView` | `src/client/views/reader-tool-view.ts:ReaderBooksToolView` | `reader_books` 卡片 |
-| `ReaderSearchToolView` | `src/client/views/reader-tool-view.ts:ReaderSearchToolView` | `reader_search` 卡片与跳转按钮 |
-| `ReaderOpenToolView` | `src/client/views/reader-tool-view.ts:ReaderOpenToolView` | `reader_open` 卡片与跳转按钮 |
+| `ReaderBooksToolView` | `src/client/reader/reader-tool-view.ts:ReaderBooksToolView` | `reader_books` 卡片 |
+| `ReaderSearchToolView` | `src/client/reader/reader-tool-view.ts:ReaderSearchToolView` | `reader_search` 卡片与跳转按钮 |
+| `ReaderOpenToolView` | `src/client/reader/reader-tool-view.ts:ReaderOpenToolView` | `reader_open` 卡片与跳转按钮 |
 | `buildReaderResource` | `src/client/reader-resource.ts:buildReaderResource` | 由书/章节/偏移生成阅读器资源地址 |
 | `apply` | `src/client/plugin.ts:apply` | 注册三个 `tool.call.toolview` cell |
 

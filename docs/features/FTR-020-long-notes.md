@@ -3,7 +3,7 @@
 - **ID：** FTR-020
 - **名称：** 长笔记
 - **状态：** active
-- **代码：** `src/note-files.ts`；`src/api-note-files.ts`；`src/api.ts`；`src/library.ts`；`src/client/hooks/use-long-notes.ts`；`src/client/views/long-notes.ts`；`src/client/views/modal.ts`；`src/client/note-resource.ts`
+- **代码：** `src/note-files.ts`；`src/api-note-files.ts`；`src/api.ts`；`src/library.ts`；`src/client/hooks/use-long-notes.ts`；`src/client/notes/long-notes.ts`；`src/client/common/modal.ts`；`src/client/note-resource.ts`
 - **测试：** `tests/note-files.test.ts`；`tests/api.test.ts`；`tests/note-resource.test.ts`
 
 ## 行为
@@ -22,7 +22,7 @@
 | `openNoteFile` | `src/api.ts:openNoteFile` | 校验笔记路径并交给系统默认应用打开 |
 | `scanLibrary` | `src/library.ts:scanLibrary` | 书库扫描跳过带 marker 的 `notes/` |
 | `useLongNotes` | `src/client/hooks/use-long-notes.ts:useLongNotes` | 列表、编辑器、保存、冲突、删除、历史与外部打开状态 |
-| `LongNotes` | `src/client/views/long-notes.ts:LongNotes` | 长笔记标签的列表、编辑器、历史与导出区 |
+| `LongNotes` | `src/client/notes/long-notes.ts:LongNotes` | 长笔记标签的列表、编辑器、历史与导出区 |
 | `parseNoteResource` / `buildNoteResource` | `src/client/note-resource.ts:parseNoteResource`；`src/client/note-resource.ts:buildNoteResource` | 活动笔记资源地址的生成与解析 |
 
 ## 约束与失败行为

@@ -3,7 +3,7 @@
 - **ID：** FTR-043
 - **名称：** Agent 阅读动作
 - **状态：** active
-- **代码：** `src/reader-actions.ts`（`createReaderActionStore`）；`src/api.ts`（`readerActions`、`pushReaderAction`）；`src/tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status`）；`src/client/hooks/use-reader-actions.ts`（`useReaderActions`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/views/sidebar-reader.ts`（`SidebarReader`）
+- **代码：** `src/reader-actions.ts`（`createReaderActionStore`）；`src/api.ts`（`readerActions`、`pushReaderAction`）；`src/tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status`）；`src/client/hooks/use-reader-actions.ts`（`useReaderActions`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为
@@ -32,7 +32,7 @@ Agent 可通过五个工具改变阅读状态并收到回执：
 | `reader_notes` | `src/tools.ts` | 长笔记草稿与显式删除 |
 | `reader_tag` / `reader_status` | `src/tools.ts` | 写库元数据并排队刷新 |
 | `useReaderActions` | `src/client/hooks/use-reader-actions.ts:useReaderActions` | 每秒轮询并串行执行动作 |
-| `ReaderPanel` / `SidebarReader` | `src/client/plugin.ts`、`src/client/views/sidebar-reader.ts` | 执行跳转、开侧栏、重载批注/书库 |
+| `ReaderPanel` / `SidebarReader` | `src/client/plugin.ts`、`src/client/reader/sidebar-reader.ts` | 执行跳转、开侧栏、重载批注/书库 |
 
 ## 约束与失败行为
 

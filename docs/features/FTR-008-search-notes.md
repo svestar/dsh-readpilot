@@ -3,7 +3,7 @@
 - **ID：** FTR-008
 - **名称：** 检索与笔记
 - **状态：** active
-- **代码：** `src/notes.ts`（`createNotesStore`）；`src/api/search.ts`（`createSearch`）；`src/api-notes.ts`（`createNotesHandlers`、`handleNotes`）；`src/tools.ts`（`registerTools`）；`src/client/hooks/use-search.ts`（`useSearch`）；`src/client/views/notes-search.ts`（`SearchPanel`、`SearchAllDialog`、`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/notes.ts`（`createNotesStore`）；`src/api/search.ts`（`createSearch`）；`src/api-notes.ts`（`createNotesHandlers`、`handleNotes`）；`src/tools.ts`（`registerTools`）；`src/client/hooks/use-search.ts`（`useSearch`）；`src/client/notes/notes-search.ts`（`SearchPanel`、`SearchAllDialog`、`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/notes.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -19,7 +19,7 @@
 | `search` | `src/api/search.ts:createSearch` | 返回带章节与字符偏移的命中 |
 | `registerTools` | `src/tools.ts:registerTools` | 注册 `reader_search` 与 `reader_note` |
 | `useSearch` | `src/client/hooks/use-search.ts:useSearch` | 搜索状态、提交、关闭与重置 |
-| `SearchPanel` / `SearchAllDialog` / `NotesBody` | `src/client/views/notes-search.ts:SearchPanel`；`src/client/views/notes-search.ts:SearchAllDialog`；`src/client/views/notes-search.ts:NotesBody` | 搜索结果、全部结果弹窗与笔记列表 |
+| `SearchPanel` / `SearchAllDialog` / `NotesBody` | `src/client/notes/notes-search.ts:SearchPanel`；`src/client/notes/notes-search.ts:SearchAllDialog`；`src/client/notes/notes-search.ts:NotesBody` | 搜索结果、全部结果弹窗与笔记列表 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合搜索、笔记与阅读布局 |
 | `enqueueWrite` | `src/write-queue.ts:enqueueWrite` | 同一文件的读改写串行执行 |
 

@@ -8,7 +8,7 @@
 | `FTR-002` | 文本阅读 | `docs/features/FTR-002-reading.md` | `src/formats.ts` | `tests/formats.test.ts;tests/api.test.ts` | active |
 | `FTR-003` | 伴读与检索 | `docs/features/FTR-003-companion.md` | `src/api.ts` | `tests/api.test.ts` | active |
 | `FTR-004` | Agent 工具 | `docs/features/FTR-004-tools.md` | `src/tools.ts` | `tests/tools.test.ts` | active |
-| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/views/native-companion.ts` | `tests/client-chat.test.ts;tests/client-assembly.test.ts` | active |
+| `FTR-005` | 伴读面板 | `docs/features/FTR-005-companion-panel.md` | `src/client/companion/native-companion.ts` | `tests/client-chat.test.ts;tests/client-assembly.test.ts` | active |
 | `FTR-006` | EPUB 文本 | `docs/features/FTR-006-epub.md` | `src/formats/epub.ts` | `tests/epub.test.ts` | active |
 | `FTR-007` | PDF 文本 | `docs/features/FTR-007-pdf.md` | `src/formats/pdf.ts` | `tests/pdf.test.ts` | active |
 | `FTR-008` | 检索与笔记 | `docs/features/FTR-008-search-notes.md` | `src/notes.ts` | `tests/notes.test.ts;tests/api.test.ts` | active |
@@ -37,14 +37,14 @@
 | `FTR-031` | 重排阅读 | `docs/features/FTR-031-reflow.md` | `src/client/reader-screen.ts` | `tests/epub-visual.test.ts;tests/pdf.test.ts;tests/epub.test.ts` | active |
 | `FTR-032` | 阅读设置 | `docs/features/FTR-032-reader-settings.md` | `src/client/reader-settings.ts` | `tests/paging.test.ts` | active |
 | `FTR-033` | 阅读位置锚点 | `docs/features/FTR-033-reading-anchor.md` | `src/client/paging.ts` | `tests/paging.test.ts;tests/api.test.ts` | active |
-| `FTR-034` | 工作区跳转 | `docs/features/FTR-034-workspace-jump.md` | `src/client/views/header.ts` | `tests/api.test.ts` | active |
-| `FTR-035` | 工作区侧边栏阅读 | `docs/features/FTR-035-workspace-sidebar-reader.md` | `src/client/views/sidebar-reader.ts` | `tests/api.test.ts;tests/paging.test.ts;tests/client-assembly.test.ts;tests/progress-sync.test.ts;tests/sidebar-reader.test.ts;tests/reader-resource.test.ts` | active |
+| `FTR-034` | 工作区跳转 | `docs/features/FTR-034-workspace-jump.md` | `src/client/reader/header.ts` | `tests/api.test.ts` | active |
+| `FTR-035` | 工作区侧边栏阅读 | `docs/features/FTR-035-workspace-sidebar-reader.md` | `src/client/reader/sidebar-reader.ts` | `tests/api.test.ts;tests/paging.test.ts;tests/client-assembly.test.ts;tests/progress-sync.test.ts;tests/sidebar-reader.test.ts;tests/reader-resource.test.ts` | active |
 | `FTR-036` | 伴读对话标题 | `docs/features/FTR-036-companion-title.md` | `src/client/session-title.ts` | `tests/session-title.test.ts` | active |
 | `FTR-037` | Agent 阅读上下文 | `docs/features/FTR-037-agent-context.md` | `src/tools.ts` | `tests/api.test.ts` | active |
 | `FTR-038` | 阅读感知 | `docs/features/FTR-038-reading-perception.md` | `src/client/plugin.ts` | `tests/api.test.ts` | active |
 | `FTR-039` | 全书概括 | `docs/features/FTR-039-whole-book-digest.md` | `src/digest.ts` | `tests/digest.test.ts;tests/tools.test.ts` | active |
 | `FTR-040` | 跨模式划线锚点 | `docs/features/FTR-040-cross-mode-anchor.md` | `src/notes.ts` | `tests/anchor.test.ts;tests/notes.test.ts` | active |
-| `FTR-041` | 工具结果卡片 | `docs/features/FTR-041-tool-cards.md` | `src/client/views/reader-tool-view.ts` | `tests/reader-tool-view.test.ts` | active |
+| `FTR-041` | 工具结果卡片 | `docs/features/FTR-041-tool-cards.md` | `src/client/reader/reader-tool-view.ts` | `tests/reader-tool-view.test.ts` | active |
 | `FTR-042` | 提示词预设 | `docs/features/FTR-042-prompt-presets.md` | `src/prompt-presets.ts` | `tests/prompt-presets.test.ts` | active |
 | `FTR-043` | Agent 阅读动作 | `docs/features/FTR-043-agent-actions.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |
 | `FTR-044` | 动作回执与撤销 | `docs/features/FTR-044-action-undo.md` | `src/reader-actions.ts` | `tests/reader-actions.test.ts;tests/tools.test.ts` | active |

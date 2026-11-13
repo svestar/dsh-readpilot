@@ -3,7 +3,7 @@
 - **ID：** FTR-046
 - **名称：** 备份与覆盖恢复
 - **状态：** active
-- **代码：** `src/backup.ts`（`exportBackup`、`restoreBackup`）；`src/api.ts`（`backupExport`、`backupRestore`）；`src/client/views/panels.ts`（`BackupPanel`、`Setup`）；`src/client/plugin.ts`（`backupExport`、`backupRestore`）
+- **代码：** `src/backup.ts`（`exportBackup`、`restoreBackup`）；`src/api.ts`（`backupExport`、`backupRestore`）；`src/client/library/panels.ts`（`BackupPanel`、`Setup`）；`src/client/plugin.ts`（`backupExport`、`backupRestore`）
 - **测试：** `tests/backup.test.ts`
 
 ## 行为
@@ -33,7 +33,7 @@
 | `restoreBackup` | `src/backup.ts:restoreBackup` | 生成快照、匹配 contentKey、覆盖并尝试回滚 |
 | `backupExport` | `src/api.ts:backupExport` | 读取当前书库并导出 |
 | `backupRestore` | `src/api.ts:backupRestore` | 校验路径、扫描目标、恢复并重绑工作区 |
-| `BackupPanel` | `src/client/views/panels.ts:BackupPanel` | 导出/恢复入口和两步确认 |
+| `BackupPanel` | `src/client/library/panels.ts:BackupPanel` | 导出/恢复入口和两步确认 |
 | `backupExport` / `backupRestore` | `src/client/hooks/use-library-actions.ts:backupExport` | 调用 RPC 并刷新快照 |
 
 ## 约束与失败行为

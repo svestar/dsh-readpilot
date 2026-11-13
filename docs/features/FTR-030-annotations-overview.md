@@ -3,7 +3,7 @@
 - **ID：** FTR-030
 - **名称：** 批注总览
 - **状态：** active
-- **代码：** `src/client/mark-filters.ts`（`filterMarks`、`markChapterIds`、`markColors`）；`src/client/views/notes-search.ts`（`NotesBody`）；`src/client/hooks/use-notes.ts`（`openNote`）
+- **代码：** `src/client/mark-filters.ts`（`filterMarks`、`markChapterIds`、`markColors`）；`src/client/notes/notes-search.ts`（`NotesBody`）；`src/client/hooks/use-notes.ts`（`openNote`）
 - **测试：** `tests/mark-filters.test.ts`
 
 ## 行为
@@ -17,7 +17,7 @@
 | `filterMarks` | `src/client/mark-filters.ts:filterMarks` | 按章节与颜色过滤标记，空筛选返回全部 |
 | `markChapterIds` | `src/client/mark-filters.ts:markChapterIds` | 收集有标记的章节 id，保持首次出现顺序 |
 | `markColors` | `src/client/mark-filters.ts:markColors` | 收集批注使用的颜色，按调色板顺序 |
-| `NotesBody` | `src/client/views/notes-search.ts:NotesBody` | 筛选栏、计数、批注/书签分组与空状态 |
+| `NotesBody` | `src/client/notes/notes-search.ts:NotesBody` | 筛选栏、计数、批注/书签分组与空状态 |
 | `openNote` | `src/client/hooks/use-notes.ts:openNote` | 点击条目跳回原文并高亮 |
 
 ## 约束与失败行为

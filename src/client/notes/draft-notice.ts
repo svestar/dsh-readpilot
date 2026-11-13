@@ -1,6 +1,6 @@
 import { React, h } from '../runtime.ts'
 import { diffLines } from '../helpers.ts'
-import { ModalShell } from './modal.ts'
+import { ModalShell } from '../common/modal.ts'
 import type { LongNotesState } from '../hooks/use-long-notes.ts'
 import type { TextFn } from '../types.ts'
 

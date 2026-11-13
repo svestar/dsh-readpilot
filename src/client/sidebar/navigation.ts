@@ -1,5 +1,5 @@
 import type { ComposerInputActions, Visual } from '../types.ts'
-import { quoteDraft } from '../views/selection-note.ts'
+import { quoteDraft } from '../reader/selection-note.ts'
 
 export function preserveSidebarVisual(previous: Visual | null, next: Visual | null, bookChanged: boolean): Visual | null {
   if (bookChanged || previous === null) return next

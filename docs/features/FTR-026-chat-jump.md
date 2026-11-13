@@ -3,7 +3,7 @@
 - **ID：** FTR-026
 - **名称：** 对话页码跳转
 - **状态：** active
-- **代码：** `src/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/views/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/client/views/sidebar-reader.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/companion/chat-panel.ts`（`ChatPanel` 页码自动链接）；`src/client/hooks/use-chat-jump.ts`（`useChatJump`）；`src/client/reader/sidebar-reader.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/workspace-prompt.ts`（页码语义）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/chat-jump.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为
@@ -24,7 +24,7 @@ PDF 对话由客户端自动识别页码：`ChatPanel` 在聊天 DOM 中识别�
 | `toolOpen` / `toolRead` / `toolSearch` / `toolContext` | `src/api.ts:toolOpen`；`src/api.ts:toolRead`；`src/api.ts:toolSearch`；`src/api.ts:toolContext` | 在目录、章节与搜索匹配中返回 `jumpUrl`（搜索匹配精确到 offset） |
 | `useChatJump` | `src/client/hooks/use-chat-jump.ts:useChatJump` | 拦截链接、q 检索、章节定位与窄屏收起 |
 | `findPageReferences` / `linkifyPageReferences` | `src/client/page-jump.ts:findPageReferences`；`src/client/page-jump.ts:linkifyPageReferences` | 识别 PDF 页码范围并包装为起始页按钮 |
-| `ChatPanel` | `src/client/views/chat-panel.ts:ChatPanel` | 错误展示、聊天 DOM 观察与自动页码链接 |
+| `ChatPanel` | `src/client/companion/chat-panel.ts:ChatPanel` | 错误展示、聊天 DOM 观察与自动页码链接 |
 
 ## 约束与失败行为
 

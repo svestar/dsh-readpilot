@@ -3,7 +3,7 @@
 - **ID：** FTR-045
 - **名称：** 书籍身份与迁移
 - **状态：** active
-- **代码：** `src/library.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/library-index.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/api.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/views/library-view.ts`（`DuplicateDialog`、`Library`）；`src/client/hooks/use-library-actions.ts`（`deleteDuplicate`）
+- **代码：** `src/library.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/library-index.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/api.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/library/library-view.ts`（`DuplicateDialog`、`Library`）；`src/client/hooks/use-library-actions.ts`（`deleteDuplicate`）
 - **测试：** `tests/library-index.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -30,8 +30,8 @@
 | `reconcileBooks` | `src/library-index.ts:reconcileBooks` | 复用/分配 bookId，标记重复副本 |
 | `deleteDuplicate` | `src/api.ts:deleteDuplicate` | 删除所选文件；主记录删除时提升剩余副本 |
 | `deleteLibraryRecord` | `src/library-index.ts:deleteLibraryRecord` | 删除索引中的书籍记录 |
-| `DuplicateDialog` | `src/client/views/library-view.ts:DuplicateDialog` | 展示同组文件、二次确认与删除动作 |
-| `Library` | `src/client/views/library-view.ts:Library` | 处理副本按钮、副本徽标与弹窗入口 |
+| `DuplicateDialog` | `src/client/library/library-view.ts:DuplicateDialog` | 展示同组文件、二次确认与删除动作 |
+| `Library` | `src/client/library/library-view.ts:Library` | 处理副本按钮、副本徽标与弹窗入口 |
 
 ## 约束与失败行为
 

@@ -3,7 +3,7 @@
 - **ID：** FTR-027
 - **名称：** 阅读状态与评分
 - **状态：** active
-- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/api.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/views/library-view.ts`（`Library`、`BookCard`、`TagDialog`）
+- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/api.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/library/library-view.ts`（`Library`、`BookCard`、`TagDialog`）
 - **测试：** `tests/library-organization.test.ts`
 
 ## 行为
@@ -20,7 +20,7 @@
 | `setBookStatus` | `src/api.ts:setBookStatus` | 校验书籍并写入状态，返回规整结果 |
 | `setBookRating` | `src/api.ts:setBookRating` | 校验书籍并写入评分，返回规整结果 |
 | `bookStatus` / `bookRating` | `src/client/library-utils.ts:bookStatus` | 从映射中取出合法状态与评分 |
-| `Library` | `src/client/views/library-view.ts:Library` | 已读完分类、书卡徽标与信息弹窗 |
+| `Library` | `src/client/library/library-view.ts:Library` | 已读完分类、书卡徽标与信息弹窗 |
 
 ## 约束与失败行为
 

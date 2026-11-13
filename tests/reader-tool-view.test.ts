@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parseReaderBooksResult, parseReaderOpenResult, parseReaderSearchResult, readerToolResultText } from '../src/client/views/reader-tool-view.ts'
+import { parseReaderBooksResult, parseReaderOpenResult, parseReaderSearchResult, readerToolResultText } from '../src/client/reader/reader-tool-view.ts'
 
 test('reader_books_tool_result_parses', () => {
   const value = parseReaderBooksResult(JSON.stringify({

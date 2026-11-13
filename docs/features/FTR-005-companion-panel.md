@@ -3,7 +3,7 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/views/native-companion.ts`；`src/client/views/chat-panel.ts`；`src/client/hooks/use-companion.ts`；`src/client/plugin.ts`；`src/client/reader-screen.ts`；`src/client/helpers.ts`；`src/client/views/chat-content.ts`
+- **代码：** `src/client/companion/native-companion.ts`；`src/client/companion/chat-panel.ts`；`src/client/hooks/use-companion.ts`；`src/client/plugin.ts`；`src/client/reader-screen.ts`；`src/client/helpers.ts`；`src/client/companion/chat-content.ts`
 - **测试：** `tests/client-chat.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为
@@ -14,9 +14,9 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `NativeCompanion` | `src/client/views/native-companion.ts:NativeCompanion` | 在 SessionProvider 内渲染 embedded `conversation.content`，固定 Chat 视图 |
-| `createNativeChatBoundary` | `src/client/views/native-companion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
-| `ChatPanel` | `src/client/views/chat-panel.ts:ChatPanel` | 伴读/笔记/长笔记/记忆四个标签、原生聊天或折叠聊天、错误与输入区 |
+| `NativeCompanion` | `src/client/companion/native-companion.ts:NativeCompanion` | 在 SessionProvider 内渲染 embedded `conversation.content`，固定 Chat 视图 |
+| `createNativeChatBoundary` | `src/client/companion/native-companion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
+| `ChatPanel` | `src/client/companion/chat-panel.ts:ChatPanel` | 伴读/笔记/长笔记/记忆四个标签、原生聊天或折叠聊天、错误与输入区 |
 | `useCompanion` | `src/client/hooks/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、就绪后应用只读策略 |
 | `ReaderPanel` / `createPlugin` | `src/client/plugin.ts:ReaderPanel`；`src/client/plugin.ts:createPlugin` | 组装阅读器、声明 session 子槽、注册原生与折叠两条路径 |
 | `askCompanion` | `src/client/plugin.ts:askCompanion` | 选中文字后预填引用并聚焦伴读输入框 |

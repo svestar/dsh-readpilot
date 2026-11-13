@@ -3,7 +3,7 @@
 - **ID：** FTR-021
 - **名称：** 笔记上下文
 - **状态：** active
-- **代码：** `src/notes-context.ts`（`buildReadingNotes`）；`src/companion-settings.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/api.ts`（`setNoteContext`、`notesContextFor`、`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/views/long-notes.ts`（`LongNotes`）
+- **代码：** `src/notes-context.ts`（`buildReadingNotes`）；`src/companion-settings.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/api.ts`（`setNoteContext`、`notesContextFor`、`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/notes/long-notes.ts`（`LongNotes`）
 - **测试：** `tests/notes-context.test.ts`；`tests/api.test.ts`
 
 ## 行为
@@ -20,7 +20,7 @@
 | `notesContextFor` | `src/api.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
 | `rebuildNotesContext` | `src/api.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
 | `apply` | `index.ts:apply` | 注册笔记动态上下文 |
-| `LongNotes` / `ReaderPanel` | `src/client/views/long-notes.ts:LongNotes`；`src/client/plugin.ts:ReaderPanel` | 开关 UI 与快照更新 |
+| `LongNotes` / `ReaderPanel` | `src/client/notes/long-notes.ts:LongNotes`；`src/client/plugin.ts:ReaderPanel` | 开关 UI 与快照更新 |
 
 ## 约束与失败行为
 

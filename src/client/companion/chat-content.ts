@@ -1,5 +1,5 @@
 import { h } from '../runtime.ts'
-import { MarkdownMessage } from './markdown.ts'
+import { MarkdownMessage } from '../markdown/render.ts'
 import type { StateSetter } from '../runtime.ts'
 import type { ChatMessage, MutableRef, TextFn } from '../types.ts'
 

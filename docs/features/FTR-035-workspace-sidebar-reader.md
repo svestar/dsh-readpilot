@@ -3,7 +3,7 @@
 - **ID：** FTR-035
 - **名称：** 工作区侧边栏阅读
 - **状态：** active
-- **代码：** `src/client/views/sidebar-reader.ts`；`src/client/reader-resource.ts`；`src/client/views/selection-note.ts`；`src/client/plugin.ts`；`src/api.ts`；`src/store.ts`；`src/client/hooks/use-text-pager.ts`；`src/client/hooks/use-visual.ts`
+- **代码：** `src/client/reader/sidebar-reader.ts`；`src/client/reader-resource.ts`；`src/client/reader/selection-note.ts`；`src/client/plugin.ts`；`src/api.ts`；`src/store.ts`；`src/client/hooks/use-text-pager.ts`；`src/client/hooks/use-visual.ts`
 - **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`；`tests/reader-resource.test.ts`
 
 ## 行为
@@ -19,9 +19,9 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `SidebarReader` | `src/client/views/sidebar-reader.ts:SidebarReader` | 侧边栏单页阅读器与两种模式 |
-| `prefillCompanionQuote` | `src/client/views/sidebar-reader.ts:prefillCompanionQuote` | 把选段写入当前会话输入框 |
-| `quoteDraft` | `src/client/views/selection-note.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
+| `SidebarReader` | `src/client/reader/sidebar-reader.ts:SidebarReader` | 侧边栏单页阅读器与两种模式 |
+| `prefillCompanionQuote` | `src/client/reader/sidebar-reader.ts:prefillCompanionQuote` | 把选段写入当前会话输入框 |
+| `quoteDraft` | `src/client/reader/selection-note.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
 | `apply` | `src/client/plugin.ts:apply` | 注册 `dsh-readpilot` Tab 类型与正文席位 |
 | `sessionBook` | `src/api.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
 | `parseReaderResource` / `buildReaderResource` | `src/client/reader-resource.ts:parseReaderResource`；`src/client/reader-resource.ts:buildReaderResource` | 解析/生成 `dsh-resource://` 阅读地址 |

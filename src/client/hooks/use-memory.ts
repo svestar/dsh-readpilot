@@ -1,7 +1,7 @@
 import { React } from '../runtime.ts'
 import { messageOf } from '../helpers.ts'
 import type { CallRpc, TextFn } from '../types.ts'
-import type { BookMemoryState, MemoryMode, MemoryScope, MemoryView } from '../views/memory-panel.ts'
+import type { BookMemoryState, MemoryMode, MemoryScope, MemoryView } from '../companion/memory-panel.ts'
 
 interface MemoryOptions {
   call: CallRpc

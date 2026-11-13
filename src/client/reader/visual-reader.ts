@@ -1,5 +1,5 @@
 import { React, h } from '../runtime.ts'
-import { renderBlocks } from './markdown.ts'
+import { renderBlocks } from '../markdown/render.ts'
 import { pageSpanWidth, pageWidthForHeight } from '../paging.ts'
 import type { PageLayout, ReaderMode } from '../paging.ts'
 import type { MutableRef, PageView, Screen, TextFn, Visual } from '../types.ts'

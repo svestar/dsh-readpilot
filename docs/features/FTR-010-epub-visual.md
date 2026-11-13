@@ -3,7 +3,7 @@
 - **ID：** FTR-010
 - **名称：** EPUB 视觉
 - **状态：** active
-- **代码：** `src/visual/epub.ts`（`createEpubVisual`）；`src/formats/epub.ts`（`parseEpub` 的 `href`）；`src/api.ts`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/views/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/visual/epub.ts`（`createEpubVisual`）；`src/formats/epub.ts`（`parseEpub` 的 `href`）；`src/api.ts`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/epub-visual.test.ts`
 
 ## 行为
@@ -19,7 +19,7 @@
 | `epubDocument` | `src/api.ts:epubDocument` | 返回清洗后的章节 HTML |
 | `epubAsset` | `src/api.ts:epubAsset` | 返回 CSS/图片/字体字节 |
 | `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
-| `VisualReader` | `src/client/views/visual-reader.ts:VisualReader` | iframe 与分页容器 |
+| `VisualReader` | `src/client/reader/visual-reader.ts:VisualReader` | iframe 与分页容器 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为

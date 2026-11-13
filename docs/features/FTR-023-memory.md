@@ -3,7 +3,7 @@
 - **ID：** FTR-023
 - **名称：** 记忆
 - **状态：** active
-- **代码：** `src/companion-settings.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/memory-store.ts`（`createMemoryStore`）；`src/memory-context.ts`（`buildReadingMemory`）；`src/api-memory.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/workspace-prompt.ts`（`READING_PROMPT`）；`src/tools.ts`（`reader_memory`）；`src/client/views/memory-panel.ts`（`MemoryPanel`）；`src/client/hooks/use-memory.ts`（`useMemory`）
+- **代码：** `src/companion-settings.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/memory-store.ts`（`createMemoryStore`）；`src/memory-context.ts`（`buildReadingMemory`）；`src/api-memory.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/workspace-prompt.ts`（`READING_PROMPT`）；`src/tools.ts`（`reader_memory`）；`src/client/companion/memory-panel.ts`（`MemoryPanel`）；`src/client/hooks/use-memory.ts`（`useMemory`）
 - **测试：** `tests/memory.test.ts`
 
 ## 行为
@@ -24,7 +24,7 @@
 | `memory` | `src/api-memory.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear |
 | `memoryTool` | `src/api-memory.ts:memoryTool` | Agent 侧 read/update/forget，校验生效状态与上限 |
 | `memoryContextFor` | `src/api-memory.ts:memoryContextFor` | 按会话返回缓存的记忆文本 |
-| `MemoryPanel` / `useMemory` | `src/client/views/memory-panel.ts:MemoryPanel`；`src/client/hooks/use-memory.ts:useMemory` | 记忆页与轮询状态 |
+| `MemoryPanel` / `useMemory` | `src/client/companion/memory-panel.ts:MemoryPanel`；`src/client/hooks/use-memory.ts:useMemory` | 记忆页与轮询状态 |
 
 ## 约束与失败行为
 

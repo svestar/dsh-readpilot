@@ -3,7 +3,7 @@
 - **ID：** FTR-013
 - **名称：** 书库整理
 - **状态：** active
-- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeTags`）；`src/api.ts`（`state`、`libraryMeta`、`setBookTags`）；`src/client/library-utils.ts`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/views/library-view.ts`（`Library`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/library-meta.ts`（`createLibraryMetaStore`、`normalizeTags`）；`src/api.ts`（`state`、`libraryMeta`、`setBookTags`）；`src/client/library-utils.ts`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/library/library-view.ts`（`Library`）；`src/client/plugin.ts`（`ReaderPanel`）
 - **测试：** `tests/library-organization.test.ts`
 
 ## 行为
@@ -19,7 +19,7 @@
 | `state` / `libraryMeta` | `src/api.ts:state` | 返回书籍、进度、会话、标签、状态与评分快照 |
 | `setBookTags` | `src/api.ts:setBookTags` | 校验书籍与标签并持久化 |
 | `filterBooks` / `recentBooks` / `tagCatalogue` | `src/client/library-utils.ts:filterBooks` | 分类、搜索、排序、最近阅读与标签计数 |
-| `Library` | `src/client/views/library-view.ts:Library` | 分类栏、最近阅读、网格、搜索排序与书籍信息弹窗 |
+| `Library` | `src/client/library/library-view.ts:Library` | 分类栏、最近阅读、网格、搜索排序与书籍信息弹窗 |
 | `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 保存标签后刷新书库快照 |
 
 ## 约束与失败行为
