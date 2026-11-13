@@ -268,6 +268,10 @@ export function createPlugin(require: (name: string) => any) {
       }, [snapshot])
 
       React.useEffect(() => {
+        void refresh()
+      }, [refresh])
+
+      React.useEffect(() => {
         saveGlassBlur(glassBlur)
       }, [glassBlur])
 
