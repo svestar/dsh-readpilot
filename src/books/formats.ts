@@ -1,4 +1,5 @@
 import { basename, extname } from 'node:path'
+import { parseMarkdownBlocks } from '../markdown/blocks.ts'
 
 export type BookFormat = 'txt' | 'md' | 'epub' | 'pdf'
 
@@ -8,6 +9,11 @@ export interface TextBlock {
   type: BlockType
   text: string
   level?: number
+  ordered?: boolean
+  index?: number
+  checked?: boolean
+  indent?: number
+  lang?: string
   rows?: string[][]
   src?: string
   alt?: string
@@ -206,62 +212,19 @@ function takeFrontmatter(text: string): { meta: Record<string, string>; body: st
 }
 
 export function parseBlocks(body: string, format: BookFormat): TextBlock[] {
+  if (format === 'md') return parseMarkdownBlocks(body) as TextBlock[]
   const blocks: TextBlock[] = []
   const lines = body.split('\n')
   let paragraph: string[] = []
-  let inFence = false
-  let fence: string[] = []
-
   const flush = () => {
     const text = paragraph.join('\n').trim()
     if (text) blocks.push({ type: 'p', text })
     paragraph = []
   }
-
   for (const line of lines) {
-    if (format === 'md' && FENCE.test(line)) {
-      if (inFence) {
-        blocks.push({ type: 'code', text: fence.join('\n').trimEnd() })
-        fence = []
-        inFence = false
-      } else {
-        flush()
-        inFence = true
-      }
-      continue
-    }
-    if (inFence) {
-      fence.push(line)
-      continue
-    }
     if (!line.trim()) {
       flush()
       continue
-    }
-    if (format === 'md') {
-      const image = /^!\[([^\]]*)\]\(\s*([^)\s]+)(?:\s+"[^"]*")?\s*\)\s*$/.exec(line.trim())
-      if (image) {
-        flush()
-        const alt = image[1].trim()
-        blocks.push({ type: 'image', text: alt, src: image[2], alt })
-        continue
-      }
-      const heading = /^(#{3,6})\s+(.+?)\s*$/.exec(line)
-      if (heading) {
-        flush()
-        blocks.push({ type: 'h', text: heading[2].trim(), level: heading[1].length })
-        continue
-      }
-      if (/^>\s?/.test(line)) {
-        flush()
-        blocks.push({ type: 'quote', text: line.replace(/^>\s?/, '').trim() })
-        continue
-      }
-      if (/^\s*([-*+]|\d+[.)])\s+/.test(line)) {
-        flush()
-        blocks.push({ type: 'li', text: line.replace(/^\s*([-*+]|\d+[.)])\s+/, '').trim() })
-        continue
-      }
     }
     paragraph.push(line)
   }

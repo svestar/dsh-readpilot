@@ -52,3 +52,4 @@
 | `FTR-046` | 备份与覆盖恢复 | `docs/features/FTR-046-backup-restore.md` | `src/backup/index.ts` | `tests/backup.test.ts` | active |
 | `FTR-047` | 扫描版 PDF | `docs/features/FTR-047-scanned-pdf.md` | `src/books/formats/pdf.ts` | `tests/pdf.test.ts;tests/paging.test.ts;tests/api.test.ts` | active |
 | `FTR-049` | 帮助手册 | `docs/features/FTR-049-help-manual.md` | `src/client/common/help-content.ts` | `tests/help-manual.test.ts` | active |
+| `FTR-050` | Markdown 语法 | `docs/features/FTR-050-markdown.md` | `src/markdown/blocks.ts` | `tests/markdown.test.ts` | active |
