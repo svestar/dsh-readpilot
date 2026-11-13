@@ -3,7 +3,7 @@
 - **ID：** FTR-022
 - **名称：** 笔记草稿
 - **状态：** active
-- **代码：** `src/notes/drafts.ts`（`createNoteDraftStore`）；`src/api/index.ts`（`ensureNoteDraftStore`）；`src/api/note-files.ts`（`toolNoteFiles`）；`src/api/drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/agent/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/draft-notice.ts`（`DraftNotice`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/diff.ts`（`diffLines`）
+- **代码：** `src/notes/drafts.ts`（`createNoteDraftStore`）；`src/api/index.ts`（`ensureNoteDraftStore`）；`src/api/note-files.ts`（`toolNoteFiles`）；`src/api/drafts.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/agent/tools.ts`（`reader_notes`）；`src/client/hooks/use-long-notes.ts`（`useLongNotes`）；`src/client/notes/draft-notice.ts`（`DraftNotice`）；`src/client/notes/long-notes.ts`（`LongNotes`）；`src/client/notes/diff.ts`（`diffLines`）
 - **测试：** `tests/note-drafts.test.ts`；`tests/api.test.ts`
 
 ## 行为
