@@ -115,6 +115,7 @@ export function createPlugin(require: (name: string) => any) {
 
     let runtime: any
     let boundText: TextFn = key => key
+    let cachedSnapshot: Snapshot | null = null
 
     const call = (async (operation: string, payload?: unknown): Promise<any> => {
       const dot = operation.indexOf('.')
@@ -152,7 +153,7 @@ export function createPlugin(require: (name: string) => any) {
 
     function ReaderPanel(props: { t?: TextFn; SessionProvider?: any; renderSlot?: any; useResource?: any }) {
       const t: TextFn = props.t ?? boundText
-      const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null)
+      const [snapshot, setSnapshot] = React.useState<Snapshot | null>(cachedSnapshot)
       const [screenState, setScreenState] = React.useState<Screen>(currentReaderScreen)
       const setScreen = React.useCallback((next: Screen | ((previous: Screen) => Screen)) => {
         if (typeof next === 'function') {
@@ -244,7 +245,16 @@ export function createPlugin(require: (name: string) => any) {
         setBusy(true)
         setError('')
         try {
-          const value = await call('state')
+          let value: Snapshot | null = null
+          try {
+            value = await call('state')
+          } catch {
+            // The first request can arrive while the Host connection is still warming up.
+            await new Promise(resolve => setTimeout(resolve, 300))
+            value = await call('state')
+          }
+          if (!value || typeof value !== 'object') throw new Error('阅读器状态为空')
+          cachedSnapshot = value
           setSnapshot(value)
         } catch (cause) {
           setError(`${t('loadFailed')}：${messageOf(cause)}`)
@@ -252,6 +262,10 @@ export function createPlugin(require: (name: string) => any) {
           setBusy(false)
         }
       }, [t])
+
+      React.useEffect(() => {
+        cachedSnapshot = snapshot
+      }, [snapshot])
 
       React.useEffect(() => {
         saveGlassBlur(glassBlur)
