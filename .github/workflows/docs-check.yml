@@ -1,0 +1,26 @@
+name: Documentation checks
+
+on:
+  pull_request:
+  push:
+    paths:
+      - "**/*.md"
+      - "scripts/check_docs.py"
+      - ".github/workflows/docs-check.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docs-check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: python scripts/check_docs.py
