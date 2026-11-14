@@ -41,9 +41,9 @@ export function createReadingOpen({ resolveBook, parser, progress }: ReadingOpen
     if (parsed.chapters.length === 0) {
       if (book.format === 'pdf' && (parsed.pageCount ?? 0) > 0) {
         return {
-          book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
+          book: { ...book, author: parsed.author || '' },
           supported: true,
-          toc: [{ id: 'scan', title: parsed.title || book.title, chars: 0, page: 1 }],
+          toc: [{ id: 'scan', title: book.title, chars: 0, page: 1 }],
           outline: (Array.isArray(parsed.outline) ? parsed.outline : []).map(item => ({
             id: item.id,
             title: item.title,
@@ -71,7 +71,7 @@ export function createReadingOpen({ resolveBook, parser, progress }: ReadingOpen
       }
     }
     return {
-      book: { ...book, title: parsed.title || book.title, author: parsed.author || '' },
+      book: { ...book, author: parsed.author || '' },
       supported: true,
       toc: tocSource.map(chapter => {
         const item: TocItem = { id: chapter.id, title: chapter.title, chars: chapter.chars }

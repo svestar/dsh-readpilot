@@ -92,7 +92,7 @@ export function createNotesToolService(deps: NotesToolDependencies) {
     })
     return {
       bookId: found.id,
-      bookTitle: parsed.title || found.title,
+      bookTitle: found.title,
       chapterId: target.id,
       chapterTitle: target.title,
       note: record,

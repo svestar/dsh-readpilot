@@ -77,3 +77,20 @@ test('search_all_returns_all_matches', async t => {
   assert.equal(all.matches.length, 60)
   assert.equal(all.truncated, false)
 })
+
+test('open_and_search_use_library_title', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-api-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  await writeFile(join(library, 'library-title.md'), '---\ntitle: 元数据标题\nauthor: 作者\n---\n\n第一章 开始\n\n正文包含唯一词。', 'utf8')
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const book = state.books[0]
+  assert.equal(book.title, 'library-title')
+  const opened = await api.open({ bookId: book.id })
+  assert.equal(opened.book.title, 'library-title')
+  const found = await api.search({ query: '唯一词', limit: 10 })
+  assert.equal(found.matches[0].bookTitle, 'library-title')
+})

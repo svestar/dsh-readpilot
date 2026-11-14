@@ -57,7 +57,7 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
     )
     return {
       bookId: found.id,
-      title: parsed.title || found.title,
+      title: found.title,
       format: found.format,
       ...digest,
       note: '这是抽取式全书摘要，不是逐字全文；需要细节时用 reader_read 读取指定章节。',
@@ -130,7 +130,7 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
     const nextOffset = start + slice.length
     return {
       bookId: found.id,
-      bookTitle: parsed.title || found.title,
+      bookTitle: found.title,
       chapterId: target.id,
       chapterTitle: target.title,
       offset: start,

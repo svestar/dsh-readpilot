@@ -67,7 +67,7 @@ export function createSearch({ resolveBook, libraryBooks, ensureParsed }: Search
           const end = Math.min(text.length, index + wanted.length + 120)
           matches.push({
             bookId: book.id,
-            bookTitle: parsed.title || book.title,
+            bookTitle: book.title,
             chapterId: chapter.id,
             chapterTitle: chapter.title,
             offset: index,
