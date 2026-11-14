@@ -23,7 +23,7 @@ function VirtualBookGrid({ items, renderCard }: {
   const virtualizer = useVirtualizer({
     count: rows,
     getScrollElement: () => scrollRef.current,
-    estimateSize: () => 236,
+    estimateSize: () => 236 + gap,
     overscan: 2,
   })
   return h('div', { ref: scrollRef, className: 'dsh-readpilot-grid-virtual' },
@@ -44,6 +44,7 @@ function VirtualBookGrid({ items, renderCard }: {
             transform: `translateY(${row.start}px)`,
             gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
             gap: `${gap}px`,
+            paddingBottom: `${gap}px`,
           },
         }, items.slice(start, start + columns).map(renderCard))
       })))
