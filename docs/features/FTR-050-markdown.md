@@ -3,7 +3,7 @@
 - **ID：** FTR-050
 - **名称：** Markdown 语法
 - **状态：** active
-- **代码：** `src/shared/markdown.ts`（`parseMarkdownBlocks`）；`src/host/modules/reading/formats.ts`（`parseBlocks`）；`src/client/modules/markdown/render.ts`（`inline`、`renderBlocks`）；`src/host/api.ts`（`imageAssetUrl`）；`src/host/modules/reading/markdown-images.ts`（`rewriteInlineImages`）
+- **代码：** `src/shared/markdown.ts`（`parseMarkdownBlocks`）；`src/host/modules/reading/formats.ts`（`parseBlocks`）；`src/client/modules/markdown/render.ts`（`inline`、`renderBlocks`）；`src/host/modules/reading/open.ts`（`imageAssetUrl`）；`src/host/modules/reading/markdown-images.ts`（`rewriteInlineImages`）
 - **测试：** `tests/markdown.test.ts`；`tests/smoke.test.ts`
 
 ## 行为

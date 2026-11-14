@@ -3,7 +3,7 @@
 - **ID：** FTR-037
 - **名称：** Agent 阅读上下文
 - **状态：** active
-- **代码：** `src/host/register-tools.ts`（`registerTools`）；`src/host/api.ts`（`toolContext`、`ensureSessionReading`、`syncCompanionContexts`、`setCompanionContext`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）；`src/client/modules/reader/use-reading-progress.ts`（`useReadingProgress`）
+- **代码：** `src/host/register-tools.ts`（`registerTools`）；`src/host/api.ts`（`toolContext`、`syncCompanionContexts`、`setCompanionContext`）；`src/host/modules/reading/tool-service.ts`（`ensureSessionReading`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）；`src/client/modules/reader/use-reading-progress.ts`（`useReadingProgress`）
 - **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

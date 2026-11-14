@@ -82,6 +82,18 @@ class CheckDocsTest(unittest.TestCase):
         )
         self.assertEqual(self.errors(), [])
 
+    def test_code_field_annotations_are_validated(self) -> None:
+        self.checker.check_code_annotations("doc", "`src/sample.ts`（`targetSymbol`）")
+        self.assertEqual(self.errors(), [])
+
+        self.checker.errors = []
+        self.checker.check_code_annotations("doc", "`src/sample.ts`（`missingSymbol`）")
+        self.assertTrue(any("代码字段符号不存在" in error for error in self.errors()))
+
+        self.checker.errors = []
+        self.checker.check_code_annotations("doc", "`src/sample.ts`（`missingSymbol` 路由）")
+        self.assertEqual(self.errors(), [])
+
     def test_narration_is_rejected(self) -> None:
         self.checker.check_narration("doc", "本次修改了实现。")
         self.assertTrue(any("叙述了改动过程" in error for error in self.errors()))

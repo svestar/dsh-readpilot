@@ -3,7 +3,7 @@
 - **ID：** FTR-026
 - **名称：** 对话页码跳转
 - **状态：** active
-- **代码：** `src/shared/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/host/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext` 的 `jumpUrl`）；`src/client/modules/reader/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/modules/companion/ChatPanel.ts`（`ChatPanel` 页码自动链接）；`src/client/modules/reader/use-chat-jump.ts`（`useChatJump`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`chapterFractionForOffset`、侧栏 `useChatJump`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
+- **代码：**`src/shared/jump-url.ts`（`buildReaderJumpUrl`、`parseReaderJumpUrl`）；`src/host/api.ts`（`toolOpen`、`toolRead`、`toolSearch`、`toolContext`）；`src/shared/contracts/search.ts`（`jumpUrl`）；`src/client/modules/reader/page-jump.ts`（`findPageReferences`、`linkifyPageReferences`）；`src/client/modules/companion/ChatPanel.ts`（`ChatPanel` 页码自动链接）；`src/client/modules/reader/use-chat-jump.ts`（`useChatJump`）；`src/client/modules/sidebar/navigation.ts`（`chapterFractionForOffset`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
 - **测试：** `tests/chat-jump.test.ts`；`tests/sidebar-reader.test.ts`
 
 ## 行为

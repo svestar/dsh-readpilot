@@ -3,7 +3,7 @@
 - **ID：** FTR-043
 - **名称：** Agent 阅读动作
 - **状态：** active
-- **代码：** `src/shared/contracts/actions.ts`（`createReaderActionStore`）；`src/host/api.ts`（`readerActions`、`pushReaderAction`）；`src/host/register-tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`、`reader_tag`、`reader_status`）；`src/client/modules/reader/use-reader-actions.ts`（`useReaderActions`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
+- **代码：** `src/host/modules/actions/store.ts`（`createReaderActionStore`）；`src/host/api.ts`（`readerActions`、`pushReaderAction`）；`src/host/modules/actions/tools.ts`（`reader_goto`、`reader_mark`、`reader_open_panel`）；`src/host/modules/library/tools.ts`（`reader_tag`、`reader_status`）；`src/client/modules/reader/use-reader-actions.ts`（`useReaderActions`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为

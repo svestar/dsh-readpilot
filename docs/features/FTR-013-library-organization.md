@@ -3,7 +3,7 @@
 - **ID：** FTR-013
 - **名称：** 书库整理
 - **状态：** active
-- **代码：** `src/host/modules/library/meta-service.ts`（`createLibraryMetaStore`、`normalizeTags`）；`src/host/api.ts`（`state`、`libraryMeta`、`setBookTags`）；`src/client/modules/library/library-utils.ts`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/modules/library/LibraryView.ts`（`Library`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
+- **代码：** `src/host/modules/library/meta-service.ts`（`createLibraryMetaService`）；`src/host/modules/library/meta-store.ts`（`createLibraryMetaStore`、`normalizeTags`）；`src/host/api.ts`（`state`、`libraryMeta`、`setBookTags`）；`src/client/modules/library/library-utils.ts`（`filterBooks`、`recentBooks`、`tagCatalogue`）；`src/client/modules/library/LibraryView.ts`（`Library`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
 - **测试：** `tests/library-organization.test.ts`
 
 ## 行为

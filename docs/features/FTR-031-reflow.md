@@ -3,16 +3,16 @@
 - **ID：** FTR-031
 - **名称：** 重排阅读
 - **状态：** active
-- **代码：** `src/client/modules/reader/screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/plugin.ts`（`applySource`、`isTextFormat`、`textLayout`）；`src/client/lib/preferences.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/modules/reader/ReaderSettings.ts`（`ReaderSettings`）；`src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`、`tableRowsAt`）；`src/host/modules/reading/formats/epub/index.ts`（`parseEpub`、`imageBlock`、`tableRows`）；`src/client/modules/markdown/render.ts`（`renderBlocks`）
+- **代码：** `src/client/modules/reader/screen.ts`（`visualForItem`、`visualForChapter`）；`src/client/modules/reader/use-reader-view.ts`（`applySource`）；`src/client/modules/reader/use-reader-preferences.ts`（`isTextFormat`、`textLayout`）；`src/client/lib/preferences.ts`（`readReflowBooks`、`saveReflowBooks`）；`src/client/modules/reader/ReaderSettings.ts`（`ReaderSettings`）；`src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`、`pageBlocks`、`stripPageFurniture`、`orderColumns`）；`src/host/modules/reading/formats/pdf/blocks.ts`（`tableRowsAt`）；`src/host/modules/reading/formats/epub/index.ts`（`parseEpub`）；`src/host/modules/reading/formats/epub/html.ts`（`imageBlock`、`tableRows`）；`src/client/modules/markdown/render.ts`（`renderBlocks`）
 - **测试：** `tests/epub-visual.test.ts`；`tests/pdf.test.ts`；`tests/epub.test.ts`
 
 ## 行为
 
 EPUB 与 PDF 阅读时在阅读设置面板切换“原版/重排”；模式按书记忆，保存在 `localStorage` 的 `dsh-readpilot.reflow-books`。
 
-重排统一走原生文本渲染器（A4 分页），不再使用 iframe；iframe 只保留给“原版”EPUB。EPUB 重排使用 `parseEpub` 抽出的块，正文、标题、列表、引用、代码、图片与表格按 TXT/MD 的版式渲染，字号跟随 A+/A-；图片经 `epub-asset` 加载并参与分页重测。出版社字体、浮动等复杂版式仍不进入重排。
+重排统一走原生文本渲染器（A4 分页），iframe 仅用于“原版”EPUB。EPUB 重排使用 `parseEpub` 抽出的块，正文、标题、列表、引用、代码、图片与表格沿用 TXT/MD 版式，字号跟随 A+/A-；图片经 `epub-asset` 加载并参与分页重测。出版社字体、浮动等复杂版式仍不进入重排。
 
-PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚，按字号识别标题，按命令/路径/符号特征识别代码（等宽字体仅作辅助），按列间距识别简单表格，对双栏页按左右栏重排；解析后返回 0–1 的置信度，按文本覆盖率、每页字数、目录页比例、代码占比、乱码比例扣分。低于 0.6 时阅读区顶部显示「重排识别置信度较低」并附最多两条原因，可关闭。PDF 重排固定单页版式，切回原版恢复页面位图。
+PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚，按字号识别标题，按命令/路径/符号特征识别代码（等宽字体仅作辅助），按列间距识别简单表格，对双栏页按左右栏重排；解析后返回 0–1 的置信度，按覆盖率、每页字数、目录页比例、代码/乱码占比扣分。低于 0.6 时顶部提示「重排识别置信度较低」并附最多两条原因。PDF 重排固定单页，切回原版恢复位图。
 
 ## 接口与代码映射
 
@@ -31,7 +31,7 @@ PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚�
 
 ## 约束与失败行为
 
-EPUB 重排保留块级图片与普通行列的简单表格；行内图片、SVG 内嵌图、合并单元格、嵌套表格与依赖出版社 CSS 的浮动/分栏会丢失或被简化。PDF 重排只处理文字层，图片、公式与复杂表格会退化，扫描件没有文本层时仍只能看原版；简单表格要求列数一致且起始 x 对齐，否则按段落处理。PDF 低置信度只提示、不自动禁用重排。切换原版/重排、阅读方式或版式时的位置恢复见 FTR-033。TXT/MD 始终使用该渲染器。
+EPUB 重排保留块级图片与普通行列的简单表格；行内图片、SVG 内嵌图、合并单元格、嵌套表格与依赖出版社 CSS 的浮动/分栏会丢失或被简化。PDF 重排只处理文字层，图片、公式与复杂表格会退化，扫描件没有文本层时仍只能看原版；简单表格要求列数一致且 x 对齐，否则按段落处理。PDF 低置信度只提示、不自动禁用重排。切换原版/重排、阅读方式或版式时的位置恢复见 FTR-033。TXT/MD 始终使用该渲染器。
 
 ## 验收与测试
 

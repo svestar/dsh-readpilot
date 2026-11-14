@@ -28,6 +28,7 @@ PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md))`")
 MAPPING_RE = re.compile(
     r"`([^`\n:]+):([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)`"
 )
+CODE_ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py))`（([^）]*)）")
 ANCHOR_RE = re.compile(r"（`([a-z0-9_]+)`）")
 NARRATION_PHRASES = ("本次修改", "本次变更", "之前是", "现在改为", "原实现是")
 errors: list[str] = []
@@ -67,6 +68,24 @@ def check_mapping_refs(owner: str, text: str) -> None:
             errors.append(f"{owner} 的映射符号不存在：{path}:{symbol}")
 
 
+def check_code_annotations(owner: str, code: str) -> None:
+    """`path`（`symbol`…） in a code field must name real symbols in that file."""
+    for path, inner in CODE_ANNOTATION_RE.findall(code):
+        rest = re.sub(r"`[^`]*`", "", inner)
+        if rest.strip(" 、，,;；"):
+            continue
+        target = ROOT / path
+        if not target.is_file():
+            continue
+        body = read(target)
+        for symbol in re.findall(r"`([^`]+)`", inner):
+            if symbol.endswith((".md", ".ts", ".js", ".mjs", ".py")):
+                continue
+            leaf = symbol.split(".")[-1]
+            if not re.search(rf"(?<![A-Za-z0-9_]){re.escape(leaf)}(?![A-Za-z0-9_])", body):
+                errors.append(f"{owner} 的代码字段符号不存在：{path}:{symbol}")
+
+
 def check_length(path: Path, limit: int) -> None:
     length = len(read(path))
     if length > limit:
@@ -90,8 +109,12 @@ def check_paths(owner: str, text: str) -> list[str]:
     return declared
 
 
+def index_cells(line: str) -> list[str]:
+    return [cell.strip() for cell in line.strip().strip("|").split("|")]
+
+
 def check_index_row(line: str) -> None:
-    cells = [cell.strip() for cell in line.strip().strip("|").split("|")]
+    cells = index_cells(line)
     if len(cells) < 6:
         errors.append(f"功能索引行格式不正确：{line.strip()}")
         return
@@ -148,9 +171,16 @@ def main() -> int:
     if INDEX_HEADER not in index_text:
         errors.append("功能索引表头不匹配")
     check_hygiene(index, index_text)
+    indexed: dict[str, list[str]] = {}
     for line in index_text.splitlines():
         if line.startswith("| `") and not line.startswith("| `ID"):
             check_index_row(line)
+            cells = index_cells(line)
+            if len(cells) >= 6:
+                feature_id = cells[0].strip("`")
+                if feature_id in indexed:
+                    errors.append(f"功能索引 ID 重复：{feature_id}")
+                indexed[feature_id] = cells
 
     seen_ids: set[str] = set()
     for path in features:
@@ -163,6 +193,7 @@ def main() -> int:
                 errors.append(f"{name} 缺少 {heading}")
         check_narration(name, text)
         check_mapping_refs(name, text)
+        check_code_annotations(name, field(text, "代码"))
         if name not in index_text:
             errors.append(f"{name} 未登记到索引")
 
@@ -176,6 +207,20 @@ def main() -> int:
             seen_ids.add(feature_id)
             if not name.startswith(f"{feature_id}-"):
                 errors.append(f"{name} 的文件名不以 {feature_id}- 开头")
+            row = indexed.get(feature_id)
+            if row is None:
+                errors.append(f"{feature_id} 未出现在功能索引中")
+            else:
+                if row[2].strip("`") != f"docs/features/{name}":
+                    errors.append(f"{name} 的索引文档路径不匹配：{row[2]}")
+                if row[1] != field(text, "名称").strip():
+                    errors.append(f"{name} 的索引名称与「名称」字段不一致")
+                if row[5].strip("`") != field(text, "状态").strip():
+                    errors.append(f"{name} 的索引状态与「状态」字段不一致")
+                if set(paths_in(row[3])) != set(paths_in(field(text, "代码"))):
+                    errors.append(f"{name} 的索引代码路径与「代码」字段不一致")
+                if set(paths_in(row[4])) != set(paths_in(field(text, "测试"))):
+                    errors.append(f"{name} 的索引测试路径与「测试」字段不一致")
 
         check_paths(name, field(text, "代码"))
         test_files = check_paths(name, field(text, "测试"))
@@ -200,6 +245,7 @@ def main() -> int:
         check_hygiene(path, text)
         check_narration(path.name, text)
         check_mapping_refs(path.name, text)
+        check_code_annotations(path.name, field(text, "代码"))
         for heading in ADR_HEADINGS:
             if heading not in text:
                 errors.append(f"{path.name} 缺少 {heading}")

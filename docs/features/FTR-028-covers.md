@@ -3,7 +3,7 @@
 - **ID：** FTR-028
 - **名称：** 真实封面
 - **状态：** active
-- **代码：** `src/host/modules/reading/visual/epub/index.ts`（`findCoverPath`、`cover`）；`src/host/api.ts`（`cover`）；`src/host/lib/limit.ts`（`createLimiter`）；`index.ts`；`src/client/modules/library/LibraryView.ts`（`BookCard`）
+- **代码：** `src/host/modules/reading/visual/epub/archive.ts`（`findCoverPath`）；`src/host/modules/reading/visual/epub/index.ts`（`cover`）；`src/host/api.ts`（`cover`）；`src/host/lib/limit.ts`（`createLimiter`）；`index.ts`；`src/client/modules/library/LibraryView.ts`（`BookCard`）
 - **测试：** `tests/cover.test.ts`
 
 ## 行为

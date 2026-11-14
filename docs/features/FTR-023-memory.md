@@ -3,7 +3,7 @@
 - **ID：** FTR-023
 - **名称：** 记忆
 - **状态：** active
-- **代码：** `src/host/modules/companion/settings-store.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/host/modules/memory/store.ts`（`createMemoryStore`）；`src/host/modules/memory/context.ts`（`buildReadingMemory`）；`src/host/modules/memory/handlers.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`）；`src/host/register-tools.ts`（`reader_memory`）；`src/client/modules/companion/MemoryPanel.ts`（`MemoryPanel`）；`src/client/modules/companion/use-memory.ts`（`useMemory`）
+- **代码：** `src/shared/contracts/companion.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/host/modules/memory/store.ts`（`createMemoryStore`）；`src/host/modules/memory/context.ts`（`buildReadingMemory`）；`src/host/modules/memory/handlers.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`）；`src/host/modules/memory/tools.ts`（`reader_memory`）；`src/client/modules/companion/MemoryPanel.ts`（`MemoryPanel`）；`src/client/modules/companion/use-memory.ts`（`useMemory`）
 - **测试：** `tests/memory.test.ts`
 
 ## 行为

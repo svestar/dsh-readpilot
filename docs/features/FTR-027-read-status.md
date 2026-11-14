@@ -3,7 +3,7 @@
 - **ID：** FTR-027
 - **名称：** 阅读状态与评分
 - **状态：** active
-- **代码：** `src/host/modules/library/meta-service.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/host/api.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/modules/library/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/modules/library/LibraryView.ts`（`Library`、`BookCard`、`TagDialog`）
+- **代码：** `src/host/modules/library/meta-service.ts`（`createLibraryMetaService`）；`src/host/modules/library/meta-store.ts`（`createLibraryMetaStore`、`normalizeReadStatus`、`normalizeRating`）；`src/host/api.ts`（`state`、`setBookStatus`、`setBookRating`）；`src/client/modules/library/library-utils.ts`（`bookStatus`、`bookRating`、`categoryCounts`）；`src/client/modules/library/LibraryView.ts`（`Library`、`BookCard`、`TagDialog`）
 - **测试：** `tests/library-organization.test.ts`
 
 ## 行为

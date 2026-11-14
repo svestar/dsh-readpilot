@@ -3,7 +3,7 @@
 - **ID：** FTR-001
 - **名称：** 书库配置
 - **状态：** active
-- **代码：** `src/host/api.ts`（`configureLibrary`、`state`）；`src/host/modules/library/service.ts`（`scanLibrary`、`bookIdFor`）
+- **代码：** `src/host/api.ts`（`configureLibrary`、`state`）；`src/host/modules/library/book.ts`（`scanLibrary`、`bookIdFor`）
 - **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/library.test.ts`
 
 ## 行为

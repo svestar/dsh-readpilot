@@ -3,7 +3,7 @@
 - **ID：** FTR-046
 - **名称：** 备份与覆盖恢复
 - **状态：** active
-- **代码：** `src/host/modules/backup/index.ts`（`exportBackup`、`restoreBackup`）；`src/host/api.ts`（`backupExport`、`backupRestore`）；`src/client/modules/library/panels.ts`（`BackupPanel`、`Setup`）；`src/client/plugin.ts`（`backupExport`、`backupRestore`）
+- **代码：** `src/host/modules/backup/index.ts`（`exportBackup`、`restoreBackup`）；`src/host/api.ts`（`backupExport`、`backupRestore`）；`src/client/modules/library/panels.ts`（`BackupPanel`、`Setup`）；`src/client/modules/library/use-library-actions.ts`（`backupExport`、`backupRestore`）
 - **测试：** `tests/backup.test.ts`
 
 ## 行为

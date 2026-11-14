@@ -3,7 +3,7 @@
 - **ID：** FTR-047
 - **名称：** 扫描版 PDF
 - **状态：** active
-- **代码：** `src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`）；`src/host/modules/reading/formats.ts`（`ParsedBook`）；`src/host/api.ts`（`open`）；`src/client/plugin.ts`（`openBook`）；`src/client/modules/reader/paging.ts`（`readerCapabilities`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
+- **代码：** `src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`）；`src/host/modules/reading/formats.ts`（`ParsedBook`）；`src/host/api.ts`（`open`）；`src/client/modules/reader/use-reader-view.ts`（`openBook`）；`src/client/modules/reader/paging.ts`（`readerCapabilities`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
 - **测试：** `tests/pdf.test.ts`；`tests/paging.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

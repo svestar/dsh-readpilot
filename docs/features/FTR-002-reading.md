@@ -3,7 +3,7 @@
 - **ID：** FTR-002
 - **名称：** 文本阅读
 - **状态：** active
-- **代码：** `src/host/modules/reading/formats.ts`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）；`src/host/api.ts`（`bookAsset`）；`index.ts`（`book-asset` 路由）；`src/client/modules/markdown/render.ts`（`renderBlocks`）
+- **代码：** `src/host/modules/reading/formats.ts`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）；`src/host/api.ts`（`bookAsset`）；`src/host/modules/reading/media.ts`（`book-asset` 路由）；`src/client/modules/markdown/render.ts`（`renderBlocks`）
 - **测试：** `tests/formats.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

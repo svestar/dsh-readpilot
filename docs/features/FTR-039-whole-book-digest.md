@@ -3,7 +3,7 @@
 - **ID：** FTR-039
 - **名称：** 全书概括
 - **状态：** active
-- **代码：** `src/host/modules/reading/digest.ts`（`buildBookDigest`）；`src/host/api.ts`（`toolDigest`）；`src/host/register-tools.ts`（`reader_digest`）；`src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`）
+- **代码：** `src/host/modules/reading/digest.ts`（`buildBookDigest`）；`src/host/api.ts`（`toolDigest`）；`src/host/modules/reading/tools.ts`（`reader_digest`）；`src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`）
 - **测试：** `tests/digest.test.ts`；`tests/tools.test.ts`
 
 ## 行为

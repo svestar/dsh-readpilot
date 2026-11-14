@@ -3,7 +3,7 @@
 - **ID：** FTR-021
 - **名称：** 笔记上下文
 - **状态：** active
-- **代码：** `src/host/modules/notes/context.ts`（`buildReadingNotes`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/host/api.ts`（`setNoteContext`、`notesContextFor`、`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
+- **代码：** `src/host/modules/notes/context.ts`（`buildReadingNotes`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/host/api.ts`（`setNoteContext`、`notesContextFor`）；`src/host/modules/notes/context-service.ts`（`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
 - **测试：** `tests/notes-context.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

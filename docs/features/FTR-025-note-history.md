@@ -3,7 +3,7 @@
 - **ID：** FTR-025
 - **名称：** 笔记历史
 - **状态：** active
-- **代码：** `src/host/modules/notes/files/store.ts`（`listHistory`、`readHistory`、`restoreHistory`、`removeHistory`、`clearHistory`）；`src/host/modules/notes/files/store.ts`（`createNoteFileHandlers`、`handleNoteFiles`）；`src/client/modules/notes/use-long-notes.ts`（`useLongNotes`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
+- **代码：** `src/host/modules/notes/files/store.ts`（`listHistory`、`readHistory`、`restoreHistory`、`removeHistory`、`clearHistory`）；`src/host/modules/notes/note-file-handlers.ts`（`createNoteFileHandlers`、`handleNoteFiles`）；`src/client/modules/notes/use-long-notes.ts`（`useLongNotes`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
 - **测试：** `tests/note-history.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

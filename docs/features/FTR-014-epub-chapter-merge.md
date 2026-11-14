@@ -3,7 +3,7 @@
 - **ID：** FTR-014
 - **名称：** EPUB 章节合并
 - **状态：** active
-- **代码：** `src/host/modules/reading/formats/epub/index.ts`（`parseEpub`、`isTitleOnly`）；`src/host/api.ts`（`open` 过滤 `skip`）
+- **代码：** `src/host/modules/reading/formats/epub/index.ts`（`parseEpub`、`isTitleOnly`）；`src/host/api.ts`（`open`）；`src/host/modules/reading/open.ts`（`skip`）
 - **测试：** `tests/epub.test.ts`
 
 ## 行为

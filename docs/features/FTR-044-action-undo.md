@@ -3,7 +3,7 @@
 - **ID：** FTR-044
 - **名称：** 动作回执与撤销
 - **状态：** active
-- **代码：** `src/shared/contracts/actions.ts`（`addReceipt`、`listReceipts`、`markUndone`、`ReaderUndo`）；`src/host/api.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/host/register-tools.ts`（批注/长笔记/标签/状态回执）；`src/host/modules/notes/store.ts`（`restore`）；`src/host/modules/notes/files/store.ts`（`restore`）；`src/client/modules/reader/use-action-receipts.ts`；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
+- **代码：** `src/host/modules/actions/store.ts`（`addReceipt`、`listReceipts`、`markUndone`）；`src/shared/contracts/actions.ts`（`ReaderUndo`）；`src/host/api.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/host/register-tools.ts`（批注/长笔记/标签/状态回执）；`src/host/modules/notes/store.ts`（`restore`）；`src/host/modules/notes/files/store.ts`（`restore`）；`src/client/modules/reader/use-action-receipts.ts`；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为

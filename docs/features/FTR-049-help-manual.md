@@ -3,7 +3,7 @@
 - **ID：** FTR-049
 - **名称：** 帮助手册
 - **状态：** active
-- **代码：** `src/client/modules/help/help-content.ts`（`HELP_TOPICS`）；`src/client/modules/help/HelpManual.ts`（`HelpManual`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/plugin.ts`（`HelpManual`）
+- **代码：** `src/client/modules/help/help-content.ts`（`HELP_TOPICS`）；`src/client/modules/help/HelpManual.ts`（`HelpManual`）；`src/client/modules/reader/Header.ts`（`Header`）
 - **测试：** `tests/help-manual.test.ts`
 
 ## 行为
