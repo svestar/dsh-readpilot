@@ -30,7 +30,7 @@ DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批�
 
 ## 开发
 
-需要 Node 22.18+。`pnpm run verify` 依次运行 typecheck、half-boundary、build、test、sizes、docs 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
+需要 Node 22.18+。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
 
 ```text
 index.ts                    Host 入口：创建 app、注册工具、HTTP 面与 systemPrompt

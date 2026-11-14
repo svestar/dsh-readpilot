@@ -32,7 +32,7 @@
 1. 确认目标、边界和宿主版本。
 2. 先写失败测试或最小复现，再改实现。
 3. 注册资源必须放在 `ctx.effect` 中并返回清理函数。
-4. 运行 `pnpm run verify`（typecheck、build、test、sizes、docs、打包检查）。
+4. 运行 `pnpm run verify`（typecheck、boundaries、build、test、sizes、docs、打包检查）。
 5. 交付时列出实际执行的命令、未验证事项和风险。
 
 ## 完成条件

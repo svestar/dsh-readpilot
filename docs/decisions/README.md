@@ -25,3 +25,4 @@
 | `ADR-021` | ADR-021：跨 PC 使用覆盖式备份恢复 | `docs/decisions/ADR-021-overwrite-restore.md` |
 | `ADR-022` | ADR-022：扫描版 PDF 以原版图片降级阅读 | `docs/decisions/ADR-022-scanned-pdf.md` |
 | `ADR-023` | ADR-023：Markdown 使用共享扁平块解析器 | `docs/decisions/ADR-023-markdown-blocks.md` |
+| `ADR-024` | ADR-024：迁移到 kit 架构 | `docs/decisions/ADR-024-kit-architecture.md` |
