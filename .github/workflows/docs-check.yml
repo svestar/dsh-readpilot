@@ -24,3 +24,4 @@ jobs:
         with:
           python-version: "3.12"
       - run: python scripts/check_docs.py
+      - run: python scripts/test_check_docs.py
