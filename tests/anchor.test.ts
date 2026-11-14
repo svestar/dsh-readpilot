@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { compactAnchorText, findNoteOccurrence } from '../src/client/common/helpers.ts'
-import type { CompactAnchor } from '../src/client/common/helpers.ts'
+import { compactAnchorText, findNoteOccurrence } from '../src/client/lib/helpers.ts'
+import type { CompactAnchor } from '../src/client/lib/helpers.ts'
 
 test('note_occurrence_falls_back_to_whitespace_normalized_text', () => {
   const text = '第一段 有 空格\n第二段。'

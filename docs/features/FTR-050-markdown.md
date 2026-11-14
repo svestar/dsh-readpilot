@@ -3,7 +3,7 @@
 - **ID：** FTR-050
 - **名称：** Markdown 语法
 - **状态：** active
-- **代码：** `src/markdown/blocks.ts`（`parseMarkdownBlocks`）；`src/books/formats.ts`（`parseBlocks`）；`src/client/markdown/render.ts`（`inline`、`renderBlocks`）；`src/api/index.ts`（`imageAssetUrl`）；`src/api/markdown-images.ts`（`rewriteInlineImages`）
+- **代码：** `src/shared/markdown.ts`（`parseMarkdownBlocks`）；`src/host/modules/reading/formats.ts`（`parseBlocks`）；`src/client/modules/markdown/render.ts`（`inline`、`renderBlocks`）；`src/host/api.ts`（`imageAssetUrl`）；`src/host/modules/reading/markdown-images.ts`（`rewriteInlineImages`）
 - **测试：** `tests/markdown.test.ts`；`tests/smoke.test.ts`
 
 ## 行为
@@ -29,12 +29,12 @@ Markdown 文件与聊天/长笔记共用 `parseMarkdownBlocks`。阅读章节由
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseMarkdownBlocks` | `src/markdown/blocks.ts:parseMarkdownBlocks` | 共享顶层块解析器 |
-| `parseBlocks` | `src/books/formats.ts:parseBlocks` | Markdown 章节转 `TextBlock` |
-| `renderBlocks` | `src/client/markdown/render.ts:renderBlocks` | 块渲染与 `data-block-index` |
-| `inline` | `src/client/markdown/render.ts:inline` | 行内语法与 URL 白名单 |
-| `imageAssetUrl` | `src/api/index.ts:imageAssetUrl` | 图片块转为书库资源 URL |
-| `rewriteInlineImages` | `src/api/markdown-images.ts:rewriteInlineImages` | 重写相对行内图片路径 |
+| `parseMarkdownBlocks` | `src/shared/markdown.ts:parseMarkdownBlocks` | 共享顶层块解析器 |
+| `parseBlocks` | `src/host/modules/reading/formats.ts:parseBlocks` | Markdown 章节转 `TextBlock` |
+| `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 块渲染与 `data-block-index` |
+| `inline` | `src/client/modules/markdown/render.ts:inline` | 行内语法与 URL 白名单 |
+| `imageAssetUrl` | `src/host/api.ts:imageAssetUrl` | 图片块转为书库资源 URL |
+| `rewriteInlineImages` | `src/host/modules/reading/markdown-images.ts:rewriteInlineImages` | 重写相对行内图片路径 |
 
 ## 约束与失败行为
 

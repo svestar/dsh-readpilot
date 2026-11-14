@@ -3,8 +3,8 @@
 - **ID：** FTR-002
 - **名称：** 文本阅读
 - **状态：** active
-- **代码：** `src/books/formats.ts`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）；`src/api/index.ts`（`bookAsset`）；`index.ts`（`book-asset` 路由）；`src/client/markdown/render.ts`（`renderBlocks`）
-- **测试：** `tests/formats.test.ts`；`tests/api.test.ts`
+- **代码：** `src/host/modules/reading/formats.ts`（`parseBook`、`parseBookAsync`、`splitChapters`、`decodeText`）；`src/host/api.ts`（`bookAsset`）；`index.ts`（`book-asset` 路由）；`src/client/modules/markdown/render.ts`（`renderBlocks`）
+- **测试：** `tests/formats.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -14,10 +14,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseBook` | `src/books/formats.ts:parseBook` | 同步解析 txt/md，生成块与字数 |
-| `parseBookAsync` | `src/books/formats.ts:parseBookAsync` | 按格式分派 txt/md/epub/pdf |
-| `splitChapters` | `src/books/formats.ts:splitChapters` | 按标题或长度切分章节 |
-| `decodeText` | `src/books/formats.ts:decodeText` | BOM 与多编码解码 |`n| `bookAsset` | `src/api/index.ts:bookAsset` | 读取书库内的图片资源并限制路径与大小 |`n| `renderBlocks` | `src/client/markdown/render.ts:renderBlocks` | 渲染 image 块与图注 |
+| `parseBook` | `src/host/modules/reading/formats.ts:parseBook` | 同步解析 txt/md，生成块与字数 |
+| `parseBookAsync` | `src/host/modules/reading/formats.ts:parseBookAsync` | 按格式分派 txt/md/epub/pdf |
+| `splitChapters` | `src/host/modules/reading/formats.ts:splitChapters` | 按标题或长度切分章节 |
+| `decodeText` | `src/host/modules/reading/formats.ts:decodeText` | BOM 与多编码解码 |`n| `bookAsset` | `src/api/index.ts:bookAsset` | 读取书库内的图片资源并限制路径与大小 |`n| `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 渲染 image 块与图注 |
 
 ## 约束与失败行为
 

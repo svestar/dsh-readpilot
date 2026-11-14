@@ -3,8 +3,8 @@
 - **ID：** FTR-034
 - **名称：** 工作区跳转
 - **状态：** active
-- **代码：** `src/client/reader/header.ts`（`Header`）；`src/client/plugin.ts`（`openWorkspace`、`ReaderPanel`）；`src/client/hooks/use-companion.ts`（`ensureSession`）；`src/api/index.ts`（`sessionBook`）
-- **测试：** `tests/api.test.ts`
+- **代码：** `src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/reader/use-reader-companion.ts`（`openWorkspace`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/companion/use-companion.ts`（`ensureSession`）；`src/host/api.ts`（`sessionBook`）
+- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -16,10 +16,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `Header` | `src/client/reader/header.ts:Header` | 渲染“工作区”按钮与忙碌状态 |
-| `openWorkspace` | `src/client/plugin.ts:openWorkspace` | 确保会话存在并切换到工作区 |
-| `ensureSession` | `src/client/hooks/use-companion.ts:ensureSession` | 复用或创建伴读会话并绑定 |
-| `sessionBook` | `src/api/index.ts:sessionBook` | 由会话反查书籍，供侧边栏和跳转校验 |
+| `Header` | `src/client/modules/reader/Header.ts:Header` | 渲染“工作区”按钮与忙碌状态 |
+| `openWorkspace` | `src/client/modules/reader/use-reader-companion.ts:openWorkspace` | 确保会话存在并切换到工作区 |
+| `ensureSession` | `src/client/modules/companion/use-companion.ts:ensureSession` | 复用或创建伴读会话并绑定 |
+| `sessionBook` | `src/host/api.ts:sessionBook` | 由会话反查书籍，供侧边栏和跳转校验 |
 
 ## 约束与失败行为
 

@@ -3,7 +3,7 @@
 - **ID：** FTR-029
 - **名称：** 键盘快捷键
 - **状态：** active
-- **代码：** `src/client/reader/shortcuts.ts`（`readerShortcut`、`READER_SHORTCUT_DEFAULTS`）；`src/client/plugin.ts`（`ReaderPanel`、`createPlugin` 的 `ctx.shortcuts` 注册）
+- **代码：** `src/client/modules/reader/shortcuts.ts`（`readerShortcut`、`READER_SHORTCUT_DEFAULTS`）；`src/client/modules/reader/use-reader-shortcuts.ts`（`useReaderShortcuts`）；`src/client/modules/reader/register-shortcuts.ts`（`registerShortcuts`）
 - **测试：** `tests/shortcuts.test.ts`
 
 ## 行为
@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `readerShortcut` | `src/client/reader/shortcuts.ts:readerShortcut` | 把按键与上下文映射为阅读动作，过滤输入态与修饰键 |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 监听 keydown，分派翻页、搜索、书签与 Esc |
+| `readerShortcut` | `src/client/modules/reader/shortcuts.ts:readerShortcut` | 把按键与上下文映射为阅读动作，过滤输入态与修饰键 |
+| `useReaderShortcuts` | `src/client/modules/reader/use-reader-shortcuts.ts:useReaderShortcuts` | 监听 keydown，分派翻页、搜索、书签与 Esc |
 
 ## 约束与失败行为
 

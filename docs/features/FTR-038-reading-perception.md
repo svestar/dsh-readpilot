@@ -3,8 +3,8 @@
 - **ID：** FTR-038
 - **名称：** 阅读感知
 - **状态：** active
-- **代码：** `src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）；`src/api/index.ts`（`setCompanionContext`、`normalizeReadingView`、`toolContext`）
-- **测试：** `tests/api.test.ts`
+- **代码：** `src/client/modules/reader/use-reading-progress.ts`（`useReadingProgress`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）；`src/host/api.ts`（`setCompanionContext`、`toolContext`）；`src/shared/contracts/companion.ts`（`normalizeReadingView`）
+- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -16,11 +16,11 @@ Agent 的阅读上下文系统提示会带上“查看范围：第 X–Y 页 / �
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `setCompanionContext` | `src/api/index.ts:setCompanionContext` | 接收并保存会话的可见范围与选区 |
-| `normalizeReadingView` | `src/api/contract.ts:normalizeReadingView` | 校验页范围、章节、选区与偏移并截断选区 |
-| `toolContext` | `src/api/index.ts:toolContext` | 在 `reader_context` 结果中返回 `view` |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 主阅读页计算并发布可见范围/选区 |
-| `SidebarReader` | `src/client/reader/sidebar-reader.ts:SidebarReader` | 侧栏阅读发布当前页范围 |
+| `setCompanionContext` | `src/host/api.ts:setCompanionContext` | 接收并保存会话的可见范围与选区 |
+| `normalizeReadingView` | `src/shared/contracts/companion.ts:normalizeReadingView` | 校验页范围、章节、选区与偏移并截断选区 |
+| `toolContext` | `src/host/api.ts:toolContext` | 在 `reader_context` 结果中返回 `view` |
+| `useReadingProgress` | `src/client/modules/reader/use-reading-progress.ts:useReadingProgress` | 主阅读页计算并发布可见范围/选区 |
+| `SidebarReader` | `src/client/modules/sidebar/SidebarReaderView.ts:SidebarReader` | 侧栏阅读发布当前页范围 |
 
 ## 约束与失败行为
 

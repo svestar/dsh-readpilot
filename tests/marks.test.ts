@@ -3,9 +3,9 @@ import assert from 'node:assert/strict'
 import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createNotesStore } from '../src/notes/store.ts'
-import { bookmarkContext } from '../src/client/notes/bookmark-label.ts'
-import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/common/helpers.ts'
+import { createNotesStore } from '../src/host/modules/notes/store.ts'
+import { bookmarkContext } from '../src/client/modules/notes/bookmark-label.ts'
+import { pdfChapterIdForPage, pdfNoteRects } from '../src/client/lib/helpers.ts'
 
 test('highlight_and_bookmark_lifecycle', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-marks-'))

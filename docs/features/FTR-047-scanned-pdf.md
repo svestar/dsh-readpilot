@@ -3,8 +3,8 @@
 - **ID：** FTR-047
 - **名称：** 扫描版 PDF
 - **状态：** active
-- **代码：** `src/books/formats/pdf.ts`（`parsePdf`）；`src/books/formats.ts`（`ParsedBook`）；`src/api/index.ts`（`open`）；`src/client/plugin.ts`（`openBook`）；`src/client/reader/paging.ts`（`readerCapabilities`）；`src/client/reader/header.ts`（`Header`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
-- **测试：** `tests/pdf.test.ts`；`tests/paging.test.ts`；`tests/api.test.ts`
+- **代码：** `src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`）；`src/host/modules/reading/formats.ts`（`ParsedBook`）；`src/host/api.ts`（`open`）；`src/client/plugin.ts`（`openBook`）；`src/client/modules/reader/paging.ts`（`readerCapabilities`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
+- **测试：** `tests/pdf.test.ts`；`tests/paging.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -23,13 +23,13 @@ PDF 解析完成后若没有任何可提取文本、但页数大于 0，解析�
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parsePdf` | `src/books/formats/pdf.ts:parsePdf` | 返回 `pageCount` 与 `scanOnly` |
-| `open` | `src/api/index.ts:open` | 对无文本 PDF 返回 visual-only 结果 |
-| `openBook` | `src/client/plugin.ts:openBook` | 合成扫描版章节并初始化 PDF 页码 |
-| `readerCapabilities` | `src/client/reader/paging.ts:readerCapabilities` | 扫描版只保留分页、缩放 |
-| `Header` | `src/client/reader/header.ts:Header` | 隐藏搜索与书签入口 |
-| `Toc` | `src/client/reader/toc.ts:Toc` | 扫描版 outline 按 page 跳转，不依赖 chapterId |
-| `SidebarReader` | `src/client/reader/sidebar-reader.ts:SidebarReader` | 侧栏原版查看 |
+| `parsePdf` | `src/host/modules/reading/formats/pdf/index.ts:parsePdf` | 返回 `pageCount` 与 `scanOnly` |
+| `open` | `src/host/api.ts:open` | 对无文本 PDF 返回 visual-only 结果 |
+| `openBook` | `src/client/modules/reader/use-reader-view.ts:openBook` | 合成扫描版章节并初始化 PDF 页码 |
+| `readerCapabilities` | `src/client/modules/reader/paging.ts:readerCapabilities` | 扫描版只保留分页、缩放 |
+| `Header` | `src/client/modules/reader/Header.ts:Header` | 隐藏搜索与书签入口 |
+| `Toc` | `src/client/modules/reader/Toc.ts:Toc` | 扫描版 outline 按 page 跳转，不依赖 chapterId |
+| `SidebarReader` | `src/client/modules/sidebar/SidebarReaderView.ts:SidebarReader` | 侧栏原版查看 |
 
 ## 约束与失败行为
 

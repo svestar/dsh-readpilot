@@ -3,10 +3,10 @@ import assert from 'node:assert/strict'
 import { access, mkdtemp, readFile, rm, stat, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createPdfPageRenderer } from '../src/visual/pdf.ts'
-import { parsePdf } from '../src/books/formats/pdf.ts'
-import { pdfWasmUrl } from '../src/visual/pdfjs.ts'
-import { visualForChapter } from '../src/client/reader/screen.ts'
+import { createPdfPageRenderer } from '../src/host/modules/reading/visual/pdf.ts'
+import { parsePdf } from '../src/host/modules/reading/formats/pdf/index.ts'
+import { pdfWasmUrl } from '../src/host/modules/reading/visual/pdfjs.ts'
+import { visualForChapter } from '../src/client/modules/reader/screen.ts'
 
 function makePdf(text: string) {
   const stream = `BT /F1 24 Tf 100 700 Td (${text}) Tj ET`

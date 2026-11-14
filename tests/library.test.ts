@@ -3,8 +3,8 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { bookIdFor, findBookByKey, scanLibrary } from '../src/books/library.ts'
-import { NOTES_MARKER } from '../src/notes/files.ts'
+import { bookIdFor, findBookByKey, scanLibrary } from '../src/host/modules/library/book.ts'
+import { NOTES_MARKER } from '../src/host/lib/notes-paths.ts'
 
 test('scan_lists_books', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-library-'))

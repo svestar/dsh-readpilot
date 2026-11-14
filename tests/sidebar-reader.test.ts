@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/sidebar/navigation.ts'
+import { preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/modules/sidebar/navigation.ts'
 
 test('sidebar_pdf_visual_keeps_current_page_when_chapter_updates', () => {
   const current = { kind: 'pdf' as const, page: 2, scale: 1.5 }

@@ -3,12 +3,12 @@ import assert from 'node:assert/strict'
 import { mkdtemp, rename, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { contentKeyFor, scanLibrary } from '../src/books/library.ts'
+import { contentKeyFor, scanLibrary } from '../src/host/modules/library/book.ts'
 import {
   emptyLibraryIndex,
   loadLibraryIndex,
   reconcileBooks,
-} from '../src/books/library-index.ts'
+} from '../src/host/modules/library/index-store.ts'
 
 test('content_key_ignores_path_and_changes_with_content', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-identity-'))

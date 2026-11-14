@@ -1,183 +1,40 @@
-import { createReaderApi } from './src/api/index.ts'
-import { pluginDataDir, resolveDshHome } from './src/storage/home.ts'
-import { registerTools } from './src/agent/tools.ts'
+import z from '@deepseek-ai/schemastery'
+import { createApp } from './src/host/app.ts'
+import { pluginDataDir, resolveDshHome } from './src/host/home.ts'
+import { registerHttp } from './src/host/http.ts'
+import { registerTools } from './src/host/register-tools.ts'
+import { registerPromptContexts } from './src/host/modules/companion/prompt-contexts.ts'
 
 export const name = 'dsh-readpilot'
 export const inject = ['tools']
 
-function jsonResponse(value: unknown, status = 200): Response {
-  return new Response(JSON.stringify(value), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-  })
+/**
+ * Plugin configuration.
+ *
+ * Declared as a schema so DSH resolves defaults and rejects bad values before
+ * `apply` runs; users override keys in their profile's `cordis.patch.yml`
+ * (example in this package's `cordis.patch.yml`).
+ */
+export interface Config {
+  /** Whether the plugin registers its tools, routes and state at all. */
+  enabled: boolean
 }
 
-export function apply(ctx: any, config: any = {}): void {
-  const api = createReaderApi({
-    ctx,
-    dataDir: pluginDataDir(resolveDshHome()),
-    config,
-  })
-  void api.syncCompanionContexts().catch(() => {})
-  void api.syncPrompt().catch(() => {})
+export const Config = z.object({
+  enabled: z.boolean().default(true).description('Enable the plugin.'),
+})
 
-  ctx.effect(() => registerTools(ctx, api), 'dsh-readpilot: tools')
-  ctx.effect(() => () => { void api.dispose() }, 'dsh-readpilot: dispose')
+export function apply(ctx: any, config: Partial<Config> = {}): void {
+  // A disabled plugin registers nothing, so it also writes no state.
+  if (config.enabled === false) return
 
-  ctx.inject(['systemPrompt'], (scope: any) => {
-    scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:reading',
-      order: 9500,
-      interpolate: false,
-      text: ({ agent }: any) => api.companionContextOf(agent?.session?.id),
-    }), 'dsh-readpilot: reading context')
-    scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:notes',
-      order: 9510,
-      interpolate: false,
-      text: ({ agent }: any) => api.notesContextFor(agent?.session?.id),
-    }), 'dsh-readpilot: notes context')
-    scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:memory',
-      order: 9520,
-      interpolate: false,
-      text: ({ agent }: any) => api.memoryContextFor(agent?.session?.id),
-    }), 'dsh-readpilot: memory context')
-  })
+  const app = createApp({ dataDir: pluginDataDir(resolveDshHome()), ctx })
+  void app.api.syncCompanionContexts().catch(() => {})
+  void app.api.syncPrompt().catch(() => {})
 
-  ctx.inject(['connection'], (connectionCtx: any) => {
-    connectionCtx.effect(() => {
-      const register = connectionCtx.connection.fetch.register
-      const disposers = [
-        register({
-          path: '/api/dsh-readpilot',
-          methods: ['POST'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            let body
-            try {
-              body = await request.json()
-            } catch {
-              return jsonResponse({
-                ok: false,
-                error: { code: 'bad-request', message: '请求体不是合法 JSON', details: {} },
-              }, 400)
-            }
-            const endpoint = body && typeof body.endpoint === 'string' ? body.endpoint : ''
-            const result = await api.handleRpc(endpoint, body?.payload ?? null)
-            return jsonResponse(result, result.ok ? 200 : 400)
-          },
-        }),
-        register({
-          path: '/api/dsh-readpilot/cover',
-          methods: ['GET'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            try {
-              const url = new URL(request.url)
-              const result = await api.cover({ bookId: url.searchParams.get('bookId') })
-              return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
-              })
-            } catch {
-              return new Response(null, { status: 404, headers: { 'cache-control': 'no-store' } })
-            }
-          },
-        }),
-        register({
-          path: '/api/dsh-readpilot/pdf-page',
-          methods: ['GET'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            try {
-              const url = new URL(request.url)
-              const result = await api.pdfPage({
-                bookId: url.searchParams.get('bookId'),
-                page: Number(url.searchParams.get('page')),
-                scale: Number(url.searchParams.get('scale')),
-              })
-              return new Response(result.png as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
-              })
-            } catch (error) {
-              return jsonResponse({
-                ok: false,
-                error: { code: 'pdf-page-error', message: error instanceof Error ? error.message : String(error), details: {} },
-              }, 400)
-            }
-          },
-        }),
-        register({
-          path: '/api/dsh-readpilot/epub-doc',
-          methods: ['GET'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            try {
-              const url = new URL(request.url)
-              const result = await api.epubDocument({
-                bookId: url.searchParams.get('bookId'),
-                href: url.searchParams.get('href'),
-              })
-              return new Response(result.html, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
-              })
-            } catch (error) {
-              return new Response(`<pre>${String(error instanceof Error ? error.message : error)}</pre>`, {
-                status: 400,
-                headers: { 'content-type': 'text/html; charset=utf-8' },
-              })
-            }
-          },
-        }),
-        register({
-          path: '/api/dsh-readpilot/epub-asset',
-          methods: ['GET'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            try {
-              const url = new URL(request.url)
-              const result = await api.epubAsset({
-                bookId: url.searchParams.get('bookId'),
-                path: url.searchParams.get('path'),
-              })
-              return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
-              })
-            } catch (error) {
-              return jsonResponse({
-                ok: false,
-                error: { code: 'epub-asset-error', message: error instanceof Error ? error.message : String(error), details: {} },
-              }, 400)
-            }
-          },
-        }),
-        register({
-          path: '/api/dsh-readpilot/book-asset',
-          methods: ['GET'],
-          requestBody: 'buffered',
-          fetch: async (request: Request) => {
-            try {
-              const url = new URL(request.url)
-              const result = await api.bookAsset({
-                bookId: url.searchParams.get('bookId'),
-                path: url.searchParams.get('path'),
-              })
-              return new Response(result.bytes as unknown as BodyInit, {
-                headers: { 'content-type': result.contentType, 'cache-control': 'private, max-age=31536000, immutable' },
-              })
-            } catch (error) {
-              return jsonResponse({
-                ok: false,
-                error: { code: 'book-asset-error', message: error instanceof Error ? error.message : String(error), details: {} },
-              }, 400)
-            }
-          },
-        }),
-      ]
-      return () => {
-        for (const dispose of disposers) dispose()
-      }
-    }, 'dsh-readpilot: http api')
-  })
+  ctx.effect(() => registerTools(ctx, app.modules), 'dsh-readpilot: tools')
+  ctx.effect(() => () => { void app.dispose() }, 'dsh-readpilot: dispose')
+
+  registerHttp(ctx, app)
+  registerPromptContexts(ctx, app.api)
 }
-

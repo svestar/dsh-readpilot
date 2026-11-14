@@ -10,7 +10,7 @@ ReadPilot 的阅读正文以 `TextBlock[]` 和 `data-block-index` 做分页、�
 
 ## 决策
 
-1. 新增 `src/markdown/blocks.ts`，Host 与客户端共用同一顶层块解析器。
+1. 新增 `src/shared/markdown.ts`，Host 与客户端共用同一顶层块解析器。
 2. 保留扁平 `TextBlock[]` 和 `data-block-index`；表格、列表、脚注各占一个块，嵌套列表用缩进展示，不引入嵌套 AST。
 3. 支持表格、任务列表、有序/无序列表、setext/ATX 标题、多行引用、代码语言、脚注、删除线、自动链接和图片。
 4. 相对行内图片在 Host 章节接口中重写为 `book-asset` URL；链接只允许安全协议，原始 HTML 按文本显示。

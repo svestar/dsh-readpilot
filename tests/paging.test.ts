@@ -16,7 +16,7 @@ import {
   pageStep,
   pageWidthForHeight,
   pdfPagePercent,
-} from '../src/client/reader/paging.ts'
+} from '../src/client/modules/reader/paging.ts'
 import {
   DEFAULT_PAGE_LAYOUT,
   DEFAULT_READING_MODE,
@@ -34,7 +34,7 @@ import {
   saveReadingMode,
   saveFontSize,
   saveReflowBooks,
-} from '../src/client/common/helpers.ts'
+} from '../src/client/lib/helpers.ts'
 
 test('columns_for_layouts', () => {
   assert.equal(columnsFor('single'), 1)

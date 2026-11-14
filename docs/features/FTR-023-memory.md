@@ -3,7 +3,7 @@
 - **ID：** FTR-023
 - **名称：** 记忆
 - **状态：** active
-- **代码：** `src/companion/settings.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/memory/store.ts`（`createMemoryStore`）；`src/memory/context.ts`（`buildReadingMemory`）；`src/api/memory.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/agent/workspace-prompt.ts`（`READING_PROMPT`）；`src/agent/tools.ts`（`reader_memory`）；`src/client/companion/memory-panel.ts`（`MemoryPanel`）；`src/client/hooks/use-memory.ts`（`useMemory`）
+- **代码：** `src/host/modules/companion/settings-store.ts`（`MemoryMode`、`effectiveMemoryState`）；`src/host/modules/memory/store.ts`（`createMemoryStore`）；`src/host/modules/memory/context.ts`（`buildReadingMemory`）；`src/host/modules/memory/handlers.ts`（`createMemoryHandlers`、`memory`、`memoryTool`、`memoryContextFor`）；`src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`）；`src/host/register-tools.ts`（`reader_memory`）；`src/client/modules/companion/MemoryPanel.ts`（`MemoryPanel`）；`src/client/modules/companion/use-memory.ts`（`useMemory`）
 - **测试：** `tests/memory.test.ts`
 
 ## 行为
@@ -18,13 +18,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `MemoryMode` / `effectiveMemoryState` | `src/companion/settings.ts:effectiveMemoryState` | 全局与单书状态合成生效状态 |
-| `createMemoryStore` | `src/memory/store.ts:createMemoryStore` | 读写两张卡、历史与撤销，执行 600 字上限 |
-| `buildReadingMemory` | `src/memory/context.ts:buildReadingMemory` | 生成 `<reading_memory>` 并按预算截断 |
-| `memory` | `src/api/memory.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear |
-| `memoryTool` | `src/api/memory.ts:memoryTool` | Agent 侧 read/update/forget，校验生效状态与上限 |
-| `memoryContextFor` | `src/api/memory.ts:memoryContextFor` | 按会话返回缓存的记忆文本 |
-| `MemoryPanel` / `useMemory` | `src/client/companion/memory-panel.ts:MemoryPanel`；`src/client/hooks/use-memory.ts:useMemory` | 记忆页与轮询状态 |
+| `MemoryMode` / `effectiveMemoryState` | `src/host/modules/companion/settings-store.ts:effectiveMemoryState` | 全局与单书状态合成生效状态 |
+| `createMemoryStore` | `src/host/modules/memory/store.ts:createMemoryStore` | 读写两张卡、历史与撤销，执行 600 字上限 |
+| `buildReadingMemory` | `src/host/modules/memory/context.ts:buildReadingMemory` | 生成 `<reading_memory>` 并按预算截断 |
+| `memory` | `src/host/modules/memory/handlers.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear |
+| `memoryTool` | `src/host/modules/memory/handlers.ts:memoryTool` | Agent 侧 read/update/forget，校验生效状态与上限 |
+| `memoryContextFor` | `src/host/modules/memory/handlers.ts:memoryContextFor` | 按会话返回缓存的记忆文本 |
+| `MemoryPanel` / `useMemory` | `src/client/modules/companion/MemoryPanel.ts:MemoryPanel`；`src/client/modules/companion/use-memory.ts:useMemory` | 记忆页与轮询状态 |
 
 ## 约束与失败行为
 

@@ -16,7 +16,7 @@
 4. 测试由 Node 原生类型剥离直接运行 `.ts`，不经过编译；`tsc --noEmit` 只做类型检查。
 5. `dist/` 与 `client.js` 都是生成物：`dist/` 不入版本库，`client.js` 作为 Client 产物保留；安装前运行 `pnpm run build`。
 6. 两个 tsconfig：根配置负责全量检查，`tsconfig.build.json` 只编译 Host；两者都启用 `strict`、`verbatimModuleSyntax` 与 `erasableSyntaxOnly`。
-7. Client 的 RPC 调用由 `src/api/rpc.ts` 的 `CallRpc` 按 endpoint 重载；响应类型复用 Host 的 `ReaderState`、`OpenResult` 等，`src/client/common/types.ts` 不再重复声明这些结构。
+7. Client 的 RPC 调用由 `src/client/types.ts` 的 `CallRpc` 按 endpoint 重载；响应类型复用 Host 的 `ReaderState`、`OpenResult` 等，`src/client/lib/types.ts` 不再重复声明这些结构。
 
 ## 备选方案
 

@@ -3,35 +3,35 @@
 - **ID：** FTR-035
 - **名称：** 工作区侧边栏阅读
 - **状态：** active
-- **代码：** `src/client/reader/sidebar-reader.ts`；`src/client/reader/resource.ts`；`src/client/reader/selection-note.ts`；`src/client/plugin.ts`；`src/api/index.ts`；`src/storage/store.ts`；`src/client/hooks/use-text-pager.ts`；`src/client/hooks/use-visual.ts`
-- **测试：** `tests/api.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`；`tests/reader-resource.test.ts`
+- **代码：** `src/client/modules/sidebar/SidebarReaderView.ts`；`src/client/modules/reader/resource.ts`；`src/client/modules/reader/SelectionNote.ts`；`src/client/plugin.ts`；`src/host/api.ts`；`src/host/lib/fs-json.ts`；`src/client/modules/reader/use-text-pager.ts`；`src/client/modules/reader/use-visual.ts`
+- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/progress-sync.test.ts`；`tests/sidebar-reader.test.ts`；`tests/reader-resource.test.ts`
 
 ## 行为
 
-工作区对话右侧栏的引导页提供“阅读”入口。打开后按当前会话反查关联书籍；没有关联书时显示空状态。有书时提供“文字”和“原版”两种模式，都固定单页：
+工作区对话右侧栏的引导页提供“阅读”入口。打开后按当前会话反查关联书籍；没有关联书时显示空状态。有书时提供“文字”和“原版”两种模式：
 
 - 文字：所有格式都走文本重排，复用分页、图片与表格渲染。
 - 原版：EPUB 显示原书 iframe，PDF 显示页面位图；TXT/Markdown 没有原版。PDF 翻页会同步当前章节，但章节更新不会把视觉页重置回章首。
 
-阅读器保存与主阅读相同的书籍进度：章节 id、章节内比例 `chapterFraction` 和全书百分比。打开时按 `chapterFraction` 恢复到同一章节位置；模式切换也先生成锚点。侧边栏翻页并成功写入进度后广播一次同步事件；主阅读若已挂载则按同一章节比例重新定位。主阅读重新可见时还会重新读取 Host 进度并按比例定位，因此面板被卸载再挂载也能跟随最新位置。不做同屏持续联动。Tab 类型声明 `dsh-resource://dsh-readpilot/**` 资源模式；工具卡或外部调用用 `openResource` 打开 `dsh-resource://dsh-readpilot/book/<bookId>?chapter=...&offset=...`，正文优先按地址加载并定位，没有地址时仍按会话反查。
+阅读器保存与主阅读相同的进度：章节 id、`chapterFraction` 与全书百分比。打开时按比例恢复位置；模式切换先生成锚点。侧边栏写入进度后广播同步事件，主阅读按同一比例重新定位；主阅读重新可见时重读 Host 进度。不在同屏持续联动。Tab 类型声明 `dsh-resource://dsh-readpilot/**` 资源模式；工具卡或外部调用用 `openResource` 打开阅读地址，优先按地址定位，没有地址时按会话反查。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `SidebarReader` | `src/client/reader/sidebar-reader.ts:SidebarReader` | 侧边栏单页阅读器与两种模式 |
-| `prefillCompanionQuote` | `src/client/reader/sidebar-reader.ts:prefillCompanionQuote` | 把选段写入当前会话输入框 |
-| `quoteDraft` | `src/client/reader/selection-note.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
+| `SidebarReader` | `src/client/modules/sidebar/SidebarReaderView.ts:SidebarReader` | 侧边栏单页阅读器与两种模式 |
+| `prefillCompanionQuote` | `src/client/modules/sidebar/navigation.ts:prefillCompanionQuote` | 把选段写入当前会话输入框 |
+| `quoteDraft` | `src/client/modules/reader/SelectionNote.ts:quoteDraft` | 把选段格式化为 Markdown 引用草稿 |
 | `apply` | `src/client/plugin.ts:apply` | 注册 `dsh-readpilot` Tab 类型与正文席位 |
-| `sessionBook` | `src/api/index.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
-| `parseReaderResource` / `buildReaderResource` | `src/client/reader/resource.ts:parseReaderResource`；`src/client/reader/resource.ts:buildReaderResource` | 解析/生成 `dsh-resource://` 阅读地址 |
-| `saveReadingProgress` | `src/api/index.ts:saveReadingProgress` | 写入章节内比例 |
-| `ReadingProgress.chapterFraction` | `src/storage/store.ts:ReadingProgress` | 跨视图的规范位置 |
-| `useTextPager` / `useVisual` | `src/client/hooks/use-text-pager.ts:useTextPager` | 文字与原版单页渲染 |
+| `sessionBook` | `src/host/api.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
+| `parseReaderResource` / `buildReaderResource` | `src/client/modules/reader/resource.ts:parseReaderResource`；`buildReaderResource` | 解析/生成 `dsh-resource://` 阅读地址 |
+| `saveReadingProgress` | `src/host/api.ts:saveReadingProgress` | 写入章节内比例 |
+| `ReadingProgress.chapterFraction` | `src/host/lib/fs-json.ts:ReadingProgress` | 跨视图的规范位置 |
+| `useTextPager` / `useVisual` | `src/client/modules/reader/use-text-pager.ts:useTextPager` | 文字与原版单页渲染 |
 
 ## 约束与失败行为
 
-侧边栏只提供单页，不显示单/双页或阅读设置。原版只对 EPUB/PDF 可用；TXT/Markdown 强制文字。它不提供伴读面板、目录或搜索；选段工具栏的“问伴读”把引用插入当前会话的输入框，优先使用宿主的 `inputActions.insertQuote`，不可用时退回写 `> …` 草稿，不自动发送。划线/批注复用主阅读的笔记存储与高亮渲染。反查同一会话对应多本书时取最近更新的一本；会话已归档、书籍已移出书库或未配置时显示空状态。原版 PDF/EPUB 与文字重排只按章节比例近似对应，不保证像素或页码一致。没有同屏实时同步，避免两个视图互相拉跳。
+侧边栏固定单页，不显示阅读设置。原版只对 EPUB/PDF 可用；TXT/Markdown 强制文字。选段工具栏的“问伴读”把引用插入当前会话输入框，优先使用宿主的 `inputActions.insertQuote`，不可用时退回写 `> …` 草稿。划线/批注复用主阅读的笔记存储与高亮渲染。反查同一会话对应多本书时取最近更新的一本；会话已归档、书籍已移出书库或未配置时显示空状态。原版 PDF/EPUB 与文字重排只按章节比例近似对应，不保证像素或页码一致。
 
 ## 验收与测试
 

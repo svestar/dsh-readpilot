@@ -3,8 +3,8 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ensureWorkspacePrompt, READING_PROMPT } from '../src/agent/workspace-prompt.ts'
-import { createReaderApi } from '../src/api/index.ts'
+import { ensureWorkspacePrompt, READING_PROMPT } from '../src/host/modules/library/workspace-prompt.ts'
+import { createReaderApi } from '../src/host/app.ts'
 
 test('workspace_prompt_created_and_managed', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))

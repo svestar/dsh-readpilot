@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildNotesMarkdown } from '../src/notes/export.ts'
+import { buildNotesMarkdown } from '../src/host/modules/notes/export.ts'
 
 const STAMP = Date.UTC(2026, 10, 3, 12, 34, 56)
 const STAMP_TEXT = new Date(STAMP).toISOString()

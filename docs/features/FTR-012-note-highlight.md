@@ -3,7 +3,7 @@
 - **ID：** FTR-012
 - **名称：** 笔记高亮
 - **状态：** active
-- **代码：** `src/client/notes/anchors.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/hooks/use-selection-dismiss.ts`（`useSelectionDismiss`）；`src/client/reader/selection-note.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/notes/notes-search.ts`（`NotesBody`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/client/modules/notes/anchors.ts`（`findNoteOccurrence`、`collectTextNodes`、`rangeForNote`、`applyEpubNoteMarks`）；`src/client/modules/notes/use-notes.ts`（`useNotes`）；`src/client/modules/reader/use-selection-dismiss.ts`（`useSelectionDismiss`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/modules/notes/NotesBodyView.ts`（`NotesBody`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
 - **测试：** `tests/highlight.test.ts`；`tests/selection-toolbar.test.ts`；`tests/selection-dismiss.test.ts`
 
 ## 行为
@@ -14,12 +14,12 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `findNoteOccurrence` | `src/client/notes/anchors.ts:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
-| `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
-| `useSelectionDismiss` | `src/client/hooks/use-selection-dismiss.ts:useSelectionDismiss` | 点击工具栏之外（含 EPUB iframe）清空选区 |
-| `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/reader/selection-note.ts:SelectionToolbar`；`src/client/reader/selection-note.ts:NoteDialog`；`src/client/notes/notes-search.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、笔记层与弹层 |
-| `handleNotes` | `src/api/notes.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
+| `findNoteOccurrence` | `src/client/modules/notes/anchors.ts:findNoteOccurrence` | 在章节文本中定位 quote 的起止位置，优先采用笔记记录的偏移 |
+| `useNotes` | `src/client/modules/notes/use-notes.ts:useNotes` | 笔记加载、编辑保存、overlay 与 EPUB mark |
+| `useSelectionDismiss` | `src/client/modules/reader/use-selection-dismiss.ts:useSelectionDismiss` | 点击工具栏之外（含 EPUB iframe）清空选区 |
+| `SelectionToolbar` / `NoteDialog` / `NotesBody` | `src/client/modules/reader/SelectionNote.ts:SelectionToolbar`；`src/client/modules/reader/SelectionNote.ts:NoteDialog`；`src/client/modules/notes/NotesBodyView.ts:NotesBody` | 选段工具栏、编辑对话框与右栏笔记列表 |
+| `ReaderPanelView` | `src/client/modules/reader/ReaderPanelView.ts:ReaderPanelView` | 组合阅读器、笔记层与弹层 |
+| `handleNotes` | `src/host/modules/notes/notes-handlers.ts:handleNotes` | 处理 `update` / `delete` 等笔记持久化操作 |
 
 ## 约束与失败行为
 

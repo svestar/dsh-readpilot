@@ -2,6 +2,7 @@
   "name": "dsh-readpilot",
   "version": "0.4.0",
   "description": "AI-assisted reading for DeepSeek Harness: TXT, Markdown, EPUB and PDF with a companion session, notes, memory and export.",
+  "private": true,
   "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
@@ -26,13 +27,6 @@
     "ai"
   ],
   "author": "svestar",
-  "dependencies": {
-    "@napi-rs/canvas": "^1.1.0",
-    "htmlparser2": "^10.1.0",
-    "jszip": "^3.10.2",
-    "linkedom": "^0.18.15",
-    "pdfjs-dist": "^6.5.438"
-  },
   "exports": {
     ".": "./dist/index.js",
     "./client": "./client.js",
@@ -68,12 +62,25 @@
   "scripts": {
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "build": "pnpm run clean && tsc -p tsconfig.build.json && node scripts/build-client.ts",
+    "build:client": "node scripts/build-client.ts",
     "prepack": "pnpm run build",
     "pretest": "pnpm run build:client",
-    "build:client": "node scripts/build-client.ts",
     "typecheck": "tsc --noEmit",
-    "test": "node --test \"tests/*.test.ts\"",
-    "smoke": "node --test tests/smoke.test.ts"
+    "boundaries": "node scripts/check-boundaries.mjs",
+    "test": "node --test \"tests/*.test.ts\" \"tests/*.test.mjs\"",
+    "docs": "python scripts/check_docs.py",
+    "sizes": "python scripts/check_sizes.py",
+    "check:package": "node scripts/check-package.mjs",
+    "verify": "pnpm run typecheck && pnpm run boundaries && pnpm run build && pnpm test && pnpm run sizes && pnpm run docs && pnpm run check:package",
+    "smoke": "node scripts/smoke-install.mjs"
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.19.0",
+    "@napi-rs/canvas": "^1.1.0",
+    "htmlparser2": "^10.1.0",
+    "jszip": "^3.10.2",
+    "linkedom": "^0.18.15",
+    "pdfjs-dist": "^6.5.438"
   },
   "devDependencies": {
     "@types/node": "^24.19.2",

@@ -3,8 +3,8 @@
 - **ID：** FTR-003
 - **名称：** 伴读与检索
 - **状态：** active
-- **代码：** `src/api/index.ts`（`setCompanionSession`、`sessionAlive`、`search`）
-- **测试：** `tests/api.test.ts`
+- **代码：** `src/host/api.ts`（`setCompanionSession`、`sessionAlive`、`search`）
+- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -14,10 +14,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `setCompanionSession` | `src/api/index.ts:setCompanionSession` | 持久化或清除书籍与会话的映射 |
-| `sessionAlive` | `src/api/index.ts:sessionAlive` | 检查会话是否已被归档 |
-| `setCompanionPolicy` | `src/api/index.ts:setCompanionPolicy` | 把伴读会话切到只读沙箱，已只读时跳过 |
-| `search` | `src/api/search.ts:createSearch` | 返回带稳定定位符的检索结果 |
+| `setCompanionSession` | `src/host/api.ts:setCompanionSession` | 持久化或清除书籍与会话的映射 |
+| `sessionAlive` | `src/host/api.ts:sessionAlive` | 检查会话是否已被归档 |
+| `setCompanionPolicy` | `src/host/api.ts:setCompanionPolicy` | 把伴读会话切到只读沙箱，已只读时跳过 |
+| `search` | `src/host/modules/search/service.ts:createSearch` | 返回带稳定定位符的检索结果 |
 
 ## 约束与失败行为
 

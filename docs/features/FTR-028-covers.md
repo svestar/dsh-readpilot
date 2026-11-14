@@ -3,7 +3,7 @@
 - **ID：** FTR-028
 - **名称：** 真实封面
 - **状态：** active
-- **代码：** `src/visual/epub.ts`（`findCoverPath`、`cover`）；`src/api/index.ts`（`cover`）；`src/storage/limit.ts`（`createLimiter`）；`index.ts`；`src/client/library/library-view.ts`（`BookCard`）
+- **代码：** `src/host/modules/reading/visual/epub/index.ts`（`findCoverPath`、`cover`）；`src/host/api.ts`（`cover`）；`src/host/lib/limit.ts`（`createLimiter`）；`index.ts`；`src/client/modules/library/LibraryView.ts`（`BookCard`）
 - **测试：** `tests/cover.test.ts`
 
 ## 行为
@@ -14,11 +14,11 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `findCoverPath` | `src/visual/epub.ts:findCoverPath` | 按 meta、manifest、guide 顺序识别 EPUB 封面路径 |
-| `cover` | `src/visual/epub.ts:cover` | 读取封面字节并推断 content type，无封面返回 null |
-| `cover` | `src/api/index.ts:cover` | 按书籍格式分派到 EPUB 资源或 PDF 首页渲染 |
-| `BookCard` | `src/client/library/library-view.ts:BookCard` | 渲染封面图、加载提示与失败回退 |
-| `createLimiter` | `src/storage/limit.ts:createLimiter` | 限制封面并发生成数量 |
+| `findCoverPath` | `src/host/modules/reading/visual/epub/index.ts:findCoverPath` | 按 meta、manifest、guide 顺序识别 EPUB 封面路径 |
+| `cover` | `src/host/modules/reading/visual/epub/index.ts:cover` | 读取封面字节并推断 content type，无封面返回 null |
+| `cover` | `src/host/api.ts:cover` | 按书籍格式分派到 EPUB 资源或 PDF 首页渲染 |
+| `BookCard` | `src/client/modules/library/LibraryView.ts:BookCard` | 渲染封面图、加载提示与失败回退 |
+| `createLimiter` | `src/host/lib/limit.ts:createLimiter` | 限制封面并发生成数量 |
 
 ## 约束与失败行为
 

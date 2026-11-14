@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildBookDigest } from '../src/reading/digest.ts'
+import { buildBookDigest } from '../src/host/modules/reading/digest.ts'
 
 test('digest_returns_full_text_for_small_books', () => {
   const digest = buildBookDigest([

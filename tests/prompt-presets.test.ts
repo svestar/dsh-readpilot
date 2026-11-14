@@ -3,8 +3,8 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createPromptPresetStore, DEFAULT_PROMPT_PRESETS } from '../src/prompts/presets.ts'
-import { renderPrompt } from '../src/prompts/render.ts'
+import { createPromptPresetStore, DEFAULT_PROMPT_PRESETS } from '../src/host/modules/prompts/store.ts'
+import { renderPrompt } from '../src/shared/prompt-render.ts'
 
 async function tempStore(t: any) {
   const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-presets-'))

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { HELP_TOPICS } from '../src/client/common/help-content.ts'
+import { HELP_TOPICS } from '../src/client/modules/help/help-content.ts'
 
 test('help_topics_cover_the_main_workflows', () => {
   assert.ok(HELP_TOPICS.length >= 8)

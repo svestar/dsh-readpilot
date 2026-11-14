@@ -3,7 +3,7 @@
 - **ID：** FTR-018
 - **名称：** 批注与书签
 - **状态：** active
-- **代码：** `src/notes/store.ts`（`validateNewNote`、`createNotesStore`）；`src/client/hooks/use-notes.ts`（`useNotes`）；`src/client/reader/selection-note.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/notes/notes-search.ts`（`NotesBody`）；`src/client/reader/header.ts`（`Header`）
+- **代码：** `src/host/modules/notes/store.ts`（`validateNewNote`、`createNotesStore`）；`src/client/modules/notes/use-notes.ts`（`useNotes`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`、`NoteDialog`）；`src/client/modules/notes/NotesBodyView.ts`（`NotesBody`）；`src/client/modules/reader/Header.ts`（`Header`）
 - **测试：** `tests/marks.test.ts`
 
 ## 行为
@@ -14,12 +14,12 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createNotesStore` | `src/notes/store.ts:createNotesStore` | 同一 JSON 中保存 annotation/bookmark |
-| `validateNewNote` | `src/notes/store.ts:validateNewNote` | 校验批注正文、颜色与书签标签 |
-| `useNotes` | `src/client/hooks/use-notes.ts:useNotes` | 加载批注/书签、创建批注、编辑正文与颜色 |
-| `SelectionToolbar` | `src/client/reader/selection-note.ts:SelectionToolbar` | 五种颜色入口 |
-| `NotesBody` | `src/client/notes/notes-search.ts:NotesBody` | 批注/书签分组列表 |
-| `Header` | `src/client/reader/header.ts:Header` | 当前章节书签按钮 |
+| `createNotesStore` | `src/host/modules/notes/store.ts:createNotesStore` | 同一 JSON 中保存 annotation/bookmark |
+| `validateNewNote` | `src/host/modules/notes/store.ts:validateNewNote` | 校验批注正文、颜色与书签标签 |
+| `useNotes` | `src/client/modules/notes/use-notes.ts:useNotes` | 加载批注/书签、创建批注、编辑正文与颜色 |
+| `SelectionToolbar` | `src/client/modules/reader/SelectionNote.ts:SelectionToolbar` | 五种颜色入口 |
+| `NotesBody` | `src/client/modules/notes/NotesBodyView.ts:NotesBody` | 批注/书签分组列表 |
+| `Header` | `src/client/modules/reader/Header.ts:Header` | 当前章节书签按钮 |
 
 ## 约束与失败行为
 

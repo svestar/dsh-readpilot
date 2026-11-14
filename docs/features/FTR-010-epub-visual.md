@@ -3,7 +3,7 @@
 - **ID：** FTR-010
 - **名称：** EPUB 视觉
 - **状态：** active
-- **代码：** `src/visual/epub.ts`（`createEpubVisual`）；`src/books/formats/epub.ts`（`parseEpub` 的 `href`）；`src/api/index.ts`（`epubDocument`、`epubAsset`）；`src/client/hooks/use-visual.ts`（`useVisual`）；`src/client/reader/visual-reader.ts`（`VisualReader`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/host/modules/reading/visual/epub/index.ts`（`createEpubVisual`）；`src/host/modules/reading/formats/epub/index.ts`（`parseEpub` 的 `href`）；`src/host/api.ts`（`epubDocument`、`epubAsset`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/VisualReader.ts`（`VisualReader`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
 - **测试：** `tests/epub-visual.test.ts`
 
 ## 行为
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createEpubVisual` | `src/visual/epub.ts:createEpubVisual` | 解压、清洗 XHTML、改写资源 URL、返回资源字节 |
-| `parseEpub` | `src/books/formats/epub.ts:parseEpub` | 在章节上写入相对 OPF 的 `href` |
-| `epubDocument` | `src/api/index.ts:epubDocument` | 返回清洗后的章节 HTML |
-| `epubAsset` | `src/api/index.ts:epubAsset` | 返回 CSS/图片/字体字节 |
-| `useVisual` | `src/client/hooks/use-visual.ts:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
-| `VisualReader` | `src/client/reader/visual-reader.ts:VisualReader` | iframe 与分页容器 |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 组合阅读器、TOC 与笔记层 |
+| `createEpubVisual` | `src/host/modules/reading/visual/epub/index.ts:createEpubVisual` | 解压、清洗 XHTML、改写资源 URL、返回资源字节 |
+| `parseEpub` | `src/host/modules/reading/formats/epub/index.ts:parseEpub` | 在章节上写入相对 OPF 的 `href` |
+| `epubDocument` | `src/host/api.ts:epubDocument` | 返回清洗后的章节 HTML |
+| `epubAsset` | `src/host/api.ts:epubAsset` | 返回 CSS/图片/字体字节 |
+| `useVisual` | `src/client/modules/reader/use-visual.ts:useVisual` | EPUB iframe 状态、章节切换、选区桥与配色注入 |
+| `VisualReader` | `src/client/modules/reader/VisualReader.ts:VisualReader` | iframe 与分页容器 |
+| `ReaderPanelView` | `src/client/modules/reader/ReaderPanelView.ts:ReaderPanelView` | 组合阅读器、TOC 与笔记层 |
 
 ## 约束与失败行为
 

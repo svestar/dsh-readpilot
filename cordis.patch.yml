@@ -1,3 +1,11 @@
+# Host activation for the DSH bundle. Config defaults come from `Config` in
+# index.ts; users override them in their profile patch layer, for example:
+#
+#   - insert:
+#       - id: dsh-readpilot
+#         name: dsh-readpilot
+#         config:
+#           enabled: false
 - insert:
     - id: dsh-readpilot
-      name: 'dsh-readpilot'
+      name: dsh-readpilot

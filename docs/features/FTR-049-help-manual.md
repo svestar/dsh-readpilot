@@ -3,7 +3,7 @@
 - **ID：** FTR-049
 - **名称：** 帮助手册
 - **状态：** active
-- **代码：** `src/client/common/help-content.ts`（`HELP_TOPICS`）；`src/client/common/help-manual.ts`（`HelpManual`）；`src/client/reader/header.ts`（`Header`）；`src/client/plugin.ts`（`HelpManual`）
+- **代码：** `src/client/modules/help/help-content.ts`（`HELP_TOPICS`）；`src/client/modules/help/HelpManual.ts`（`HelpManual`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/plugin.ts`（`HelpManual`）
 - **测试：** `tests/help-manual.test.ts`
 
 ## 行为
@@ -18,10 +18,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `HELP_TOPICS` | `src/client/common/help-content.ts:HELP_TOPICS` | 主题 ID、标题 key、正文 key |
-| `HelpManual` | `src/client/common/help-manual.ts:HelpManual` | 主题导航、正文与外部链接 |
-| `Header` | `src/client/reader/header.ts:Header` | 提供“?”入口 |
-| `HelpManual` 挂载 | `src/client/plugin.ts:ReaderPanel` | 管理打开/关闭状态 |
+| `HELP_TOPICS` | `src/client/modules/help/help-content.ts:HELP_TOPICS` | 主题 ID、标题 key、正文 key |
+| `HelpManual` | `src/client/modules/help/HelpManual.ts:HelpManual` | 主题导航、正文与外部链接 |
+| `Header` | `src/client/modules/reader/Header.ts:Header` | 提供“?”入口 |
+| `HelpManual` 挂载 | `src/client/modules/reader/ReaderPanelView.ts:ReaderPanelView` | 管理打开/关闭状态 |
 
 ## 约束与失败行为
 

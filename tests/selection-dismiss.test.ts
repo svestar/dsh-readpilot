@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { bindRuntime } from '../src/client/common/runtime.ts'
-import { dismissesSelection, useSelectionDismiss } from '../src/client/hooks/use-selection-dismiss.ts'
+import { bindRuntime } from '../src/client/runtime.ts'
+import { dismissesSelection, useSelectionDismiss } from '../src/client/modules/reader/use-selection-dismiss.ts'
 
 function setup() {
   const listeners: Array<(event: any) => void> = []

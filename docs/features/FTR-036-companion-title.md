@@ -3,7 +3,7 @@
 - **ID：** FTR-036
 - **名称：** 伴读对话标题
 - **状态：** active
-- **代码：** `src/client/companion/session-title.ts`（`companionSessionTitle`、`renameCompanionSession`）；`src/client/hooks/use-companion.ts`（`useCompanion`）；`src/client/plugin.ts`（`ReaderPanel`）
+- **代码：** `src/client/modules/companion/session-title.ts`（`companionSessionTitle`、`renameCompanionSession`）；`src/client/modules/companion/use-companion.ts`（`useCompanion`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
 - **测试：** `tests/session-title.test.ts`
 
 ## 行为
@@ -22,10 +22,10 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `companionSessionTitle` | `src/client/companion/session-title.ts:companionSessionTitle` | 生成统一的伴读标题 |
-| `renameCompanionSession` | `src/client/companion/session-title.ts:renameCompanionSession` | 通过 Session controller 改名 |
-| `useCompanion` | `src/client/hooks/use-companion.ts:useCompanion` | 新建/绑定会话时改标题 |
-| `ReaderPanel` | `src/client/plugin.ts:ReaderPanel` | 加载映射后补齐已有会话标题 |
+| `companionSessionTitle` | `src/client/modules/companion/session-title.ts:companionSessionTitle` | 生成统一的伴读标题 |
+| `renameCompanionSession` | `src/client/modules/companion/session-title.ts:renameCompanionSession` | 通过 Session controller 改名 |
+| `useCompanion` | `src/client/modules/companion/use-companion.ts:useCompanion` | 新建/绑定会话时改标题 |
+| `useReaderCompanion` | `src/client/modules/reader/use-reader-companion.ts:useReaderCompanion` | 加载映射后补齐已有会话标题 |
 
 ## 约束与失败行为
 

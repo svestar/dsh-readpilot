@@ -1,5 +1,2 @@
-nodeLinker: hoisted
-minimumReleaseAgeExclude:
-  - pdfjs-dist@6.5.438
 allowBuilds:
   esbuild: true

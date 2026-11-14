@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readdir, readFile, rm, stat } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createNoteFileStore, NOTES_MARKER } from '../src/notes/files.ts'
+import { createNoteFileStore, NOTES_MARKER } from '../src/host/modules/notes/files/index.ts'
 
 async function makeRoot(t: any) {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-notes-'))

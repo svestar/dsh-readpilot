@@ -1,10 +1,10 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { parseMarkdownBlocks } from '../src/markdown/blocks.ts'
-import { parseBlocks } from '../src/books/formats.ts'
-import { bindRuntime } from '../src/client/common/runtime.ts'
-import { inline, renderBlocks } from '../src/client/markdown/render.ts'
-import { rewriteInlineImages } from '../src/api/markdown-images.ts'
+import { parseMarkdownBlocks } from '../src/shared/markdown.ts'
+import { parseBlocks } from '../src/host/modules/reading/formats.ts'
+import { bindRuntime } from '../src/client/runtime.ts'
+import { inline, renderBlocks } from '../src/client/modules/markdown/render.ts'
+import { rewriteInlineImages } from '../src/host/modules/reading/markdown-images.ts'
 
 const source = [
   'Setext 标题',

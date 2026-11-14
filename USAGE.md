@@ -8,7 +8,7 @@
 - 打开 DSH 的“插件 → 添加插件”，搜索 `dsh-readpilot` 并启用，刷新页面；
 - 或执行 `npm install dsh-readpilot`，再在 `plugin_manager` 中启用。
 
-兼容 DSH `0.2.2-rc.1`–`0.2.x`。
+兼容 DSH `0.2.2-rc.2`–`0.2.x`。
 
 ## 2. 创建书库
 

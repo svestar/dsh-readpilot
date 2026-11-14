@@ -3,7 +3,7 @@
 - **ID：** FTR-044
 - **名称：** 动作回执与撤销
 - **状态：** active
-- **代码：** `src/reading/actions.ts`（`addReceipt`、`listReceipts`、`markUndone`、`ReaderUndo`）；`src/api/index.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/agent/tools.ts`（批注/长笔记/标签/状态回执）；`src/notes/store.ts`（`restore`）；`src/notes/files.ts`（`restore`）；`src/client/hooks/use-action-receipts.ts`；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/reader/sidebar-reader.ts`（`SidebarReader`）
+- **代码：** `src/shared/contracts/actions.ts`（`addReceipt`、`listReceipts`、`markUndone`、`ReaderUndo`）；`src/host/api.ts`（`readerReceipts`、`recordReaderReceipt`）；`src/host/register-tools.ts`（批注/长笔记/标签/状态回执）；`src/host/modules/notes/store.ts`（`restore`）；`src/host/modules/notes/files/store.ts`（`restore`）；`src/client/modules/reader/use-action-receipts.ts`；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）
 - **测试：** `tests/reader-actions.test.ts`；`tests/tools.test.ts`
 
 ## 行为
@@ -24,16 +24,16 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `addReceipt` / `listReceipts` | `src/reading/actions.ts:addReceipt`；`src/reading/actions.ts:listReceipts` | 内存回执、TTL 10 分钟、最多 100 条 |
-| `ReaderUndo` | `src/reading/actions.ts:ReaderUndo` | deleteNote/restoreNote/restoreNoteFile/deleteNoteFile/setTags/setStatus |
-| `recordReaderReceipt` | `src/api/index.ts:recordReaderReceipt` | 工具写操作后记录回执 |
-| `readerReceipts` | `src/api/index.ts:readerReceipts` | 客户端 `list` 与 `undo` |
-| `NotesStore.restore` | `src/notes/store.ts:restore` | 按原 id 恢复批注记录 |
-| `NoteFileStore.restore` | `src/notes/files.ts:restore` | 按原文件名恢复长笔记 |
-| `recentActionSummary` | `src/api/index.ts:recentActionSummary` | 给 `reader_context` 与 `reader_note list` 提供动作状态 |
-| `setCompanionContext` | `src/api/index.ts:setCompanionContext` | 把最近动作写入 `<recent_agent_actions>` |
-| `useActionReceipts` | `src/client/hooks/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |
-| `ReaderBar` / `ActionHistory` | `src/client/reader/reader-bar.ts`；`src/client/reader/action-history.ts` | 操作历史入口与回执列表弹窗 |
+| `addReceipt` / `listReceipts` | `src/shared/contracts/actions.ts:addReceipt`；`src/shared/contracts/actions.ts:listReceipts` | 内存回执、TTL 10 分钟、最多 100 条 |
+| `ReaderUndo` | `src/shared/contracts/actions.ts:ReaderUndo` | deleteNote/restoreNote/restoreNoteFile/deleteNoteFile/setTags/setStatus |
+| `recordReaderReceipt` | `src/host/api.ts:recordReaderReceipt` | 工具写操作后记录回执 |
+| `readerReceipts` | `src/host/api.ts:readerReceipts` | 客户端 `list` 与 `undo` |
+| `NotesStore.restore` | `src/host/modules/notes/store.ts:restore` | 按原 id 恢复批注记录 |
+| `NoteFileStore.restore` | `src/host/modules/notes/files/store.ts:restore` | 按原文件名恢复长笔记 |
+| `recentActionSummary` | `src/host/api.ts:recentActionSummary` | 给 `reader_context` 与 `reader_note list` 提供动作状态 |
+| `setCompanionContext` | `src/host/api.ts:setCompanionContext` | 把最近动作写入 `<recent_agent_actions>` |
+| `useActionReceipts` | `src/client/modules/reader/use-action-receipts.ts:useActionReceipts` | 轮询回执、执行撤销、刷新列表 |
+| `ReaderBar` / `ActionHistory` | `src/client/modules/reader/ReaderBar.ts`；`src/client/modules/reader/ActionHistory.ts` | 操作历史入口与回执列表弹窗 |
 
 ## 约束与失败行为
 

@@ -3,7 +3,7 @@
 - **ID：** FTR-006
 - **名称：** EPUB 文本
 - **状态：** active
-- **代码：** `src/books/formats/epub.ts`（`parseEpub`）
+- **代码：** `src/host/modules/reading/formats/epub/index.ts`（`parseEpub`）
 - **测试：** `tests/epub.test.ts`
 
 ## 行为
@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `parseEpub` | `src/books/formats/epub.ts:parseEpub` | 解压 EPUB、解析 OPF/spine/目录并生成章节 |
-| `parseBookAsync` | `src/books/formats.ts:parseBookAsync` | 按格式分派到 EPUB 解析器 |`n| `imageBlock` | `src/books/formats/epub.ts:imageBlock` | 解析章节内图片的相对路径与 alt |`n| `tableRows` | `src/books/formats/epub.ts:tableRows` | 把表格普通行列提取为二维文本 |
+| `parseEpub` | `src/host/modules/reading/formats/epub/index.ts:parseEpub` | 解压 EPUB、解析 OPF/spine/目录并生成章节 |
+| `parseBookAsync` | `src/host/modules/reading/formats.ts:parseBookAsync` | 按格式分派到 EPUB 解析器 |`n| `imageBlock` | `src/books/formats/epub.ts:imageBlock` | 解析章节内图片的相对路径与 alt |`n| `tableRows` | `src/host/modules/reading/formats/epub/index.ts:tableRows` | 把表格普通行列提取为二维文本 |
 
 ## 约束与失败行为
 

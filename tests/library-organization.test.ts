@@ -3,13 +3,13 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createLibraryMetaStore, normalizeRating, normalizeReadStatus, normalizeTags } from '../src/books/library-meta.ts'
+import { createLibraryMetaStore, normalizeRating, normalizeReadStatus, normalizeTags } from '../src/host/modules/library/meta-store.ts'
 import {
   categoryCounts,
   filterBooks,
   recentBooks,
   tagCatalogue,
-} from '../src/client/library/library-utils.ts'
+} from '../src/client/modules/library/library-utils.ts'
 
 test('normalize_tags_deduplicates_and_trims', () => {
   assert.deepEqual(normalizeTags(['  技术 ', '技术', '待读']), ['技术', '待读'])

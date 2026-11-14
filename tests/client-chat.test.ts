@@ -1,8 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { currentReaderScreen, rememberReaderScreen } from '../src/client/reader/screen.ts'
-import { isMissingSessionError } from '../src/client/companion/session-recovery.ts'
-import { companionMode } from '../src/client/hooks/use-companion.ts'
+import { currentReaderScreen, rememberReaderScreen } from '../src/client/modules/reader/screen.ts'
+import { isMissingSessionError } from '../src/client/modules/companion/session-recovery.ts'
+import { companionMode } from '../src/client/modules/companion/use-companion.ts'
 
 const globalAny = globalThis as any
 

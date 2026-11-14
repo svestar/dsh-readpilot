@@ -6,5 +6,5 @@
     "rootDir": "."
   },
   "include": ["index.ts", "src/**/*.ts"],
-  "exclude": ["src/client/**/*.ts"]
+  "exclude": ["src/client/**/*.ts", "examples/**/*.ts"]
 }

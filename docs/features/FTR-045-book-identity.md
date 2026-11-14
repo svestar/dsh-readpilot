@@ -3,8 +3,8 @@
 - **ID：** FTR-045
 - **名称：** 书籍身份与迁移
 - **状态：** active
-- **代码：** `src/books/library.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/books/library-index.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/api/index.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/library/library-view.ts`（`DuplicateDialog`、`Library`）；`src/client/hooks/use-library-actions.ts`（`deleteDuplicate`）
-- **测试：** `tests/library-index.test.ts`；`tests/api.test.ts`
+- **代码：** `src/host/modules/library/service.ts`（`contentKeyFor`、`scanLibrary`、`Book`）；`src/host/modules/library/index-store.ts`（`reconcileBooks`、`deleteLibraryRecord`）；`src/host/api.ts`（`libraryBooks`、`deleteDuplicate`）；`src/client/modules/library/LibraryView.ts`（`DuplicateDialog`、`Library`）；`src/client/modules/library/use-library-actions.ts`（`deleteDuplicate`）
+- **测试：** `tests/library-index.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -25,13 +25,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `contentKeyFor` | `src/books/library.ts:contentKeyFor` | 采样首尾块并计算内容指纹 |
-| `scanLibrary` | `src/books/library.ts:scanLibrary` | 扫描文件、生成内容指纹与路径 ID |
-| `reconcileBooks` | `src/books/library-index.ts:reconcileBooks` | 复用/分配 bookId，标记重复副本 |
-| `deleteDuplicate` | `src/api/index.ts:deleteDuplicate` | 删除所选文件；主记录删除时提升剩余副本 |
-| `deleteLibraryRecord` | `src/books/library-index.ts:deleteLibraryRecord` | 删除索引中的书籍记录 |
-| `DuplicateDialog` | `src/client/library/library-view.ts:DuplicateDialog` | 展示同组文件、二次确认与删除动作 |
-| `Library` | `src/client/library/library-view.ts:Library` | 处理副本按钮、副本徽标与弹窗入口 |
+| `contentKeyFor` | `src/host/modules/library/service.ts:contentKeyFor` | 采样首尾块并计算内容指纹 |
+| `scanLibrary` | `src/host/modules/library/service.ts:scanLibrary` | 扫描文件、生成内容指纹与路径 ID |
+| `reconcileBooks` | `src/host/modules/library/index-store.ts:reconcileBooks` | 复用/分配 bookId，标记重复副本 |
+| `deleteDuplicate` | `src/host/api.ts:deleteDuplicate` | 删除所选文件；主记录删除时提升剩余副本 |
+| `deleteLibraryRecord` | `src/host/modules/library/index-store.ts:deleteLibraryRecord` | 删除索引中的书籍记录 |
+| `DuplicateDialog` | `src/client/modules/library/LibraryView.ts:DuplicateDialog` | 展示同组文件、二次确认与删除动作 |
+| `Library` | `src/client/modules/library/LibraryView.ts:Library` | 处理副本按钮、副本徽标与弹窗入口 |
 
 ## 约束与失败行为
 

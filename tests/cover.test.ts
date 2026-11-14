@@ -4,8 +4,8 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
-import { createReaderApi } from '../src/api/index.ts'
-import { createLimiter } from '../src/storage/limit.ts'
+import { createReaderApi } from '../src/host/app.ts'
+import { createLimiter } from '../src/host/lib/limit.ts'
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',

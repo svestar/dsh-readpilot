@@ -4,8 +4,8 @@ import { mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
-import { createEpubVisual } from '../src/visual/epub.ts'
-import { visualForChapter } from '../src/client/reader/screen.ts'
+import { createEpubVisual } from '../src/host/modules/reading/visual/epub/index.ts'
+import { visualForChapter } from '../src/client/modules/reader/screen.ts'
 
 const PNG = Buffer.from(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=',
@@ -87,7 +87,7 @@ test('epub_visual_asset_urls_and_path_guard', async t => {
 
   const css = await visual.readAsset({ bookId: 'book1', filePath, path: 'OEBPS/style.css' })
   assert.equal(css.contentType, 'text/css; charset=utf-8')
-  const cssText = css.bytes.toString('utf8')
+  const cssText = new TextDecoder().decode(css.bytes)
   assert.ok(cssText.includes('/api/dsh-readpilot/epub-asset?bookId=book1'))
   assert.ok(cssText.includes('path=OEBPS%2Fpic.png'))
   assert.ok(cssText.includes('url("")'))

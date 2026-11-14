@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createReaderApi } from '../src/api/index.ts'
+import { createReaderApi } from '../src/host/app.ts'
 
 function fakeContext() {
   const workspaces: any[] = []

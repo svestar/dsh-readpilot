@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { PROGRESS_SYNC_EVENT, readProgressSync } from '../src/client/reader/progress-sync.ts'
+import { PROGRESS_SYNC_EVENT, readProgressSync } from '../src/client/modules/reader/progress-sync.ts'
 
 test('progress_sync_reads_only_well_formed_sidebar_events', () => {
   const event = new CustomEvent(PROGRESS_SYNC_EVENT, {

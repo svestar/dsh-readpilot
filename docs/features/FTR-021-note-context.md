@@ -3,8 +3,8 @@
 - **ID：** FTR-021
 - **名称：** 笔记上下文
 - **状态：** active
-- **代码：** `src/notes/context.ts`（`buildReadingNotes`）；`src/companion/settings.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/api/index.ts`（`setNoteContext`、`notesContextFor`、`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/plugin.ts`（`ReaderPanel`）；`src/client/notes/long-notes.ts`（`LongNotes`）
-- **测试：** `tests/notes-context.test.ts`；`tests/api.test.ts`
+- **代码：** `src/host/modules/notes/context.ts`（`buildReadingNotes`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/host/api.ts`（`setNoteContext`、`notesContextFor`、`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
+- **测试：** `tests/notes-context.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
@@ -14,13 +14,13 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `buildReadingNotes` | `src/notes/context.ts:buildReadingNotes` | 按预算拼装笔记、批注与未注入路径 |
-| `loadCompanionSettings` / `saveCompanionSettings` | `src/companion/settings.ts:loadCompanionSettings`；`src/companion/settings.ts:saveCompanionSettings` | 读取/保存按书的笔记开关 |
-| `setNoteContext` | `src/api/index.ts:setNoteContext` | 切换开关并重建该书的上下文 |
-| `notesContextFor` | `src/api/index.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
-| `rebuildNotesContext` | `src/api/index.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
+| `buildReadingNotes` | `src/host/modules/notes/context.ts:buildReadingNotes` | 按预算拼装笔记、批注与未注入路径 |
+| `loadCompanionSettings` / `saveCompanionSettings` | `src/host/modules/companion/settings-store.ts:loadCompanionSettings`；`src/host/modules/companion/settings-store.ts:saveCompanionSettings` | 读取/保存按书的笔记开关 |
+| `setNoteContext` | `src/host/api.ts:setNoteContext` | 切换开关并重建该书的上下文 |
+| `notesContextFor` | `src/host/api.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
+| `rebuildNotesContext` | `src/host/api.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
 | `apply` | `index.ts:apply` | 注册笔记动态上下文 |
-| `LongNotes` / `ReaderPanel` | `src/client/notes/long-notes.ts:LongNotes`；`src/client/plugin.ts:ReaderPanel` | 开关 UI 与快照更新 |
+| `LongNotes` / `useReaderComposer` | `src/client/modules/notes/LongNotesView.ts:LongNotes`；`src/client/modules/reader/use-reader-composer.ts:useReaderComposer` | 开关 UI 与快照更新 |
 
 ## 约束与失败行为
 

@@ -3,8 +3,9 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createReaderApi } from '../src/api/index.ts'
-import { losslessJson, registerTools } from '../src/agent/tools.ts'
+import { createApp } from '../src/host/app.ts'
+import { losslessJson } from '../src/host/lib/lossless-json.ts'
+import { registerTools } from '../src/host/register-tools.ts'
 
 /** DSH only accepts tool results that survive a JSON round trip. */
 function assertLossless(value: unknown) {
@@ -47,9 +48,10 @@ test('tools_read_bounded', async t => {
     },
   }
   const ctx = fakeContext(tools)
-  const api = createReaderApi({ ctx, dataDir: data })
+  const app = createApp({ ctx, dataDir: data })
+  const api = app.api
   const state = await api.configureLibrary({ path: library })
-  const dispose = registerTools(ctx, api)
+  const dispose = registerTools(ctx, app.modules)
 
   assert.deepEqual([...registered.keys()].sort(), ['reader_books', 'reader_context', 'reader_digest', 'reader_goto', 'reader_mark', 'reader_memory', 'reader_note', 'reader_notes', 'reader_open', 'reader_open_panel', 'reader_read', 'reader_search', 'reader_status', 'reader_tag'])
   const gotoAction = await registered.get('reader_goto')!.execute({ book: state.books[0].title })
