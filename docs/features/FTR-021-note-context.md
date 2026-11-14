@@ -18,7 +18,7 @@
 | `loadCompanionSettings` / `saveCompanionSettings` | `src/host/modules/companion/settings-store.ts:loadCompanionSettings`；`src/host/modules/companion/settings-store.ts:saveCompanionSettings` | 读取/保存按书的笔记开关 |
 | `setNoteContext` | `src/host/api.ts:setNoteContext` | 切换开关并重建该书的上下文 |
 | `notesContextFor` | `src/host/api.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
-| `rebuildNotesContext` | `src/host/api.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
+| `rebuildNotesContext` | `src/host/modules/notes/context-service.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
 | `apply` | `index.ts:apply` | 注册笔记动态上下文 |
 | `LongNotes` / `useReaderComposer` | `src/client/modules/notes/LongNotesView.ts:LongNotes`；`src/client/modules/reader/use-reader-composer.ts:useReaderComposer` | 开关 UI 与快照更新 |
 

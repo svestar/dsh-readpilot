@@ -14,9 +14,9 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createLibraryMetaStore` | `src/host/modules/library/meta-service.ts:createLibraryMetaStore` | 读写 `library-meta.json` 的标签、状态与评分 |
-| `normalizeReadStatus` | `src/host/modules/library/meta-service.ts:normalizeReadStatus` | 校验状态取值，空值表示清除 |
-| `normalizeRating` | `src/host/modules/library/meta-service.ts:normalizeRating` | 校验 1–5 整数评分，空值表示清除 |
+| `createLibraryMetaStore` | `src/host/modules/library/meta-store.ts:createLibraryMetaStore` | 读写 `library-meta.json` 的标签、状态与评分 |
+| `normalizeReadStatus` | `src/host/modules/library/meta-store.ts:normalizeReadStatus` | 校验状态取值，空值表示清除 |
+| `normalizeRating` | `src/host/modules/library/meta-store.ts:normalizeRating` | 校验 1–5 整数评分，空值表示清除 |
 | `setBookStatus` | `src/host/api.ts:setBookStatus` | 校验书籍并写入状态，返回规整结果 |
 | `setBookRating` | `src/host/api.ts:setBookRating` | 校验书籍并写入评分，返回规整结果 |
 | `bookStatus` / `bookRating` | `src/client/modules/library/library-utils.ts:bookStatus` | 从映射中取出合法状态与评分 |

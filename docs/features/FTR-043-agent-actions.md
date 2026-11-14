@@ -24,7 +24,7 @@ Agent 可通过五个工具改变阅读状态并收到回执：
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createReaderActionStore` | `src/shared/contracts/actions.ts:createReaderActionStore` | 内存队列、TTL、按类型/书过滤取出 |
+| `createReaderActionStore` | `src/host/modules/actions/store.ts:createReaderActionStore` | 内存队列、TTL、按类型/书过滤取出 |
 | `readerActions` | `src/host/api.ts:readerActions` | 客户端轮询 `take` |
 | `pushReaderAction` | `src/host/api.ts:pushReaderAction` | 工具入队并返回动作 id |
 | `reader_goto` / `reader_open_panel` | `src/host/register-tools.ts` | 解析书名/章节/页并排队导航 |

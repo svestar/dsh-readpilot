@@ -25,8 +25,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `contentKeyFor` | `src/host/modules/library/service.ts:contentKeyFor` | 采样首尾块并计算内容指纹 |
-| `scanLibrary` | `src/host/modules/library/service.ts:scanLibrary` | 扫描文件、生成内容指纹与路径 ID |
+| `contentKeyFor` | `src/host/modules/library/book.ts:contentKeyFor` | 采样首尾块并计算内容指纹 |
+| `scanLibrary` | `src/host/modules/library/book.ts:scanLibrary` | 扫描文件、生成内容指纹与路径 ID |
 | `reconcileBooks` | `src/host/modules/library/index-store.ts:reconcileBooks` | 复用/分配 bookId，标记重复副本 |
 | `deleteDuplicate` | `src/host/api.ts:deleteDuplicate` | 删除所选文件；主记录删除时提升剩余副本 |
 | `deleteLibraryRecord` | `src/host/modules/library/index-store.ts:deleteLibraryRecord` | 删除索引中的书籍记录 |

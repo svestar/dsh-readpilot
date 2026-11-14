@@ -17,7 +17,9 @@
 | `parseBook` | `src/host/modules/reading/formats.ts:parseBook` | 同步解析 txt/md，生成块与字数 |
 | `parseBookAsync` | `src/host/modules/reading/formats.ts:parseBookAsync` | 按格式分派 txt/md/epub/pdf |
 | `splitChapters` | `src/host/modules/reading/formats.ts:splitChapters` | 按标题或长度切分章节 |
-| `decodeText` | `src/host/modules/reading/formats.ts:decodeText` | BOM 与多编码解码 |`n| `bookAsset` | `src/api/index.ts:bookAsset` | 读取书库内的图片资源并限制路径与大小 |`n| `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 渲染 image 块与图注 |
+| `decodeText` | `src/host/modules/reading/formats.ts:decodeText` | BOM 与多编码解码 |
+| `bookAsset` | `src/host/modules/reading/assets.ts:bookAsset` | 读取书库内的图片资源并限制路径与大小 |
+| `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 渲染 image 块与图注 |
 
 ## 约束与失败行为
 

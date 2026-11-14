@@ -26,7 +26,7 @@
 | `sessionBook` | `src/host/api.ts:sessionBook` | 由当前会话反查关联书籍与进度 |
 | `parseReaderResource` / `buildReaderResource` | `src/client/modules/reader/resource.ts:parseReaderResource`；`buildReaderResource` | 解析/生成 `dsh-resource://` 阅读地址 |
 | `saveReadingProgress` | `src/host/api.ts:saveReadingProgress` | 写入章节内比例 |
-| `ReadingProgress.chapterFraction` | `src/host/lib/fs-json.ts:ReadingProgress` | 跨视图的规范位置 |
+| `ReadingProgress.chapterFraction` | `src/shared/contracts/library.ts:ReadingProgress` | 跨视图的规范位置 |
 | `useTextPager` / `useVisual` | `src/client/modules/reader/use-text-pager.ts:useTextPager` | 文字与原版单页渲染 |
 
 ## 约束与失败行为

@@ -33,7 +33,7 @@ Markdown 文件与聊天/长笔记共用 `parseMarkdownBlocks`。阅读章节由
 | `parseBlocks` | `src/host/modules/reading/formats.ts:parseBlocks` | Markdown 章节转 `TextBlock` |
 | `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 块渲染与 `data-block-index` |
 | `inline` | `src/client/modules/markdown/render.ts:inline` | 行内语法与 URL 白名单 |
-| `imageAssetUrl` | `src/host/api.ts:imageAssetUrl` | 图片块转为书库资源 URL |
+| `imageAssetUrl` | `src/host/modules/reading/open.ts:imageAssetUrl` | 图片块转为书库资源 URL |
 | `rewriteInlineImages` | `src/host/modules/reading/markdown-images.ts:rewriteInlineImages` | 重写相对行内图片路径 |
 
 ## 约束与失败行为

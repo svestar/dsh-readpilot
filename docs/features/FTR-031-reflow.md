@@ -19,14 +19,14 @@ PDF 重排复用同一渲染器：`parsePdf` 过滤页码与重复页眉页脚�
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `visualForItem` / `visualForChapter` | `src/client/modules/reader/screen.ts:visualForItem` | 重排时对 EPUB/PDF 返回 `null`，走文本渲染器 |
-| `applySource` | `src/client/plugin.ts:applySource` | 切换模式、重建当前章节的视觉状态 |
+| `applySource` | `src/client/modules/reader/use-reader-view.ts:applySource` | 切换模式、重建当前章节的视觉状态 |
 | `readReflowBooks` / `saveReflowBooks` | `src/client/lib/preferences.ts:readReflowBooks` | 读写按书的模式偏好 |
 | `ReaderSettings` | `src/client/modules/reader/ReaderSettings.ts:ReaderSettings` | 提供“原版/重排”等内容设置 |
 | `parsePdf` | `src/host/modules/reading/formats/pdf/index.ts:parsePdf` | PDF 文本重建，返回 `reflowConfidence` / `reflowNotes` |
 | `stripPageFurniture` | `src/host/modules/reading/formats/pdf/index.ts:stripPageFurniture` | 过滤页码与重复页眉页脚 |
 | `orderColumns` | `src/host/modules/reading/formats/pdf/index.ts:orderColumns` | 双栏页按左右栏重排 |
 | `pageBlocks` | `src/host/modules/reading/formats/pdf/index.ts:pageBlocks` | 段落合并、标题/代码/表格识别 |
-| `tableRowsAt` | `src/host/modules/reading/formats/pdf/index.ts:tableRowsAt` | 连续同列行合成表格 |
+| `tableRowsAt` | `src/host/modules/reading/formats/pdf/blocks.ts:tableRowsAt` | 连续同列行合成表格 |
 | `renderBlocks` | `src/client/modules/markdown/render.ts:renderBlocks` | 渲染表格块 |
 
 ## 约束与失败行为

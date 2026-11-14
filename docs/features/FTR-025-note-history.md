@@ -20,7 +20,7 @@
 | `readHistory` | `src/host/modules/notes/files/store.ts:readHistory` | 读取快照正文与原始内容 |
 | `restoreHistory` | `src/host/modules/notes/files/store.ts:restoreHistory` | 先快照当前，再原子恢复所选版本 |
 | `removeHistory` / `clearHistory` | `src/host/modules/notes/files/store.ts:removeHistory`；`src/host/modules/notes/files/store.ts:clearHistory` | 删除单条或清空当前笔记历史 |
-| `handleNoteFiles` | `src/host/modules/notes/files/store.ts:handleNoteFiles` | `history` / `restore` / `historyRemove` / `historyClear` RPC，恢复后重建笔记上下文 |
+| `handleNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:handleNoteFiles` | `history` / `restore` / `historyRemove` / `historyClear` RPC，恢复后重建笔记上下文 |
 | `useLongNotes` | `src/client/modules/notes/use-long-notes.ts:useLongNotes` | 历史展开、加载、恢复与错误状态 |
 | `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 历史按钮、版本列表与恢复确认 |
 

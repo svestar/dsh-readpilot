@@ -20,9 +20,9 @@
 | `anchorPage` | `src/client/modules/reader/paging.ts:anchorPage` | 比例换算为页索引并夹取 |
 | `useTextPager` | `src/client/modules/reader/use-text-pager.ts:useTextPager` | 文本分页消费锚点 |
 | `useVisual` | `src/client/modules/reader/use-visual.ts:useVisual` | EPUB 视觉分页消费锚点 |
-| `makeReadingAnchor` | `src/client/plugin.ts:makeReadingAnchor` | 从当前渲染器生成锚点 |
-| `changeFlow` / `changeSpread` | `src/client/plugin.ts:changeFlow` | 切换阅读方式/版式前记录锚点 |
-| `applySource` | `src/client/plugin.ts:applySource` | 切换原版/重排并处理 PDF 页映射 |
+| `makeReadingAnchor` | `src/client/modules/reader/use-reader-view.ts:makeReadingAnchor` | 从当前渲染器生成锚点 |
+| `changeFlow` / `changeSpread` | `src/client/modules/reader/use-reader-view.ts:changeFlow` | 切换阅读方式/版式前记录锚点 |
+| `applySource` | `src/client/modules/reader/use-reader-view.ts:applySource` | 切换原版/重排并处理 PDF 页映射 |
 
 ## 约束与失败行为
 

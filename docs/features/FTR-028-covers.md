@@ -14,7 +14,7 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `findCoverPath` | `src/host/modules/reading/visual/epub/index.ts:findCoverPath` | 按 meta、manifest、guide 顺序识别 EPUB 封面路径 |
+| `findCoverPath` | `src/host/modules/reading/visual/epub/archive.ts:findCoverPath` | 按 meta、manifest、guide 顺序识别 EPUB 封面路径 |
 | `cover` | `src/host/modules/reading/visual/epub/index.ts:cover` | 读取封面字节并推断 content type，无封面返回 null |
 | `cover` | `src/host/api.ts:cover` | 按书籍格式分派到 EPUB 资源或 PDF 首页渲染 |
 | `BookCard` | `src/client/modules/library/LibraryView.ts:BookCard` | 渲染封面图、加载提示与失败回退 |

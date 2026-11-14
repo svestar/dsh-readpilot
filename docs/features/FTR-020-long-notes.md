@@ -18,9 +18,9 @@
 |---|---|---|
 | `createNoteFileStore` | `src/host/modules/notes/files/store.ts:createNoteFileStore` | 长笔记的 list/read/create/write/remove 与历史快照 |
 | `parseFrontMatter` / `serializeNote` | `src/host/modules/notes/files/store.ts:parseFrontMatter`；`serializeNote` | 读写 front-matter 与正文 |
-| `handleNoteFiles` | `src/host/modules/notes/files/store.ts:handleNoteFiles` | `noteFiles` RPC 的 list/read/create/write/remove/history/restore 分发 |
+| `handleNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:handleNoteFiles` | `noteFiles` RPC 的 list/read/create/write/remove/history/restore 分发 |
 | `openNoteFile` | `src/host/api.ts:openNoteFile` | 校验笔记路径并交给系统默认应用打开 |
-| `scanLibrary` | `src/host/modules/library/service.ts:scanLibrary` | 书库扫描跳过带 marker 的 `notes/` |
+| `scanLibrary` | `src/host/modules/library/book.ts:scanLibrary` | 书库扫描跳过带 marker 的 `notes/` |
 | `useLongNotes` | `src/client/modules/notes/use-long-notes.ts:useLongNotes` | 列表、编辑器、保存、冲突、删除、历史与外部打开状态 |
 | `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 长笔记标签的列表、编辑器、历史与导出区 |
 | `parseNoteResource` / `buildNoteResource` | `src/client/modules/notes/note-resource.ts:parseNoteResource`；`buildNoteResource` | 活动笔记资源地址的生成与解析 |

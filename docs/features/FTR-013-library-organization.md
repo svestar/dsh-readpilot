@@ -14,8 +14,8 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createLibraryMetaStore` | `src/host/modules/library/meta-service.ts:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-readpilot/library-meta.json`，按书保存标签、状态与评分 |
-| `normalizeTags` | `src/host/modules/library/meta-service.ts:normalizeTags` | 去重、去空白、校验 1–24 字与最多 20 个 |
+| `createLibraryMetaStore` | `src/host/modules/library/meta-store.ts:createLibraryMetaStore` | 读写 `$DSH_HOME/dsh-readpilot/library-meta.json`，按书保存标签、状态与评分 |
+| `normalizeTags` | `src/host/modules/library/meta-store.ts:normalizeTags` | 去重、去空白、校验 1–24 字与最多 20 个 |
 | `state` / `libraryMeta` | `src/host/api.ts:state` | 返回书籍、进度、会话、标签、状态与评分快照 |
 | `setBookTags` | `src/host/api.ts:setBookTags` | 校验书籍与标签并持久化 |
 | `filterBooks` / `recentBooks` / `tagCatalogue` | `src/client/modules/library/library-utils.ts:filterBooks` | 分类、搜索、排序、最近阅读与标签计数 |

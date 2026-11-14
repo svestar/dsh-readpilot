@@ -24,7 +24,12 @@ INDEX_HEADER = "| ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状
 ROADMAP_HEADER = "| ID | 功能 | 解决什么问题 | 验收线索 | 优先级 | 排期 | 状态 |"
 # Backticked repo-relative file paths, as used by the `代码`/`测试` fields and the index.
 PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md))`")
+# Backticked `path:symbol` references in mapping tables.
+MAPPING_RE = re.compile(
+    r"`([^`\n:]+):([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)`"
+)
 ANCHOR_RE = re.compile(r"（`([a-z0-9_]+)`）")
+NARRATION_PHRASES = ("本次修改", "本次变更", "之前是", "现在改为", "原实现是")
 errors: list[str] = []
 
 
@@ -38,6 +43,28 @@ def check_hygiene(path: Path, text: str) -> None:
         errors.append(f"{rel} 必须恰好一个结尾换行")
     if "\r" in text:
         errors.append(f"{rel} 必须使用 LF 换行")
+    if "|`n|" in text:
+        errors.append(f"{rel} 含字面量 |`n|，表格行之间应为真实换行")
+
+
+def check_narration(owner: str, text: str) -> None:
+    for phrase in NARRATION_PHRASES:
+        if phrase in text:
+            errors.append(f"{owner} 叙述了改动过程：{phrase}")
+
+
+def check_mapping_refs(owner: str, text: str) -> None:
+    """Every `path:symbol` in a mapping table must point at a real definition."""
+    for path, symbol in MAPPING_RE.findall(text):
+        if "*" in path or path.endswith("/") or not path.startswith(("src/", "tests/", "scripts/")):
+            continue
+        target = ROOT / path
+        if not target.is_file():
+            errors.append(f"{owner} 的映射路径不存在：{path}")
+            continue
+        leaf = symbol.split(".")[-1]
+        if not re.search(rf"(?<![A-Za-z0-9_]){re.escape(leaf)}(?![A-Za-z0-9_])", read(target)):
+            errors.append(f"{owner} 的映射符号不存在：{path}:{symbol}")
 
 
 def check_length(path: Path, limit: int) -> None:
@@ -134,6 +161,8 @@ def main() -> int:
         for heading in FEATURE_HEADINGS:
             if heading not in text:
                 errors.append(f"{name} 缺少 {heading}")
+        check_narration(name, text)
+        check_mapping_refs(name, text)
         if name not in index_text:
             errors.append(f"{name} 未登记到索引")
 
@@ -161,11 +190,16 @@ def main() -> int:
         for anchor in anchors:
             if not anchor_defined(anchor, searchable):
                 errors.append(f"{name} 的锚点没有在声明的测试文件中定义：{anchor}")
+        duplicated = sorted({anchor for anchor in anchors if anchors.count(anchor) > 1})
+        for anchor in duplicated:
+            errors.append(f"{name} 的同一测试符号锚定了多条验收：{anchor}")
 
     for path in sorted((ROOT / "docs/decisions").glob("ADR-*.md")):
         check_length(path, DOC_MAX)
         text = read(path)
         check_hygiene(path, text)
+        check_narration(path.name, text)
+        check_mapping_refs(path.name, text)
         for heading in ADR_HEADINGS:
             if heading not in text:
                 errors.append(f"{path.name} 缺少 {heading}")

@@ -19,11 +19,11 @@
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `createNoteDraftStore` | `src/host/modules/notes/drafts.ts:createNoteDraftStore` | 草稿的 list/create/apply/reject 与路径安全 |
-| `noteDrafts` | `src/host/modules/notes/drafts.ts:noteDrafts` | UI 的 list/apply/reject RPC |
-| `noteDraftCreate` | `src/host/modules/notes/drafts.ts:noteDraftCreate` | 工具创建草稿；自动应用开启时立即应用 |
+| `noteDrafts` | `src/host/modules/notes/draft-handlers.ts:noteDrafts` | UI 的 list/apply/reject RPC |
+| `noteDraftCreate` | `src/host/modules/notes/draft-handlers.ts:noteDraftCreate` | 工具创建草稿；自动应用开启时立即应用 |
 | `setAutoApplyNotes` | `src/host/api.ts:setAutoApplyNotes` | 切换全局自动应用开关 |
-| `toolNoteFiles` | `src/host/modules/notes/files/store.ts:toolNoteFiles` | 工具的 index/read |
-| `reader_notes` | `src/host/register-tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
+| `toolNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:toolNoteFiles` | 工具的 index/read |
+| `reader_notes` | `src/host/modules/notes/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
 | `useLongNotes` / `LongNotes` | `src/client/modules/notes/use-long-notes.ts:useLongNotes`；`src/client/modules/notes/LongNotesView.ts:LongNotes` | 草稿轮询、应用/拒绝与 diff UI |
 | `diffLines` | `src/client/modules/notes/diff.ts:diffLines` | 基准/新正文的行级差异 |
 

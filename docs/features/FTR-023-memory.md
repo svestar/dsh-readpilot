@@ -18,7 +18,7 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `MemoryMode` / `effectiveMemoryState` | `src/host/modules/companion/settings-store.ts:effectiveMemoryState` | 全局与单书状态合成生效状态 |
+| `MemoryMode` / `effectiveMemoryState` | `src/shared/contracts/companion.ts:effectiveMemoryState` | 全局与单书状态合成生效状态 |
 | `createMemoryStore` | `src/host/modules/memory/store.ts:createMemoryStore` | 读写两张卡、历史与撤销，执行 600 字上限 |
 | `buildReadingMemory` | `src/host/modules/memory/context.ts:buildReadingMemory` | 生成 `<reading_memory>` 并按预算截断 |
 | `memory` | `src/host/modules/memory/handlers.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear |

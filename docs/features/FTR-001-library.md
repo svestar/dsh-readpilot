@@ -16,9 +16,9 @@
 |---|---|---|
 | `configureLibrary` | `src/host/api.ts:configureLibrary` | 校验路径、创建工作区、保存设置 |
 | `state` | `src/host/api.ts:state` | 汇总设置、书籍、进度与会话映射 |
-| `scanLibrary` | `src/host/modules/library/service.ts:scanLibrary` | 递归扫描目录并过滤电子书 |
-| `refreshLibraryWatch` | `src/host/api.ts:refreshLibraryWatch` | 监听书库根目录并在变更时失效扫描缓存 |
-| `bookIdFor` | `src/host/modules/library/service.ts:bookIdFor` | 由路径生成稳定书籍 id |
+| `scanLibrary` | `src/host/modules/library/book.ts:scanLibrary` | 递归扫描目录并过滤电子书 |
+| `refreshLibraryWatch` | `src/host/modules/library/scan.ts:refreshWatch` | 监听书库根目录并在变更时失效扫描缓存 |
+| `bookIdFor` | `src/host/modules/library/book.ts:bookIdFor` | 由路径生成稳定书籍 id |
 
 ## 约束与失败行为
 

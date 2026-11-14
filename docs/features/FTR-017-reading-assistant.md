@@ -25,7 +25,7 @@
 | `setCompanionContext` | `src/host/api.ts:setCompanionContext` | 保存会话的当前书名、章节与书籍 id |
 | `companionContextOf` | `src/host/api.ts:companionContextOf` | 按会话 id 取 `<reading_context>` 文本 |
 | `apply` | `index.ts:apply` | 注册阅读位置动态上下文 |
-| `reader_context` | `src/host/register-tools.ts:reader_context` | Agent 只读入口 |
+| `reader_context` | `src/host/modules/reading/tools.ts:reader_context` | Agent 只读入口 |
 
 ## 约束与失败行为
 
