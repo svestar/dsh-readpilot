@@ -3,7 +3,7 @@
 - **ID：** FTR-017
 - **名称：** 阅读助手
 - **状态：** active
-- **代码：** `src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/host/api.ts`（`state`、`toolContext`、`setCompanionContext`、`companionContextOf`）；`src/host/modules/library/service.ts`（扫描跳过 `AGENTS.md`）；`src/host/modules/reading/tools.ts`（`reader_context`）；`index.ts`（`apply`）
+- **代码：** `src/host/modules/library/workspace-prompt.ts`（`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/host/api.ts`（`state`、`toolContext`、`setCompanionContext`、`companionContextOf`）；`src/host/modules/library/book.ts`（扫描跳过 `AGENTS.md`）；`src/host/modules/reading/tools.ts`（`reader_context`）；`index.ts`（`apply`）
 - **测试：** `tests/prompt.test.ts`
 
 ## 行为
