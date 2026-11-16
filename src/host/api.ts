@@ -106,6 +106,7 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     recordReaderReceipt: (input: any) => deps.actions.recordReaderReceipt(input),
     noteDrafts: (payload?: any) => deps.notes.noteDrafts(payload),
     noteDraftCreate: (payload?: any) => deps.notes.noteDraftCreate(payload),
+    favoriteConversation: (payload?: any) => deps.notes.favoriteConversation(payload),
     toolNoteFiles: (payload?: any) => deps.notes.toolNoteFiles(payload),
     openNoteFile: (payload?: any) => deps.notes.openNoteFile(payload),
     exportNotes: (payload?: any) => deps.notes.exportNotes(payload),

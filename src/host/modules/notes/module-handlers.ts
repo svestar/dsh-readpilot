@@ -7,6 +7,7 @@ export function createNotesModuleHandlers(service: ReturnType<typeof createNotes
     [NOTES_ENDPOINTS.notes]: payload => service.handleNotes(payload),
     [NOTES_ENDPOINTS.noteFiles]: payload => service.handleNoteFiles(payload),
     [NOTES_ENDPOINTS.noteDrafts]: payload => service.noteDrafts(payload),
+    [NOTES_ENDPOINTS.favoriteConversation]: payload => service.favoriteConversation(payload),
     [NOTES_ENDPOINTS.setNoteContext]: payload => service.setNoteContext(payload),
     [NOTES_ENDPOINTS.setNoteContextState]: payload => service.setNoteContextState(payload),
     [NOTES_ENDPOINTS.setNotesGlobal]: payload => service.setNotesGlobal(payload),

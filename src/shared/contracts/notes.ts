@@ -8,6 +8,7 @@ export const NOTES_ENDPOINTS = {
   notes: 'notes',
   noteFiles: 'noteFiles',
   noteDrafts: 'noteDrafts',
+  favoriteConversation: 'favoriteConversation',
   setNoteContext: 'setNoteContext',
   setNoteContextState: 'setNoteContextState',
   setNotesGlobal: 'setNotesGlobal',

@@ -7,12 +7,15 @@ import { createNoteDraftStore } from './drafts.ts'
 import { createDraftHandlers } from './draft-handlers.ts'
 import { createNotesContext } from './context-service.ts'
 import { createNotesExport } from './export-service.ts'
+import { createFavoriteHandler } from './favorite.ts'
 import { createNoteFileHandlers } from './note-file-handlers.ts'
 import { createNotesHandlers } from './notes-handlers.ts'
 import { createNotesStore } from './store.ts'
 
 export interface NotesServiceOptions {
   dataDir: string
+  ctx?: any
+  sessionBook?(sessionId: string): Promise<{ bookId: string; title: string } | null>
   resolveBook(bookId: unknown): Promise<Book>
   books(): Promise<Book[]>
   findBook(books: Book[], key: unknown): Book | undefined
@@ -29,14 +32,15 @@ export interface NotesServiceOptions {
 export function createNotesService(options: NotesServiceOptions) {
   const notes = createNotesStore(options.dataDir)
   const cache = new Map<string, { text: string; characters: number; updatedAt: number }>()
+  const refreshNotes = async (bookId: string): Promise<void> => {
+    if (effectiveNotesEnabled(options.getSettings(), bookId)) await rebuildNotesContext(bookId)
+  }
 
   const noteFiles = createNoteFileHandlers({
     settings: options.currentSettings,
     books: options.books,
     resolveBook: options.resolveBook,
-    refreshNotes: async (bookId: string) => {
-      if (effectiveNotesEnabled(options.getSettings(), bookId)) await rebuildNotesContext(bookId)
-    },
+    refreshNotes,
   })
 
   const context = createNotesContext({
@@ -52,6 +56,14 @@ export function createNotesService(options: NotesServiceOptions) {
   })
 
   const { rebuildNotesContext } = context
+
+  const favorites = createFavoriteHandler({
+    ctx: options.ctx,
+    sessionBook: options.sessionBook ?? (async () => null),
+    resolveBook: options.resolveBook,
+    store: noteFiles.store,
+    refreshNotes,
+  })
 
   const { handleNotes } = createNotesHandlers({
     resolveBook: options.resolveBook,
@@ -83,6 +95,7 @@ export function createNotesService(options: NotesServiceOptions) {
     handleNotes,
     handleNoteFiles: noteFiles.handleNoteFiles,
     toolNoteFiles: noteFiles.toolNoteFiles,
+    favoriteConversation: favorites.favoriteConversation,
     noteDrafts,
     noteDraftCreate,
     rebuildNotesContext,

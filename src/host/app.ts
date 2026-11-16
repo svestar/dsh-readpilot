@@ -91,6 +91,8 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
 
   const notesModule = createNotesModule({
     dataDir,
+    ctx,
+    sessionBook: async sessionId => companionRef.current?.service.sessionBook({ sessionId }) ?? null,
     resolveBook: library.resolveBook,
     books: () => library.books(),
     findBook: (books, key) => books.find(book => book.id === key || book.title === key),

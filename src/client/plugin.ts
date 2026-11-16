@@ -13,6 +13,7 @@ import { diffLines } from './modules/notes/diff.ts'
 import { findNoteOccurrence } from './modules/notes/anchors.ts'
 import { NativeCompanion } from './modules/companion/NativeCompanion.ts'
 import { syncCompanionSessionTitles } from './modules/companion/session-title.ts'
+import { registerConversationFavorite } from './modules/companion/register-conversation-favorite.ts'
 import { registerReader } from './modules/reader/register.ts'
 import { registerResources } from './modules/reader/register-resources.ts'
 import { registerShortcuts } from './modules/reader/register-shortcuts.ts'
@@ -66,6 +67,7 @@ export function createPlugin(require: (name: string) => any) {
       registerShortcuts(ctx, boundText)
       const navigation = registerResources(ctx, call)
       registerReader(ctx, boundText, call, runtime)
+      registerConversationFavorite(ctx, boundText, call)
       registerSidebar(ctx, boundText, call, navigation.openReaderResource)
       registerToolViews(ctx, boundText, navigation.openReaderTargetFromAddress)
     },
