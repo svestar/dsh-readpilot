@@ -8,6 +8,7 @@ export function createNotesModuleHandlers(service: ReturnType<typeof createNotes
     [NOTES_ENDPOINTS.noteFiles]: payload => service.handleNoteFiles(payload),
     [NOTES_ENDPOINTS.noteDrafts]: payload => service.noteDrafts(payload),
     [NOTES_ENDPOINTS.setNoteContext]: payload => service.setNoteContext(payload),
+    [NOTES_ENDPOINTS.setNotesGlobal]: payload => service.setNotesGlobal(payload),
     [NOTES_ENDPOINTS.setAutoApplyNotes]: payload => service.setAutoApplyNotes(payload),
     [NOTES_ENDPOINTS.exportNotes]: payload => service.exportNotes(payload),
     [NOTES_ENDPOINTS.exportNotesArchive]: payload => service.exportNotesArchive(payload),

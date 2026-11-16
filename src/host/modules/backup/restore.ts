@@ -78,6 +78,7 @@ async function applyRestore(
   }
   if (backupCompanion.memory?.mode !== undefined) companion.memory.mode = backupCompanion.memory.mode
   if (typeof backupCompanion.autoApplyNotes === 'boolean') companion.autoApplyNotes = backupCompanion.autoApplyNotes
+  if (typeof backupCompanion.notesGlobal === 'boolean') companion.notesGlobal = backupCompanion.notesGlobal
   await writeJson(join(dataDir, 'companion.json'), companion)
 
   const presets = zip.file(`${BACKUP_PREFIX}/presets.json`)

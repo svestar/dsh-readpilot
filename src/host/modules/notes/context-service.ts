@@ -1,4 +1,5 @@
 import type { CompanionSettings } from '../../../shared/contracts/companion.ts'
+import { effectiveNotesEnabled } from '../../../shared/contracts/companion.ts'
 import type { Book } from '../library/book.ts'
 import { buildReadingNotes, type ReadingNote } from './context.ts'
 import type { NoteFileStore } from './files/index.ts'
@@ -76,6 +77,22 @@ export function createNotesContext({
     return { bookId: book.id, enabled, characters }
   }
 
+  async function setNotesGlobal({ enabled }: any = {}): Promise<{ enabled: boolean }> {
+    if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
+    setSettings(await loadSettings())
+    setSettings({ ...getSettings(), notesGlobal: enabled })
+    await saveSettings(getSettings())
+    if (enabled) {
+      const books = [...new Set([...readings.values()].map(reading => reading.bookId))]
+      await Promise.all(books.map(bookId => rebuildNotesContext(bookId)))
+    } else {
+      for (const bookId of cache.keys()) {
+        if (!getSettings().notes[bookId]) cache.delete(bookId)
+      }
+    }
+    return { enabled }
+  }
+
   async function setAutoApplyNotes({ enabled }: any = {}): Promise<{ enabled: boolean }> {
     if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
     setSettings(await loadSettings())
@@ -87,9 +104,9 @@ export function createNotesContext({
   function notesContextFor(sessionId: unknown): string {
     if (typeof sessionId !== 'string' || !sessionId) return ''
     const reading = readings.get(sessionId)
-    if (!reading || !getSettings().notes[reading.bookId]) return ''
+    if (!reading || !effectiveNotesEnabled(getSettings(), reading.bookId)) return ''
     return cache.get(reading.bookId)?.text ?? ''
   }
 
-  return { rebuildNotesContext, setNoteContext, setAutoApplyNotes, notesContextFor }
+  return { rebuildNotesContext, setNoteContext, setNotesGlobal, setAutoApplyNotes, notesContextFor }
 }

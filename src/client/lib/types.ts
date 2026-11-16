@@ -69,7 +69,10 @@ export interface NoteContextToggle {
   enabled: boolean
   busy: boolean
   characters: number
+  global: boolean
+  globalBusy: boolean
   toggle: () => void
+  toggleGlobal: () => void
 }
 
 export interface NoteAutoApplyToggle {

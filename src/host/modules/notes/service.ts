@@ -1,4 +1,5 @@
 import type { CompanionSettings } from '../../../shared/contracts/companion.ts'
+import { effectiveNotesEnabled } from '../../../shared/contracts/companion.ts'
 import type { LibraryMeta, Settings } from '../../../shared/contracts/library.ts'
 import type { OpenResult } from '../../../shared/contracts/reading.ts'
 import type { Book } from '../library/book.ts'
@@ -34,7 +35,7 @@ export function createNotesService(options: NotesServiceOptions) {
     books: options.books,
     resolveBook: options.resolveBook,
     refreshNotes: async (bookId: string) => {
-      if (options.getSettings().notes[bookId]) await rebuildNotesContext(bookId)
+      if (effectiveNotesEnabled(options.getSettings(), bookId)) await rebuildNotesContext(bookId)
     },
   })
 
@@ -55,7 +56,7 @@ export function createNotesService(options: NotesServiceOptions) {
   const { handleNotes } = createNotesHandlers({
     resolveBook: options.resolveBook,
     notes,
-    refresh: async bookId => (options.getSettings().notes[bookId] ? rebuildNotesContext(bookId) : 0),
+    refresh: async bookId => (effectiveNotesEnabled(options.getSettings(), bookId) ? rebuildNotesContext(bookId) : 0),
   })
 
   const { noteDrafts, noteDraftCreate } = createDraftHandlers({
@@ -64,7 +65,7 @@ export function createNotesService(options: NotesServiceOptions) {
     resolveBook: options.resolveBook,
     loadSettings: options.loadSettings,
     store: async () => createNoteDraftStore(options.dataDir, await noteFiles.store()),
-    refreshNotes: async bookId => (options.getSettings().notes[bookId] ? rebuildNotesContext(bookId) : 0),
+    refreshNotes: async bookId => (effectiveNotesEnabled(options.getSettings(), bookId) ? rebuildNotesContext(bookId) : 0),
   })
 
   const exporter = createNotesExport({
@@ -90,6 +91,7 @@ export function createNotesService(options: NotesServiceOptions) {
     notesContextFor: context.notesContextFor,
     exportNotes: exporter.exportNotes,
     exportNotesArchive: exporter.exportNotesArchive,
+    setNotesGlobal: context.setNotesGlobal,
     openNoteFile: exporter.openNoteFile,
   }
 }

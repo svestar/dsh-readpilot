@@ -1,6 +1,6 @@
 import type { MediaRoute, HostModule } from './types.ts'
 import type { CompanionSettings } from '../shared/contracts/companion.ts'
-import { DEFAULT_COMPANION_SETTINGS, effectiveMemoryState } from '../shared/contracts/companion.ts'
+import { DEFAULT_COMPANION_SETTINGS, effectiveMemoryState, effectiveNotesEnabled } from '../shared/contracts/companion.ts'
 import type { ReaderState } from '../shared/contracts/library.ts'
 import { createRouter, type Router } from './router.ts'
 import { createMediaModule } from './modules/media/index.ts'
@@ -124,7 +124,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     noteFiles: notes.noteFiles,
     setTags: async (bookId, tags) => (await library.setBookTags({ bookId, tags })).tags,
     setStatus: async (bookId, status) => (await library.setBookStatus({ bookId, status })).status,
-    notesEnabled: bookId => getSettings().notes[bookId] === true,
+    notesEnabled: bookId => effectiveNotesEnabled(getSettings(), bookId),
     rebuildNotesContext: bookId => notes.rebuildNotesContext(bookId),
     refreshCompanionContexts: bookId => companionRef.current?.service.refreshCompanionContexts(bookId) ?? Promise.resolve(),
   })
@@ -139,7 +139,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     setSettings,
     loadSettings,
     notes: {
-      enabled: bookId => getSettings().notes[bookId] === true,
+      enabled: bookId => effectiveNotesEnabled(getSettings(), bookId),
       rebuild: bookId => notes.rebuildNotesContext(bookId),
     },
     memory: {
@@ -199,7 +199,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     notes: notes.notes,
     reading,
     recordReaderReceipt: input => actions.recordReaderReceipt(input),
-    notesEnabled: bookId => getSettings().notes[bookId] === true,
+    notesEnabled: bookId => effectiveNotesEnabled(getSettings(), bookId),
     rebuildNotesContext: bookId => notes.rebuildNotesContext(bookId),
   })
 

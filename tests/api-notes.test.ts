@@ -296,3 +296,25 @@ test('export_notes_archive_rpc', async t => {
   assert.ok(bodies.some(body => body.includes('整书正文')))
   assert.ok(bodies.some(body => body.includes('章节正文')))
 })
+
+test('notes_context_global_toggle', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  await api.handleRpc('noteFiles', { action: 'create', bookId, title: '权力', body: '黑暗森林' })
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: '第一章' })
+
+  const enabled = await api.handleRpc('setNotesGlobal', { enabled: true })
+  assert.equal(enabled.ok, true)
+  assert.equal(enabled.value.enabled, true)
+  assert.equal((await api.state()).companion.notesGlobal, true)
+  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+
+  const disabled = await api.handleRpc('setNotesGlobal', { enabled: false })
+  assert.equal(disabled.ok, true)
+  assert.equal(disabled.value.enabled, false)
+  assert.equal((await api.state()).companion.notesGlobal, false)
+  assert.equal(api.notesContextFor('s1'), '')
+})

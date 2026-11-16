@@ -47,9 +47,11 @@ export function useReaderComposer({
 }: ReaderComposerOptions) {
   const [noteContextBusy, setNoteContextBusy] = React.useState(false)
   const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
-  const noteContextEnabled = Boolean(activeBookId && snapshot?.companion?.notes?.[activeBookId])
+  const [notesGlobalBusy, setNotesGlobalBusy] = React.useState(false)
+  const notesGlobal = Boolean(snapshot?.companion?.notesGlobal)
+  const noteContextEnabled = Boolean(activeBookId && (notesGlobal || snapshot?.companion?.notes?.[activeBookId]))
   const toggleNoteContext = React.useCallback(async () => {
-    if (!activeBookId) return
+    if (!activeBookId || notesGlobal) return
     const bookId = activeBookId
     setNoteContextBusy(true)
     setError('')
@@ -62,6 +64,7 @@ export function useReaderComposer({
         else delete notes[bookId]
         const companion = previous.companion ?? {
           notes: {},
+          notesGlobal: false,
           memory: { mode: 'off' as const, books: {} },
           autoApplyNotes: false,
         }
@@ -73,7 +76,31 @@ export function useReaderComposer({
     } finally {
       setNoteContextBusy(false)
     }
-  }, [activeBookId, call, noteContextEnabled, setError, setSnapshot, t])
+  }, [activeBookId, call, noteContextEnabled, notesGlobal, setError, setSnapshot, t])
+
+  const toggleNotesGlobal = React.useCallback(async () => {
+    if (notesGlobalBusy) return
+    setNotesGlobalBusy(true)
+    setError('')
+    try {
+      const result = await call('setNotesGlobal', { enabled: !notesGlobal })
+      setSnapshot(previous => {
+        if (!previous) return previous
+        const companion = previous.companion ?? {
+          notes: {},
+          notesGlobal: false,
+          memory: { mode: 'off' as const, books: {} },
+          autoApplyNotes: false,
+        }
+        return { ...previous, companion: { ...companion, notesGlobal: result.enabled } }
+      })
+      setNoteContextCharacters(0)
+    } catch (cause) {
+      setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
+    } finally {
+      setNotesGlobalBusy(false)
+    }
+  }, [call, notesGlobal, notesGlobalBusy, setError, setSnapshot, t])
 
   React.useEffect(() => {
     setNoteContextCharacters(0)
@@ -83,7 +110,10 @@ export function useReaderComposer({
     enabled: noteContextEnabled,
     busy: noteContextBusy,
     characters: noteContextCharacters,
+    global: notesGlobal,
+    globalBusy: notesGlobalBusy,
     toggle: toggleNoteContext,
+    toggleGlobal: toggleNotesGlobal,
   }
 
   const autoApplyNotes = Boolean(snapshot?.companion?.autoApplyNotes)

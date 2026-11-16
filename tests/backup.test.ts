@@ -191,6 +191,7 @@ test('backup_restore_migrates_presets_memory_and_companion', async t => {
   await writeFile(join(sourceData, 'memory', `${sourceBookId}.md`), 'book memory', 'utf8')
   await writeFile(join(sourceData, 'memory', 'reader.md'), 'reader memory', 'utf8')
   await source.setNoteContext({ bookId: sourceBookId, enabled: true })
+  await source.setNotesGlobal({ enabled: true })
   const backup = await source.backupExport()
 
   await copyFile(join(sourceLibrary, 'demo.txt'), join(targetLibrary, 'target.txt'))
@@ -202,4 +203,5 @@ test('backup_restore_migrates_presets_memory_and_companion', async t => {
   assert.equal(await readFile(join(targetData, 'memory', 'reader.md'), 'utf8'), 'reader memory')
   assert.equal(await readFile(join(targetData, 'presets.json'), 'utf8'), '{"version":3,"presets":[]}\n')
   assert.equal((await target.state()).companion.notes[targetBookId], true)
+  assert.equal((await target.state()).companion.notesGlobal, true)
 })

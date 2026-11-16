@@ -55,6 +55,7 @@ export async function loadCompanionSettings(dataDir: string): Promise<CompanionS
   const record = value && typeof value === 'object' ? value as Record<string, unknown> : {}
   return {
     notes: notesOf(record.notes),
+    notesGlobal: record.notesGlobal === true,
     memory: memoryOf(record.memory),
     autoApplyNotes: record.autoApplyNotes === true,
   }

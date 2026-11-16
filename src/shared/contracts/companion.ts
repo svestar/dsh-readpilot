@@ -71,14 +71,21 @@ export interface CompanionMemorySettings {
 
 export interface CompanionSettings {
   notes: Record<string, boolean>
+  notesGlobal?: boolean
   memory: CompanionMemorySettings
   autoApplyNotes: boolean
 }
 
 export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   notes: {},
+  notesGlobal: false,
   memory: { mode: 'off', books: {} },
   autoApplyNotes: false,
+}
+
+/** A global notes switch applies to every book; per-book switches still work when it is off. */
+export function effectiveNotesEnabled(settings: CompanionSettings, bookId: string): boolean {
+  return settings.notesGlobal === true || settings.notes[bookId] === true
 }
 
 /** Memory is opt-in: the global switch and the per-book override must both allow it. */

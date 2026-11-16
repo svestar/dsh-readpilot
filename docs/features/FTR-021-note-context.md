@@ -3,12 +3,12 @@
 - **ID：** FTR-021
 - **名称：** 笔记上下文
 - **状态：** active
-- **代码：** `src/host/modules/notes/context.ts`（`buildReadingNotes`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/host/api.ts`（`setNoteContext`、`notesContextFor`）；`src/host/modules/notes/context-service.ts`（`rebuildNotesContext`）；`index.ts`（`apply`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
+- **代码：** `src/host/modules/notes/context.ts`（`buildReadingNotes`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`、`saveCompanionSettings`）；`src/shared/contracts/companion.ts`（`effectiveNotesEnabled`）；`src/host/api.ts`（`setNoteContext`、`setNotesGlobal`、`notesContextFor`）；`src/host/modules/notes/context-service.ts`（`rebuildNotesContext`、`setNotesGlobal`）；`index.ts`（`apply`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
 - **测试：** `tests/notes-context.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
-右栏“长笔记”顶部有按书的开关“让伴读知道本书笔记”，默认关闭；状态保存在 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`。开关打开时，Host 读取该书全部长笔记与有正文的批注，生成 `<reading_notes>` 文本并缓存；`systemPrompt.context` 的笔记条目只向当前阅读该书卷的伴读会话注入，关闭时返回空字符串。注入总量上限约 24k 字符，单篇长笔记 4k，批注合计 4k；超出的单篇截断并写明 `notes/...` 路径，未注入的笔记列在“未注入的笔记”下。开关、长笔记增删改、短笔记增删改和打开书籍都会重建缓存；开关状态在下次打开阅读器时从设置恢复。
+右栏“长笔记”顶部有按书开关“让伴读知道本书笔记”和全局开关“全局：让伴读知道所有书笔记”，默认关闭；状态保存在 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]` 与 `notesGlobal`。全局开关开启时所有书生效，按书开关禁用；全局关闭后恢复按书设置。开关打开时，Host 读取该书全部长笔记与有正文的批注，生成 `<reading_notes>` 文本并缓存；`systemPrompt.context` 的笔记条目只向当前阅读该书卷的伴读会话注入，关闭时返回空字符串。注入总量上限约 24k 字符，单篇长笔记 4k，批注合计 4k；超出的单篇截断并写明 `notes/...` 路径，未注入的笔记列在“未注入的笔记”下。开关、长笔记增删改、短笔记增删改和打开书籍都会重建缓存；开关状态在下次打开阅读器时从设置恢复。
 
 ## 接口与代码映射
 
@@ -17,6 +17,8 @@
 | `buildReadingNotes` | `src/host/modules/notes/context.ts:buildReadingNotes` | 按预算拼装笔记、批注与未注入路径 |
 | `loadCompanionSettings` / `saveCompanionSettings` | `src/host/modules/companion/settings-store.ts:loadCompanionSettings`；`src/host/modules/companion/settings-store.ts:saveCompanionSettings` | 读取/保存按书的笔记开关 |
 | `setNoteContext` | `src/host/api.ts:setNoteContext` | 切换开关并重建该书的上下文 |
+| `setNotesGlobal` | `src/host/api.ts:setNotesGlobal` | 切换全局笔记开关并刷新活动会话 |
+| `effectiveNotesEnabled` | `src/shared/contracts/companion.ts:effectiveNotesEnabled` | 全局或按书开关的有效值 |
 | `notesContextFor` | `src/host/api.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
 | `rebuildNotesContext` | `src/host/modules/notes/context-service.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
 | `apply` | `index.ts:apply` | 注册笔记动态上下文 |
@@ -29,5 +31,6 @@
 ## 验收与测试
 
 - 正常路径：长笔记与有正文的批注被拼进 `<reading_notes>`，包含书名、标题、正文与批注（`notes_context_builds_notes_and_highlights`）。
+- 正常路径：全局开关打开后活动会话的笔记上下文可用，关闭后又恢复空（`notes_context_global_toggle`）。
 - 边界：单篇超长时截断、总量超限时省略并列出未注入路径（`notes_context_truncates_and_lists_paths`）。
 - 边界：没有笔记和批注时返回空字符串（`notes_context_empty_returns_empty`）。
