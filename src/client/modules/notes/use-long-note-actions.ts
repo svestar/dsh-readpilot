@@ -30,7 +30,6 @@ export function useLongNoteActions({
   const [historyOpen, setHistoryOpen] = React.useState(false)
   const [historyBusy, setHistoryBusy] = React.useState(false)
   const [exporting, setExporting] = React.useState(false)
-  const [exportStatus, setExportStatus] = React.useState('')
   const [externalBusy, setExternalBusy] = React.useState(false)
 
   const confirm = React.useCallback((message: string) => new Promise<boolean>(resolve => {
@@ -55,10 +54,6 @@ export function useLongNoteActions({
     setHistory([])
     setHistoryOpen(false)
     setHistoryBusy(false)
-  }, [])
-
-  const resetTransfer = React.useCallback(() => {
-    setExportStatus('')
   }, [])
 
   const loadHistory = React.useCallback(async () => {
@@ -147,22 +142,15 @@ export function useLongNoteActions({
     }
   }, [active, activeBookId, call, confirm, historyBusy, loadHistory, t])
 
-  const clearExportStatus = React.useCallback(() => setExportStatus(''), [])
-
-  const exportNotes = React.useCallback(async (save: boolean) => {
+  const exportNotes = React.useCallback(async () => {
     if (!activeBookId || exporting) return
     const bookId = activeBookId
     setExporting(true)
-    setExportStatus('')
     setError('')
     try {
-      const value = await call('exportNotes', { bookId, save })
+      const value = await call('exportNotes', { bookId })
       if (bookRef.current !== bookId) return
-      if (save) {
-        setExportStatus(value.path ? `${t('exportSaved')}：${value.path}` : t('exportSaved'))
-      } else {
-        downloadText(value.fileName, value.markdown)
-      }
+      downloadText(value.fileName, value.markdown)
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause)}`)
     } finally {
@@ -170,19 +158,18 @@ export function useLongNoteActions({
     }
   }, [activeBookId, call, exporting, t])
 
-  const exportNotesArchive = React.useCallback(async (save: boolean) => {
+  const exportNotesArchive = React.useCallback(async () => {
     if (!activeBookId || exporting) return
     const bookId = activeBookId
     setExporting(true)
-    setExportStatus('')
     setError('')
     try {
-      const value = await call('exportNotesArchive', { bookId, save })
+      const value = await call('exportNotesArchive', { bookId })
       if (bookRef.current !== bookId) return
-      if (save) {
-        setExportStatus(value.path ? `${t('exportSaved')}：${value.path}` : t('exportSaved'))
-      } else if (typeof value.base64 === 'string' && value.base64) {
+      if (typeof value.base64 === 'string' && value.base64) {
         downloadZip(value.fileName, value.base64)
+      } else {
+        throw new Error('导出内容为空')
       }
     } catch (cause) {
       if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause)}`)
@@ -218,10 +205,7 @@ export function useLongNoteActions({
     removeHistory,
     clearHistory,
     exporting,
-    exportStatus,
     externalBusy,
-    clearExportStatus,
-    resetTransfer,
     exportNotes,
     exportNotesArchive,
     openExternal,

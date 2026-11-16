@@ -95,7 +95,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     setError,
     load,
   })
-  const { resetHistory, resetTransfer, confirm } = longActions
+  const { resetHistory, confirm } = longActions
 
   React.useEffect(() => {
     requestRef.current += 1
@@ -111,9 +111,8 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     setDrafts([])
     setDraftBusyId(null)
     resetHistory()
-    resetTransfer()
     void load()
-  }, [activeBookId, load, resetHistory, resetTransfer])
+  }, [activeBookId, load, resetHistory])
 
   React.useEffect(() => {
     if (!activeBookId || !notesTabActive) return
@@ -168,7 +167,6 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       setCreating(false)
       setTitle('')
       resetHistory()
-      resetTransfer()
     } catch (cause) {
       if (readRef.current === request && bookRef.current === bookId) {
         setError(`${t('notesFailed')}：${messageOf(cause)}`)
@@ -200,7 +198,6 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     setCreateKind(kind)
     setError('')
     resetHistory()
-    resetTransfer()
     setTitle(kind === 'book' ? t('bookNote') : '')
   }, [notes, open, t])
 
@@ -341,8 +338,6 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     historyOpen: longActions.historyOpen,
     historyBusy: longActions.historyBusy,
     exporting: longActions.exporting,
-    exportStatus: longActions.exportStatus,
-    clearExportStatus: longActions.clearExportStatus,
     externalBusy: longActions.externalBusy,
     confirmMessage: longActions.confirmMessage,
     settleConfirm: longActions.settleConfirm,

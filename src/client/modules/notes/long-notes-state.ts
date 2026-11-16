@@ -16,8 +16,6 @@ export interface LongNotesState {
   historyOpen: boolean
   historyBusy: boolean
   exporting: boolean
-  exportStatus: string
-  clearExportStatus: () => void
   externalBusy: boolean
   confirmMessage: string
   settleConfirm: (ok: boolean) => void
@@ -35,8 +33,8 @@ export interface LongNotesState {
   restoreHistory: (entry: LongNoteHistory) => Promise<void>
   removeHistory: (entry: LongNoteHistory) => Promise<void>
   clearHistory: () => Promise<void>
-  exportNotes: (save: boolean) => Promise<void>
-  exportNotesArchive: (save: boolean) => Promise<void>
+  exportNotes: () => Promise<void>
+  exportNotesArchive: () => Promise<void>
   openExternal: () => Promise<void>
   applyExternalNote: (value: any) => void
 }

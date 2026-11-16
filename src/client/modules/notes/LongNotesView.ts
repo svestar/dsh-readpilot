@@ -1,4 +1,4 @@
-import { React, Toast, h, useVirtualizer } from '../../runtime.ts'
+import { React, h, useVirtualizer } from '../../runtime.ts'
 import { buildNoteResource } from './note-resource.ts'
 import { diffLines, formatSize } from '../../lib/helpers.ts'
 import { DshMarkdown } from '../markdown/DshMarkdown.ts'
@@ -184,20 +184,14 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
         type: 'button',
         className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
         disabled: state.exporting,
-        onClick: () => void state.exportNotes(false),
+        onClick: () => void state.exportNotes(),
       }, t('exportNotes')),
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
         disabled: state.exporting,
-        onClick: () => void state.exportNotesArchive(false),
-      }, t('exportZip')),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
-        disabled: state.exporting,
-        onClick: () => void state.exportNotes(true),
-      }, t('exportSave'))),
+        onClick: () => void state.exportNotesArchive(),
+      }, t('exportZip'))),
     noteContext
       ? h('button', {
         type: 'button',
@@ -318,13 +312,6 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
             ? null
             : h('div', { className: 'dsh-readpilot-long-hint' }, t('openExternalHint')),
         ],
-      })
-      : null,
-    state.exportStatus
-      ? h(Toast, {
-        text: state.exportStatus,
-        tone: 'success',
-        onDone: state.clearExportStatus,
       })
       : null,
     state.active && useResource
