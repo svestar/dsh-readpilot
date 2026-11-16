@@ -19,9 +19,6 @@ function lookupBook(call: CallRpc, sessionId: string) {
     .then(value => (value && typeof value.bookId === 'string' ? value : null))
     .catch(() => null)
   bookCache.set(sessionId, pending)
-  void pending.then(value => {
-    if (!value && bookCache.get(sessionId) === pending) bookCache.delete(sessionId)
-  })
   return pending
 }
 
