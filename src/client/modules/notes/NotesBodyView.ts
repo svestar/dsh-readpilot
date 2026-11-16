@@ -201,7 +201,7 @@ export function NotesBody({ t, notesError, notesLoading, annotations, bookmarks,
                 sectionHead('bookmarks', t('bookmarks'), visibleBookmarks.length),
                 collapsed.bookmarks ? null : visibleBookmarks.map(bookmark => {
                   const context = bookmarkContexts(bookmark.chapterId)
-                  const title = context.chapterTitle || bookmark.note || t('bookmark')
+                  const title = bookmark.note || context.chapterTitle || t('bookmark')
                   const detail = bookmark.annotation
                     || (context.pageLabel && context.pageLabel !== context.chapterTitle ? context.pageLabel : '')
                   return h('div', { key: bookmark.id, className: 'dsh-readpilot-note dsh-readpilot-mark-bookmark' },

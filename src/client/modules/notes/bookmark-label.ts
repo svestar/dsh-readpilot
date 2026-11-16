@@ -3,7 +3,7 @@ import type { Screen } from '../../lib/types.ts'
 export function bookmarkContext(screen: Screen, chapterId: string | null): { chapterTitle: string; pageLabel: string } {
   if (!screen || screen.kind !== 'book') return { chapterTitle: '', pageLabel: '' }
   const item = screen.detail.toc.find(entry => entry.id === chapterId)
-  const fallback = screen.content?.title || item?.title || ''
+  const fallback = item?.title || screen.content?.title || ''
   if (screen.detail.book.format !== 'pdf') {
     return { chapterTitle: fallback, pageLabel: '' }
   }

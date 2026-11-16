@@ -86,6 +86,22 @@ test('bookmark_uses_pdf_outline_chapter', () => {
   })
 })
 
+test('bookmark_label_stays_with_its_chapter', () => {
+  const screen = {
+    kind: 'book',
+    detail: {
+      book: { format: 'pdf' },
+      toc: [{ id: 'c125', title: '第 125 页', page: 125 }],
+      outline: [],
+    },
+    content: { title: '第 126 页' },
+  }
+  assert.deepEqual(bookmarkContext(screen as any, 'c125'), {
+    chapterTitle: '第 125 页',
+    pageLabel: '',
+  })
+})
+
 test('pdf_double_page_resolves_next_chapter_by_page', () => {
   const screen = {
     kind: 'book',
