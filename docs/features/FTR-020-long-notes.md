@@ -10,7 +10,7 @@
 
 长笔记保存在书库工作区的可见目录 `<library>/notes/`。首次创建时写入 `.dsh-readpilot-notes` 标记；`scanLibrary` 只在标记存在时跳过名为 `notes` 的目录。每本书一个子目录 `<书名 slug>-<bookId 前 8 位>`，`.book.json` 记录 `bookId`；`book.md` 是整书笔记，其余 `.md` 是主题笔记。笔记使用 front-matter 记录 `id/kind/title/bookId/created/updated`，不生成 `index.md`，索引由 Host 扫描构建。
 
-右栏“长笔记”标签显示整书笔记按钮、新建主题笔记按钮、笔记列表；点开后弹出只读预览窗口，编辑通过“外部编辑器”打开文件。预览提供刷新、历史、删除、返回；正文用 DSH Markdown。预览时通过 note 资源流每 2 秒刷新；无 `useResource` 时手动刷新。划线、批注、书签与短笔记仍走 FTR-008/FTR-018 的 JSON 存储，显示在“笔记”标签。伴读写长笔记后列表在助手消息结束时刷新；打开面板时每 4 秒静默比对草稿。
+右栏“长笔记”显示整书笔记、新建主题笔记按钮与笔记列表；点开弹出只读预览，编辑用“外部编辑器”打开。预览提供刷新、历史、删除、返回；正文用 DSH Markdown。预览经 note 资源流每 2 秒刷新；无 `useResource` 时手动刷新。划线、批注、书签与短笔记仍走 FTR-008/FTR-018 的 JSON 存储，显示在“笔记”标签。伴读写完在助手消息结束时刷新；打开面板每 4 秒比对草稿。
 
 ## 接口与代码映射
 
@@ -36,3 +36,5 @@
 - 正常路径：整书笔记固定为 `book.md`，重复创建被拒绝，删除后列表为空（`note_file_book_note_and_remove`）。
 - 边界：标题中的路径分隔符不会逃出书籍目录（`note_file_title_sanitized`）。
 - 正常路径：活动笔记资源地址可往返书与笔记 id，其他协议/形状返回 null（`note_resource_roundtrips_book_and_note`）。
+
+右上角设置可隐藏导出、笔记上下文与自动应用区块。

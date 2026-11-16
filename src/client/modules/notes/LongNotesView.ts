@@ -7,6 +7,9 @@ import { ModalShell } from '../common/ModalShell.ts'
 import type { NoteAutoApplyToggle, NoteContextToggle, TextFn } from '../../lib/types.ts'
 import type { LongNotesState } from './long-notes-state.ts'
 import type { LongNoteHistory } from '../../lib/types.ts'
+import { LongNotesDisplaySettings, readLongNotesDisplay, writeLongNotesDisplay } from './LongNotesDisplaySettings.ts'
+import { NoteContextCard } from './NoteContextCard.ts'
+import type { LongNotesDisplay } from './LongNotesDisplaySettings.ts'
 
 interface LongNotesProps {
   t: TextFn
@@ -92,6 +95,14 @@ function historyView(t: TextFn, state: LongNotesState) {
 
 export function LongNotes({ t, state, noteContext, autoApply, useResource }: LongNotesProps) {
   const [previewOpen, setPreviewOpen] = React.useState(false)
+  const [display, setDisplay] = React.useState<LongNotesDisplay>(readLongNotesDisplay)
+  const [settingsOpen, setSettingsOpen] = React.useState(false)
+
+  React.useEffect(() => {
+    writeLongNotesDisplay(display)
+  }, [display])
+
+
   const showActions = !state.active && !state.creating
   const virtual = typeof useVirtualizer === 'function' && state.notes.length > 30
   const renderNote = (note: any) => h('button', {
@@ -166,65 +177,47 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
           h('h3', null, t('longNotes')),
           h('span', { className: 'dsh-readpilot-page-count' }, String(state.notes.length))),
         h('p', { className: 'dsh-readpilot-page-subtitle' }, t('longNotesPageHint'))),
-      showActions
-        ? h('div', { className: 'dsh-readpilot-page-actions' },
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
-            onClick: () => state.beginCreate('book'),
-          }, t('bookNote')),
-          h('button', {
-            type: 'button',
-            className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
-            onClick: () => state.beginCreate('topic'),
-          }, t('newTopicNote')))
-        : null),
-    h('div', { className: 'dsh-readpilot-page-toolbar' },
+      h('div', { className: 'dsh-readpilot-page-actions' },
+        showActions
+          ? [
+            h('button', {
+              key: 'book',
+              type: 'button',
+              className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
+              onClick: () => state.beginCreate('book'),
+            }, t('bookNote')),
+            h('button', {
+              key: 'topic',
+              type: 'button',
+              className: 'dsh-readpilot-note-jump dsh-readpilot-pill',
+              onClick: () => state.beginCreate('topic'),
+            }, t('newTopicNote')),
+          ]
+          : null,
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
+          title: t('longNotesDisplaySettings'),
+          'aria-label': t('longNotesDisplaySettings'),
+          onClick: () => setSettingsOpen(true),
+        }, t('settings')))),
+    display.exportTools
+      ? h('div', { className: 'dsh-readpilot-page-toolbar' },
+        h('button', {
+          type: 'button',
+          className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
+          disabled: state.exporting,
+          onClick: () => void state.exportNotes(),
+        }, t('exportNotes')),
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
         disabled: state.exporting,
-        onClick: () => void state.exportNotes(),
-      }, t('exportNotes')),
-      h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
-        disabled: state.exporting,
-        onClick: () => void state.exportNotesArchive(),
-      }, t('exportZip'))),
-    noteContext
-      ? h('div', { className: 'dsh-readpilot-card dsh-readpilot-memory-controls' },
-        h('div', { className: 'dsh-readpilot-section-head' },
-          h('h4', null, t('noteContextTitle'))),
-        h('div', { className: 'dsh-readpilot-control-row' },
-          h('span', { className: 'dsh-readpilot-control-label' }, t('memoryDefaultMode')),
-          h('div', { className: 'dsh-readpilot-segmented' },
-            ([false, true] as const).map(enabled => h('button', {
-              key: String(enabled),
-              type: 'button',
-              className: 'dsh-readpilot-segment',
-              'data-active': noteContext.global === enabled ? 'true' : 'false',
-              disabled: noteContext.busy,
-              onClick: () => void noteContext.setGlobal(enabled),
-            }, enabled ? t('memoryModeOn') : t('memoryModeOff'))))),
-        h('div', { className: 'dsh-readpilot-control-row' },
-          h('span', { className: 'dsh-readpilot-control-label' }, t('memoryThisBook')),
-          h('div', { className: 'dsh-readpilot-segmented' },
-            (['inherit', 'on', 'off'] as const).map(state => h('button', {
-              key: state,
-              type: 'button',
-              className: 'dsh-readpilot-segment',
-              'data-active': noteContext.state === state ? 'true' : 'false',
-              disabled: noteContext.busy,
-              onClick: () => void noteContext.setBookState(state),
-            }, state === 'on' ? t('memoryBookOn') : state === 'off' ? t('memoryBookOff') : t('memoryBookInherit')))),
-          h('span', {
-            className: 'dsh-readpilot-status-pill',
-            'data-state': noteContext.enabled ? 'on' : 'off',
-          }, `${t('memoryEffective')} ${noteContext.enabled ? t('memoryEffectiveOn') : t('memoryEffectiveOff')}`)),
-        h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('noteContextHint')))
+          onClick: () => void state.exportNotesArchive(),
+        }, t('exportZip')))
       : null,
-    autoApply
+    display.context && noteContext ? h(NoteContextCard, { t, noteContext }) : null,
+    display.autoApply && autoApply
       ? h('button', {
         type: 'button',
         className: 'dsh-readpilot-note-context dsh-readpilot-note-auto',
@@ -330,6 +323,14 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
         useResource,
         address: buildNoteResource(state.active.note.bookId, state.active.note.id),
         onValue: state.applyExternalNote,
+      })
+      : null,
+    settingsOpen
+      ? h(LongNotesDisplaySettings, {
+        t,
+        display,
+        onChange: setDisplay,
+        onClose: () => setSettingsOpen(false),
       })
       : null,
     h(ConfirmDialog, {
