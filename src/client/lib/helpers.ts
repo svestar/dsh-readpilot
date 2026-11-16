@@ -12,9 +12,8 @@ export function pdfChapterIdForPage(screen: Screen, page: number, fallbackChapte
   return match ? `c${String(page).padStart(3, '0')}` : fallbackChapterId
 }
 
-export function downloadText(fileName: string, text: string): void {
+function saveBlob(fileName: string, blob: Blob): void {
   if (typeof document === 'undefined' || typeof URL === 'undefined' || !document.body) return
-  const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' })
   const url = URL.createObjectURL(blob)
   const anchor = document.createElement('a')
   anchor.href = url
@@ -24,6 +23,18 @@ export function downloadText(fileName: string, text: string): void {
   anchor.click()
   anchor.remove()
   setTimeout(() => URL.revokeObjectURL(url), 0)
+}
+
+export function downloadText(fileName: string, text: string): void {
+  saveBlob(fileName, new Blob([text], { type: 'text/markdown;charset=utf-8' }))
+}
+
+export function downloadZip(fileName: string, base64: string): void {
+  if (typeof atob !== 'function') return
+  const binary = atob(base64)
+  const bytes = new Uint8Array(binary.length)
+  for (let index = 0; index < binary.length; index += 1) bytes[index] = binary.charCodeAt(index)
+  saveBlob(fileName, new Blob([bytes], { type: 'application/zip' }))
 }
 
 export function formatSize(bytes: unknown): string {

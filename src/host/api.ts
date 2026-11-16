@@ -107,6 +107,7 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     toolNoteFiles: (payload?: any) => deps.notes.toolNoteFiles(payload),
     openNoteFile: (payload?: any) => deps.notes.openNoteFile(payload),
     exportNotes: (payload?: any) => deps.notes.exportNotes(payload),
+    exportNotesArchive: (payload?: any) => deps.notes.exportNotesArchive(payload),
     search: (payload?: any) => deps.search(payload),
     libraryMeta: () => deps.libraryMeta(),
     setBookTags: (payload?: any) => deps.library.setBookTags(payload),

@@ -1,7 +1,9 @@
-import { mkdir, stat, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import JSZip from 'jszip'
 import type { Settings } from '../../../shared/contracts/library.ts'
 import type { LibraryMeta } from '../../../shared/contracts/library.ts'
+import type { NotesArchiveResult } from '../../../shared/contracts/notes.ts'
 import type { OpenResult } from '../../../shared/contracts/reading.ts'
 import type { Book } from '../library/book.ts'
 import type { NoteFileStore } from './files/index.ts'
@@ -18,6 +20,10 @@ export interface NotesExportDependencies {
   notes: NotesStore
   libraryMeta(): Promise<LibraryMeta>
   currentSettings(): Promise<Settings>
+}
+
+function safeFileTitle(title: string, fallback: string): string {
+  return title.replace(/[\\/:*?"<>|]/g, '-').trim() || fallback
 }
 
 export function createNotesExport(deps: NotesExportDependencies) {
@@ -87,7 +93,7 @@ export function createNotesExport(deps: NotesExportDependencies) {
       notes,
       marks,
     })
-    const safeTitle = book.title.replace(/[\\/:*?"<>|]/g, '-').trim() || '阅读笔记'
+    const safeTitle = safeFileTitle(book.title, '阅读笔记')
     const fileName = `${safeTitle}-阅读笔记.md`
     if (save !== true) return { markdown, fileName }
     const settings = await deps.currentSettings()
@@ -98,5 +104,49 @@ export function createNotesExport(deps: NotesExportDependencies) {
     return { markdown, fileName, path: `notes/.exports/${fileName}` }
   }
 
-  return { openNoteFile, exportNotes }
+  async function exportNotesArchive({ bookId, save }: any = {}): Promise<NotesArchiveResult> {
+    const book = await deps.resolveBook(bookId)
+    const store = await deps.store()
+    const files = await store.list(book)
+    const settings = await deps.currentSettings()
+    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
+    const zip = new JSZip()
+    const entries: NotesArchiveResult['notes'] = []
+    for (const file of files) {
+      const entry = {
+        id: file.id,
+        kind: file.kind,
+        title: file.title,
+        path: file.path,
+        size: file.size,
+        hash: file.hash,
+      }
+      try {
+        const target = noteFilePath(settings.libraryDir, file.path)
+        zip.file(file.path, await readFile(target))
+        entries.push(entry)
+      } catch {
+        entries.push({ ...entry, missing: true })
+      }
+    }
+    zip.file('manifest.json', `${JSON.stringify({
+      version: 1,
+      bookId: book.id,
+      bookTitle: book.title,
+      exportedAt: Date.now(),
+      notes: entries,
+    }, null, 2)}\n`)
+    const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
+    const safeTitle = safeFileTitle(book.title, '阅读笔记')
+    const fileName = `${safeTitle}-长笔记.zip`
+    if (save !== true) {
+      return { base64: buffer.toString('base64'), fileName, count: files.length, notes: entries }
+    }
+    const dir = join(settings.libraryDir, NOTES_DIR_NAME, '.exports')
+    await mkdir(dir, { recursive: true })
+    await writeFile(join(dir, fileName), buffer)
+    return { fileName, count: files.length, path: `notes/.exports/${fileName}`, notes: entries }
+  }
+
+  return { openNoteFile, exportNotes, exportNotesArchive }
 }

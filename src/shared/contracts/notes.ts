@@ -11,6 +11,7 @@ export const NOTES_ENDPOINTS = {
   setNoteContext: 'setNoteContext',
   setAutoApplyNotes: 'setAutoApplyNotes',
   exportNotes: 'exportNotes',
+  exportNotesArchive: 'exportNotesArchive',
   openNoteFile: 'openNoteFile',
 } as const
 
@@ -57,6 +58,24 @@ export interface NoteFileContent {
   note: NoteFileRecord
   body: string
   hash: string
+}
+
+export interface NotesArchiveEntry {
+  id: string
+  kind: NoteFileKind
+  title: string
+  path: string
+  size: number
+  hash: string
+  missing?: boolean
+}
+
+export interface NotesArchiveResult {
+  base64?: string
+  fileName: string
+  count: number
+  path?: string
+  notes: NotesArchiveEntry[]
 }
 
 export interface NoteHistoryEntry {

@@ -361,6 +361,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     removeHistory: longActions.removeHistory,
     clearHistory: longActions.clearHistory,
     exportNotes: longActions.exportNotes,
+    exportNotesArchive: longActions.exportNotesArchive,
     openExternal: longActions.openExternal,
     applyExternalNote,
   }

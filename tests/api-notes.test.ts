@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import JSZip from 'jszip'
 import { createReaderApi, noteFilePath } from '../src/host/app.ts'
 import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 test('note_files_rpc_roundtrip', async t => {
@@ -270,4 +271,28 @@ test('note_file_path_is_relative_to_library', () => {
     () => noteFilePath(root, join('other', 'outside.md')),
     (error: any) => error?.code === 'invalid-note',
   )
+})
+
+test('export_notes_archive_rpc', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  await api.handleRpc('noteFiles', { action: 'create', bookId, kind: 'book', title: '整书笔记', body: '整书正文' })
+  await api.handleRpc('noteFiles', { action: 'create', bookId, title: '章节笔记', body: '章节正文' })
+
+  const exported = await api.handleRpc('exportNotesArchive', { bookId })
+  assert.equal(exported.ok, true)
+  assert.match(exported.value.fileName, /长笔记\.zip$/)
+  assert.equal(exported.value.count, 2)
+  const zip = await JSZip.loadAsync(Buffer.from(exported.value.base64, 'base64'))
+  const manifest = JSON.parse(await zip.file('manifest.json')!.async('string'))
+  assert.equal(manifest.bookId, bookId)
+  assert.equal(manifest.notes.length, 2)
+  const notes = Object.keys(zip.files).filter(name => name.endsWith('.md'))
+  assert.equal(notes.length, 2)
+  const bodies = await Promise.all(notes.map(name => zip.file(name)!.async('string')))
+  assert.ok(bodies.some(body => body.includes('整书正文')))
+  assert.ok(bodies.some(body => body.includes('章节正文')))
 })

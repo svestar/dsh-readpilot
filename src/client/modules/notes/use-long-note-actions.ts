@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { downloadText, messageOf } from '../../lib/helpers.ts'
+import { downloadText, downloadZip, messageOf } from '../../lib/helpers.ts'
 import type { CallRpc, LongNoteHistory, TextFn } from '../../lib/types.ts'
 import type { LongNoteDraft } from './use-long-notes.ts'
 
@@ -170,6 +170,27 @@ export function useLongNoteActions({
     }
   }, [activeBookId, call, exporting, t])
 
+  const exportNotesArchive = React.useCallback(async (save: boolean) => {
+    if (!activeBookId || exporting) return
+    const bookId = activeBookId
+    setExporting(true)
+    setExportStatus('')
+    setError('')
+    try {
+      const value = await call('exportNotesArchive', { bookId, save })
+      if (bookRef.current !== bookId) return
+      if (save) {
+        setExportStatus(value.path ? `${t('exportSaved')}：${value.path}` : t('exportSaved'))
+      } else if (typeof value.base64 === 'string' && value.base64) {
+        downloadZip(value.fileName, value.base64)
+      }
+    } catch (cause) {
+      if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause)}`)
+    } finally {
+      setExporting(false)
+    }
+  }, [activeBookId, call, exporting, t])
+
   const openExternal = React.useCallback(async () => {
     if (!activeBookId || !active || externalBusy) return
     const bookId = activeBookId
@@ -202,6 +223,7 @@ export function useLongNoteActions({
     clearExportStatus,
     resetTransfer,
     exportNotes,
+    exportNotesArchive,
     openExternal,
   }
 }

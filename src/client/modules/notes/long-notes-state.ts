@@ -36,6 +36,7 @@ export interface LongNotesState {
   removeHistory: (entry: LongNoteHistory) => Promise<void>
   clearHistory: () => Promise<void>
   exportNotes: (save: boolean) => Promise<void>
+  exportNotesArchive: (save: boolean) => Promise<void>
   openExternal: () => Promise<void>
   applyExternalNote: (value: any) => void
 }

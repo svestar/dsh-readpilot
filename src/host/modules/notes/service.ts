@@ -89,6 +89,7 @@ export function createNotesService(options: NotesServiceOptions) {
     setAutoApplyNotes: context.setAutoApplyNotes,
     notesContextFor: context.notesContextFor,
     exportNotes: exporter.exportNotes,
+    exportNotesArchive: exporter.exportNotesArchive,
     openNoteFile: exporter.openNoteFile,
   }
 }

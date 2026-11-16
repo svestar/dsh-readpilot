@@ -190,6 +190,12 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
         type: 'button',
         className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
         disabled: state.exporting,
+        onClick: () => void state.exportNotesArchive(false),
+      }, t('exportZip')),
+      h('button', {
+        type: 'button',
+        className: 'dsh-readpilot-note-jump dsh-readpilot-tool-btn',
+        disabled: state.exporting,
         onClick: () => void state.exportNotes(true),
       }, t('exportSave'))),
     noteContext
