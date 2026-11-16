@@ -201,6 +201,8 @@ export const READER_STYLES = `.dsh-readpilot-search-hint[data-error="true"]{colo
 .dsh-readpilot-mark-section{margin-bottom:10px;padding:10px 11px}
 .dsh-readpilot-mark-section .dsh-readpilot-note{padding:10px 0}
 .dsh-readpilot-mark-section .dsh-readpilot-note:last-child{border-bottom:0}
+.dsh-readpilot-card.dsh-readpilot-mark-section:hover{background:var(--dsw-alias-bg-layer-1)}
+.dsh-readpilot-note:hover{background:var(--dsw-alias-bg-layer-2);border-radius:8px}
 .dsh-readpilot-list-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 2px;color:var(--dsw-alias-label-secondary);font-size:11px;font-weight:650;letter-spacing:.05em;text-transform:uppercase}
 .dsh-readpilot-long-notes{gap:10px}
 .dsh-readpilot-long-notes .dsh-readpilot-note-context{background:var(--dsw-alias-bg-layer-1)}
