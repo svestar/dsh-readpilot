@@ -2,7 +2,7 @@
 
 ## 职责划分
 
-- `docs/features/index.md` 是功能清单，6 列：ID、名称、文档路径、代码路径、测试路径、状态。新增、重命名或删除 FTR 时同步更新对应行，索引负责覆盖率。
+- `docs/features/index.md` 是功能清单，6 列：ID、名称、文档路径、代码路径、测试路径、状态。新增、重命名或删除 FTR 时同步更新对应行，索引负责覆盖率。`docs/features/navigation.md` 是按能力域浏览的入口，只做导航，不替代这张表；新增 FTR 时同步加入相应分组。
 - `docs/features/FTR-NNN.md` 只描述一个可独立验收的功能：行为、接口与代码映射、约束与失败行为、验收与测试。映射中的 `路径:符号` 必须在代码里真实存在，每条验收条目都必须在末尾括号内锚定测试文件中真实存在的符号。
 - `docs/decisions/` 存放跨功能、影响长期维护的 ADR；被取代时保留旧记录、标记 `superseded` 并链接取代者。
 - `docs/roadmap.md` 记录尚未实现的候选与排期，不描述现有行为；落地后转为 FTR 并从该页删除。
@@ -23,7 +23,7 @@
 ## 门禁
 
 - `pnpm run verify`：typecheck、boundaries、build、test、sizes、docs、package。
-- 文档门禁：`python scripts/check_docs.py`；门禁自测：`python scripts/test_check_docs.py`（两者都在 docs-check workflow 中）。
+- 文档门禁：`python scripts/check_docs.py`；门禁自测：`python scripts/test_check_docs.py`（两者都在 docs-check workflow 中）。门禁会校验 `navigation.md`：每个 FTR 必须恰好出现一次。
 - 合并前按 `docs/quality-gates.md` 逐项核对。
 
 ## 拆分与删除

@@ -94,6 +94,40 @@ class CheckDocsTest(unittest.TestCase):
         self.checker.check_code_annotations("doc", "`src/sample.ts`（`missingSymbol` 路由）")
         self.assertEqual(self.errors(), [])
 
+    def test_navigation_requires_every_feature_once(self) -> None:
+        features_dir = self.root / "docs" / "features"
+        features_dir.mkdir(parents=True)
+        features = [features_dir / "FTR-001-a.md", features_dir / "FTR-002-b.md"]
+        navigation = features_dir / "navigation.md"
+
+        navigation.write_text(
+            "- [FTR-001](FTR-001-a.md)\n- [FTR-002](FTR-002-b.md)\n",
+            encoding="utf-8",
+        )
+        self.checker.check_navigation(features)
+        self.assertEqual(self.errors(), [])
+
+        navigation.write_text("- [FTR-001](FTR-001-a.md)\n", encoding="utf-8")
+        self.checker.errors = []
+        self.checker.check_navigation(features)
+        self.assertTrue(any("功能导航缺少 FTR-002-b.md" in error for error in self.errors()))
+
+        navigation.write_text(
+            "- [FTR-001](FTR-001-a.md)\n- [FTR-001](FTR-001-a.md)\n",
+            encoding="utf-8",
+        )
+        self.checker.errors = []
+        self.checker.check_navigation(features)
+        self.assertTrue(any("功能导航重复 FTR-001-a.md" in error for error in self.errors()))
+
+        navigation.write_text(
+            "- [FTR-001](FTR-001-a.md)\n- [FTR-002](FTR-002-b.md)\n- [FTR-999](FTR-999-x.md)\n",
+            encoding="utf-8",
+        )
+        self.checker.errors = []
+        self.checker.check_navigation(features)
+        self.assertTrue(any("不存在的 FTR 文件" in error for error in self.errors()))
+
     def test_narration_is_rejected(self) -> None:
         self.checker.check_narration("doc", "本次修改了实现。")
         self.assertTrue(any("叙述了改动过程" in error for error in self.errors()))

@@ -1,5 +1,9 @@
 # 功能索引
 
+按能力域浏览：[功能分组导航](navigation.md)。完整代码、测试与验收以下方 6 列表格和各自的 FTR 为准。
+
+## 功能清单
+
 | ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状态 |
 |---|---|---|---|---|---|
 | `FTR-001` | 书库配置 | `docs/features/FTR-001-library.md` | `src/host/api.ts`（`configureLibrary`、`state`）；`src/host/modules/library/book.ts`（`scanLibrary`、`bookIdFor`） | `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/library.test.ts` | active |

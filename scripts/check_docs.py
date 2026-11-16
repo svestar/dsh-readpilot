@@ -7,6 +7,7 @@ defined in the test files that document itself declares. A stale path or a
 borrowed anchor is how docs and code drift apart unnoticed.
 """
 from pathlib import Path
+from collections import Counter
 import re
 import sys
 
@@ -21,6 +22,7 @@ DOC_MAX = 3000
 FEATURE_HEADINGS = ("## 行为", "## 接口与代码映射", "## 约束与失败行为", "## 验收与测试")
 ADR_HEADINGS = ("## 背景", "## 决策", "## 后果")
 INDEX_HEADER = "| ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状态 |"
+NAVIGATION_FILE = "docs/features/navigation.md"
 ROADMAP_HEADER = "| ID | 功能 | 解决什么问题 | 验收线索 | 优先级 | 排期 | 状态 |"
 # Backticked repo-relative file paths, as used by the `代码`/`测试` fields and the index.
 PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md))`")
@@ -127,6 +129,25 @@ def check_index_row(line: str) -> None:
                 errors.append(f"功能索引 {cells[0]} 的{label}不存在：{relative}")
 
 
+def check_navigation(features: list[Path]) -> None:
+    """Every feature file must appear exactly once in the grouped navigation."""
+    path = ROOT / NAVIGATION_FILE
+    if not path.is_file():
+        errors.append(f"缺少 {NAVIGATION_FILE}")
+        return
+    links = Counter(re.findall(r"\]\((FTR-[^)]+\.md)\)", read(path)))
+    expected = {feature.name for feature in features}
+    for name in sorted(expected):
+        count = links.get(name, 0)
+        if count == 0:
+            errors.append(f"功能导航缺少 {name}")
+        elif count > 1:
+            errors.append(f"功能导航重复 {name}：{count} 次")
+    for name in sorted(links):
+        if name not in expected:
+            errors.append(f"功能导航引用了不存在的 FTR 文件：{name}")
+
+
 def anchor_defined(anchor: str, text: str) -> bool:
     """The anchor must be a real test name or function, not a substring."""
     test = re.search(rf"(?:^|\n)\s*(?:test|it)\(\s*['\"`]{re.escape(anchor)}", text)
@@ -166,6 +187,7 @@ def main() -> int:
             check_hygiene(path, read(path))
 
     features = sorted((ROOT / "docs/features").glob("FTR-*.md"))
+    check_navigation(features)
     index = ROOT / "docs/features/index.md"
     index_text = read(index)
     if INDEX_HEADER not in index_text:
