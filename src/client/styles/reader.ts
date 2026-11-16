@@ -216,6 +216,8 @@ export const READER_STYLES = `.dsh-readpilot-search-hint[data-error="true"]{colo
 .dsh-readpilot-editor-card .dsh-readpilot-long-editor-head input{height:32px}
 .dsh-readpilot-memory{gap:10px}
 .dsh-readpilot-memory-controls{display:flex;flex-direction:column;gap:10px;padding:11px}
+.dsh-readpilot-card.dsh-readpilot-memory-controls:hover,
+.dsh-readpilot-card.dsh-readpilot-memory-card:hover{background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-control-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-height:26px}
 .dsh-readpilot-control-label{flex:0 0 62px;color:var(--dsw-alias-label-secondary);font-size:11.5px}
 .dsh-readpilot-segmented{display:inline-flex;gap:2px;padding:2px;border-radius:8px;background:var(--dsw-alias-bg-layer-2)}
