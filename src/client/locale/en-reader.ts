@@ -50,7 +50,7 @@ export const enReader = {
       helpCompanionTitle: 'Companion & Agent',
       helpCompanionBody: 'Each book has its own companion session; the right panel switches chat, notes, long notes and memory. Agents can read, search, annotate, manage long notes and change metadata; undo writes from History.',
       helpNotesTitle: 'Long notes, memory & export',
-      helpNotesBody: 'Long notes live in the library notes/ folder and open in an external editor; any companion answer can be saved as a long note. Agent drafts show a diff before applying. Memory is opt-in. Export produces Markdown or a ZIP archive from the long-notes panel.',
+      helpNotesBody: 'Long notes live in the library notes/ folder and open in an external editor; any companion answer can be saved as a long note. Agent drafts show a diff before applying.\n\n"Let the companion read this book\'s notes" only controls the default injection: when on and this book has not been turned off separately, notes are passed to the companion as <reading_notes> context, up to 4,000 characters per note and 24,000 in total. Notes that do not fit are omitted and their file paths are listed at the end when possible. It does not disable the reader_notes tool: with the switch off, the agent can still call index/read to find and read notes, but it will not see them automatically.\n\nMemory is opt-in. Export produces Markdown or a ZIP archive from the long-notes panel.',
       helpHistoryTitle: 'History & undo',
       helpHistoryBody: 'History lists recent Agent writes for the current book. Undo reverts annotations, long notes, tags or reading status. Receipts are kept for 10 minutes.',
       helpShortcutsTitle: 'Shortcuts',

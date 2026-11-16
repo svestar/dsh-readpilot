@@ -50,7 +50,7 @@ export const zhReader = {
       helpCompanionTitle: '伴读与 Agent',
       helpCompanionBody: '每本书有独立伴读会话，右侧可切换对话、笔记、长笔记和记忆。Agent 可查书、读章节、搜索、写批注、管理长笔记、改标签/状态，并在阅读栏“历史”中撤销写操作。',
       helpNotesTitle: '长笔记、记忆与导出',
-      helpNotesBody: '长笔记保存在书库 notes/，可用外部编辑器；对话回答可一键收藏为长笔记；Agent 草稿先看 diff 再应用。记忆默认关闭。导出在长笔记页生成 Markdown 或 ZIP。',
+      helpNotesBody: '长笔记保存在书库 notes/，可用外部编辑器；对话回答可一键收藏为长笔记；Agent 草稿先看 diff 再应用。\n\n“让伴读知道本书笔记”只控制默认注入：开启且本书未被单独关闭时，笔记会作为 <reading_notes> 上下文交给伴读，单篇最多 4000 字、总计 24000 字；放不下的笔记会省略，并尽量在末尾列出文件路径。它不控制 reader_notes 工具：关掉后 Agent 仍可调用 index/read 查找和读取笔记，只是不会自动看到。\n\n记忆默认关闭。导出在长笔记页生成 Markdown 或 ZIP。',
       helpHistoryTitle: '操作历史与撤销',
       helpHistoryBody: '阅读栏“历史”列出当前书最近的 Agent 写操作。撤销会回滚批注、长笔记、标签或阅读状态；历史只保留最近 10 分钟。',
       helpShortcutsTitle: '快捷键',
