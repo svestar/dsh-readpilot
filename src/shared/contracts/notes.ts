@@ -9,6 +9,7 @@ export const NOTES_ENDPOINTS = {
   noteFiles: 'noteFiles',
   noteDrafts: 'noteDrafts',
   setNoteContext: 'setNoteContext',
+  setNoteContextState: 'setNoteContextState',
   setNotesGlobal: 'setNotesGlobal',
   setAutoApplyNotes: 'setAutoApplyNotes',
   exportNotes: 'exportNotes',

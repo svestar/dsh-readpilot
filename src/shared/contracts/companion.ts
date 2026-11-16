@@ -63,6 +63,7 @@ export function normalizeReadingView(value: unknown): CompanionReadingView | und
 
 export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'
+export type BookNoteState = 'inherit' | 'on' | 'off'
 
 export interface CompanionMemorySettings {
   mode: MemoryMode
@@ -86,6 +87,11 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
 /** The global switch gates every book; with it on, a per-book false opts out. */
 export function effectiveNotesEnabled(settings: CompanionSettings, bookId: string): boolean {
   return settings.notesGlobal === true && settings.notes[bookId] !== false
+}
+
+export function noteBookState(settings: CompanionSettings, bookId: string): BookNoteState {
+  const value = settings.notes[bookId]
+  return value === true ? 'on' : value === false ? 'off' : 'inherit'
 }
 
 /** Memory is opt-in: the global switch and the per-book override must both allow it. */

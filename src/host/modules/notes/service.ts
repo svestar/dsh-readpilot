@@ -87,6 +87,7 @@ export function createNotesService(options: NotesServiceOptions) {
     noteDraftCreate,
     rebuildNotesContext,
     setNoteContext: context.setNoteContext,
+    setNoteContextState: context.setNoteContextState,
     setAutoApplyNotes: context.setAutoApplyNotes,
     notesContextFor: context.notesContextFor,
     exportNotes: exporter.exportNotes,

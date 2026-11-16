@@ -1,4 +1,4 @@
-import type { CompanionSettings } from '../../../shared/contracts/companion.ts'
+import type { BookNoteState, CompanionSettings } from '../../../shared/contracts/companion.ts'
 import { effectiveNotesEnabled } from '../../../shared/contracts/companion.ts'
 import type { Book } from '../library/book.ts'
 import { buildReadingNotes, type ReadingNote } from './context.ts'
@@ -73,6 +73,23 @@ export function createNotesContext({
     return { bookId: book.id, enabled, characters }
   }
 
+  async function setNoteContextState({ bookId, state }: any = {}): Promise<{ bookId: string; state: BookNoteState; effective: boolean; characters: number }> {
+    const book = await resolveBook(bookId)
+    if (state !== 'inherit' && state !== 'on' && state !== 'off') {
+      throw new ReaderError('invalid-context', 'state 必须是 inherit、on 或 off')
+    }
+    setSettings(await loadSettings())
+    const notes = { ...getSettings().notes }
+    if (state === 'inherit') delete notes[book.id]
+    else notes[book.id] = state === 'on'
+    setSettings({ ...getSettings(), notes })
+    await saveSettings(getSettings())
+    const effective = effectiveNotesEnabled(getSettings(), book.id)
+    if (!effective) cache.delete(book.id)
+    const characters = effective ? await rebuildNotesContext(book.id) : 0
+    return { bookId: book.id, state, effective, characters }
+  }
+
   async function setNotesGlobal({ enabled }: any = {}): Promise<{ enabled: boolean }> {
     if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
     setSettings(await loadSettings())
@@ -102,5 +119,5 @@ export function createNotesContext({
     return cache.get(reading.bookId)?.text ?? ''
   }
 
-  return { rebuildNotesContext, setNoteContext, setNotesGlobal, setAutoApplyNotes, notesContextFor }
+  return { rebuildNotesContext, setNoteContext, setNoteContextState, setNotesGlobal, setAutoApplyNotes, notesContextFor }
 }

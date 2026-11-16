@@ -1,4 +1,5 @@
 import type {
+  BookNoteState,
   BookWithProgress,
   ChapterContent,
   OpenBook,
@@ -68,11 +69,10 @@ export type NoteDraft = NoteDraftRecord
 export interface NoteContextToggle {
   enabled: boolean
   busy: boolean
-  characters: number
   global: boolean
-  globalBusy: boolean
-  toggle: () => void
-  toggleGlobal: () => void
+  state: BookNoteState
+  setGlobal: (enabled: boolean) => Promise<void>
+  setBookState: (state: BookNoteState) => Promise<void>
 }
 
 export interface NoteAutoApplyToggle {

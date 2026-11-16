@@ -331,3 +331,29 @@ test('notes_context_global_toggle', async t => {
   assert.equal((await api.state()).companion.notesGlobal, false)
   assert.equal(api.notesContextFor('s1'), '')
 })
+
+test('notes_context_book_state_inherit', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+
+  await api.handleRpc('noteFiles', { action: 'create', bookId, title: '权力', body: '黑暗森林' })
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: '第一章' })
+
+  const onWithoutGlobal = await api.handleRpc('setNoteContextState', { bookId, state: 'on' })
+  assert.equal(onWithoutGlobal.ok, true)
+  assert.equal(onWithoutGlobal.value.effective, false)
+  assert.equal(api.notesContextFor('s1'), '')
+
+  await api.setNotesGlobal({ enabled: true })
+  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+
+  const off = await api.handleRpc('setNoteContextState', { bookId, state: 'off' })
+  assert.equal(off.value.effective, false)
+  assert.equal(api.notesContextFor('s1'), '')
+
+  const inherit = await api.handleRpc('setNoteContextState', { bookId, state: 'inherit' })
+  assert.equal(inherit.value.effective, true)
+  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+})

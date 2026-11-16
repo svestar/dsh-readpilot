@@ -4,6 +4,8 @@ import { renderPrompt } from '../../../shared/prompt-render.ts'
 import { usePromptPresetActions } from '../companion/use-prompt-preset-actions.ts'
 import { quoteDraft } from './SelectionNote.ts'
 import type { PromptPreset } from '../../../shared/contracts/prompts.ts'
+import type { BookNoteState } from '../../../shared/contracts/companion.ts'
+import { noteBookState as noteBookStateOf } from '../../../shared/contracts/companion.ts'
 import type { CallRpc, MutableRef, Note, Screen, Selection, Snapshot, TextFn } from '../../lib/types.ts'
 import type { StateSetter } from '../../runtime.ts'
 
@@ -46,21 +48,24 @@ export function useReaderComposer({
   epubFrameRef,
 }: ReaderComposerOptions) {
   const [noteContextBusy, setNoteContextBusy] = React.useState(false)
-  const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
-  const [notesGlobalBusy, setNotesGlobalBusy] = React.useState(false)
   const notesGlobal = Boolean(snapshot?.companion?.notesGlobal)
-  const noteContextEnabled = Boolean(activeBookId && notesGlobal && snapshot?.companion?.notes?.[activeBookId] !== false)
-  const toggleNoteContext = React.useCallback(async () => {
-    if (!activeBookId || !notesGlobal) return
+  const storedBookState = activeBookId ? snapshot?.companion?.notes?.[activeBookId] : undefined
+  const noteBookState: BookNoteState = snapshot?.companion && activeBookId
+    ? noteBookStateOf(snapshot.companion, activeBookId)
+    : 'inherit'
+  const noteContextEnabled = Boolean(activeBookId && notesGlobal && storedBookState !== false)
+  const setNoteContextState = React.useCallback(async (state: BookNoteState) => {
+    if (!activeBookId || noteContextBusy) return
     const bookId = activeBookId
     setNoteContextBusy(true)
     setError('')
     try {
-      const result = await call('setNoteContext', { bookId, enabled: !noteContextEnabled })
+      await call('setNoteContextState', { bookId, state })
       setSnapshot(previous => {
         if (!previous) return previous
         const notes = { ...(previous.companion?.notes ?? {}) }
-        notes[bookId] = Boolean(result.enabled)
+        if (state === 'inherit') delete notes[bookId]
+        else notes[bookId] = state === 'on'
         const companion = previous.companion ?? {
           notes: {},
           notesGlobal: false,
@@ -69,20 +74,19 @@ export function useReaderComposer({
         }
         return { ...previous, companion: { ...companion, notes } }
       })
-      setNoteContextCharacters(result.characters)
     } catch (cause) {
       setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
     } finally {
       setNoteContextBusy(false)
     }
-  }, [activeBookId, call, noteContextEnabled, notesGlobal, setError, setSnapshot, t])
+  }, [activeBookId, call, noteContextBusy, setError, setSnapshot, t])
 
-  const toggleNotesGlobal = React.useCallback(async () => {
-    if (notesGlobalBusy) return
-    setNotesGlobalBusy(true)
+  const setNotesGlobalMode = React.useCallback(async (enabled: boolean) => {
+    if (noteContextBusy) return
+    setNoteContextBusy(true)
     setError('')
     try {
-      const result = await call('setNotesGlobal', { enabled: !notesGlobal })
+      const result = await call('setNotesGlobal', { enabled })
       setSnapshot(previous => {
         if (!previous) return previous
         const companion = previous.companion ?? {
@@ -93,26 +97,20 @@ export function useReaderComposer({
         }
         return { ...previous, companion: { ...companion, notesGlobal: result.enabled } }
       })
-      setNoteContextCharacters(0)
     } catch (cause) {
       setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
     } finally {
-      setNotesGlobalBusy(false)
+      setNoteContextBusy(false)
     }
-  }, [call, notesGlobal, notesGlobalBusy, setError, setSnapshot, t])
-
-  React.useEffect(() => {
-    setNoteContextCharacters(0)
-  }, [activeBookId])
+  }, [call, noteContextBusy, setError, setSnapshot, t])
 
   const noteContext = {
     enabled: noteContextEnabled,
     busy: noteContextBusy,
-    characters: noteContextCharacters,
     global: notesGlobal,
-    globalBusy: notesGlobalBusy,
-    toggle: toggleNoteContext,
-    toggleGlobal: toggleNotesGlobal,
+    state: noteBookState,
+    setGlobal: setNotesGlobalMode,
+    setBookState: setNoteContextState,
   }
 
   const autoApplyNotes = Boolean(snapshot?.companion?.autoApplyNotes)
