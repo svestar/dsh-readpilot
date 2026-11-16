@@ -61,6 +61,7 @@ test('note_context_toggle_and_injection', async t => {
   assert.equal(created.ok, true)
 
   await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: '第一章' })
+  await api.setNotesGlobal({ enabled: true })
   const enabled = await api.handleRpc('setNoteContext', { bookId, enabled: true })
   assert.equal(enabled.ok, true)
   assert.equal(enabled.value.enabled, true)
@@ -73,7 +74,7 @@ test('note_context_toggle_and_injection', async t => {
   assert.equal(disabled.ok, true)
   assert.equal(disabled.value.characters, 0)
   assert.equal(api.notesContextFor('s1'), '')
-  assert.equal((await api.state()).companion.notes[bookId], undefined)
+  assert.equal((await api.state()).companion.notes[bookId], false)
 })
 
 test('note_drafts_rpc_and_tool', async t => {
@@ -306,10 +307,22 @@ test('notes_context_global_toggle', async t => {
   await api.handleRpc('noteFiles', { action: 'create', bookId, title: '权力', body: '黑暗森林' })
   await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: '第一章' })
 
+  const perBookOnly = await api.handleRpc('setNoteContext', { bookId, enabled: true })
+  assert.equal(perBookOnly.ok, true)
+  assert.equal(perBookOnly.value.characters, 0)
+  assert.equal(api.notesContextFor('s1'), '')
+
   const enabled = await api.handleRpc('setNotesGlobal', { enabled: true })
   assert.equal(enabled.ok, true)
   assert.equal(enabled.value.enabled, true)
   assert.equal((await api.state()).companion.notesGlobal, true)
+  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+
+  const perBookOff = await api.handleRpc('setNoteContext', { bookId, enabled: false })
+  assert.equal(perBookOff.ok, true)
+  assert.equal(api.notesContextFor('s1'), '')
+  const perBookOn = await api.handleRpc('setNoteContext', { bookId, enabled: true })
+  assert.equal(perBookOn.ok, true)
   assert.match(api.notesContextFor('s1'), /黑暗森林/)
 
   const disabled = await api.handleRpc('setNotesGlobal', { enabled: false })

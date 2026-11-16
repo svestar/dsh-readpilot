@@ -83,9 +83,9 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   autoApplyNotes: false,
 }
 
-/** A global notes switch applies to every book; per-book switches still work when it is off. */
+/** The global switch gates every book; with it on, a per-book false opts out. */
 export function effectiveNotesEnabled(settings: CompanionSettings, bookId: string): boolean {
-  return settings.notesGlobal === true || settings.notes[bookId] === true
+  return settings.notesGlobal === true && settings.notes[bookId] !== false
 }
 
 /** Memory is opt-in: the global switch and the per-book override must both allow it. */

@@ -214,8 +214,8 @@ export function LongNotes({ t, state, noteContext, autoApply, useResource }: Lon
         type: 'button',
         className: 'dsh-readpilot-note-context',
         'data-on': noteContext.enabled ? 'true' : 'false',
-        disabled: noteContext.busy || noteContext.global,
-        title: noteContext.global ? t('noteContextGlobalHint') : t('noteContextHint'),
+        disabled: noteContext.busy || !noteContext.global,
+        title: !noteContext.global ? t('noteContextGlobalHint') : t('noteContextHint'),
         onClick: noteContext.toggle,
       },
       h('span', {

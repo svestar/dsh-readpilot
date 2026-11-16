@@ -64,16 +64,12 @@ export function createNotesContext({
     const book = await resolveBook(bookId)
     if (typeof enabled !== 'boolean') throw new ReaderError('invalid-context', 'enabled 必须是布尔值')
     setSettings(await loadSettings())
-    if (enabled) {
-      setSettings({ ...getSettings(), notes: { ...getSettings().notes, [book.id]: true } })
-    } else {
-      const notesContext = { ...getSettings().notes }
-      delete notesContext[book.id]
-      setSettings({ ...getSettings(), notes: notesContext })
-      cache.delete(book.id)
-    }
+    setSettings({ ...getSettings(), notes: { ...getSettings().notes, [book.id]: enabled } })
     await saveSettings(getSettings())
-    const characters = enabled ? await rebuildNotesContext(book.id) : 0
+    if (!enabled) cache.delete(book.id)
+    const characters = enabled && effectiveNotesEnabled(getSettings(), book.id)
+      ? await rebuildNotesContext(book.id)
+      : 0
     return { bookId: book.id, enabled, characters }
   }
 
@@ -86,9 +82,7 @@ export function createNotesContext({
       const books = [...new Set([...readings.values()].map(reading => reading.bookId))]
       await Promise.all(books.map(bookId => rebuildNotesContext(bookId)))
     } else {
-      for (const bookId of cache.keys()) {
-        if (!getSettings().notes[bookId]) cache.delete(bookId)
-      }
+      cache.clear()
     }
     return { enabled }
   }

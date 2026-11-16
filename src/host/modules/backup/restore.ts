@@ -68,7 +68,8 @@ async function applyRestore(
   if (!isObject(companion.memory)) companion.memory = { mode: 'off', books: {} }
   if (!isObject(companion.memory.books)) companion.memory.books = {}
   for (const [oldId, targetId] of mapping) {
-    if (backupCompanion.notes?.[oldId] === true) companion.notes[targetId] = true
+    const noteValue = backupCompanion.notes?.[oldId]
+    if (typeof noteValue === 'boolean') companion.notes[targetId] = noteValue
     else delete companion.notes[targetId]
     if (backupCompanion.memory?.books?.[oldId] !== undefined) {
       companion.memory.books[targetId] = backupCompanion.memory.books[oldId]

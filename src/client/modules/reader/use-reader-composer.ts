@@ -49,9 +49,9 @@ export function useReaderComposer({
   const [noteContextCharacters, setNoteContextCharacters] = React.useState(0)
   const [notesGlobalBusy, setNotesGlobalBusy] = React.useState(false)
   const notesGlobal = Boolean(snapshot?.companion?.notesGlobal)
-  const noteContextEnabled = Boolean(activeBookId && (notesGlobal || snapshot?.companion?.notes?.[activeBookId]))
+  const noteContextEnabled = Boolean(activeBookId && notesGlobal && snapshot?.companion?.notes?.[activeBookId] !== false)
   const toggleNoteContext = React.useCallback(async () => {
-    if (!activeBookId || notesGlobal) return
+    if (!activeBookId || !notesGlobal) return
     const bookId = activeBookId
     setNoteContextBusy(true)
     setError('')
@@ -60,8 +60,7 @@ export function useReaderComposer({
       setSnapshot(previous => {
         if (!previous) return previous
         const notes = { ...(previous.companion?.notes ?? {}) }
-        if (result.enabled) notes[bookId] = true
-        else delete notes[bookId]
+        notes[bookId] = Boolean(result.enabled)
         const companion = previous.companion ?? {
           notes: {},
           notesGlobal: false,
