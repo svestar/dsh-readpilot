@@ -36,6 +36,12 @@ test('workspace_prompt_replaces_managed_block', async t => {
   assert.ok(content.includes(READING_PROMPT))
 })
 
+test('workspace_prompt_keeps_status_out_of_note_body', () => {
+  assert.match(READING_PROMPT, /body\/text 就是笔记正文本身/)
+  assert.match(READING_PROMPT, /不要在正文里写“未保存”/)
+  assert.match(READING_PROMPT, /状态只在对话回复里/)
+})
+
 test('companion_context_is_scoped_to_session', async t => {
   const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-context-'))
   t.after(() => rm(data, { recursive: true, force: true }))

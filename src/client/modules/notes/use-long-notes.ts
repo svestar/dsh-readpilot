@@ -1,6 +1,7 @@
 import { React } from '../../runtime.ts'
 import { messageOf } from '../../lib/helpers.ts'
 import { useLongNoteActions } from './use-long-note-actions.ts'
+import { nextActiveOnApply } from './apply-state.ts'
 import type { LongNotesState } from './long-notes-state.ts'
 import type { CallRpc, LongNote, NoteDraft, TextFn } from '../../lib/types.ts'
 
@@ -288,7 +289,9 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
     try {
       const value = await call('noteDrafts.apply', { bookId, draftId: item.id })
       if (bookRef.current !== bookId) return
-      setActive({ note: value.note, body: value.body, hash: value.hash })
+      // Applying from the chat notice must not force the notes page into a
+      // preview; only an already-open preview of this note follows the result.
+      setActive(current => nextActiveOnApply(current, value))
       setCreating(false)
       setTitle('')
       await loadDrafts()

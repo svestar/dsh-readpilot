@@ -44,7 +44,7 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
     {
       name: 'reader_notes',
       description:
-        'Read LONG-FORM markdown notes (chapter, topic or whole-book documents) for one book, create a pending draft, or delete one when the user explicitly asks. Use it when the user asks to organize, write, append, expand, rewrite or delete a long note or document. index/read are read-only. create/write/append never save directly: they create a draft the user must review and apply in the Notes tab. delete removes the note file immediately; only do it on explicit request. Use write actions only when the user explicitly asks to write or edit a long note; never claim it was saved.',
+        'Read LONG-FORM markdown notes (chapter, topic or whole-book documents) for one book, create a pending draft, or delete one when the user explicitly asks. Use it when the user asks to organize, write, append, expand, rewrite or delete a long note or document. index/read are read-only. create/write/append never save directly: they create a draft the user must review and apply in the Notes tab. delete removes the note file immediately; only do it on explicit request. Use write actions only when the user explicitly asks to write or edit a long note; never claim it was saved. Pass the final document itself as body/text: never embed status remarks such as "unsaved" or "pending confirmation" in the document; report that only in your reply.',
       parameters: {
         type: 'object',
         properties: {
