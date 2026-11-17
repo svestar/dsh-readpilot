@@ -77,7 +77,6 @@ export interface NotesArchiveResult {
   base64?: string
   fileName: string
   count: number
-  path?: string
   notes: NotesArchiveEntry[]
 }
 

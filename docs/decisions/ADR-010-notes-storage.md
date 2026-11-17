@@ -32,3 +32,8 @@
 代价：书库目录被写入；书改名或移动导致 `bookId` 变化后目录成孤儿；用户可能在 UI 外重命名文件导致链接失效；可见目录需要 marker 保护；导出文件若不排除会被当成笔记。
 
 验证：marker 存在与缺失时的扫描行为；主题笔记 CRUD、front-matter 解析、重命名与冲突；导出内容与排除项；旧 JSON 笔记导出。
+
+## 后续修订
+
+- 伴读草稿改存 `$DSH_HOME/dsh-readpilot/drafts/<bookId>/`，不再使用 `.pending/`；应用仍是唯一落盘路径（FTR-022）。
+- 导出现在只下载 Markdown 或 ZIP，不再写 `.exports/`；历史版本的旧目录不影响笔记列表（FTR-024）。

@@ -2,51 +2,61 @@
 
 [![npm version](https://img.shields.io/npm/v/dsh-readpilot.svg)](https://www.npmjs.com/package/dsh-readpilot) · [GitHub](https://github.com/svestar/dsh-readpilot)
 
-DSH Web GUI 的 AI 辅助阅读插件。把本机书库变成可检索、可批注、可与 AI 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。
+DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可检索、可批注、可与 Agent 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。
 
 ## 功能
 
-- **书库**：扫描四种格式，封面、阅读状态、评分、标签、搜索与排序；同内容副本可识别并删除。
-- **Markdown**：标题/setext、列表/任务、表格、引用、代码、脚注、删除线、自动链接与图片；原始 HTML 不执行。
-- **阅读**：原版/重排切换；搜索截断时可用“更多条目”打开全部结果；滚动/分页、单页/双页、字号、主题与毛玻璃统一在“Aa 阅读设置”；目录、检索、进度、书签与跳转；PDF 原版双页支持左右页划选和批注覆盖层；阅读页可跳到工作区对话，侧栏可单页共读。
-- **扫描版 PDF**：无文本层也可原版逐页查看；搜索、重排、批注和摘要禁用，限制说明见帮助手册。
-- **帮助手册**：顶部“?”入口按主题查看安装、阅读、批注、伴读、历史、快捷键与常见问题。
-- **批注**：选中文字即可划线或写批注，支持五种颜色；纯划线与带正文批注是同一类记录；批注、书签列表支持筛选、折叠和跳转。
-- **AI 伴读**：每本书一个原生会话，共享 Chat 工具、推理与审批；选段问伴读会带引用，PDF 页码可点击；会话失效自动重建。
-- **提示词**：内置解释、术语、翻译、追问、总结等 12 个模板；用 `{{selection}}`、`{{book}}`、`{{chapter}}`、`{{notes}}` 自动装配选段、书名、章节和批注；模板可新建、编辑、删除、恢复默认。
-- **长笔记**：Markdown 存于书库 `notes/`，可用外部编辑器；对话回答可一键收藏为长笔记；Agent 写入先生成草稿，先看 diff 再应用；支持自动应用、历史恢复、删除与清空。
-- **记忆**：可选开启，按书记住稳定偏好、观点和长期问题；默认关闭。
-- **Agent 动作**：`reader_goto`、`reader_open_panel`、`reader_mark`、`reader_tag`、`reader_status` 可驱动阅读器和书库；批注与长笔记支持重写、删除；操作历史提供一键撤销。
-- **导出**：把长笔记、批注、书签导出为 Markdown，可下载或保存到书库。
-- **备份与迁移**：导出批注、长笔记、预设、记忆与进度；换 PC 后按内容匹配覆盖恢复，并自动保留恢复前快照。
+- **书库**：四种格式扫描；封面、阅读状态、评分、标签、搜索与排序；内容相同的副本可识别并清理。
+- **阅读**：原版 / 重排、滚动 / 分页、单页 / 双页；字号、配色与毛玻璃；目录、搜索、进度、书签与页码跳转；侧栏单页共读。
+- **扫描版 PDF**：无文本层也能原版逐页查看；搜索、重排、批注与摘要会禁用。
+- **Markdown**：GFM 标题、表格、任务 / 嵌套列表、引用、代码、脚注、删除线、自动链接与行内图片；原始 HTML 按文本显示。
+- **批注**：选中文字即可划线或写批注，支持五种颜色；批注与书签列表可筛选、折叠、跳转。
+- **AI 伴读**：每本书一个原生会话；选区引用、页码跳转、工具卡、推理与审批都走宿主；会话失效自动重建。
+- **提示词**：12 个内置模板，`{{selection}}`、`{{book}}`、`{{chapter}}`、`{{notes}}` 自动装配选段、书名、章节与批注；模板可新建、编辑、删除、恢复默认。
+- **长笔记**：Markdown 存于书库 `notes/`，可用外部编辑器；对话回答可一键收藏；Agent 写入先生成草稿，先看 diff 再应用；支持自动应用、历史恢复、显示设置与导出。
+- **笔记上下文**：默认关闭；开启后按书把笔记以 `<reading_notes>` 注入伴读上下文（单篇 4000 字符、总计 24000 字符），不限制 `reader_notes` 工具读取。
+- **记忆**：默认关闭；可按书或全局开启，保存稳定的偏好、观点与长期问题。
+- **Agent 动作与撤销**：跳转、打开侧栏、划线、标签、状态可驱动阅读器与书库；写操作进入“历史”，10 分钟内可撤销。
+- **备份与迁移**：导出批注、长笔记、预设、记忆、进度、标签 / 状态 / 评分与伴读设置；换机后按内容匹配覆盖恢复，恢复前自动快照。
 
-## 使用
+## 安装
 
-安装、创建书库、打开书籍、划选批注、套用提示词、伴读协作、长笔记/记忆/导出和操作历史撤销的完整步骤，见 [USAGE.md](USAGE.md)。
+任选一种：
 
-## 数据
+- 在 DSH“插件 → 添加插件”中搜索 `dsh-readpilot` 并启用，刷新页面；
+- 执行 `npm install dsh-readpilot`，再在插件管理中启用；
+- 让 DSH Agent 安装：“安装 dsh-readpilot 插件”。
 
-原书不复制。设置、进度、会话和解析缓存在 `$DSH_HOME/dsh-readpilot/`；EPUB 资产在 `assets/`，PDF 页面缓存在 `cache/pages/`。
+兼容 DSH `0.2.2-rc.2`–`0.2.x`。
+
+## 快速开始
+
+1. 打开“智读”，选择本地书籍目录作为书库。
+2. 点开一本书，用“Aa 阅读设置”调整版式。
+3. 选中正文：点颜色创建划线，“批注”写体会，“问伴读”带引用提问。
+4. 在右侧伴读栏对话，或让 Agent 查书、读章节、写批注、整理长笔记。
+5. 在“长笔记”标签管理笔记、草稿、历史与导出；在设置页做备份。
+
+完整步骤见 [USAGE.md](USAGE.md)。
+
+## 数据与隐私
+
+原书不复制、不上传。设置、进度、会话绑定与解析缓存在 `$DSH_HOME/dsh-readpilot/`；EPUB 资产在 `assets/`，PDF 页面缓存在 `cache/pages/`；长笔记与导出在书库 `notes/`。备份不包含原书、工作区、会话或缓存。
 
 ## 开发
 
-需要 Node 22.18+。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
+需要 Node 22.18+ 与 pnpm。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
 
 ```text
-index.ts                    Host 入口：创建 app、注册工具、HTTP 面与 systemPrompt
-src/host/
-  app.ts                    组装十个 Host 模块、facade、router 与工具服务
-  http.ts                   RPC 信封与媒体 GET 路由
-  modules/<feature>/         library、reading、search、notes、memory、prompts、
-                            companion、actions、backup、media
-src/client/
-  plugin.ts                 Client 入口：runtime、locale、槽位注册
-  modules/<feature>/        阅读器、书库、笔记、伴读、侧栏、工具卡片
-  lib/                      rpc、preferences、helpers、types
-src/shared/                 双端契约、Markdown、跳转链接与提示词渲染
+index.ts                       Host 入口：app、工具、HTTP 与 systemPrompt
+src/host/modules/<feature>/    library、reading、search、notes、memory、
+                               prompts、companion、actions、backup、media、tools
+src/client/modules/<feature>/  阅读器、书库、笔记、伴读、侧栏、帮助、工具卡片、
+                              Markdown 渲染与通用组件
+src/shared/                    双端契约、Markdown、跳转链接与提示词渲染
 ```
 
-功能文档见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
+功能清单见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
 
 ## 许可证
 

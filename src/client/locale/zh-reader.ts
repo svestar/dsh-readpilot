@@ -54,9 +54,9 @@ export const zhReader = {
       helpHistoryTitle: '操作历史与撤销',
       helpHistoryBody: '阅读栏“历史”列出当前书最近的 Agent 写操作。撤销会回滚批注、长笔记、标签或阅读状态；历史只保留最近 10 分钟。',
       helpShortcutsTitle: '快捷键',
-      helpShortcutsBody: 'F 或 Ctrl/Cmd+F 搜索，B 添加书签，方向键翻页/滚动，Esc 关闭搜索或清除选区。具体组合可在宿主快捷键设置中调整。',
+      helpShortcutsBody: 'F 或 Ctrl/Cmd+F 搜索，B 添加书签，分页模式下方向键 / PageUp / PageDown / 空格翻页，Esc 关闭搜索或清除选区。具体组合可在宿主快捷键设置中调整。',
       helpFaqTitle: '常见问题',
-      helpFaqBody: '扫描版 PDF 不支持 OCR；备份不含原书、工作区和会话；同内容副本可在书库“处理副本”中删除；搜索结果截断时用“更多条目”打开全部结果。',
+      helpFaqBody: '扫描版 PDF 不做 OCR，只能原版逐页查看；备份不含原书、工作区和会话；同内容副本可在书库“处理副本”中删除；搜索结果截断时用“更多条目”打开全部结果。',
       helpDocs: '完整使用说明',
       helpGithub: 'GitHub 项目',
 
@@ -80,7 +80,7 @@ export const zhReader = {
       backupSnapshot: '恢复前快照',
 
       empty: '这个目录里还没有可阅读的电子书。',
-      emptyHint: '支持 .txt、.md、.epub 与 .pdf；PDF 仅抽取文本层，扫描版需要 OCR。',
+      emptyHint: '支持 .txt、.md、.epub 与 .pdf；扫描版 PDF 可原版逐页查看，但没有文本层，搜索、重排与批注不可用。',
       back: '返回书库',
       toc: '目录',
       reading: '阅读',

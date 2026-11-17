@@ -1,5 +1,4 @@
-import { mkdir, readFile, stat, writeFile } from 'node:fs/promises'
-import { join } from 'node:path'
+import { readFile, stat } from 'node:fs/promises'
 import JSZip from 'jszip'
 import type { Settings } from '../../../shared/contracts/library.ts'
 import type { LibraryMeta } from '../../../shared/contracts/library.ts'
@@ -8,7 +7,6 @@ import type { OpenResult } from '../../../shared/contracts/reading.ts'
 import type { Book } from '../library/book.ts'
 import type { NoteFileStore } from './files/index.ts'
 import type { NotesStore } from './store.ts'
-import { NOTES_DIR_NAME } from '../../lib/notes-paths.ts'
 import { ReaderError } from '../../lib/errors.ts'
 import { buildNotesMarkdown, type ExportLongNote, type ExportMark } from './export.ts'
 import { noteFilePath, openWithExternalEditor } from './files/open.ts'
@@ -50,7 +48,7 @@ export function createNotesExport(deps: NotesExportDependencies) {
     return { opened: true, path: content.note.path }
   }
 
-  async function exportNotes({ bookId, save }: any = {}): Promise<{ markdown: string; fileName: string; path?: string }> {
+  async function exportNotes({ bookId }: any = {}): Promise<{ markdown: string; fileName: string }> {
     const book = await deps.resolveBook(bookId)
     const opened = await deps.openBook(book.id)
     const store = await deps.store()
@@ -95,16 +93,10 @@ export function createNotesExport(deps: NotesExportDependencies) {
     })
     const safeTitle = safeFileTitle(book.title, '阅读笔记')
     const fileName = `${safeTitle}-阅读笔记.md`
-    if (save !== true) return { markdown, fileName }
-    const settings = await deps.currentSettings()
-    if (!settings.libraryDir) throw new ReaderError('no-library', '还没有配置书库')
-    const dir = join(settings.libraryDir, NOTES_DIR_NAME, '.exports')
-    await mkdir(dir, { recursive: true })
-    await writeFile(join(dir, fileName), markdown, 'utf8')
-    return { markdown, fileName, path: `notes/.exports/${fileName}` }
+    return { markdown, fileName }
   }
 
-  async function exportNotesArchive({ bookId, save }: any = {}): Promise<NotesArchiveResult> {
+  async function exportNotesArchive({ bookId }: any = {}): Promise<NotesArchiveResult> {
     const book = await deps.resolveBook(bookId)
     const store = await deps.store()
     const files = await store.list(book)
@@ -139,13 +131,7 @@ export function createNotesExport(deps: NotesExportDependencies) {
     const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
     const safeTitle = safeFileTitle(book.title, '阅读笔记')
     const fileName = `${safeTitle}-长笔记.zip`
-    if (save !== true) {
-      return { base64: buffer.toString('base64'), fileName, count: files.length, notes: entries }
-    }
-    const dir = join(settings.libraryDir, NOTES_DIR_NAME, '.exports')
-    await mkdir(dir, { recursive: true })
-    await writeFile(join(dir, fileName), buffer)
-    return { fileName, count: files.length, path: `notes/.exports/${fileName}`, notes: entries }
+    return { base64: buffer.toString('base64'), fileName, count: files.length, notes: entries }
   }
 
   return { openNoteFile, exportNotes, exportNotesArchive }

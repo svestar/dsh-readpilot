@@ -19,8 +19,8 @@
 | `buildNotesMarkdown` | `src/host/modules/notes/export.ts:buildNotesMarkdown` | 纯函数拼装标题、元数据、长笔记与标记 |
 | `exportNotes` | `src/host/api.ts:exportNotes` | 读取笔记与标记，返回合并 Markdown |
 | `exportNotesArchive` | `src/host/modules/notes/export-service.ts:exportNotesArchive` | 打包原始长笔记与 manifest 为 ZIP |
-| `exportNotes`（hook） | `src/client/modules/notes/use-long-notes.ts:exportNotes` | 调用 Host、触发下载或显示保存路径 |
-| `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 导出/保存按钮与状态 |
+| `exportNotes`（hook） | `src/client/modules/notes/use-long-notes.ts:exportNotes` | 调用 Host 并触发下载 |
+| `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 导出按钮与状态 |
 | `downloadText` | `src/client/lib/helpers.ts:downloadText` | 浏览器端 Blob 下载 |
 
 ## 约束与失败行为
@@ -33,3 +33,4 @@
 - 边界：空书只有标题与时间，空区块不输出，缺字段不出现 `undefined`（`note_export_empty_book_has_only_title_and_metadata`、`note_export_omits_empty_sections_and_handles_missing_text`）。
 - 正常路径：`exportedAt` 固定时输出确定（`note_export_time_is_deterministic_with_exported_at`）。
 - 正常路径：ZIP 包含原始长笔记 .md 与 manifest，正文可读，不包含批注/书签（`export_notes_archive_rpc`）。
+- 正常路径：导出只返回下载内容，不写书库 `.exports/`（`export_notes_rpc`）。

@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import JSZip from 'jszip'
@@ -231,6 +232,8 @@ test('export_notes_rpc', async t => {
   assert.match(exported.value.markdown, /黑暗森林/)
   assert.match(exported.value.markdown, /测试引用/)
   assert.match(exported.value.fileName, /阅读笔记\.md$/)
+  assert.equal(exported.value.path, undefined)
+  assert.equal(existsSync(join(library, 'notes', '.exports')), false)
 })
 
 test('note_auto_apply_rpc', async t => {
@@ -296,6 +299,7 @@ test('export_notes_archive_rpc', async t => {
   const bodies = await Promise.all(notes.map(name => zip.file(name)!.async('string')))
   assert.ok(bodies.some(body => body.includes('整书正文')))
   assert.ok(bodies.some(body => body.includes('章节正文')))
+  assert.equal(existsSync(join(library, 'notes', '.exports')), false)
 })
 
 test('notes_context_global_toggle', async t => {

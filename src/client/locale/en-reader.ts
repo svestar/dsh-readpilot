@@ -54,9 +54,9 @@ export const enReader = {
       helpHistoryTitle: 'History & undo',
       helpHistoryBody: 'History lists recent Agent writes for the current book. Undo reverts annotations, long notes, tags or reading status. Receipts are kept for 10 minutes.',
       helpShortcutsTitle: 'Shortcuts',
-      helpShortcutsBody: 'F or Ctrl/Cmd+F searches, B adds a bookmark, arrow keys page/scroll, Esc closes search or clears selection. Host shortcut settings can override these.',
+      helpShortcutsBody: 'F or Ctrl/Cmd+F searches, B adds a bookmark, arrow keys / PageUp / PageDown / Space page through paged mode, Esc closes search or clears selection. Host shortcut settings can override these.',
       helpFaqTitle: 'FAQ',
-      helpFaqBody: 'Scanned PDFs have no OCR; backups exclude books, workspaces and sessions; duplicate copies can be deleted from “Review copies”; “More results” opens the full search result list.',
+      helpFaqBody: 'Scanned PDFs are not OCRed and open page by page only; backups exclude books, workspaces and sessions; duplicate copies can be deleted from “Review copies”; “More results” opens the full search result list.',
       helpDocs: 'Full usage guide',
       helpGithub: 'GitHub project',
 
@@ -80,7 +80,7 @@ export const enReader = {
       backupSnapshot: 'Pre-restore snapshot',
 
       empty: 'No readable ebooks in this folder yet.',
-      emptyHint: 'TXT, Markdown, EPUB and PDF are supported; PDF reads only its text layer, so scanned files need OCR.',
+      emptyHint: 'TXT, Markdown, EPUB and PDF are supported; scanned PDFs open page by page, but without a text layer search, reflow and annotations are unavailable.',
       back: 'Back to library',
       toc: 'Contents',
       reading: 'Reading',

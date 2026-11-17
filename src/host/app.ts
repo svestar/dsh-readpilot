@@ -29,7 +29,7 @@ import { loadLibraryIndex, reconcileBooks } from './modules/library/index-store.
 import { scanLibrary } from './modules/library/book.ts'
 import type { ReaderToolApi } from './modules/tools/facade.ts'
 
-const APP_VERSION = '0.4.0'
+const APP_VERSION = '0.5.0'
 
 export interface CreateAppOptions {
   dataDir: string
