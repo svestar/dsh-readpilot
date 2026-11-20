@@ -13,6 +13,7 @@ import type { createPromptsModule } from './modules/prompts/index.ts'
 import type { createCompanionService } from './modules/companion/service.ts'
 import type { createActionsService } from './modules/actions/service.ts'
 import type { createBackupService } from './modules/backup/index.ts'
+import type { createTranslationService } from './modules/translation/service.ts'
 
 export interface ReaderApiDependencies {
   library: LibraryService
@@ -26,6 +27,7 @@ export interface ReaderApiDependencies {
   companion: ReturnType<typeof createCompanionService>
   actions: ReturnType<typeof createActionsService>
   backup: ReturnType<typeof createBackupService>
+  translation: ReturnType<typeof createTranslationService>
   router: Router
   libraryMeta(): Promise<any>
   state(): Promise<ReaderState>
@@ -112,6 +114,10 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     openNoteFile: (payload?: any) => deps.notes.openNoteFile(payload),
     exportNotes: (payload?: any) => deps.notes.exportNotes(payload),
     exportNotesArchive: (payload?: any) => deps.notes.exportNotesArchive(payload),
+    translationProviders: () => deps.translation.translationProviders(),
+    translate: (payload?: any) => deps.translation.translate(payload),
+    translateBatch: (payload?: any) => deps.translation.translateBatch(payload),
+    translationCacheClear: () => deps.translation.translationCacheClear(),
     search: (payload?: any) => deps.search(payload),
     libraryMeta: () => deps.libraryMeta(),
     setBookTags: (payload?: any) => deps.library.setBookTags(payload),

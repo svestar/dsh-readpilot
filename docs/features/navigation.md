@@ -18,6 +18,7 @@
 - [FTR-033 阅读位置锚点](FTR-033-reading-anchor.md)
 - [FTR-047 扫描版 PDF](FTR-047-scanned-pdf.md)
 - [FTR-050 Markdown 语法](FTR-050-markdown.md)
+- [FTR-053 翻译](FTR-053-translation.md)
 
 ## 笔记与批注
 

@@ -4,6 +4,7 @@ import { DEFAULT_COMPANION_SETTINGS, effectiveMemoryState, effectiveNotesEnabled
 import type { ReaderState } from '../shared/contracts/library.ts'
 import { createRouter, type Router } from './router.ts'
 import { createMediaModule } from './modules/media/index.ts'
+import { createTranslationModule } from './modules/translation/index.ts'
 import { createLibraryModule } from './modules/library/index.ts'
 import { createReadingModule } from './modules/reading/index.ts'
 import { createSearchModule } from './modules/search/index.ts'
@@ -171,6 +172,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     configureLibrary: payload => library.configure(payload),
   })
   const mediaModule = createMediaModule()
+  const translationModule = createTranslationModule({ dataDir, ctx })
 
   const modules: HostModule[] = [
     libraryModule.module,
@@ -182,6 +184,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     companionModule.module,
     actionsModule.module,
     backupModule.module,
+    translationModule.module,
     mediaModule,
   ]
   const router = createRouter(modules)
@@ -218,6 +221,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     companion,
     actions,
     backup: backupModule.service,
+    translation: translationModule.service,
     router,
     libraryMeta: () => library.libraryMeta(),
     state,

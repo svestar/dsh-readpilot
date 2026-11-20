@@ -8,6 +8,7 @@ import { ActionHistory } from './ActionHistory.ts'
 import { SearchPanel } from '../notes/SearchPanelView.ts'
 import { DraftNotice } from '../notes/DraftNotice.ts'
 import { PromptPresetManager } from '../companion/PromptPresetManager.ts'
+import { TranslationCard } from '../translation/TranslationCard.ts'
 import { HelpManual } from '../help/HelpManual.ts'
 import { Library } from '../library/LibraryView.ts'
 import { Setup } from '../library/panels.ts'
@@ -34,7 +35,7 @@ export function ReaderPanelView(props: ReaderPanelProps) {
     renderSlot: props.renderSlot,
     useResource: props.useResource,
   })
-  const { snapshot, screen, busy, error, prefs, view, notes, companion, composer, find, receipts } = model
+  const { snapshot, screen, busy, error, prefs, view, notes, companion, composer, find, receipts, translation } = model
   const palette = prefs.palette
 
   return h('div', {
@@ -63,6 +64,7 @@ export function ReaderPanelView(props: ReaderPanelProps) {
     onOpenWorkspace: companion.openWorkspace,
     onToggleSearch: find.toggleSearch,
     onToggleChat: () => companion.setChatOpen(previous => !previous),
+    onTranslate: translation.openPanel,
     onToggleToc: () => prefs.setTocOpen(previous => !previous),
     onBookmark: notes.addBookmark,
     onHelp: () => model.setHelpOpen(true),
@@ -170,11 +172,17 @@ export function ReaderPanelView(props: ReaderPanelProps) {
     t,
     selection: model.selection,
     onAsk: composer.askCompanion,
+    onTranslate: () => void translation.translateSelection(),
     onNote: () => notes.openNoteEditor(),
     onHighlight: (color: string) => void notes.addHighlight(color),
     presets: composer.promptPresets,
     onPreset: composer.applyPromptPreset,
     onManagePresets: () => composer.setPresetManagerOpen(true),
+  }),
+  h(TranslationCard, {
+    t,
+    result: translation.selectionResult,
+    onClose: translation.closeSelection,
   }),
   h(NoteDialog, {
     t,

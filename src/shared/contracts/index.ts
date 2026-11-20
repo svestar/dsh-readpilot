@@ -7,6 +7,7 @@ import { PROMPTS_ENDPOINT } from './prompts.ts'
 import { COMPANION_ENDPOINTS } from './companion.ts'
 import { ACTIONS_ENDPOINTS } from './actions.ts'
 import { BACKUP_ENDPOINTS } from './backup.ts'
+import { TRANSLATION_ENDPOINTS } from './translation.ts'
 
 export * from './library.ts'
 export * from './reading.ts'
@@ -17,6 +18,7 @@ export * from './memory.ts'
 export * from './prompts.ts'
 export * from './actions.ts'
 export * from './backup.ts'
+export * from './translation.ts'
 
 /**
  * Every RPC endpoint the Host must register, grouped by module.
@@ -35,6 +37,7 @@ export const OPERATIONS = [
   ...Object.values(COMPANION_ENDPOINTS).map(endpoint => ({ endpoint, module: 'companion' })),
   ...Object.values(ACTIONS_ENDPOINTS).map(endpoint => ({ endpoint, module: 'actions' })),
   ...Object.values(BACKUP_ENDPOINTS).map(endpoint => ({ endpoint, module: 'backup' })),
+  ...Object.values(TRANSLATION_ENDPOINTS).map(endpoint => ({ endpoint, module: 'translation' })),
 ] as const
 
 export type Operation = (typeof OPERATIONS)[number]

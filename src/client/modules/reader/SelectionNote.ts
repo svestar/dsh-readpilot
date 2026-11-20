@@ -9,6 +9,7 @@ interface SelectionToolbarProps {
   t: TextFn
   selection: Selection | null
   onAsk?: () => void
+  onTranslate?: () => void
   onNote: () => void
   onHighlight: (color: string) => void
   presets?: PromptPreset[]
@@ -28,7 +29,7 @@ export function quoteDraft(text: string): string {
   return `${text.split('\n').map(line => `> ${line}`).join('\n')}\n\n`
 }
 
-export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight, presets, onPreset, onManagePresets }: SelectionToolbarProps) {
+export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onHighlight, presets, onPreset, onManagePresets }: SelectionToolbarProps) {
   const menuRef = React.useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = React.useState<{ left: number; top: number } | null>(null)
   const [presetOpen, setPresetOpen] = React.useState(false)
@@ -130,6 +131,7 @@ export function SelectionToolbar({ t, selection, onAsk, onNote, onHighlight, pre
         : null)
     : null,
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
+  onTranslate ? h('button', { type: 'button', onClick: onTranslate }, t('translateAction')) : null,
   h('button', { type: 'button', onClick: () => onNote() }, t('noteAction'))), document.body)
 }
 

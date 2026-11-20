@@ -29,6 +29,7 @@ test('contract_declares_every_registered_endpoint', async () => {
       'prompts',
       'reading',
       'search',
+      'translation',
     ])
   } finally {
     await app.dispose()

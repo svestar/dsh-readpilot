@@ -38,8 +38,8 @@ export const DEFAULT_PROMPT_PRESETS: PromptPreset[] = [
   },
   {
     id: 'translate',
-    title: '翻译',
-    template: '翻译这段（中译英或英译中），保留语气：\n\n{{selection}}',
+    title: 'AI 精译',
+    template: '翻译这段（中译英或英译中），保留语气；必要时解释术语：\n\n{{selection}}',
     builtin: true,
   },
   {

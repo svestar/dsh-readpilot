@@ -46,7 +46,7 @@ export const enReader = {
       helpReadingTitle: 'Reading & settings',
       helpReadingBody: 'Switch original/reflow, scroll/paged and single/double pages; Aa settings adjust font size, palette and glass. PDF originals support spread selection; scanned PDFs without a text layer are page-by-page only.',
       helpAnnotateTitle: 'Annotations & prompts',
-      helpAnnotateBody: 'Select text, then click a color for a highlight, or Annotate to add text/change color; empty text stays a highlight. Prompts fill selection, book, chapter and notes into the companion composer.',
+      helpAnnotateBody: 'Select text, then click a color for a highlight, or Annotate to add text/change color; empty text stays a highlight. Prompts fill selection, book, chapter and notes into the companion composer. Translate uses the host translation service and never enters the companion context.',
       helpCompanionTitle: 'Companion & Agent',
       helpCompanionBody: 'Each book has its own companion session; the right panel switches chat, notes, long notes and memory. The top of the chat tab can start a new conversation or bind an old one from the current library workspace; a conversation belongs to one book at a time. Agents can read, search, annotate, manage long notes and change metadata; undo writes from History.',
       helpNotesTitle: 'Long notes, memory & export',

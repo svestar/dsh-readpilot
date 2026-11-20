@@ -3,6 +3,7 @@ import { messageOf } from '../../lib/helpers.ts'
 import { useReaderState } from './use-reader-state.ts'
 import { useReaderPreferences } from './use-reader-preferences.ts'
 import { useReaderCompanion } from './use-reader-companion.ts'
+import { useReaderTranslation } from '../translation/use-reader-translation.ts'
 import { useReaderView } from './use-reader-view.ts'
 import { useReaderSync } from './use-reader-sync.ts'
 import { useReaderNotes } from './use-reader-notes.ts'
@@ -44,8 +45,17 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     forgetSession: state.forgetSession,
   })
 
-  const view = useReaderView({
+  const translation = useReaderTranslation({
     call,
+    t,
+    screen: state.screen,
+    selection,
+    activeSessionId: companion.activeSessionId,
+    setChatOpen: companion.setChatOpen,
+    setChatTab: companion.setChatTab,
+  })
+
+  const view = useReaderView({    call,
     t,
     runtime,
     screen: state.screen,
@@ -200,6 +210,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     selection,
     setSelection,
     companion,
+    translation,
     view,
     notes: notes.notes,
     longNotes: notes.longNotes,

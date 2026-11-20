@@ -14,6 +14,7 @@ interface HeaderProps {
   onOpenWorkspace: () => void
   onToggleSearch: () => void
   onToggleChat: () => void
+  onTranslate?: () => void
   onToggleToc: () => void
   onBookmark: () => void
   onHelp: () => void
@@ -33,6 +34,7 @@ export function Header({
   onOpenWorkspace,
   onToggleSearch,
   onToggleChat,
+  onTranslate,
   onToggleToc,
   onBookmark,
   onHelp,
@@ -89,6 +91,15 @@ export function Header({
             'aria-expanded': searchOpen ? 'true' : 'false',
             onClick: onToggleSearch,
           }, t('search')))
+        : null,
+      screen.kind === 'book' && !scanOnly && onTranslate
+        ? h(Tooltip, { label: t('translation'), side: 'bottom', delayMs: 300 },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-icon-btn',
+            'aria-label': t('translation'),
+            onClick: onTranslate,
+          }, t('translationShort')))
         : null,
       screen.kind === 'book'
         ? h(Tooltip, { label: t('companion'), side: 'bottom', delayMs: 300 },
