@@ -114,3 +114,29 @@ test('translation_blocks_skip_images_and_code', () => {
   assert.deepEqual(blocks.map(block => block.index), [0, 3, 4])
   assert.equal(blocks[2].text, 'A | B')
 })
+
+test('translation_falls_back_without_host_translator', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-translation-fallback-'))
+  t.after(() => rm(data, { recursive: true, force: true }))
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const originalFetch = globalThis.fetch
+  const calls: any[] = []
+  globalThis.fetch = (async (url: any, init: any) => {
+    calls.push({ url: String(url), init })
+    return new Response(JSON.stringify([{ translations: [{ text: '你好' }] }]), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    })
+  }) as any
+  t.after(() => { globalThis.fetch = originalFetch })
+
+  const providers = await api.translationProviders()
+  assert.equal(providers.available, true)
+  assert.deepEqual(providers.providers.map((provider: any) => provider.id), ['bing', 'google'])
+
+  const result = await api.translate({ text: 'Hello', targetLanguage: 'zh-CN' })
+  assert.equal(result.text, '你好')
+  assert.equal(result.provider, 'bing')
+  assert.match(calls[0].url, /edge\.microsoft\.com/)
+  assert.match(String(calls[0].init.body), /Hello/)
+})

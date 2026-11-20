@@ -8,6 +8,7 @@ import type {
 } from '../../../shared/contracts/translation.ts'
 import type { HostContext } from '../../types.ts'
 import { ReaderError } from '../../lib/errors.ts'
+import { anonymousTranslate } from './providers.ts'
 import { createTranslationCache } from './store.ts'
 
 const MAX_BATCH_ITEMS = 100
@@ -22,6 +23,7 @@ const PROVIDER_NAMES: Record<string, string> = {
   'deepseek-official': 'DeepSeek 官方',
 }
 const PAID_PROVIDERS = new Set(['deepseek-account', 'deepseek-official'])
+const FALLBACK_PROVIDERS = ['bing', 'google']
 
 export interface TranslationServiceOptions {
   dataDir: string
@@ -45,20 +47,20 @@ export function createTranslationService(options: TranslationServiceOptions) {
 
   async function translationProviders(): Promise<TranslationProviderList> {
     const translator = translatorOf(options.ctx)
-    if (!translator || typeof translator.availableProviders !== 'function') {
-      return { available: false, providers: [] }
-    }
-    try {
-      const providers = await translator.availableProviders()
-      return {
-        available: true,
-        providers: (Array.isArray(providers) ? providers : [])
+    let available: string[] = []
+    if (translator && typeof translator.availableProviders === 'function') {
+      try {
+        const providers = await translator.availableProviders()
+        available = (Array.isArray(providers) ? providers : [])
           .filter((id: unknown): id is string => typeof id === 'string' && id.length > 0)
-          .map(providerInfo),
+      } catch {
+        available = []
       }
-    } catch {
-      return { available: false, providers: [] }
     }
+    // The experimental translator service is opt-in. Bing/Google are still
+    // reachable directly, so the picker must not disappear when it is absent.
+    const providers = [...new Set([...available, ...FALLBACK_PROVIDERS])]
+    return { available: true, providers: providers.map(providerInfo) }
   }
 
   function requestOf(input: any, text: string): any {
@@ -87,24 +89,41 @@ export function createTranslationService(options: TranslationServiceOptions) {
   }
 
   async function translateOne(input: any, text: string): Promise<TranslationResult> {
+    const request = requestOf(input, text)
     const translator = translatorOf(options.ctx)
-    if (!translator || typeof translator.resolve !== 'function' || typeof translator.translate !== 'function') {
-      throw new ReaderError('translation-unavailable', '当前宿主没有可用的翻译服务')
-    }
+    const modernTranslator = translator
+      && typeof translator.resolve === 'function'
+      && typeof translator.translate === 'function'
+      ? translator
+      : null
     let spec: any
-    try {
-      spec = translator.resolve(requestOf(input, text))
-    } catch (error) {
-      throw new ReaderError('translation-invalid', messageOf(error))
+    let provider: string
+    let sourceLanguage: string
+    let targetLanguage: string
+    if (modernTranslator) {
+      try {
+        spec = modernTranslator.resolve(request)
+      } catch (error) {
+        throw new ReaderError('translation-invalid', messageOf(error))
+      }
+      provider = typeof spec?.provider === 'string' ? spec.provider : 'unknown'
+      sourceLanguage = typeof spec?.sourceLanguage === 'string' ? spec.sourceLanguage : 'auto'
+      targetLanguage = typeof spec?.targetLanguage === 'string' ? spec.targetLanguage : request.targetLanguage
+    } else {
+      provider = request.provider ?? 'bing'
+      if (PAID_PROVIDERS.has(provider)) {
+        throw new ReaderError('translation-unavailable', '付费翻译需要宿主启用 translator 服务')
+      }
+      sourceLanguage = request.sourceLanguage ?? 'auto'
+      targetLanguage = request.targetLanguage
     }
-    const provider = typeof spec?.provider === 'string' ? spec.provider : 'unknown'
-    const sourceLanguage = typeof spec?.sourceLanguage === 'string' ? spec.sourceLanguage : ''
-    const targetLanguage = typeof spec?.targetLanguage === 'string' ? spec.targetLanguage : requestOf(input, text).targetLanguage
     const cached = await cache.get({ provider, sourceLanguage, targetLanguage, text })
     if (cached) return { text: cached.text, provider, targetLanguage, cached: true }
     let translated: string
     try {
-      translated = await translator.translate(spec)
+      translated = modernTranslator
+        ? await modernTranslator.translate(spec)
+        : await anonymousTranslate(provider as 'bing' | 'google', text, sourceLanguage, targetLanguage)
     } catch (error) {
       throw new ReaderError('translation-failed', `翻译失败：${messageOf(error)}`)
     }

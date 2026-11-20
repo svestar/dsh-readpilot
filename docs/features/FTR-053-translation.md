@@ -3,12 +3,12 @@
 - **ID：** FTR-053
 - **名称：** 翻译
 - **状态：** active
-- **代码：** `src/shared/contracts/translation.ts`（`TRANSLATION_ENDPOINTS`、`TranslationResult`）；`src/host/modules/translation/service.ts`（`createTranslationService`、`translate`、`translateBatch`）；`src/host/modules/translation/store.ts`（`createTranslationCache`）；`src/host/modules/translation/handlers.ts`（`createTranslationHandlers`）；`src/host/api.ts`（`translationProviders`、`translate`）；`src/client/modules/translation/use-reader-translation.ts`（`useReaderTranslation`）；`src/client/modules/translation/TranslationCard.ts`（`TranslationCard`）；`src/client/modules/translation/TranslationPanel.ts`（`TranslationPanel`、`translationBlocksOf`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`）；`src/client/modules/companion/ChatPanel.ts`（`ChatPanel`）
+- **代码：** `src/shared/contracts/translation.ts`（`TRANSLATION_ENDPOINTS`、`TranslationResult`）；`src/host/modules/translation/service.ts`（`createTranslationService`、`translate`、`translateBatch`）；`src/host/modules/translation/providers.ts`（`anonymousTranslate`）；`src/host/modules/translation/store.ts`（`createTranslationCache`）；`src/host/modules/translation/handlers.ts`（`createTranslationHandlers`）；`src/host/api.ts`（`translationProviders`、`translate`）；`src/client/modules/translation/use-reader-translation.ts`（`useReaderTranslation`）；`src/client/modules/translation/TranslationCard.ts`（`TranslationCard`）；`src/client/modules/translation/TranslationPanel.ts`（`TranslationPanel`、`translationBlocksOf`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`）；`src/client/modules/companion/ChatPanel.ts`（`ChatPanel`）
 - **测试：** `tests/translation.test.ts`
 
 ## 行为
 
-翻译使用 DSH Host 的 `translator` 服务，不经过伴读 Agent，也不写入伴读会话：选中的文字或当前章的段落通过 `translate` / `translateBatch` 交给 Google、Bing 或用户选择的 DeepSeek 翻译源，返回纯文本。
+翻译使用 DSH Host 的 `translator` 服务，不经过伴读 Agent，也不写入伴读会话：选中的文字或当前章的段落通过 `translate` / `translateBatch` 交给 Google、Bing 或用户选择的 DeepSeek 翻译源，返回纯文本。Host 未挂载 `translator` 时，Google/Bing 直接使用同一匿名 HTTP 协议（内置 fallback），付费 DeepSeek 源不可用。
 
 选区工具栏有“翻译”入口；点击后在选区附近弹出译文卡片，显示原文、译文、翻译源与缓存状态，可复制和关闭。右侧面板新增“翻译”页签：显示当前章节的段落（最多 80 段），可单段翻译或“翻译本章”，并在此选择目标语言与翻译源；翻译结果写入持久缓存，切换章节后清空面板视图，但缓存可复用。
 
@@ -29,7 +29,7 @@
 
 ## 约束与失败行为
 
-单段最多 4000 字符（由 Host 与 translator 的限制共同约束）；批量最多 100 段、总计 60000 字符，单段失败只标记该段，不影响其他段。`translator` 服务缺失、provider 不可用、网络失败或翻译为空时返回错误，不写缓存；选中文字过长时提示分段。付费翻译源没有可用伴读会话时失败，不会静默改用免费源。翻译不修改书库、笔记、记忆或伴读会话；缓存损坏按空缓存读取。隐私提示只记录在本地，不包含作者、书名或上下文。
+单段最多 4000 字符（由 Host 与 translator 的限制共同约束）；批量最多 100 段、总计 60000 字符，单段失败只标记该段，不影响其他段。`translator` 缺失时匿名 fallback 仍可用；付费翻译源需要宿主 `translator` 服务，否则失败且不会静默改用免费源。provider 不可用、网络失败或翻译为空时返回错误，不写缓存；选中文字过长时提示分段。翻译不修改书库、笔记、记忆或伴读会话；缓存损坏按空缓存读取。隐私提示只记录在本地，不包含作者、书名或上下文。
 
 ## 验收与测试
 
@@ -37,3 +37,4 @@
 - 边界：批量中单段失败只返回该段错误，其他段完成（`translation_batch_isolates_failures`）。
 - 正常路径：清除缓存后同文本重新请求翻译（`translation_cache_clears`）。
 - 边界：章节翻译跳过图片与代码，表格按行拼接（`translation_blocks_skip_images_and_code`）。
+- 正常路径：宿主未挂载 translator 时，匿名 Bing/Google fallback 仍可翻译并列出 provider（`translation_falls_back_without_host_translator`）。
