@@ -92,11 +92,11 @@ export function CompanionSessions({
   const sessionRow = (session: CompanionSessionSummary) => {
     const active = session.sessionId === currentSessionId
     const boundElsewhere = Boolean(session.boundBookId && session.boundBookId !== bookId)
+    const boundLabel = `${t('companionSessionBound')}${session.boundBookTitle ? `《${session.boundBookTitle}》` : ''}`
     const badge = active
       ? h('span', { className: 'dsh-readpilot-session-badge' }, t('companionSessionCurrent'))
       : boundElsewhere
-        ? h('span', { className: 'dsh-readpilot-session-badge' },
-          `${t('companionSessionBound')}${session.boundBookTitle ? `《${session.boundBookTitle}》` : ''}`)
+        ? h('span', { className: 'dsh-readpilot-session-badge', title: boundLabel }, boundLabel)
         : null
     return h('button', {
       key: session.sessionId,

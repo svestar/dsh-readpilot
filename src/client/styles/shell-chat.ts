@@ -169,7 +169,7 @@ export const SHELL_CHAT_STYLES = `
 .dsh-readpilot-session-row-main{display:flex;flex-direction:column;gap:2px;min-width:0;flex:1}
 .dsh-readpilot-session-row-title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--dsw-alias-label-primary);font-size:12.5px}
 .dsh-readpilot-session-row-meta{color:var(--dsw-alias-label-tertiary);font-size:11px}
-.dsh-readpilot-session-badge{flex:none;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;white-space:nowrap}
+.dsh-readpilot-session-badge{flex:0 1 auto;min-width:0;max-width:42%;overflow:hidden;text-overflow:ellipsis;padding:1px 6px;border-radius:999px;background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-secondary);font-size:10.5px;white-space:nowrap}
 .dsh-readpilot-session-confirm{display:flex;flex-direction:column;gap:8px;padding:9px 10px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-base)}
 .dsh-readpilot-session-confirm-text{color:var(--dsw-alias-label-secondary);font-size:12px;line-height:1.6}
 .dsh-readpilot-session-confirm-actions{display:flex;align-items:center;gap:8px}
