@@ -8,13 +8,40 @@ on:
 permissions:
   contents: write
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release:
     runs-on: ubuntu-24.04
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v5
         with:
           fetch-depth: 0
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Verify tag matches package.json
+        run: |
+          tag_version="${GITHUB_REF_NAME#v}"
+          package_version="$(python3 -c 'import json; print(json.load(open("package.json"))["version"])')"
+          if [ "$tag_version" != "$package_version" ]; then
+            echo "::error::tag ${GITHUB_REF_NAME} does not match package.json version ${package_version}"
+            exit 1
+          fi
+          echo "Releasing dsh-readpilot ${tag_version}"
+
+      - name: Verify CHANGELOG section
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          if ! grep -Eq "^##[[:space:]]+${version}([[:space:]]|$)" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## ${version}' section"
+            exit 1
+          fi
 
       - name: Generate release notes
         run: python3 scripts/release_notes.py "$GITHUB_REF_NAME" > release-notes.md
