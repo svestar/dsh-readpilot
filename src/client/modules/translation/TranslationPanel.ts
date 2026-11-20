@@ -13,6 +13,7 @@ interface TranslationPanelProps {
 export function translationBlocksOf(content: ChapterContent): TranslationBlockView[] {
   const blocks: TranslationBlockView[] = []
   content.blocks.forEach((block, index) => {
+    if (blocks.length >= 80) return
     if (block.type === 'image' || block.type === 'code') return
     const text = block.type === 'table' && block.rows?.length
       ? block.rows.map(row => row.join(' | ')).join('\n')
@@ -107,6 +108,9 @@ export function TranslationPanel({ t, content, state }: TranslationPanelProps) {
     notice,
     toolbar,
     state.panelError ? h('div', { className: 'dsh-readpilot-chat-error' }, state.panelError) : null,
+    content.blocks.length > blocks.length
+      ? h('div', { className: 'dsh-readpilot-long-hint' }, t('translationTruncated'))
+      : null,
     blocks.length === 0
       ? h('div', { className: 'dsh-readpilot-chat-empty' }, t('translationEmpty'))
       : h('div', { className: 'dsh-readpilot-translation-list' }, blocks.map(blockRow)))

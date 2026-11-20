@@ -56,6 +56,7 @@ export const zhWorkspace = {
       translateBlock: '翻译这段',
       translationCached: '缓存',
       translationFailed: '翻译失败',
+      translationTruncated: '当前章节较长，仅显示前 80 段。',
       companionSessionPickerTitle: '选择伴读对话',
       companionSessionPickerHint: '新对话或绑定到旧对话',
       companionSessionNew: '新对话',

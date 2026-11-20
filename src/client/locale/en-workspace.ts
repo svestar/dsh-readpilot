@@ -56,6 +56,7 @@ export const enWorkspace = {
       translateBlock: 'Translate',
       translationCached: 'cached',
       translationFailed: 'Translation failed',
+      translationTruncated: 'This chapter is long; only the first 80 paragraphs are shown.',
       companionSessionPickerTitle: 'Choose companion conversation',
       companionSessionPickerHint: 'Start a new conversation or bind an old one',
       companionSessionNew: 'New conversation',
