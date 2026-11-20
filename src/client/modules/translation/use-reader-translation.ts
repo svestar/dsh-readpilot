@@ -69,6 +69,7 @@ export function useReaderTranslation({
   const [selectionResult, setSelectionResult] = React.useState<SelectionTranslation | null>(null)
   const [panelError, setPanelError] = React.useState('')
   const requestRef = React.useRef(0)
+  const selectionRequestRef = React.useRef(0)
   const versionRef = React.useRef(0)
 
   const bookId = screen.kind === 'book' ? screen.detail.book.id : null
@@ -98,7 +99,9 @@ export function useReaderTranslation({
 
   React.useEffect(() => {
     versionRef.current += 1
+    selectionRequestRef.current += 1
     setBlocks({})
+    setSelectionResult(null)
     setPanelError('')
   }, [chapterKey])
 
@@ -118,6 +121,7 @@ export function useReaderTranslation({
     setTargetLanguageState(value)
     saveTranslationTarget(value)
     versionRef.current += 1
+    selectionRequestRef.current += 1
     setBlocks({})
     setSelectionResult(null)
   }, [])
@@ -126,6 +130,7 @@ export function useReaderTranslation({
     setProviderState(value)
     saveTranslationProvider(value)
     versionRef.current += 1
+    selectionRequestRef.current += 1
     setBlocks({})
     setSelectionResult(null)
   }, [])
@@ -156,9 +161,11 @@ export function useReaderTranslation({
     }
     setSelectionResult(result)
     const version = versionRef.current
+    const request = selectionRequestRef.current + 1
+    selectionRequestRef.current = request
     try {
       const value: TranslationResult = await call('translate', requestArgs(source))
-      if (versionRef.current !== version) return
+      if (versionRef.current !== version || selectionRequestRef.current !== request) return
       setSelectionResult({
         source,
         text: value?.text ?? '',
@@ -170,12 +177,15 @@ export function useReaderTranslation({
         y: result.y,
       })
     } catch (cause) {
-      if (versionRef.current !== version) return
+      if (versionRef.current !== version || selectionRequestRef.current !== request) return
       setSelectionResult({ ...result, loading: false, error: messageOf(cause) })
     }
   }, [call, requestArgs, selection])
 
-  const closeSelection = React.useCallback(() => setSelectionResult(null), [])
+  const closeSelection = React.useCallback(() => {
+    selectionRequestRef.current += 1
+    setSelectionResult(null)
+  }, [])
 
   const translateBlock = React.useCallback(async (block: TranslationBlockView): Promise<void> => {
     const source = block.text.trim()
