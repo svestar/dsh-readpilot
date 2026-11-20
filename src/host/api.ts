@@ -85,6 +85,7 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     chapter: (payload?: any) => deps.reading.chapter(payload),
     saveReadingProgress: (payload?: any) => deps.reading.saveReadingProgress(payload),
     setCompanionSession: (payload?: any) => deps.companion.setCompanionSession(payload),
+    companionSessions: (payload?: any) => deps.companion.listCompanionSessions(payload),
     sessionAlive: (payload?: any) => deps.companion.sessionAlive(payload),
     sessionBook: (payload?: any) => deps.companion.sessionBook(payload),
     setCompanionPolicy: (payload?: any) => deps.companion.setCompanionPolicy(payload),

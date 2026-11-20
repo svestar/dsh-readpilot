@@ -31,15 +31,3 @@ export async function renameCompanionSession(runtime: any, sessionId: string, ti
     }
   }
 }
-export async function syncCompanionSessionTitles(
-  runtime: any,
-  books: readonly { id: string; title?: string }[],
-  sessions: Record<string, { sessionId?: string } | undefined>,
-): Promise<void> {
-  for (const [bookId, entry] of Object.entries(sessions ?? {})) {
-    if (!entry?.sessionId) continue
-    const book = books.find(candidate => candidate.id === bookId)
-    if (!book) continue
-    await renameCompanionSession(runtime, entry.sessionId, companionSessionTitle(book.title)).catch(() => {})
-  }
-}

@@ -12,7 +12,6 @@ import {
 import { diffLines } from './modules/notes/diff.ts'
 import { findNoteOccurrence } from './modules/notes/anchors.ts'
 import { NativeCompanion } from './modules/companion/NativeCompanion.ts'
-import { syncCompanionSessionTitles } from './modules/companion/session-title.ts'
 import { registerConversationFavorite } from './modules/companion/register-conversation-favorite.ts'
 import { registerReader } from './modules/reader/register.ts'
 import { registerResources } from './modules/reader/register-resources.ts'
@@ -55,14 +54,6 @@ export function createPlugin(require: (name: string) => any) {
     apply(ctx: any) {
       runtime = ctx
       boundText = ctx.locale.bind(NS)
-      void (async () => {
-        try {
-          const value = await call('state')
-          await syncCompanionSessionTitles(runtime, value.books ?? [], value.sessions ?? {})
-        } catch {
-          // Session titles are best effort; reader open retries.
-        }
-      })()
       ctx.effect(() => ctx.locale.register(NS, { zh, en }), 'dsh-readpilot: dictionaries')
       registerShortcuts(ctx, boundText)
       const navigation = registerResources(ctx, call)

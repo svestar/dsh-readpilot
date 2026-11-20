@@ -44,6 +44,7 @@
 - [FTR-026 对话页码跳转](FTR-026-chat-jump.md)
 - [FTR-034 工作区跳转](FTR-034-workspace-jump.md)
 - [FTR-036 伴读对话标题](FTR-036-companion-title.md)
+- [FTR-052 伴读对话切换](FTR-052-companion-sessions.md)
 - [FTR-037 Agent 阅读上下文](FTR-037-agent-context.md)
 - [FTR-038 阅读感知](FTR-038-reading-perception.md)
 - [FTR-039 全书概括](FTR-039-whole-book-digest.md)

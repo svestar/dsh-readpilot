@@ -137,6 +137,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     ctx,
     books: () => library.books(),
     progress: () => loadProgress(dataDir),
+    librarySettings: library.currentSettings,
     getSettings,
     setSettings,
     loadSettings,

@@ -9,9 +9,29 @@ export const COMPANION_ENDPOINTS = {
   session: 'session',
   sessionAlive: 'sessionAlive',
   sessionBook: 'sessionBook',
+  companionSessions: 'companionSessions',
   companionPolicy: 'companionPolicy',
   companionContext: 'companionContext',
 } as const
+
+export interface CompanionSessionSummary {
+  sessionId: string
+  title: string
+  updatedAt: number
+  boundBookId: string | null
+  boundBookTitle: string | null
+}
+
+export interface CompanionSessionList {
+  currentSessionId: string | null
+  sessions: CompanionSessionSummary[]
+}
+
+export interface CompanionSessionBinding {
+  bookId: string
+  sessionId: string | null
+  unboundBookIds: string[]
+}
 
 export interface CompanionReadingView {
   mode?: 'paged' | 'scroll'

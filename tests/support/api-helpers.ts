@@ -2,7 +2,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 
-export function fakeContext(options: { fs?: any } = {}) {
+export function fakeContext(options: { fs?: any; sessionQuery?: any } = {}) {
   const workspaces: any[] = []
   const archivedSessionIds: string[] = []
   return {
@@ -10,14 +10,18 @@ export function fakeContext(options: { fs?: any } = {}) {
     archivedSessionIds,
     get(name: string) {
       if (name === 'fs') return options.fs
+      if (name === 'sessionQuery') return options.sessionQuery
       if (name !== 'workspaceRegistry') return undefined
       return {
         archivedSessionIds,
+        get(id: string) {
+          return workspaces.find(workspace => workspace.id === id)
+        },
         async resolveByPath(path: string) {
           return workspaces.find(workspace => workspace.path === path)
         },
         async create(path: string, title: string) {
-          const workspace = { id: `ws-${workspaces.length + 1}`, path, title }
+          const workspace = { id: `ws-${workspaces.length + 1}`, path, title, sessionIds: [] as string[] }
           workspaces.push(workspace)
           return workspace
         },

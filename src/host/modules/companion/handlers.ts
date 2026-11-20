@@ -7,6 +7,7 @@ export function createCompanionHandlers(service: ReturnType<typeof createCompani
     [COMPANION_ENDPOINTS.session]: payload => service.setCompanionSession(payload),
     [COMPANION_ENDPOINTS.sessionAlive]: payload => service.sessionAlive(payload as { sessionId?: unknown }),
     [COMPANION_ENDPOINTS.sessionBook]: payload => service.sessionBook(payload as { sessionId?: unknown }),
+    [COMPANION_ENDPOINTS.companionSessions]: payload => service.listCompanionSessions(payload),
     [COMPANION_ENDPOINTS.companionPolicy]: payload => service.setCompanionPolicy(payload as { sessionId?: unknown }),
     [COMPANION_ENDPOINTS.companionContext]: payload => service.setCompanionContext(payload),
   }

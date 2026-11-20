@@ -15,6 +15,7 @@ interface ChatPanelProps {
   notesBody: any
   longNotesBody: any
   memoryBody: any
+  sessionBar?: any
   chatBody: any
   nativeChat?: any
   onPageJump?: ((page: number) => void) | null
@@ -39,6 +40,7 @@ export function ChatPanel({
   notesBody,
   longNotesBody,
   memoryBody,
+  sessionBar,
   chatBody,
   nativeChat,
   onPageJump,
@@ -135,6 +137,7 @@ export function ChatPanel({
         className: 'dsh-readpilot-chat-close',
         onClick: () => setChatOpen(false),
       }, t('closeChat'))),
+    chatTab === 'chat' ? sessionBar : null,
     chatTab === 'notes'
       ? notesBody
       : chatTab === 'long'

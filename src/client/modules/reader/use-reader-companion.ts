@@ -1,7 +1,6 @@
 import { React } from '../../runtime.ts'
 import { messageOf } from '../../lib/helpers.ts'
 import { companionMode, useCompanion } from '../companion/use-companion.ts'
-import { companionSessionTitle, renameCompanionSession } from '../companion/session-title.ts'
 import type { CallRpc, Screen, Snapshot, TextFn } from '../../lib/types.ts'
 
 interface ReaderCompanionOptions {
@@ -39,24 +38,6 @@ export function useReaderCompanion({
   const [nativeFailed, setNativeFailed] = React.useState(false)
   const nativeMode = companionMode(hasProvider, hasRenderSlot, nativeFailed) === 'native'
   const nativeInputRef = React.useRef<any>(null)
-  const titledSessionsRef = React.useRef(new Set<string>())
-
-  React.useEffect(() => {
-    if (!snapshot) return
-    const bookById = new Map(snapshot.books.map(book => [book.id, book]))
-    for (const [bookId, entry] of Object.entries(snapshot.sessions ?? {})) {
-      if (!entry?.sessionId) continue
-      const book = bookById.get(bookId)
-      if (!book) continue
-      const title = companionSessionTitle(book.title)
-      const key = `${entry.sessionId}\u0000${title}`
-      if (titledSessionsRef.current.has(key)) continue
-      titledSessionsRef.current.add(key)
-      void renameCompanionSession(runtime, entry.sessionId, title).catch(() => {
-        titledSessionsRef.current.delete(key)
-      })
-    }
-  }, [runtime, snapshot])
 
   const companion = useCompanion({
     runtime,

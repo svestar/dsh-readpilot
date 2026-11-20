@@ -3,6 +3,7 @@ import { Toc } from './Toc.ts'
 import { ReaderBodyView } from './ReaderBodyView.ts'
 import { ChatPanel } from '../companion/ChatPanel.ts'
 import { ChatBody, ChatCompose } from '../companion/ChatContent.ts'
+import { CompanionSessions } from '../companion/CompanionSessions.ts'
 import { MemoryPanel } from '../companion/MemoryPanel.ts'
 import { LongNotes } from '../notes/LongNotesView.ts'
 import { NotesBody } from '../notes/NotesBodyView.ts'
@@ -89,6 +90,20 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     onClear: memory.clear,
   })
 
+  const sessionBar = h(CompanionSessions, {
+    t,
+    bookId: screen.detail.book.id,
+    currentSessionId: companion.activeSessionId,
+    currentTitle: companion.currentSessionTitle,
+    sessions: companion.conversations,
+    loading: companion.conversationsLoading,
+    error: companion.conversationsError,
+    busy: companion.bindingBusy,
+    onRefresh: () => companion.refreshConversations(screen.detail.book.id),
+    onCreate: companion.createConversation,
+    onSelect: companion.selectConversation,
+  })
+
   const chatPanel = h(ChatPanel, {
     t,
     chatOpen: companion.chatOpen,
@@ -98,6 +113,7 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     notesBody,
     longNotesBody,
     memoryBody,
+    sessionBar,
     chatBody,
     nativeChat,
     onPageJump: prefs.format === 'pdf' ? view.jumpToPage : null,

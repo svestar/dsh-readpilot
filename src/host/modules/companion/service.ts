@@ -1,10 +1,16 @@
-import type { CompanionSettings, CompanionReadingView, SessionBookResult } from '../../../shared/contracts/companion.ts'
+import type {
+  CompanionSessionBinding,
+  CompanionSettings,
+  CompanionReadingView,
+  SessionBookResult,
+} from '../../../shared/contracts/companion.ts'
 import { normalizeReadingView } from '../../../shared/contracts/companion.ts'
-import type { ProgressMap } from '../../../shared/contracts/library.ts'
+import type { ProgressMap, Settings } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 import type { HostContext } from '../../types.ts'
 import { ReaderError } from '../../lib/errors.ts'
 import { enqueueWrite } from '../../lib/write-queue.ts'
+import { createCompanionSessionList } from './session-list.ts'
 import { loadSessions, saveSessions } from './session-store.ts'
 
 export interface CompanionServiceOptions {
@@ -12,6 +18,7 @@ export interface CompanionServiceOptions {
   ctx?: HostContext
   books(): Promise<Book[]>
   progress(): Promise<ProgressMap>
+  librarySettings(): Promise<Settings>
   getSettings(): CompanionSettings
   setSettings(value: CompanionSettings): void
   loadSettings(): Promise<CompanionSettings>
@@ -24,6 +31,12 @@ export interface CompanionServiceOptions {
 
 export function createCompanionService(options: CompanionServiceOptions) {
   const readOnlySessions = new Set<string>()
+  const sessionList = createCompanionSessionList({
+    dataDir: options.dataDir,
+    ctx: options.ctx,
+    books: options.books,
+    librarySettings: options.librarySettings,
+  })
 
   function archivedSessionIds(): string[] {
     const registry = options.ctx?.get('workspaceRegistry') as { archivedSessionIds?: unknown } | undefined
@@ -31,23 +44,31 @@ export function createCompanionService(options: CompanionServiceOptions) {
     return Array.isArray(ids) ? ids.filter((id): id is string => typeof id === 'string') : []
   }
 
-  async function setCompanionSession({ bookId, sessionId }: any = {}): Promise<{ bookId: string; sessionId: string | null }> {
+  async function setCompanionSession({ bookId, sessionId }: any = {}): Promise<CompanionSessionBinding> {
     if (typeof bookId !== 'string' || !bookId) {
       throw new ReaderError('invalid-session', '缺少书籍 ID')
     }
     if (sessionId != null && typeof sessionId !== 'string') {
       throw new ReaderError('invalid-session', '会话 ID 必须是字符串')
     }
+    const unboundBookIds: string[] = []
     await enqueueWrite(`sessions:${options.dataDir}`, async () => {
       const sessions = await loadSessions(options.dataDir)
       if (sessionId) {
+        // A conversation belongs to one book at a time; moving it keeps the
+        // reading context from being shared under two different books.
+        for (const [otherBookId, entry] of Object.entries(sessions)) {
+          if (otherBookId === bookId || entry.sessionId !== sessionId) continue
+          delete sessions[otherBookId]
+          unboundBookIds.push(otherBookId)
+        }
         sessions[bookId] = { sessionId, updatedAt: Date.now() }
       } else {
         delete sessions[bookId]
       }
       await saveSessions(options.dataDir, sessions)
     })
-    return { bookId, sessionId: sessionId ?? null }
+    return { bookId, sessionId: sessionId ?? null, unboundBookIds: unboundBookIds.sort() }
   }
 
   async function sessionAlive({ sessionId }: { sessionId?: unknown } = {}): Promise<{ sessionId: string; alive: boolean }> {
@@ -241,6 +262,7 @@ export function createCompanionService(options: CompanionServiceOptions) {
 
   return {
     setCompanionSession,
+    listCompanionSessions: sessionList.listCompanionSessions,
     sessionAlive,
     sessionBook,
     setCompanionPolicy,
