@@ -26,6 +26,7 @@ interface ReaderBarProps {
   zoom?: number
   onZoom?: (delta: number) => void
   onHistory?: () => void
+  translationControl?: any
 }
 
 export function ReaderBar({
@@ -51,6 +52,7 @@ export function ReaderBar({
   zoom,
   onZoom,
   onHistory,
+  translationControl,
 }: ReaderBarProps) {
   const paged = mode === 'paged'
   const prevLabel = t(paged ? 'pagePrev' : 'chapterPrev')
@@ -90,6 +92,7 @@ export function ReaderBar({
         }, '›'))),
     h('div', { className: 'dsh-readpilot-bar-title', title: chapterTitle }, chapterTitle),
     h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-controls' },
+      translationControl,
       numericPage
         ? h('div', { className: 'dsh-readpilot-bar-group dsh-readpilot-bar-page' },
           h('input', {

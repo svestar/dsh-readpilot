@@ -1,11 +1,40 @@
-import { h } from '../../runtime.ts'
-import { renderBlocks } from '../markdown/render.ts'
+import { React, h } from '../../runtime.ts'
+import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
+import { translationBlocksOf } from '../translation/blocks.ts'
+import { TranslationControl } from '../translation/TranslationControl.ts'
 import { ReaderBar } from './ReaderBar.ts'
 import { VisualReader } from './VisualReader.ts'
 import { pageSpanWidth } from './paging.ts'
 import { visiblePdfPageEnd } from './use-reading-progress.ts'
 import type { ReaderPanelModel } from './use-reader-panel.ts'
 import type { TextFn } from '../../lib/types.ts'
+
+function firstVisibleBlock(container: HTMLElement | null): number | null {
+  if (!container) return null
+  const bounds = container.getBoundingClientRect()
+  for (const element of container.querySelectorAll<HTMLElement>('[data-block-index]')) {
+    const rect = element.getBoundingClientRect()
+    if (rect.bottom <= bounds.top + 4 || rect.top >= bounds.bottom - 4) continue
+    if (rect.right <= bounds.left + 4 || rect.left >= bounds.right - 4) continue
+    const index = Number(element.getAttribute('data-block-index'))
+    if (Number.isInteger(index) && index >= 0) return index
+  }
+  return null
+}
+
+function visibleBlockIndices(container: HTMLElement | null): Set<number> {
+  const visible = new Set<number>()
+  if (!container) return visible
+  const bounds = container.getBoundingClientRect()
+  for (const element of container.querySelectorAll<HTMLElement>('[data-block-index]')) {
+    const rect = element.getBoundingClientRect()
+    if (rect.bottom <= bounds.top + 4 || rect.top >= bounds.bottom - 4) continue
+    if (rect.right <= bounds.left + 4 || rect.left >= bounds.right - 4) continue
+    const index = Number(element.getAttribute('data-block-index'))
+    if (Number.isInteger(index) && index >= 0) visible.add(index)
+  }
+  return visible
+}
 
 interface ReaderBodyProps {
   t: TextFn
@@ -22,6 +51,95 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   const effectiveMode = prefs.effectiveMode
   const textLayout = prefs.textLayout
   const pdfPage = view.visual?.kind === 'pdf' ? view.visual.page : 1
+  const translation = model.translation
+  const inlineAvailable = !screen.detail.scanOnly && view.visual === null
+  const translationBlocks = inlineAvailable && translation.enabled ? translationBlocksOf(screen.content) : []
+  const anchorBlockRef = React.useRef<number | null>(null)
+  const [visibilityTick, setVisibilityTick] = React.useState(0)
+
+  React.useEffect(() => {
+    anchorBlockRef.current = null
+  }, [screen.content.chapterId])
+
+  React.useEffect(() => {
+    if (!inlineAvailable || !translation.enabled) return
+    const targets = [view.contentRef.current, view.textPager.innerRef.current].filter(Boolean) as HTMLElement[]
+    if (targets.length === 0) return
+    let frame = 0
+    const bump = () => {
+      if (frame) return
+      frame = (typeof requestAnimationFrame === 'function'
+        ? requestAnimationFrame
+        : (fn: () => void) => { fn(); return 0 })(() => {
+        frame = 0
+        setVisibilityTick(value => value + 1)
+      })
+    }
+    for (const target of targets) target.addEventListener('scroll', bump, { passive: true })
+    return () => {
+      for (const target of targets) target.removeEventListener('scroll', bump)
+      if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+    }
+  }, [inlineAvailable, translation.enabled, view.contentRef, view.textPager.innerRef])
+
+  React.useEffect(() => {
+    if (!inlineAvailable || !translation.enabled) {
+      anchorBlockRef.current = null
+      return
+    }
+    const container = view.contentRef.current
+    const visible = visibleBlockIndices(container)
+    const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
+    const missing = candidates.filter(block => !translation.blocks[block.index])
+    if (missing.length === 0) return
+    if (anchorBlockRef.current === null) anchorBlockRef.current = firstVisibleBlock(container)
+    void translation.translateAll(missing)
+  }, [
+    inlineAvailable,
+    translation.blocks,
+    translation.enabled,
+    translation.provider,
+    translation.targetLanguage,
+    translation.translateAll,
+    translationBlocks,
+    view.contentRef,
+    visibilityTick,
+  ])
+
+  React.useEffect(() => {
+    const index = anchorBlockRef.current
+    if (index === null) return
+    const restore = () => {
+      const container = view.contentRef.current
+      const element = container?.querySelector<HTMLElement>(`[data-block-index="${index}"]`)
+      if (effectiveMode === 'paged') {
+        view.textPager.scrollToBlock(index)
+      } else {
+        try {
+          element?.scrollIntoView({ block: 'start', inline: 'start' })
+        } catch {
+          // A paged container may not be scrollable on every browser.
+        }
+      }
+      anchorBlockRef.current = null
+    }
+    let frame: number | undefined
+    if (typeof requestAnimationFrame === 'function') frame = requestAnimationFrame(restore)
+    else restore()
+    return () => {
+      if (frame !== undefined && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+    }
+  }, [effectiveMode, translation.revision, view.contentRef, view.textPager])
+
+  const contentBlocks = inlineAvailable && translation.enabled
+    ? renderBlocksWithTranslations(
+      screen.content.blocks,
+      screen.content.chapterId,
+      translation.blocks,
+      t('translating'),
+      effectiveMode !== 'paged',
+    )
+    : renderBlocks(screen.content.blocks, screen.content.chapterId)
 
   const barProps = format === 'pdf'
     ? {
@@ -95,6 +213,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     ...barProps,
     reflow: prefs.reflowMode,
     onHistory,
+    translationControl: h(TranslationControl, { t, state: translation, settingsOnly: !inlineAvailable }),
   })
 
   const visualReader = view.visual ? h(VisualReader, {
@@ -137,7 +256,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
         style: view.textPager.innerStyle,
       },
       h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
-      renderBlocks(screen.content.blocks, screen.content.chapterId),
+      contentBlocks,
       h('div', { className: 'dsh-readpilot-note-layer', ref: notes.noteLayerRef }))))
     : h('div', {
       className: 'dsh-readpilot-reader',
@@ -148,7 +267,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     },
     h('div', { className: 'dsh-readpilot-reader-inner', style: textColumnStyle },
       h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
-      renderBlocks(screen.content.blocks, screen.content.chapterId),
+      contentBlocks,
       h('div', { className: 'dsh-readpilot-note-layer', ref: notes.noteLayerRef })))
 
   return h('div', { className: 'dsh-readpilot-main' },

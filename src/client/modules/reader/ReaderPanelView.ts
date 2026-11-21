@@ -64,7 +64,6 @@ export function ReaderPanelView(props: ReaderPanelProps) {
     onOpenWorkspace: companion.openWorkspace,
     onToggleSearch: find.toggleSearch,
     onToggleChat: () => companion.setChatOpen(previous => !previous),
-    onTranslate: translation.openPanel,
     onToggleToc: () => prefs.setTocOpen(previous => !previous),
     onBookmark: notes.addBookmark,
     onHelp: () => model.setHelpOpen(true),

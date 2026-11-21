@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { parseMarkdownBlocks } from '../src/shared/markdown.ts'
 import { parseBlocks } from '../src/host/modules/reading/formats.ts'
 import { bindRuntime } from '../src/client/runtime.ts'
-import { inline, renderBlocks } from '../src/client/modules/markdown/render.ts'
+import { inline, renderBlocks, renderBlocksWithTranslations } from '../src/client/modules/markdown/render.ts'
 import { rewriteInlineImages } from '../src/host/modules/reading/markdown-images.ts'
 
 const source = [
@@ -77,6 +77,31 @@ test('markdown_renderer_keeps_safe_inline_nodes_and_block_indexes', () => {
   assert.ok(nodes.every(node => node.props['data-block-index'] !== undefined))
   assert.ok(nodes.some(node => node.type === 'div' && node.props.className === 'dsh-readpilot-footnote'))
   assert.ok(inline('**粗体**', 'x').some(node => node?.type === 'strong'))
+})
+
+test('markdown_inline_translation_nodes_keep_block_anchors', () => {
+  bindRuntime((name: string) => {
+    if (name === 'react') {
+      return {
+        createElement: (type: any, props: any, ...children: any[]) => ({ type, props, children }),
+        useState: () => [null, () => {}],
+      }
+    }
+    if (name === 'react-dom') return { createPortal: (node: any) => node }
+    return { Modal: null, Tooltip: null, Toast: null }
+  })
+  const blocks = parseMarkdownBlocks('第一段\n\n第二段')
+  const nodes = renderBlocksWithTranslations(blocks, 'doc', {
+    0: { text: '第一段译文', loading: false, error: '' },
+    1: { text: '', loading: true, error: '' },
+  }, '翻译中…', false)
+  assert.equal(nodes.length, 3)
+  assert.equal(nodes[0].props['data-block-index'], 0)
+  assert.equal(nodes[1].props.className, 'dsh-readpilot-block-translation')
+  assert.equal(nodes[1].props['data-translation-index'], 0)
+  assert.equal(nodes[2].props['data-block-index'], 1)
+  assert.ok(!nodes.some(node => node.props?.className === 'dsh-readpilot-block-translation'
+    && node.props['data-translation-index'] === 1))
 })
 
 test('relative_inline_images_are_rewritten', () => {

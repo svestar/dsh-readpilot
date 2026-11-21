@@ -27,6 +27,7 @@ interface ReaderViewOptions {
   setChatOpen: (value: boolean) => void
   setChatError: (value: string) => void
   activeSessionId: string | null
+  progressPaused?: boolean
 }
 
 /** Screen navigation, visual/text pagers and the reading position for the panel. */
@@ -45,6 +46,7 @@ export function useReaderView({
   setChatOpen,
   setChatError,
   activeSessionId,
+  progressPaused = false,
 }: ReaderViewOptions) {
   const {
     readingMode,
@@ -124,6 +126,7 @@ export function useReaderView({
     selection,
     activeSessionId,
     progressSkipRef,
+    progressPaused,
   })
 
   const selectChapter = React.useCallback<SelectChapter>(async (bookId, chapterId, target) => {

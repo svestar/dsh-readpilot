@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
-import { translationBlocksOf } from '../src/client/modules/translation/TranslationPanel.ts'
+import { translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
 import { fakeContext } from './support/api-helpers.ts'
 
 function translatorFixture() {

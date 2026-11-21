@@ -95,8 +95,7 @@ function taskItem(block: MarkdownBlock, key: string, index: number): any {
   h('span', null, inline(block.text ?? '', key)))
 }
 
-export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): any[] {
-  return blocks.map((block, index) => {
+export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): any[] {  return blocks.map((block, index) => {
     const key = `${prefix}-${index}`
     if (block.type === 'footnote' && block.footnoteId) {
       const id = block.footnoteId.replace(/[^A-Za-z0-9_-]/g, '-')
@@ -157,6 +156,35 @@ export function renderBlocks(blocks: readonly MarkdownBlock[], prefix: string): 
       h('span', null, inline(block.text ?? '', key)))
     }
     return h('p', { key, 'data-block-index': index }, inline(block.text ?? '', key))
+  })
+}
+
+/** Attach one translated paragraph after each rendered block, without touching the original text. */
+export function renderBlocksWithTranslations(
+  blocks: readonly MarkdownBlock[],
+  prefix: string,
+  translations: Record<number, { text: string; loading: boolean; error: string }>,
+  loadingLabel: string,
+  showLoading = true,
+): any[] {
+  const nodes = renderBlocks(blocks, prefix)
+  return nodes.flatMap((node, index) => {
+    const translation = translations[index]
+    if (!translation) return [node]
+    if (translation.loading && !showLoading) return [node]
+    const body = translation.loading
+      ? h('span', { className: 'dsh-readpilot-block-translation-loading' }, loadingLabel)
+      : translation.error
+        ? h('span', { className: 'dsh-readpilot-block-translation-error' }, translation.error)
+        : h('span', { className: 'dsh-readpilot-block-translation-text' }, translation.text)
+    return [
+      node,
+      h('div', {
+        key: `${prefix}-${index}-translation`,
+        className: 'dsh-readpilot-block-translation',
+        'data-translation-index': index,
+      }, body),
+    ]
   })
 }
 

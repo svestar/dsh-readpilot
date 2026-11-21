@@ -22,6 +22,7 @@ interface ReadingProgressOptions {
   selection: Selection | null
   activeSessionId: string | null
   progressSkipRef: { current: boolean }
+  progressPaused?: boolean
 }
 
 /** Reading position, percentage and the Host companion-context/progress writes. */
@@ -42,6 +43,7 @@ export function useReadingProgress({
   selection,
   activeSessionId,
   progressSkipRef,
+  progressPaused = false,
 }: ReadingProgressOptions) {
   const toc = screen.kind === 'book' ? screen.detail.toc : []
   const activeChapterIndex = toc.findIndex(item => item.id === activeChapterId)
@@ -112,7 +114,7 @@ export function useReadingProgress({
   const readingViewKey = JSON.stringify(readingView)
 
   React.useEffect(() => {
-    if (screen.kind !== 'book' || !activeSessionId || !readingView) return
+    if (screen.kind !== 'book' || !activeSessionId || !readingView || progressPaused) return
     void call('companionContext', {
       sessionId: activeSessionId,
       bookId: screen.detail.book.id,
@@ -120,10 +122,10 @@ export function useReadingProgress({
       chapter: screen.content.title,
       view: readingView,
     }).catch(() => {})
-  }, [activeSessionId, readingViewKey, screen, call])
+  }, [activeSessionId, progressPaused, readingViewKey, screen, call])
 
   React.useEffect(() => {
-    if (screen.kind !== 'book' || !activeChapterId) return
+    if (screen.kind !== 'book' || !activeChapterId || progressPaused) return
     if (progressSkipRef.current) {
       progressSkipRef.current = false
       return
@@ -139,7 +141,7 @@ export function useReadingProgress({
       }).catch(() => {})
     }, 350)
     return () => window.clearTimeout(timer)
-  }, [activeChapterId, chapterFraction, readingPercent, screen, toc, call])
+  }, [activeChapterId, chapterFraction, progressPaused, readingPercent, screen, toc, call])
 
   return {
     activeChapterIndex,

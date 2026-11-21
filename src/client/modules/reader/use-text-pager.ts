@@ -33,6 +33,7 @@ export interface TextPager {
   canPrev: boolean
   canNext: boolean
   goPage: (delta: number) => void
+  scrollToBlock: (blockIndex: number) => void
 }
 
 export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, anchor, selectChapter }: TextPagerOptions): TextPager {
@@ -192,6 +193,19 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     void selectChapter(bookId, neighbour.id)
   }, [active, bookId, nextChapter, page, pageCount, prevChapter, selectChapter])
 
+  /** After a layout-changing insertion, keep the same text block on screen. */
+  const scrollToBlock = React.useCallback((blockIndex: number) => {
+    if (!active || stride <= 0) return
+    const inner = innerRef.current
+    if (!inner) return
+    const element = inner.querySelector<HTMLElement>(`[data-block-index="${blockIndex}"]`)
+    if (!element) return
+    const innerRect = inner.getBoundingClientRect()
+    const blockRect = element.getBoundingClientRect()
+    const offset = blockRect.left - innerRect.left + inner.scrollLeft
+    setPage(clampPageIndex(Math.floor(offset / stride), pageCount))
+  }, [active, pageCount, stride])
+
   React.useEffect(() => {
     if (!enabled) return
     const frame = frameRef.current
@@ -238,5 +252,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     canPrev,
     canNext,
     goPage,
+    scrollToBlock,
   }
 }

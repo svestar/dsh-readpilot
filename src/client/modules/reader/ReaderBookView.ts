@@ -5,7 +5,6 @@ import { ChatPanel } from '../companion/ChatPanel.ts'
 import { ChatBody, ChatCompose } from '../companion/ChatContent.ts'
 import { CompanionSessions } from '../companion/CompanionSessions.ts'
 import { MemoryPanel } from '../companion/MemoryPanel.ts'
-import { TranslationPanel } from '../translation/TranslationPanel.ts'
 import { LongNotes } from '../notes/LongNotesView.ts'
 import { NotesBody } from '../notes/NotesBodyView.ts'
 import type { ReaderPanelModel } from './use-reader-panel.ts'
@@ -21,7 +20,7 @@ interface ReaderBookProps {
 export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps) {
   const screen = model.screen
   if (screen.kind !== 'book') return null
-  const { prefs, view, notes, companion, composer, longNotes, memory, translation } = model
+  const { prefs, view, notes, companion, composer, longNotes, memory } = model
 
   const chatBody = h(ChatBody, {
     t,
@@ -91,12 +90,6 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     onClear: memory.clear,
   })
 
-  const translationBody = h(TranslationPanel, {
-    t,
-    content: screen.content,
-    state: translation,
-  })
-
   const sessionBar = h(CompanionSessions, {
     t,
     bookId: screen.detail.book.id,
@@ -120,7 +113,6 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     notesBody,
     longNotesBody,
     memoryBody,
-    translationBody,
     sessionBar,
     chatBody,
     nativeChat,

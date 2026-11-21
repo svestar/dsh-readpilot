@@ -51,8 +51,6 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     screen: state.screen,
     selection,
     activeSessionId: companion.activeSessionId,
-    setChatOpen: companion.setChatOpen,
-    setChatTab: companion.setChatTab,
   })
 
   const view = useReaderView({    call,
@@ -69,6 +67,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     setChatOpen: companion.setChatOpen,
     setChatError: companion.setChatError,
     activeSessionId: companion.activeSessionId,
+    progressPaused: translation.pending,
   })
 
   useReaderSync({

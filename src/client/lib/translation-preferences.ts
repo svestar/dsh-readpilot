@@ -1,6 +1,7 @@
 export const TRANSLATION_TARGET_KEY = 'dsh-readpilot.translation-target'
 export const TRANSLATION_PROVIDER_KEY = 'dsh-readpilot.translation-provider'
 export const TRANSLATION_NOTICE_KEY = 'dsh-readpilot.translation-notice'
+export const TRANSLATION_ENABLED_KEY = 'dsh-readpilot.translation-enabled'
 export const DEFAULT_TRANSLATION_TARGET = 'zh-CN'
 export const DEFAULT_TRANSLATION_PROVIDER = 'auto'
 
@@ -61,6 +62,22 @@ export function readTranslationNotice(): boolean {
 export function saveTranslationNotice(value: boolean): void {
   try {
     window.localStorage.setItem(TRANSLATION_NOTICE_KEY, value ? 'acknowledged' : '')
+  } catch {
+    // Translation preference persistence is best effort.
+  }
+}
+
+export function readTranslationEnabled(): boolean {
+  try {
+    return window.localStorage.getItem(TRANSLATION_ENABLED_KEY) === 'on'
+  } catch {
+    return false
+  }
+}
+
+export function saveTranslationEnabled(value: boolean): void {
+  try {
+    window.localStorage.setItem(TRANSLATION_ENABLED_KEY, value ? 'on' : 'off')
   } catch {
     // Translation preference persistence is best effort.
   }
