@@ -15,8 +15,8 @@ function frame(columns: number, columnWidth: number, gap: number, pageCount: num
   return { columns, columnWidth, pitch: columnWidth + gap, pageCount }
 }
 
-function rect(left: number, height: number, width = 800): BlockRect {
-  return { left, top: 0, width, height }
+function rect(left: number, height: number, width = 800, part?: 'translation'): BlockRect {
+  return { left, top: 0, width, height, ...(part ? { part } : {}) }
 }
 
 function singleColumnGeometry(): PageGeometry {
@@ -29,8 +29,8 @@ function singleColumnGeometry(): PageGeometry {
   }
 }
 
-function point(blockIndex: number, blockFraction: number) {
-  return { kind: 'point' as const, chapterId: 'c1', blockIndex, blockFraction }
+function point(blockIndex: number, blockFraction: number, part?: 'translation') {
+  return { kind: 'point' as const, chapterId: 'c1', blockIndex, blockFraction, ...(part ? { part } : {}) }
 }
 
 test('layout_info_derives_column_pitch', () => {
@@ -131,6 +131,55 @@ test('anchor_at_page_uses_first_visible_block', () => {
   assert.deepEqual(anchorAtPage(geometry, 1, layout, 'c1'), point(0, 0.5))
   assert.deepEqual(anchorAtPage(geometry, 2, layout, 'c1'), point(1, 0))
   assert.deepEqual(anchorAtPage(geometry, 3, layout, 'c1'), point(2, 0))
+})
+
+test('anchor_at_translation_only_page_round_trips', () => {
+  const geometry: PageGeometry = {
+    blocks: [
+      {
+        index: 0,
+        rects: [
+          rect(0, 100),
+          rect(840, 100, 800, 'translation'),
+          rect(1680, 100, 800, 'translation'),
+        ],
+      },
+      { index: 1, rects: [rect(2520, 100)] },
+    ],
+  }
+  const layout = frame(1, 800, 40, 4)
+  const first = anchorAtPage(geometry, 1, layout, 'c1')
+  assert.deepEqual(first, point(0, 0, 'translation'))
+  assert.equal(pageOfAnchor(geometry, first, layout), 1)
+  const second = anchorAtPage(geometry, 2, layout, 'c1')
+  assert.deepEqual(second, point(0, 0.5, 'translation'))
+  assert.equal(pageOfAnchor(geometry, second, layout), 2)
+  assert.deepEqual(anchorAtPage(geometry, 3, layout, 'c1'), point(1, 0))
+})
+
+test('source_anchor_does_not_drift_when_translation_appended', () => {
+  const layout = frame(1, 800, 40, 4)
+  const sourceOnly: PageGeometry = {
+    blocks: [{ index: 0, rects: [rect(0, 100), rect(840, 100)] }],
+  }
+  const withTranslation: PageGeometry = {
+    blocks: [{
+      index: 0,
+      rects: [rect(0, 100), rect(840, 100), rect(1680, 300, 800, 'translation')],
+    }],
+  }
+  const anchor = anchorAtPage(sourceOnly, 1, layout, 'c1')
+  assert.deepEqual(anchor, point(0, 0.5))
+  assert.equal(pageOfAnchor(sourceOnly, anchor, layout), 1)
+  assert.equal(pageOfAnchor(withTranslation, anchor, layout), 1)
+})
+
+test('translation_anchor_falls_back_to_source_when_translation_missing', () => {
+  const layout = frame(1, 800, 40, 4)
+  const sourceOnly: PageGeometry = {
+    blocks: [{ index: 0, rects: [rect(0, 100), rect(840, 100)] }],
+  }
+  assert.equal(pageOfAnchor(sourceOnly, point(0, 0.5, 'translation'), layout), 1)
 })
 
 test('anchor_at_page_round_trips_through_page_of_anchor', () => {

@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
-import { tailTranslationBlocks, translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
+import { tailTranslationBlocksOf, translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
 import { fakeContext } from './support/api-helpers.ts'
 
 function translatorFixture() {
@@ -116,7 +116,7 @@ test('translation_blocks_skip_images_and_code', () => {
 })
 
 test('translation_tail_prefetch_keeps_last_blocks', () => {
-  const blocks = translationBlocksOf({
+  const content = {
     chapterId: 'c1',
     title: 'Chapter',
     locator: 'c1:0',
@@ -126,10 +126,24 @@ test('translation_tail_prefetch_keeps_last_blocks', () => {
       { type: 'p', text: 'three' },
       { type: 'p', text: 'four' },
     ],
-  } as any)
-  assert.deepEqual(tailTranslationBlocks(blocks, 2).map(block => block.index), [2, 3])
-  assert.deepEqual(tailTranslationBlocks(blocks, 0), [])
-  assert.deepEqual(tailTranslationBlocks(blocks.slice(0, 1), 12).map(block => block.index), [0])
+  } as any
+  assert.deepEqual(tailTranslationBlocksOf(content, 2).map(block => block.index), [2, 3])
+  assert.deepEqual(tailTranslationBlocksOf(content, 0), [])
+  assert.deepEqual(
+    tailTranslationBlocksOf({ ...content, blocks: [content.blocks[0]] }, 12).map(block => block.index),
+    [0],
+  )
+})
+
+test('translation_tail_prefetch_scans_past_batch_limit', () => {
+  const content = {
+    chapterId: 'c1',
+    title: 'Chapter',
+    locator: 'c1:0',
+    blocks: Array.from({ length: 120 }, (_, index) => ({ type: 'p', text: `paragraph ${index}` })),
+  } as any
+  assert.deepEqual(tailTranslationBlocksOf(content, 2).map(block => block.index), [118, 119])
+  assert.equal(translationBlocksOf(content).length, 120)
 })
 
 test('translation_falls_back_without_host_translator', async t => {

@@ -1,8 +1,12 @@
 import { PAGE_GAP, clampPageIndex } from './paging.ts'
 import type { PageMetrics } from './paging.ts'
 
-/** 一个块在内容坐标里的一个栏片段。 */
+/** 原文与译文是同一阅读位置的两个部分；译文节点没有 data-block-index。 */
+export type AnchorPart = 'source' | 'translation'
+
+/** 一个块（或其译文）在内容坐标里的一个栏片段。 */
 export interface BlockRect {
+  part?: AnchorPart
   left: number
   top: number
   width: number
@@ -32,7 +36,7 @@ export interface LayoutInfo {
  * 页码永远由锚点 + 当前布局投影得到，不能反过来当作位置保存。
  */
 export type AnchorTarget =
-  | { kind: 'point'; chapterId: string; blockIndex: number; blockFraction: number }
+  | { kind: 'point'; chapterId: string; blockIndex: number; blockFraction: number; part?: AnchorPart }
   | { kind: 'chapterStart'; chapterId: string }
   | { kind: 'chapterEnd'; chapterId: string }
 
@@ -65,8 +69,18 @@ function clampFraction(value: number): number {
   return Math.max(0, Math.min(1, value))
 }
 
-function blockHeight(block: BlockGeometry): number {
-  return block.rects.reduce((sum, rect) => sum + Math.max(0, rect.height), 0)
+function rectPart(rect: BlockRect): AnchorPart {
+  return rect.part === 'translation' ? 'translation' : 'source'
+}
+
+function partRects(block: BlockGeometry, part: AnchorPart): BlockRect[] {
+  const rects = block.rects.filter(rect => rectPart(rect) === part)
+  // 译文被关闭或尚未加载时，退回原文片段，避免位置直接掉到章首。
+  return rects.length > 0 ? rects : block.rects
+}
+
+function rectsHeight(rects: readonly BlockRect[]): number {
+  return rects.reduce((sum, rect) => sum + Math.max(0, rect.height), 0)
 }
 
 function columnOfX(x: number, pitch: number): number {
@@ -94,11 +108,12 @@ export function pageOfAnchor(
     block ??= blocks[0] ?? null
   }
   if (!block || block.rects.length === 0) return 0
-  const total = blockHeight(block)
+  const rects = partRects(block, anchor.part === 'translation' ? 'translation' : 'source')
+  const total = rectsHeight(rects)
   if (total <= 0) return 0
   let remaining = clampFraction(anchor.blockFraction) * total
   let column = 0
-  for (const rect of block.rects) {
+  for (const rect of rects) {
     const height = Math.max(0, rect.height)
     if (height <= 0) continue
     column = columnOfX(rect.left, layout.pitch)
@@ -123,24 +138,32 @@ export function anchorAtPage(
   const pageStart = target * layout.columns * layout.pitch
   const pageEnd = pageStart + layout.columns * layout.pitch
   for (const block of geometry?.blocks ?? []) {
-    let before = 0
+    const before: Record<AnchorPart, number> = { source: 0, translation: 0 }
     for (const rect of block.rects) {
+      const part = rectPart(rect)
       const right = rect.left + rect.width
       if (rect.left < pageEnd && right > pageStart) {
-        const total = blockHeight(block)
-        const fraction = total > 0 ? before / total : 0
+        const total = rectsHeight(partRects(block, part))
+        const fraction = total > 0 ? before[part] / total : 0
         return {
           kind: 'point',
           chapterId,
           blockIndex: block.index,
           blockFraction: clampFraction(fraction),
+          ...(part === 'translation' ? { part } : {}),
         }
       }
-      if (right <= pageStart) before += Math.max(0, rect.height)
+      if (right <= pageStart) before[part] += Math.max(0, rect.height)
     }
     const first = block.rects[0]
     if (first && first.left >= pageEnd) {
-      return { kind: 'point', chapterId, blockIndex: block.index, blockFraction: 0 }
+      return {
+        kind: 'point',
+        chapterId,
+        blockIndex: block.index,
+        blockFraction: 0,
+        ...(rectPart(first) === 'translation' ? { part: 'translation' as const } : {}),
+      }
     }
   }
   return { kind: 'chapterEnd', chapterId }

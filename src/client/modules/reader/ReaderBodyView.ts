@@ -1,6 +1,6 @@
 import { React, h } from '../../runtime.ts'
 import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
-import { tailTranslationBlocks, translationBlocksOf } from '../translation/blocks.ts'
+import { tailTranslationBlocksOf, translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { visibleBlockIndices } from './block-visibility.ts'
 import { ReaderBar } from './ReaderBar.ts'
@@ -30,6 +30,12 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   const translationBlocks = React.useMemo(
     () => inlineAvailable && translation.enabled ? translationBlocksOf(screen.content) : [],
     [inlineAvailable, translation.enabled, screen.content],
+  )
+  const tailBlocks = React.useMemo(
+    () => inlineAvailable && translation.enabled && effectiveMode === 'paged' && view.textPager.boundary === 'end'
+      ? tailTranslationBlocksOf(screen.content)
+      : [],
+    [effectiveMode, inlineAvailable, screen.content, translation.enabled, view.textPager.boundary],
   )
   const [visibilityTick, setVisibilityTick] = React.useState(0)
   const viewKey = inlineAvailable && translation.enabled
@@ -65,14 +71,14 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
 
   React.useEffect(() => {
     if (!inlineAvailable || !translation.enabled) return
+    // 分页器还在测量/重排时，可见块属于旧布局，等落定后再取。
+    if (effectiveMode === 'paged' && !view.textPager.layoutReady) return
     const run = () => {
       const container = view.contentRef.current
       const visible = visibleBlockIndices(container)
       const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
       const missing = candidates.filter(block => !translation.blocks[block.index])
-      const tail = view.textPager.boundary === 'end'
-        ? tailTranslationBlocks(translationBlocks).filter(block => !translation.blocks[block.index])
-        : []
+      const tail = tailBlocks.filter(block => !translation.blocks[block.index])
       const batch = [...tail]
       for (const block of missing) {
         if (!batch.some(item => item.index === block.index)) batch.push(block)
@@ -96,15 +102,18 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
       }
     }
   }, [
+    effectiveMode,
     inlineAvailable,
     translation.blocks,
     translation.enabled,
     translation.provider,
     translation.targetLanguage,
+    tailBlocks,
     translation.translateAll,
     translationBlocks,
     view.contentRef,
     view.textPager.boundary,
+    view.textPager.layoutReady,
     view.textPager.page,
     viewKey,
     visibilityTick,

@@ -6,7 +6,7 @@ import { NoteDialog } from '../reader/SelectionNote.ts'
 import { ActionHistory } from '../reader/ActionHistory.ts'
 import { VisualReader } from '../reader/VisualReader.ts'
 import { useReaderTranslation } from '../translation/use-reader-translation.ts'
-import { tailTranslationBlocks, translationBlocksOf } from '../translation/blocks.ts'
+import { tailTranslationBlocksOf, translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { TranslationCard } from '../translation/TranslationCard.ts'
 import { visibleBlockIndices } from '../reader/block-visibility.ts'
@@ -32,6 +32,12 @@ export function SidebarReader(props: SidebarReaderProps) {
     () => inlineAvailable && chapterContent && translation.enabled ? translationBlocksOf(chapterContent) : [],
     [chapterContent, inlineAvailable, translation.enabled],
   )
+  const tailBlocks = React.useMemo(
+    () => inlineAvailable && translation.enabled && chapterContent && state.textPager.boundary === 'end'
+      ? tailTranslationBlocksOf(chapterContent)
+      : [],
+    [chapterContent, inlineAvailable, state.textPager.boundary, translation.enabled],
+  )
   const viewKey = inlineAvailable && bookScreen && translation.enabled
     ? `${bookScreen.detail.book.id}\u0000${bookScreen.content.chapterId}`
     : ''
@@ -42,7 +48,7 @@ export function SidebarReader(props: SidebarReaderProps) {
   }, [state.textPager.notifyLayout, translation.blocks, translation.enabled, viewKey])
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled) return
+    if (!inlineAvailable || !translation.enabled || !state.textPager.layoutReady) return
     const run = () => {
       const container = state.contentRef.current
       const visible = visibleBlockIndices(container)
@@ -50,9 +56,7 @@ export function SidebarReader(props: SidebarReaderProps) {
         ? translationBlocks
         : translationBlocks.filter(block => visible.has(block.index))
       const missing = candidates.filter(block => !translation.blocks[block.index])
-      const tail = state.textPager.boundary === 'end'
-        ? tailTranslationBlocks(translationBlocks).filter(block => !translation.blocks[block.index])
-        : []
+      const tail = tailBlocks.filter(block => !translation.blocks[block.index])
       const batch = [...tail]
       for (const block of missing) {
         if (!batch.some(item => item.index === block.index)) batch.push(block)
@@ -79,7 +83,9 @@ export function SidebarReader(props: SidebarReaderProps) {
     inlineAvailable,
     state.contentRef,
     state.textPager.boundary,
+    state.textPager.layoutReady,
     state.textPager.page,
+    tailBlocks,
     translation.blocks,
     translation.enabled,
     translation.provider,
