@@ -31,7 +31,7 @@ export interface TextPagerOptions {
 }
 
 export interface TextPager {
-  frameRef: MutableRef<HTMLDivElement | null>
+  frameRef: (node: HTMLDivElement | null) => void
   innerRef: MutableRef<HTMLDivElement | null>
   innerStyle: Record<string, string | number>
   page: number
@@ -68,7 +68,11 @@ export function useTextPager({
   const [layoutReady, setLayoutReady] = React.useState(false)
   const [layoutTick, setLayoutTick] = React.useState(0)
   const [anchorState, setAnchorState] = React.useState<AnchorTarget | null>(null)
-  const frameRef = React.useRef<HTMLDivElement | null>(null)
+  // 页框会在切换/加载时卸载重挂；用 callback ref 把新节点交给滚轮 effect，避免监听留在旧节点上。
+  const [frameNode, setFrameNode] = React.useState<HTMLDivElement | null>(null)
+  const frameRef = React.useCallback((node: HTMLDivElement | null) => {
+    if (node) setFrameNode(node)
+  }, [])
   const innerRef = React.useRef<HTMLDivElement | null>(null)
   const anchorRef = React.useRef<AnchorTarget | null>(null)
   const geometryRef = React.useRef<PageGeometry | null>(null)
@@ -223,7 +227,7 @@ export function useTextPager({
         if (timer !== undefined) view?.clearTimeout(timer)
       }
     }
-  }, [active, chapterId, fontSize, layout, layoutTick, pageWidth, scrollToPage])
+  }, [active, chapterId, fontSize, frameNode, layout, layoutTick, pageWidth, scrollToPage])
 
   const goPage = React.useCallback((delta: number) => {
     if (!active || delta === 0 || !readyRef.current || pendingTurnRef.current) return
@@ -280,9 +284,7 @@ export function useTextPager({
   }, [active, chapterId, scrollToPage])
 
   React.useEffect(() => {
-    if (!enabled) return
-    const frame = frameRef.current
-    if (!frame) return
+    if (!enabled || !frameNode) return
     let accumulated = 0
     const onWheel = (event: WheelEvent) => {
       if (event.ctrlKey || event.metaKey || event.altKey) return
@@ -295,9 +297,9 @@ export function useTextPager({
       accumulated = 0
       goPage(direction)
     }
-    frame.addEventListener('wheel', onWheel, { passive: false })
-    return () => frame.removeEventListener('wheel', onWheel)
-  }, [enabled, goPage])
+    frameNode.addEventListener('wheel', onWheel, { passive: false })
+    return () => frameNode.removeEventListener('wheel', onWheel)
+  }, [enabled, frameNode, goPage])
 
   const innerStyle = React.useMemo<Record<string, string | number>>(() => ({
     height: '100%',
