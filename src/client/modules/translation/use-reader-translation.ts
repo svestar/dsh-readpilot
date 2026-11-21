@@ -64,6 +64,7 @@ export function useReaderTranslation({
   const [revision, setRevision] = React.useState(0)
   const selectionRequestRef = React.useRef(0)
   const versionRef = React.useRef(0)
+  const viewKeyRef = React.useRef('')
 
   const bookId = screen.kind === 'book' ? screen.detail.book.id : null
   const chapterId = screen.kind === 'book' ? screen.content.chapterId : ''
@@ -183,7 +184,21 @@ export function useReaderTranslation({
     setSelectionResult(null)
   }, [])
 
-  const translateAll = React.useCallback(async (list: TranslationBlockView[]): Promise<void> => {
+  const setViewKey = React.useCallback((key: string) => {
+    viewKeyRef.current = key
+  }, [])
+
+  const dropLoading = React.useCallback((usable: TranslationBlockView[]) => {
+    setBlocks(current => {
+      const next = { ...current }
+      for (const block of usable) {
+        if (next[block.index]?.loading) delete next[block.index]
+      }
+      return next
+    })
+  }, [])
+
+  const translateAll = React.useCallback(async (list: TranslationBlockView[], viewKey = ''): Promise<void> => {
     const usable = list.filter(block => block.text.trim()).slice(0, 80)
     if (usable.length === 0) return
     const version = versionRef.current
@@ -203,6 +218,10 @@ export function useReaderTranslation({
         items: usable.map(block => ({ id: String(block.index), text: block.text })),
       })
       if (versionRef.current !== version) return
+      if (viewKeyRef.current !== viewKey) {
+        dropLoading(usable)
+        return
+      }
       setBlocks(current => {
         const next = { ...current }
         for (const item of value?.items ?? []) {
@@ -220,20 +239,23 @@ export function useReaderTranslation({
       })
       setRevision(current => current + 1)
     } catch (cause) {
-      if (versionRef.current === version) {
-        setPanelError(t('translationFailed') + `：${messageOf(cause)}`)
-        setBlocks(current => {
-          const next = { ...current }
-          for (const block of usable) {
-            const previous = next[block.index]
-            if (previous?.loading) next[block.index] = { ...previous, loading: false, error: messageOf(cause) }
-          }
-          return next
-        })
-        setRevision(current => current + 1)
+      if (versionRef.current !== version) return
+      if (viewKeyRef.current !== viewKey) {
+        dropLoading(usable)
+        return
       }
+      setPanelError(t('translationFailed') + `：${messageOf(cause)}`)
+      setBlocks(current => {
+        const next = { ...current }
+        for (const block of usable) {
+          const previous = next[block.index]
+          if (previous?.loading) next[block.index] = { ...previous, loading: false, error: messageOf(cause) }
+        }
+        return next
+      })
+      setRevision(current => current + 1)
     }
-  }, [activeSessionId, call, providerArg, t, targetLanguage])
+  }, [activeSessionId, call, dropLoading, providerArg, t, targetLanguage])
 
   const clearCache = React.useCallback(async (): Promise<void> => {
     setPanelError('')
@@ -269,6 +291,7 @@ export function useReaderTranslation({
     acknowledgeNotice,
     translateSelection,
     closeSelection,
+    setViewKey,
     translateAll,
     clearCache,
     defaultProvider: DEFAULT_TRANSLATION_PROVIDER,

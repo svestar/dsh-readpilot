@@ -1,16 +1,95 @@
-import { h } from '../../runtime.ts'
-import { renderBlocks } from '../markdown/render.ts'
+import { React, h } from '../../runtime.ts'
+import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
 import { ReaderBar } from '../reader/ReaderBar.ts'
 import { SelectionToolbar } from '../reader/SelectionNote.ts'
 import { NoteDialog } from '../reader/SelectionNote.ts'
 import { ActionHistory } from '../reader/ActionHistory.ts'
 import { VisualReader } from '../reader/VisualReader.ts'
+import { useReaderTranslation } from '../translation/use-reader-translation.ts'
+import { translationBlocksOf } from '../translation/blocks.ts'
+import { TranslationControl } from '../translation/TranslationControl.ts'
+import { TranslationCard } from '../translation/TranslationCard.ts'
+import { firstVisibleBlock, visibleBlockIndices } from '../reader/block-visibility.ts'
 import { useSidebarReader } from './use-sidebar-reader.ts'
 import type { SidebarReaderProps } from './use-sidebar-reader.ts'
 import type { PageLayout } from '../reader/paging.ts'
 
 export function SidebarReader(props: SidebarReaderProps) {
   const state = useSidebarReader(props)
+  const translation = useReaderTranslation({
+    call: props.call,
+    t: props.t,
+    screen: state.screen,
+    selection: state.selection,
+    activeSessionId: props.sessionId ?? null,
+  })
+  const bookScreen = state.screen.kind === 'book' ? state.screen : null
+  const inlineAvailable = bookScreen !== null
+    && state.mode === 'text'
+    && !bookScreen.detail.scanOnly
+  const translationBlocks = inlineAvailable && bookScreen && translation.enabled
+    ? translationBlocksOf(bookScreen.content)
+    : []
+  const viewKey = inlineAvailable && bookScreen && translation.enabled
+    ? `${bookScreen.detail.book.id}\u0000${bookScreen.content.chapterId}:${state.textPager.navigationToken}`
+    : ''
+  const anchorBlockRef = React.useRef<number | null>(null)
+  const anchorKeyRef = React.useRef('')
+  const anchorRevisionRef = React.useRef(0)
+  translation.setViewKey(viewKey)
+
+  React.useEffect(() => {
+    if (!inlineAvailable || !translation.enabled) {
+      anchorBlockRef.current = null
+      anchorKeyRef.current = ''
+      return
+    }
+    const container = state.contentRef.current
+    const visible = visibleBlockIndices(container)
+    const candidates = visible.size === 0
+      ? translationBlocks
+      : translationBlocks.filter(block => visible.has(block.index))
+    const missing = candidates.filter(block => !translation.blocks[block.index])
+    if (missing.length === 0) return
+    if (anchorBlockRef.current === null) {
+      anchorBlockRef.current = firstVisibleBlock(container)
+      anchorKeyRef.current = viewKey
+      anchorRevisionRef.current = translation.revision
+    }
+    void translation.translateAll(missing, viewKey)
+  }, [
+    inlineAvailable,
+    translation.blocks,
+    translation.enabled,
+    translation.provider,
+    translation.targetLanguage,
+    translation.translateAll,
+    translationBlocks,
+    state.contentRef,
+    viewKey,
+  ])
+
+  React.useEffect(() => {
+    const index = anchorBlockRef.current
+    if (index === null) return
+    if (anchorKeyRef.current !== viewKey) {
+      anchorBlockRef.current = null
+      anchorKeyRef.current = ''
+      return
+    }
+    if (translation.revision === anchorRevisionRef.current) return
+    const frame = (typeof requestAnimationFrame === 'function'
+      ? requestAnimationFrame
+      : (fn: () => void) => { fn(); return 0 })(() => {
+      state.textPager.scrollToBlock(index)
+      anchorBlockRef.current = null
+      anchorKeyRef.current = ''
+    })
+    return () => {
+      if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
+    }
+  }, [state.textPager, translation.revision, viewKey])
+
   const {
     t,
     book,
@@ -75,6 +154,16 @@ export function SidebarReader(props: SidebarReaderProps) {
       h('div', { className: 'dsh-readpilot-sidebar-empty-hint' }, t('sidebarReaderEmptyHint')))
   }
 
+  const textBlocks = inlineAvailable && translation.enabled
+    ? renderBlocksWithTranslations(
+      screen.content.blocks,
+      `sidebar-${screen.content.chapterId}`,
+      translation.blocks,
+      t('translating'),
+      false,
+    )
+    : renderBlocks(screen.content.blocks, `sidebar-${screen.content.chapterId}`)
+
   const body = mode === 'text'
     ? h('div', {
       className: 'dsh-readpilot-reader dsh-readpilot-sidebar-reader',
@@ -89,7 +178,7 @@ export function SidebarReader(props: SidebarReaderProps) {
         style: textPager.innerStyle,
       },
       h('h1', { className: 'dsh-readpilot-chapter-title' }, screen.content.title),
-      renderBlocks(screen.content.blocks, `sidebar-${screen.content.chapterId}`),
+      textBlocks,
       h('div', { className: 'dsh-readpilot-note-layer', ref: noteLayerRef }))))
     : h(VisualReader, {
       t,
@@ -131,6 +220,7 @@ export function SidebarReader(props: SidebarReaderProps) {
       ? h(SelectionToolbar, {
         t,
         selection,
+        onTranslate: () => void translation.translateSelection(),
         onAsk: canAskCompanion ? askCompanion : undefined,
         onNote: () => openNoteEditor(),
         onHighlight: (color: string) => { void addHighlight(color) },
@@ -154,6 +244,7 @@ export function SidebarReader(props: SidebarReaderProps) {
       canNext: barProps.canNext,
       onPrev: barProps.onPrev,
       onNext: barProps.onNext,
+      translationControl: h(TranslationControl, { t, state: translation, settingsOnly: !inlineAvailable }),
       onHistory: () => {
         setHistoryOpen(true)
         void refreshActionReceipts()
@@ -185,5 +276,10 @@ export function SidebarReader(props: SidebarReaderProps) {
         onRefresh: refreshActionReceipts,
         onClose: () => setHistoryOpen(false),
       })
-      : null)
+      : null,
+    h(TranslationCard, {
+      t,
+      result: translation.selectionResult,
+      onClose: translation.closeSelection,
+    }))
 }

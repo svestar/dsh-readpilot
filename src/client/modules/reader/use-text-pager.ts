@@ -34,12 +34,14 @@ export interface TextPager {
   canNext: boolean
   goPage: (delta: number) => void
   scrollToBlock: (blockIndex: number) => void
+  navigationToken: number
 }
 
 export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, anchor, selectChapter }: TextPagerOptions): TextPager {
   const [page, setPage] = React.useState(0)
   const [pageCount, setPageCount] = React.useState(1)
   const [stride, setStride] = React.useState(0)
+  const [navigationToken, setNavigationToken] = React.useState(0)
   const frameRef = React.useRef<HTMLDivElement | null>(null)
   const innerRef = React.useRef<HTMLDivElement | null>(null)
   const pendingLastRef = React.useRef<string | null>(null)
@@ -62,6 +64,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       return
     }
     setPage(0)
+    setNavigationToken(value => value + 1)
     const inner = innerRef.current
     if (inner) inner.scrollLeft = 0
   }, [active, chapterId, layout])
@@ -173,6 +176,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       if (next === current) return
       scrollPageRef.current = next
       setPage(next)
+      setNavigationToken(value => value + 1)
     }
     inner.addEventListener('scroll', onScroll)
     return () => inner.removeEventListener('scroll', onScroll)
@@ -185,10 +189,12 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     const target = current + direction
     if (target >= 0 && target < pageCount) {
       setPage(target)
+      setNavigationToken(value => value + 1)
       return
     }
     const neighbour = direction > 0 ? nextChapter : prevChapter
     if (!neighbour) return
+    setNavigationToken(value => value + 1)
     if (direction < 0) pendingLastRef.current = neighbour.id
     void selectChapter(bookId, neighbour.id)
   }, [active, bookId, nextChapter, page, pageCount, prevChapter, selectChapter])
@@ -253,5 +259,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     canNext,
     goPage,
     scrollToBlock,
+    navigationToken,
   }
 }

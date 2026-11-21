@@ -2,39 +2,13 @@ import { React, h } from '../../runtime.ts'
 import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
 import { translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
+import { firstVisibleBlock, visibleBlockIndices } from './block-visibility.ts'
 import { ReaderBar } from './ReaderBar.ts'
 import { VisualReader } from './VisualReader.ts'
 import { pageSpanWidth } from './paging.ts'
 import { visiblePdfPageEnd } from './use-reading-progress.ts'
 import type { ReaderPanelModel } from './use-reader-panel.ts'
 import type { TextFn } from '../../lib/types.ts'
-
-function firstVisibleBlock(container: HTMLElement | null): number | null {
-  if (!container) return null
-  const bounds = container.getBoundingClientRect()
-  for (const element of container.querySelectorAll<HTMLElement>('[data-block-index]')) {
-    const rect = element.getBoundingClientRect()
-    if (rect.bottom <= bounds.top + 4 || rect.top >= bounds.bottom - 4) continue
-    if (rect.right <= bounds.left + 4 || rect.left >= bounds.right - 4) continue
-    const index = Number(element.getAttribute('data-block-index'))
-    if (Number.isInteger(index) && index >= 0) return index
-  }
-  return null
-}
-
-function visibleBlockIndices(container: HTMLElement | null): Set<number> {
-  const visible = new Set<number>()
-  if (!container) return visible
-  const bounds = container.getBoundingClientRect()
-  for (const element of container.querySelectorAll<HTMLElement>('[data-block-index]')) {
-    const rect = element.getBoundingClientRect()
-    if (rect.bottom <= bounds.top + 4 || rect.top >= bounds.bottom - 4) continue
-    if (rect.right <= bounds.left + 4 || rect.left >= bounds.right - 4) continue
-    const index = Number(element.getAttribute('data-block-index'))
-    if (Number.isInteger(index) && index >= 0) visible.add(index)
-  }
-  return visible
-}
 
 interface ReaderBodyProps {
   t: TextFn
@@ -54,11 +28,19 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   const translation = model.translation
   const inlineAvailable = !screen.detail.scanOnly && view.visual === null
   const translationBlocks = inlineAvailable && translation.enabled ? translationBlocksOf(screen.content) : []
-  const anchorBlockRef = React.useRef<number | null>(null)
   const [visibilityTick, setVisibilityTick] = React.useState(0)
+  const viewKey = inlineAvailable && translation.enabled
+    ? `${screen.detail.book.id}\u0000${screen.content.chapterId}:${effectiveMode === 'paged' ? view.textPager.navigationToken : visibilityTick}`
+    : ''
+  const anchorBlockRef = React.useRef<number | null>(null)
+  const anchorKeyRef = React.useRef('')
+  const anchorRevisionRef = React.useRef(0)
+  translation.setViewKey(viewKey)
 
   React.useEffect(() => {
     anchorBlockRef.current = null
+    anchorKeyRef.current = ''
+    anchorRevisionRef.current = translation.revision
   }, [screen.content.chapterId])
 
   React.useEffect(() => {
@@ -85,15 +67,24 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   React.useEffect(() => {
     if (!inlineAvailable || !translation.enabled) {
       anchorBlockRef.current = null
+      anchorKeyRef.current = ''
       return
+    }
+    if (anchorBlockRef.current !== null && anchorKeyRef.current !== viewKey) {
+      anchorBlockRef.current = null
+      anchorKeyRef.current = ''
     }
     const container = view.contentRef.current
     const visible = visibleBlockIndices(container)
     const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
     const missing = candidates.filter(block => !translation.blocks[block.index])
     if (missing.length === 0) return
-    if (anchorBlockRef.current === null) anchorBlockRef.current = firstVisibleBlock(container)
-    void translation.translateAll(missing)
+    if (anchorBlockRef.current === null) {
+      anchorBlockRef.current = firstVisibleBlock(container)
+      anchorKeyRef.current = viewKey
+      anchorRevisionRef.current = translation.revision
+    }
+    void translation.translateAll(missing, viewKey)
   }, [
     inlineAvailable,
     translation.blocks,
@@ -103,12 +94,19 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     translation.translateAll,
     translationBlocks,
     view.contentRef,
+    viewKey,
     visibilityTick,
   ])
 
   React.useEffect(() => {
     const index = anchorBlockRef.current
     if (index === null) return
+    if (anchorKeyRef.current !== viewKey) {
+      anchorBlockRef.current = null
+      anchorKeyRef.current = ''
+      return
+    }
+    if (translation.revision === anchorRevisionRef.current) return
     const restore = () => {
       const container = view.contentRef.current
       const element = container?.querySelector<HTMLElement>(`[data-block-index="${index}"]`)
@@ -122,6 +120,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
         }
       }
       anchorBlockRef.current = null
+      anchorKeyRef.current = ''
     }
     let frame: number | undefined
     if (typeof requestAnimationFrame === 'function') frame = requestAnimationFrame(restore)
@@ -129,7 +128,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     return () => {
       if (frame !== undefined && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
     }
-  }, [effectiveMode, translation.revision, view.contentRef, view.textPager])
+  }, [effectiveMode, translation.revision, view.contentRef, view.textPager, viewKey])
 
   const contentBlocks = inlineAvailable && translation.enabled
     ? renderBlocksWithTranslations(
