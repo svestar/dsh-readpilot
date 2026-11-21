@@ -6,7 +6,7 @@ interface ReaderSyncOptions {
   runtime: any
   call: CallRpc
   screen: Screen
-  selectChapter: (bookId: string, chapterId: string, target?: { offset?: number }) => Promise<void>
+  selectChapter: (bookId: string, chapterId: string, target?: { offset?: number }) => Promise<boolean>
   setReadingAnchor: (value: { chapterId: string; fraction: number; token: number } | null) => void
   anchorTokenRef: { current: number }
   progressSkipRef: { current: boolean }

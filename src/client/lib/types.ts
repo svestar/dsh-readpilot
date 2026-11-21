@@ -127,7 +127,7 @@ export interface ComposerInputActions {
   setDraft?: (text: string) => void
 }
 
-export type SelectChapter = (bookId: string, chapterId: string, target?: SelectTarget) => Promise<void>
+export type SelectChapter = (bookId: string, chapterId: string, target?: SelectTarget) => Promise<boolean>
 
 export interface PendingScroll {
   chapterId: string

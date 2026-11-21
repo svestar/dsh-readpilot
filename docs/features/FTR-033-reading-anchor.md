@@ -3,32 +3,41 @@
 - **ID：** FTR-033
 - **名称：** 阅读位置锚点
 - **状态：** active
-- **代码：** `src/client/modules/reader/paging.ts`（`ReadingAnchor`、`anchorPage`）；`src/client/modules/reader/use-text-pager.ts`（`useTextPager`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/use-reader-view.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`applySource`、`openBook`）；`src/host/api.ts`（`saveReadingProgress`）；`src/shared/contracts/library.ts`（`ReadingProgress.chapterFraction`）
-- **测试：** `tests/paging.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
+- **代码：** `src/client/modules/reader/paging-model.ts`（`AnchorTarget`、`anchorOfFraction`、`fractionOfAnchor`、`pageOfAnchor`）；`src/client/modules/reader/page-geometry.ts`（`readPageGeometry`）；`src/client/modules/reader/use-text-pager.ts`（`useTextPager`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/use-reader-view.ts`（`makeReadingAnchor`、`changeFlow`、`changeSpread`、`changeFontSize`、`openBook`）；`src/host/api.ts`（`saveReadingProgress`）；`src/shared/contracts/library.ts`（`ReadingProgress.chapterFraction`）
+- **测试：** `tests/page-anchor.test.ts`；`tests/paging.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
-切换阅读设置（原版/重排、滚动/分页、单页/双页）前，按当前渲染器记录一个位置锚点：章节 id、当前页在章节中的比例、一次性 token。新渲染器完成测量后，如果 token 尚未消费且章节匹配，就把当前页设置为 `anchorPage(比例, 新页数)`；之后用户继续翻页或窗口变化不会再次跳回。
+切换阅读设置（原版/重排、滚动/分页、单页/双页）前，按当前渲染器记录一个位置锚点：章节 id、章节内比例、一次性 token。文本分页在消费锚点时按章节字重把比例换成块锚点（块索引 + 块内比例），新布局测量完成后把块锚点投影成页码；用户继续翻页或窗口变化不会再次跳回。滚动模式与 EPUB 原版仍用滚动容器比例和 iframe 页比例。
 
-文本渲染器分页时用章节内页比例，滚动时用滚动容器比例；EPUB 原版用 iframe 当前页比例。字号变化同样先记录锚点，避免重排后回到页首。PDF 原版切到 PDF 重排时，按当前 PDF 页找到对应章节并以该章开头为锚点；切回原版时直接恢复 PDF 页号。切换只改变渲染方式，不改变章节。打开书籍时，已保存的 `chapterFraction` 也会作为一次性锚点恢复章节内位置。
+字号变化同样先把当前块锚点转成章节比例再重排，避免回到页首。PDF 原版切到 PDF 重排时，按当前 PDF 页找到对应章节并以该章锚点恢复；切回原版时直接恢复 PDF 页号。切换只改变渲染方式，不改变章节。打开书籍时，已保存的 `chapterFraction` 也会作为一次性锚点恢复章节内位置。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `ReadingAnchor` | `src/client/modules/reader/paging.ts:ReadingAnchor` | 章节、比例与一次性 token |
-| `anchorPage` | `src/client/modules/reader/paging.ts:anchorPage` | 比例换算为页索引并夹取 |
+| `AnchorTarget` | `src/client/modules/reader/paging-model.ts:AnchorTarget` | 块锚点与章首/章末锚点 |
+| `anchorOfFraction` | `src/client/modules/reader/paging-model.ts:anchorOfFraction` | 章节比例换成块锚点 |
+| `fractionOfAnchor` | `src/client/modules/reader/paging-model.ts:fractionOfAnchor` | 块锚点换成章节比例 |
+| `pageOfAnchor` | `src/client/modules/reader/paging-model.ts:pageOfAnchor` | 块锚点投影成页码 |
+| `readPageGeometry` | `src/client/modules/reader/page-geometry.ts:readPageGeometry` | 抓取块矩形快照 |
 | `useTextPager` | `src/client/modules/reader/use-text-pager.ts:useTextPager` | 文本分页消费锚点 |
-| `useVisual` | `src/client/modules/reader/use-visual.ts:useVisual` | EPUB 视觉分页消费锚点 |
 | `makeReadingAnchor` | `src/client/modules/reader/use-reader-view.ts:makeReadingAnchor` | 从当前渲染器生成锚点 |
 | `changeFlow` / `changeSpread` | `src/client/modules/reader/use-reader-view.ts:changeFlow` | 切换阅读方式/版式前记录锚点 |
-| `applySource` | `src/client/modules/reader/use-reader-view.ts:applySource` | 切换原版/重排并处理 PDF 页映射 |
+| `openBook` | `src/client/modules/reader/use-reader-view.ts:openBook` | 打开书籍并按保存比例定位 |
 
 ## 约束与失败行为
 
-锚点是页级比例，不是块或字符级锚点；同一页内的位置可能前后偏移一页。章节不匹配时锚点被忽略，不会把用户拉到别的章节。PDF 原版与重排的页不是同一概念，只在切换时按页对应章节，之后各自独立。锚点只消费一次；重复 resize、字体加载或图片加载不会重复跳转。
+- 文本分页的锚点是块级位置，块内用高度比例近似；同一段落跨页时可能前后偏移半页以内。
+- 空块或旧锚点不在当前几何快照时，退回最近的前一个块，不会直接回到章首。
+- 锚点章节不匹配时忽略，不会把用户拉到别的章节；token 只消费一次，重复 resize、字体或图片加载不会重复跳转。
+- `anchorPage` 仍用于 EPUB 原版视觉分页；文本分页不再用页比例。
+- 旧进度值仍是 0–1 的章节比例，按内容比例重新解释后可以近似恢复原位置。
 
 ## 验收与测试
 
-- 正常路径：比例 0/0.5/1 分别落到首页、中间页、末页，非法比例夹取（`anchor_page_restores_fraction`）。
+- 正常：章节比例与块锚点往返（`fraction_round_trips_block_anchor`）。
+- 边界：比例正好落在块边界时进入下一块（`fraction_at_block_boundary_moves_to_next_block`）。
+- 边界：锚点块缺失时退回最近块（`page_of_anchor_falls_back_to_nearest_block`）。
+- 正常：比例 0/0.5/1 分别落到首页、中间页、末页（`anchor_page_restores_fraction`）。
 - 正常：阅读进度保存章节内比例，重新打开按比例恢复（`progress_percent_persists`）。

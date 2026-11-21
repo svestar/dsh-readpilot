@@ -4,7 +4,7 @@ import { mkdtemp, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
-import { translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
+import { tailTranslationBlocks, translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
 import { fakeContext } from './support/api-helpers.ts'
 
 function translatorFixture() {
@@ -113,6 +113,23 @@ test('translation_blocks_skip_images_and_code', () => {
   } as any)
   assert.deepEqual(blocks.map(block => block.index), [0, 3, 4])
   assert.equal(blocks[2].text, 'A | B')
+})
+
+test('translation_tail_prefetch_keeps_last_blocks', () => {
+  const blocks = translationBlocksOf({
+    chapterId: 'c1',
+    title: 'Chapter',
+    locator: 'c1:0',
+    blocks: [
+      { type: 'p', text: 'one' },
+      { type: 'p', text: 'two' },
+      { type: 'p', text: 'three' },
+      { type: 'p', text: 'four' },
+    ],
+  } as any)
+  assert.deepEqual(tailTranslationBlocks(blocks, 2).map(block => block.index), [2, 3])
+  assert.deepEqual(tailTranslationBlocks(blocks, 0), [])
+  assert.deepEqual(tailTranslationBlocks(blocks.slice(0, 1), 12).map(block => block.index), [0])
 })
 
 test('translation_falls_back_without_host_translator', async t => {

@@ -246,7 +246,7 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     if (screen.kind === 'book' && screen.detail.scanOnly && next === 'text') return
     const fraction = screen.kind === 'book'
       ? mode === 'text'
-        ? textPager.page / Math.max(1, textPager.pageCount)
+        ? textPager.chapterFraction
         : visual?.kind === 'epub'
           ? epubPage / Math.max(1, epubPageCount)
           : 0

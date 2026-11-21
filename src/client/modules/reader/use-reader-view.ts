@@ -73,7 +73,7 @@ export function useReaderView({
   const scrollAnchorAppliedRef = React.useRef(0)
   const pendingScrollRef = React.useRef<PendingScroll | null>(null)
   const contentRef = React.useRef<HTMLDivElement | null>(null)
-  const selectChapterRef = React.useRef<SelectChapter>(async () => {})
+  const selectChapterRef = React.useRef<SelectChapter>(async () => false)
   const selectChapterBridge = React.useCallback<SelectChapter>((...args) => selectChapterRef.current(...args), [])
 
   const visualApi = useVisual({
@@ -151,8 +151,10 @@ export function useReaderView({
       if (screen.kind === 'book') {
         setVisual(visualForChapter(screen.detail, chapterId, reflowModeRef.current))
       }
+      return true
     } catch (cause) {
       setError(`${t('loadFailed')}：${messageOf(cause)}`)
+      return false
     } finally {
       setBusy(false)
     }
@@ -229,7 +231,7 @@ export function useReaderView({
     if (value === undefined) {
       const scroller = readingMode === 'scroll' ? contentRef.current : null
       if (scroller) value = scroller.scrollTop / Math.max(1, scroller.scrollHeight - scroller.clientHeight)
-      else if (isTextFormat && textPager.pageCount > 0) value = textPager.page / Math.max(1, textPager.pageCount)
+      else if (isTextFormat && textPager.pageCount > 0) value = textPager.chapterFraction
       else if (visual?.kind === 'epub' && visualApi.epubPageCount > 0) value = visualApi.epubPage / Math.max(1, visualApi.epubPageCount)
       else value = 0
     }
@@ -238,7 +240,7 @@ export function useReaderView({
       fraction: Math.max(0, Math.min(1, value)),
       token: ++anchorTokenRef.current,
     }
-  }, [isTextFormat, readingMode, screen, textPager.page, textPager.pageCount, visual?.kind, visualApi.epubPage, visualApi.epubPageCount])
+  }, [isTextFormat, readingMode, screen, textPager.chapterFraction, textPager.pageCount, visual?.kind, visualApi.epubPage, visualApi.epubPageCount])
 
   const changeFlow = React.useCallback((mode: typeof readingMode) => {
     if (mode === readingMode) return
@@ -258,16 +260,23 @@ export function useReaderView({
   }, [makeReadingAnchor, setFontSize])
 
   const scrollToBlock = React.useCallback((pending: PendingScroll) => {
+    if (!Number.isInteger(pending.blockIndex)) return
     const container = contentRef.current
-    if (!container || !Number.isInteger(pending.blockIndex)) return
-    const target = container.querySelector(`[data-block-index="${pending.blockIndex}"]`)
-    if (!target) return
-    target.scrollIntoView({ block: 'center', behavior: 'smooth' })
-    if (pending.flash) {
+    const target = container?.querySelector<HTMLElement>(`[data-block-index="${pending.blockIndex}"]`) ?? null
+    const flash = () => {
+      if (!pending.flash || !target) return
       target.classList.add('dsh-readpilot-flash')
       window.setTimeout(() => target.classList.remove('dsh-readpilot-flash'), 1500)
     }
-  }, [])
+    if (isTextFormat && effectiveMode === 'paged') {
+      textPager.goToBlock(pending.blockIndex!)
+      flash()
+      return
+    }
+    if (!target) return
+    target.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    flash()
+  }, [effectiveMode, isTextFormat, textPager.goToBlock])
 
   React.useEffect(() => {
     const pending = pendingScrollRef.current

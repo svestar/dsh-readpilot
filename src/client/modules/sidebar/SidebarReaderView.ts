@@ -6,7 +6,7 @@ import { NoteDialog } from '../reader/SelectionNote.ts'
 import { ActionHistory } from '../reader/ActionHistory.ts'
 import { VisualReader } from '../reader/VisualReader.ts'
 import { useReaderTranslation } from '../translation/use-reader-translation.ts'
-import { translationBlocksOf } from '../translation/blocks.ts'
+import { tailTranslationBlocks, translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { TranslationCard } from '../translation/TranslationCard.ts'
 import { visibleBlockIndices } from '../reader/block-visibility.ts'
@@ -27,22 +27,22 @@ export function SidebarReader(props: SidebarReaderProps) {
   const inlineAvailable = bookScreen !== null
     && state.mode === 'text'
     && !bookScreen.detail.scanOnly
-  const translationBlocks = inlineAvailable && bookScreen && translation.enabled
-    ? translationBlocksOf(bookScreen.content)
-    : []
+  const chapterContent = bookScreen?.content ?? null
+  const translationBlocks = React.useMemo(
+    () => inlineAvailable && chapterContent && translation.enabled ? translationBlocksOf(chapterContent) : [],
+    [chapterContent, inlineAvailable, translation.enabled],
+  )
   const viewKey = inlineAvailable && bookScreen && translation.enabled
-    ? `${bookScreen.detail.book.id}\u0000${bookScreen.content.chapterId}:${state.textPager.navigationToken}`
+    ? `${bookScreen.detail.book.id}\u0000${bookScreen.content.chapterId}`
     : ''
-  const anchorPageRef = React.useRef(0)
-  const anchorKeyRef = React.useRef('')
-  const anchorRevisionRef = React.useRef(0)
   translation.setViewKey(viewKey)
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled || state.textPager.navigationPending) {
-      anchorKeyRef.current = ''
-      return
-    }
+    state.textPager.notifyLayout()
+  }, [state.textPager.notifyLayout, translation.blocks, translation.enabled, viewKey])
+
+  React.useEffect(() => {
+    if (!inlineAvailable || !translation.enabled) return
     const run = () => {
       const container = state.contentRef.current
       const visible = visibleBlockIndices(container)
@@ -50,13 +50,15 @@ export function SidebarReader(props: SidebarReaderProps) {
         ? translationBlocks
         : translationBlocks.filter(block => visible.has(block.index))
       const missing = candidates.filter(block => !translation.blocks[block.index])
-      if (missing.length === 0) return
-      if (anchorKeyRef.current === '') {
-        anchorPageRef.current = state.textPager.page
-        anchorKeyRef.current = viewKey
-        anchorRevisionRef.current = translation.revision
+      const tail = state.textPager.boundary === 'end'
+        ? tailTranslationBlocks(translationBlocks).filter(block => !translation.blocks[block.index])
+        : []
+      const batch = [...tail]
+      for (const block of missing) {
+        if (!batch.some(item => item.index === block.index)) batch.push(block)
       }
-      void translation.translateAll(missing, viewKey)
+      if (batch.length === 0) return
+      void translation.translateAll(batch, viewKey)
     }
     let first = 0
     let second = 0
@@ -75,34 +77,17 @@ export function SidebarReader(props: SidebarReaderProps) {
     }
   }, [
     inlineAvailable,
+    state.contentRef,
+    state.textPager.boundary,
+    state.textPager.page,
     translation.blocks,
     translation.enabled,
     translation.provider,
     translation.targetLanguage,
     translation.translateAll,
     translationBlocks,
-    state.contentRef,
-    state.textPager.navigationPending,
     viewKey,
   ])
-
-  React.useEffect(() => {
-    if (anchorKeyRef.current === '') return
-    if (anchorKeyRef.current !== viewKey) {
-      anchorKeyRef.current = ''
-      return
-    }
-    if (translation.revision === anchorRevisionRef.current) return
-    const frame = (typeof requestAnimationFrame === 'function'
-      ? requestAnimationFrame
-      : (fn: () => void) => { fn(); return 0 })(() => {
-      state.textPager.goToPage(anchorPageRef.current)
-      anchorKeyRef.current = ''
-    })
-    return () => {
-      if (typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
-    }
-  }, [state.textPager, translation.revision, viewKey])
 
   const {
     t,

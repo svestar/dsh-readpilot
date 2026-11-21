@@ -1,8 +1,8 @@
 import { React, h } from '../../runtime.ts'
 import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
-import { translationBlocksOf } from '../translation/blocks.ts'
+import { tailTranslationBlocks, translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
-import { firstVisibleBlock, visibleBlockIndices } from './block-visibility.ts'
+import { visibleBlockIndices } from './block-visibility.ts'
 import { ReaderBar } from './ReaderBar.ts'
 import { VisualReader } from './VisualReader.ts'
 import { pageSpanWidth } from './paging.ts'
@@ -27,27 +27,25 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   const pdfPage = view.visual?.kind === 'pdf' ? view.visual.page : 1
   const translation = model.translation
   const inlineAvailable = !screen.detail.scanOnly && view.visual === null
-  const translationBlocks = inlineAvailable && translation.enabled ? translationBlocksOf(screen.content) : []
+  const translationBlocks = React.useMemo(
+    () => inlineAvailable && translation.enabled ? translationBlocksOf(screen.content) : [],
+    [inlineAvailable, translation.enabled, screen.content],
+  )
   const [visibilityTick, setVisibilityTick] = React.useState(0)
   const viewKey = inlineAvailable && translation.enabled
-    ? `${screen.detail.book.id}\u0000${screen.content.chapterId}:${effectiveMode === 'paged' ? view.textPager.navigationToken : visibilityTick}`
+    ? `${screen.detail.book.id}\u0000${screen.content.chapterId}`
     : ''
-  const anchorBlockRef = React.useRef<number | null>(null)
-  const anchorPageRef = React.useRef(0)
-  const anchorKeyRef = React.useRef('')
-  const anchorRevisionRef = React.useRef(0)
   translation.setViewKey(viewKey)
 
+  // 译文节点的增删都会改变多栏布局，通知分页器按锚点重算页码。
   React.useEffect(() => {
-    anchorBlockRef.current = null
-    anchorKeyRef.current = ''
-    anchorRevisionRef.current = translation.revision
-  }, [screen.content.chapterId])
+    view.textPager.notifyLayout()
+  }, [translation.blocks, translation.enabled, view.textPager.notifyLayout, viewKey])
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled) return
-    const targets = [view.contentRef.current, view.textPager.innerRef.current].filter(Boolean) as HTMLElement[]
-    if (targets.length === 0) return
+    if (!inlineAvailable || !translation.enabled || effectiveMode === 'paged') return
+    const container = view.contentRef.current
+    if (!container) return
     let frame = 0
     const bump = () => {
       if (frame) return
@@ -58,36 +56,29 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
         setVisibilityTick(value => value + 1)
       })
     }
-    for (const target of targets) target.addEventListener('scroll', bump, { passive: true })
+    container.addEventListener('scroll', bump, { passive: true })
     return () => {
-      for (const target of targets) target.removeEventListener('scroll', bump)
+      container.removeEventListener('scroll', bump)
       if (frame && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
     }
-  }, [inlineAvailable, translation.enabled, view.contentRef, view.textPager.innerRef])
+  }, [effectiveMode, inlineAvailable, translation.enabled, view.contentRef])
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled || view.textPager.navigationPending) {
-      anchorBlockRef.current = null
-      anchorKeyRef.current = ''
-      return
-    }
-    if (anchorBlockRef.current !== null && anchorKeyRef.current !== viewKey) {
-      anchorBlockRef.current = null
-      anchorKeyRef.current = ''
-    }
+    if (!inlineAvailable || !translation.enabled) return
     const run = () => {
       const container = view.contentRef.current
       const visible = visibleBlockIndices(container)
       const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
       const missing = candidates.filter(block => !translation.blocks[block.index])
-      if (missing.length === 0) return
-      if (anchorKeyRef.current === '') {
-        anchorBlockRef.current = firstVisibleBlock(container)
-        anchorPageRef.current = view.textPager.page
-        anchorKeyRef.current = viewKey
-        anchorRevisionRef.current = translation.revision
+      const tail = view.textPager.boundary === 'end'
+        ? tailTranslationBlocks(translationBlocks).filter(block => !translation.blocks[block.index])
+        : []
+      const batch = [...tail]
+      for (const block of missing) {
+        if (!batch.some(item => item.index === block.index)) batch.push(block)
       }
-      void translation.translateAll(missing, viewKey)
+      if (batch.length === 0) return
+      void translation.translateAll(batch, viewKey)
     }
     let first = 0
     let second = 0
@@ -113,42 +104,11 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     translation.translateAll,
     translationBlocks,
     view.contentRef,
-    view.textPager.navigationPending,
+    view.textPager.boundary,
+    view.textPager.page,
     viewKey,
     visibilityTick,
   ])
-
-  React.useEffect(() => {
-    const index = anchorBlockRef.current
-    if (anchorKeyRef.current === '') return
-    if (anchorKeyRef.current !== viewKey) {
-      anchorBlockRef.current = null
-      anchorKeyRef.current = ''
-      return
-    }
-    if (translation.revision === anchorRevisionRef.current) return
-    const restore = () => {
-      const container = view.contentRef.current
-      const element = index === null ? null : container?.querySelector<HTMLElement>(`[data-block-index="${index}"]`)
-      if (effectiveMode === 'paged') {
-        view.textPager.goToPage(anchorPageRef.current)
-      } else if (index !== null) {
-        try {
-          element?.scrollIntoView({ block: 'start', inline: 'start' })
-        } catch {
-          // A paged container may not be scrollable on every browser.
-        }
-      }
-      anchorBlockRef.current = null
-      anchorKeyRef.current = ''
-    }
-    let frame: number | undefined
-    if (typeof requestAnimationFrame === 'function') frame = requestAnimationFrame(restore)
-    else restore()
-    return () => {
-      if (frame !== undefined && typeof cancelAnimationFrame === 'function') cancelAnimationFrame(frame)
-    }
-  }, [effectiveMode, translation.revision, view.contentRef, view.textPager, viewKey])
 
   const contentBlocks = inlineAvailable && translation.enabled
     ? renderBlocksWithTranslations(

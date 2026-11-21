@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { chapterPercent, pdfPagePercent } from '../reader/paging.ts'
+import { chapterFractionPercent, chapterPercent, pdfPagePercent } from '../reader/paging.ts'
 import { publishProgressSync } from '../reader/progress-sync.ts'
 import type { CallRpc, Screen, Visual } from '../../lib/types.ts'
 import type { TextPager } from '../reader/use-text-pager.ts'
@@ -44,17 +44,21 @@ export function useSidebarProgress({
   const chapterFraction = screen.kind !== 'book'
     ? 0
     : mode === 'text'
-      ? textPager.page / Math.max(1, textPager.pageCount)
+      ? textPager.chapterFraction
       : visual?.kind === 'epub'
         ? epubPage / Math.max(1, epubPageCount)
         : 0
-  const chapterPage = mode === 'text' ? textPager.page : visual?.kind === 'epub' ? epubPage : 0
-  const chapterPages = mode === 'text' ? textPager.pageCount : visual?.kind === 'epub' ? epubPageCount : 1
   const readingPercent = screen.kind !== 'book'
     ? 0
     : screen.detail.book.format === 'pdf' && mode === 'original' && visual?.kind === 'pdf'
       ? pdfPagePercent(visual.page, pdfPageCount || screen.detail.toc.length || 1)
-      : chapterPercent(screen.detail.toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, chapterPage, chapterPages)
+      : mode === 'text'
+        ? chapterFractionPercent(
+          screen.detail.toc,
+          activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex,
+          textPager.chapterFraction,
+        )
+        : chapterPercent(screen.detail.toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, epubPage, epubPageCount)
 
   const readingView = React.useMemo(() => {
     if (screen.kind !== 'book') return null

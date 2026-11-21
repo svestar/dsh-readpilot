@@ -5,6 +5,18 @@ export interface TranslationBlockView {
   text: string
 }
 
+/** 跨章回翻落到章末时，优先预翻译的最后若干块。 */
+const TRANSLATION_TAIL_BLOCKS = 12
+
+/** 章末预翻译只取尾部若干块；章节不足时返回全部。 */
+export function tailTranslationBlocks(
+  blocks: readonly TranslationBlockView[],
+  count = TRANSLATION_TAIL_BLOCKS,
+): TranslationBlockView[] {
+  const limit = Math.max(0, Math.floor(count))
+  return limit > 0 ? blocks.slice(-limit) : []
+}
+
 /** Translatable paragraphs of one chapter; images and code stay untouched. */
 export function translationBlocksOf(content: ChapterContent): TranslationBlockView[] {
   const blocks: TranslationBlockView[] = []

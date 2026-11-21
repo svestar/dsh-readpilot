@@ -102,6 +102,21 @@ export function chapterPercent(
   return Math.max(0, Math.min(100, ((before + weights[index] * fraction) / total) * 100))
 }
 
+/** Character-weighted reading percentage at a block-anchored chapter fraction. */
+export function chapterFractionPercent(
+  chapters: ReadonlyArray<{ chars?: number }>,
+  chapterIndex: number,
+  fraction: number,
+): number {
+  const weights = chapters.map(chapter => Math.max(1, Number(chapter.chars) || 1))
+  const total = weights.reduce((sum, weight) => sum + weight, 0)
+  if (total <= 0) return 0
+  const index = Math.max(0, Math.min(chapterIndex, weights.length - 1))
+  const before = weights.slice(0, index).reduce((sum, weight) => sum + weight, 0)
+  const value = Number.isFinite(fraction) ? Math.max(0, Math.min(1, fraction)) : 0
+  return Math.max(0, Math.min(100, ((before + weights[index] * value) / total) * 100))
+}
+
 /** PDF visual pages are already absolute, so progress follows the page number. */
 export function pdfPagePercent(page: number, pageCount: number): number {
   if (!Number.isFinite(pageCount) || pageCount <= 0) return 0

@@ -49,8 +49,10 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
         ? { chapterId, fraction, token: ++anchorTokenRef.current }
         : null)
       setScreen(previous => previous.kind === 'book' ? { ...previous, content } : previous)
+      return true
     } catch (cause) {
       setError(`${t('loadFailed')}：${cause instanceof Error ? cause.message : String(cause)}`)
+      return false
     }
   }, [call, t])
 

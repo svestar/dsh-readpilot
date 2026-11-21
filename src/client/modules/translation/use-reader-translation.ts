@@ -65,7 +65,6 @@ export function useReaderTranslation({
   const [blocks, setBlocks] = React.useState<Record<number, BlockTranslation>>({})
   const [selectionResult, setSelectionResult] = React.useState<SelectionTranslation | null>(null)
   const [panelError, setPanelError] = React.useState('')
-  const [revision, setRevision] = React.useState(0)
   const selectionRequestRef = React.useRef(0)
   const versionRef = React.useRef(0)
   const viewKeyRef = React.useRef('')
@@ -243,7 +242,6 @@ export function useReaderTranslation({
         }
         return next
       })
-      setRevision(current => current + 1)
     } catch (cause) {
       if (versionRef.current !== version) return
       if (viewKeyRef.current !== viewKey) {
@@ -259,7 +257,6 @@ export function useReaderTranslation({
         }
         return next
       })
-      setRevision(current => current + 1)
     }
   }, [activeSessionId, call, dropLoading, providerArg, t, targetLanguage])
 
@@ -289,7 +286,6 @@ export function useReaderTranslation({
     blocks,
     selectionResult,
     panelError,
-    revision,
     setEnabled,
     toggleEnabled,
     setTargetLanguage,

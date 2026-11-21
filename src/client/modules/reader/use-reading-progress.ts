@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { chapterPercent, columnsFor, pdfPagePercent } from './paging.ts'
+import { chapterFractionPercent, chapterPercent, columnsFor, pdfPagePercent } from './paging.ts'
 import type { PageLayout, ReaderMode } from './paging.ts'
 import type { TextPager } from './use-text-pager.ts'
 import type { BookFormat } from '../../../shared/book-format.ts'
@@ -54,7 +54,7 @@ export function useReadingProgress({
       ? 0
       : format === 'epub' && !reflowMode
         ? epubPage / Math.max(1, epubPageCount)
-        : textPager.page / Math.max(1, textPager.pageCount)
+        : textPager.chapterFraction
 
   const readingPercent = screen.kind !== 'book'
     ? 0
@@ -62,7 +62,11 @@ export function useReadingProgress({
       ? pdfPagePercent(pdfVisualPage, pdfPageCount || toc.length || 1)
       : format === 'epub' && !reflowMode
         ? chapterPercent(toc, chapterIndex, epubPage, epubPageCount)
-        : chapterPercent(toc, activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex, textPager.page, textPager.pageCount)
+        : chapterFractionPercent(
+          toc,
+          activeChapterIndex >= 0 ? activeChapterIndex : chapterIndex,
+          textPager.chapterFraction,
+        )
 
   const readingView = React.useMemo(() => {
     if (screen.kind !== 'book') return null
