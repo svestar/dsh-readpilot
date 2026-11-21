@@ -35,6 +35,10 @@
 4. 运行 `pnpm run verify`（typecheck、boundaries、build、test、sizes、docs、打包检查）。
 5. 交付时列出实际执行的命令、未验证事项和风险。
 
+## 推送纪律
+
+**只有当次请求明确说“推送”才 push。**
+
 ## 完成条件
 
 功能可追溯到代码与测试；文档准确且不超长；工作区干净；不带入临时文件、凭据或 profile 改动。
