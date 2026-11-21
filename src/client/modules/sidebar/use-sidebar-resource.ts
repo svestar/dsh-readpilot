@@ -2,6 +2,7 @@ import { React } from '../../runtime.ts'
 import { readPaletteId, resolveReaderPalette } from '../../lib/preferences.ts'
 import { parseReaderResource } from '../reader/resource.ts'
 import { selectionAnchor, selectionTouchesTranslation } from '../markdown/render.ts'
+import { offsetInChapter } from '../reader/anchor.ts'
 import { chapterFractionForOffset } from './navigation.ts'
 import type { SidebarBook, SidebarMode } from './navigation.ts'
 import type { ReadingAnchor } from '../reader/paging.ts'
@@ -43,7 +44,9 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
   const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: SelectTarget) => {
     try {
       const content = await call('chapter', { bookId, chapterId })
-      const offset = typeof target?.offset === 'number' ? target.offset : null
+      const offset = Number.isInteger(target?.blockIndex) && Number.isInteger(target?.blockOffset)
+        ? offsetInChapter(content.blocks, target!.blockIndex!, target!.blockOffset!)
+        : typeof target?.offset === 'number' ? target.offset : null
       const fraction = chapterFractionForOffset(content.blocks, offset)
       setAnchor(fraction !== null
         ? { chapterId, fraction, token: ++anchorTokenRef.current }

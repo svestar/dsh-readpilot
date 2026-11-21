@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { blockJumpFraction, noteBlockMatch, noteLayoutKey } from '../src/client/lib/helpers.ts'
+import { parseHTML } from 'linkedom'
+import { blockJumpFraction, noteBlockMatch, noteLayoutKey, resolveNoteBlock } from '../src/client/lib/helpers.ts'
+import { hashText } from '../src/client/modules/reader/anchor.ts'
 
 const globalAny = globalThis as any
 
@@ -54,6 +56,22 @@ test('note_block_match_uses_block_context', () => {
   const text = '开头 target 结尾；另一段 target 后续'
   const match = noteBlockMatch(text, { quote: 'target', offset: 3, quotePrefix: '另一段 ', quoteSuffix: ' 后续' })
   assert.deepEqual(match, { start: text.lastIndexOf('target'), end: text.lastIndexOf('target') + 6 })
+})
+
+test('note_block_match_ignores_raw_markdown_block_hash', () => {
+  const { document } = parseHTML(
+    '<html><body><p data-block-index="0"><strong>target</strong></p><div data-translation-index="0"><p>target</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveNoteBlock(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 0,
+    blockHash: hashText('**target**'),
+  } as any)
+  assert.ok(resolved)
+  assert.equal(resolved.block.getAttribute('data-block-index'), '0')
+  assert.deepEqual(resolved.match, { start: 0, end: 6 })
 })
 
 test('block_jump_fraction_maps_intra_block_offset', () => {

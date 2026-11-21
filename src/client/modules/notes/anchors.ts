@@ -93,6 +93,30 @@ export function noteBlockMatch(
   return findNoteOccurrence(blockText, quote, offset, note.quotePrefix, note.quoteSuffix, compactText)
 }
 
+export interface NoteBlockResolution {
+  block: Element
+  nodes: Text[]
+  match: { start: number; end: number } | null
+}
+
+/**
+ * 在源文块内解析批注。块哈希只用于整块兜底，不阻止文本匹配：
+ * 保存时哈希的是原始 Markdown，渲染后 textContent 已去掉标记，二者口径不同。
+ */
+export function resolveNoteBlock(root: Element, note: NoteRecord): NoteBlockResolution | null {
+  if (!Number.isInteger(note.blockIndex)) return null
+  const block = root.querySelector(`[data-block-index="${note.blockIndex}"]`)
+  if (!block) return null
+  const scoped = collectTextNodes(block)
+  let compact: CompactAnchor | null = null
+  const compactText = () => (compact ??= compactAnchorText(scoped.text))
+  return {
+    block,
+    nodes: scoped.nodes,
+    match: scoped.text ? noteBlockMatch(scoped.text, note, compactText) : null,
+  }
+}
+
 export function collectTextNodes(root: Element | null | undefined): { nodes: Text[]; text: string } {
   if (!root) return { nodes: [], text: '' }
   const doc = root.ownerDocument ?? document

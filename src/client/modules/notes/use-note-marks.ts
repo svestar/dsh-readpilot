@@ -6,7 +6,7 @@ import {
   collectTextNodes,
   compactAnchorText,
   findNoteOccurrence,
-  noteBlockMatch,
+  resolveNoteBlock,
   pdfChapterIdForPage,
   pdfNoteRects,
   rangeForNodes,
@@ -125,17 +125,15 @@ export function useNoteMarks({
         const preferred = typeof note.start === 'number' ? note.start : note.offset + shift
         let nodes = combined.nodes
         let match: { start: number; end: number } | null = null
-        let block: Element | null = null
-        if (!target.pdf && Number.isInteger(note.blockIndex)) {
-          const candidate = root.querySelector(`[data-block-index="${note.blockIndex}"]`)
-          if (candidate && (!note.blockHash || hashText(candidate.textContent ?? '') === note.blockHash)) {
-            block = candidate
-            const scoped = collectTextNodes(candidate)
-            if (scoped.text) {
-              let scopedCompact: CompactAnchor | null = null
-              const scopedCompactText = () => (scopedCompact ??= compactAnchorText(scoped.text))
-              match = noteBlockMatch(scoped.text, note, scopedCompactText)
-              if (match) nodes = scoped.nodes
+        let fallbackBlock: Element | null = null
+        if (!target.pdf) {
+          const resolved = resolveNoteBlock(root, note)
+          if (resolved) {
+            if (resolved.match) {
+              match = resolved.match
+              nodes = resolved.nodes
+            } else if (!note.blockHash || hashText(resolved.block.textContent ?? '') === note.blockHash) {
+              fallbackBlock = resolved.block
             }
           }
         }
@@ -146,13 +144,13 @@ export function useNoteMarks({
           }
           nodes = combined.nodes
         }
-        if (!match && !block) continue
+        if (!match && !fallbackBlock) continue
         const pdfRects = match && target.pdf && target.view ? pdfNoteRects(target.view, match) : null
         let rects: Array<{ left: number; top: number; width: number; height: number }>
         if (pdfRects) rects = pdfRects
-        else if (!match && block) {
+        else if (!match && fallbackBlock) {
           const blockRange = doc.createRange()
-          blockRange.selectNodeContents(block)
+          blockRange.selectNodeContents(fallbackBlock)
           rects = [...blockRange.getClientRects()]
         } else {
           const range = match ? rangeForNodes(nodes, doc, match.start, match.end) : null
