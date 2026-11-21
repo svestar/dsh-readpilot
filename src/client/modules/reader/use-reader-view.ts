@@ -6,6 +6,7 @@ import { useVisual } from './use-visual.ts'
 import { useReadingProgress } from './use-reading-progress.ts'
 import { visualForChapter, visualForItem } from './screen.ts'
 import { buildReaderResource } from './resource.ts'
+import { forgetTranslationEnabled } from '../translation/session-state.ts'
 import type { ReaderPreferences } from './use-reader-preferences.ts'
 import type { ReadingAnchor } from './paging.ts'
 import type { CallRpc, ClientBook, PendingScroll, Screen, Selection, SelectChapter, TextFn, TocItem } from '../../lib/types.ts'
@@ -167,6 +168,7 @@ export function useReaderView({
     setBusy(true)
     setError('')
     pendingScrollRef.current = null
+    forgetTranslationEnabled(book.id)
     try {
       const detail = await call('open', { bookId: book.id })
       if (!detail.supported) {

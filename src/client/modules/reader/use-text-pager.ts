@@ -33,7 +33,7 @@ export interface TextPager {
   canPrev: boolean
   canNext: boolean
   goPage: (delta: number) => void
-  scrollToBlock: (blockIndex: number) => void
+  goToPage: (page: number) => void
   navigationToken: number
   navigationPending: boolean
 }
@@ -67,6 +67,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       return
     }
     setPage(0)
+    setNavigationPending(true)
     const inner = innerRef.current
     if (inner) inner.scrollLeft = 0
   }, [active, chapterId, layout])
@@ -102,10 +103,8 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       if (width <= 0 || height <= 0) return
       const metrics = measurePageMetrics(width, content, layout, PAGE_GAP)
       const pendingLast = pendingLastRef.current === chapterId
-      if (pendingLast) {
-        pendingLastRef.current = null
-        setNavigationPending(false)
-      }
+      if (pendingLast) pendingLastRef.current = null
+      setNavigationPending(false)
       setStride(metrics.stride)
       setPageCount(metrics.pageCount)
       if (anchor && anchor.chapterId === chapterId && anchor.token !== appliedAnchorRef.current) {
@@ -208,18 +207,11 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     void selectChapter(bookId, neighbour.id)
   }, [active, bookId, nextChapter, page, pageCount, prevChapter, selectChapter])
 
-  /** After a layout-changing insertion, keep the same text block on screen. */
-  const scrollToBlock = React.useCallback((blockIndex: number) => {
-    if (!active || stride <= 0) return
-    const inner = innerRef.current
-    if (!inner) return
-    const element = inner.querySelector<HTMLElement>(`[data-block-index="${blockIndex}"]`)
-    if (!element) return
-    const innerRect = inner.getBoundingClientRect()
-    const blockRect = element.getBoundingClientRect()
-    const offset = blockRect.left - innerRect.left + inner.scrollLeft
-    setPage(clampPageIndex(Math.floor(offset / stride), pageCount))
-  }, [active, pageCount, stride])
+  /** Restore the page index after a translation-induced reflow; this is not a user turn. */
+  const goToPage = React.useCallback((target: number) => {
+    if (!active) return
+    setPage(clampPageIndex(target, pageCount))
+  }, [active, pageCount])
 
   React.useEffect(() => {
     if (!enabled) return
@@ -267,7 +259,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     canPrev,
     canNext,
     goPage,
-    scrollToBlock,
+    goToPage,
     navigationToken,
     navigationPending,
   }

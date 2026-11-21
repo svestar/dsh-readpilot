@@ -9,7 +9,7 @@ import { useReaderTranslation } from '../translation/use-reader-translation.ts'
 import { translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { TranslationCard } from '../translation/TranslationCard.ts'
-import { firstVisibleBlock, visibleBlockIndices } from '../reader/block-visibility.ts'
+import { visibleBlockIndices } from '../reader/block-visibility.ts'
 import { useSidebarReader } from './use-sidebar-reader.ts'
 import type { SidebarReaderProps } from './use-sidebar-reader.ts'
 import type { PageLayout } from '../reader/paging.ts'
@@ -33,30 +33,46 @@ export function SidebarReader(props: SidebarReaderProps) {
   const viewKey = inlineAvailable && bookScreen && translation.enabled
     ? `${bookScreen.detail.book.id}\u0000${bookScreen.content.chapterId}:${state.textPager.navigationToken}`
     : ''
-  const anchorBlockRef = React.useRef<number | null>(null)
+  const anchorPageRef = React.useRef(0)
   const anchorKeyRef = React.useRef('')
   const anchorRevisionRef = React.useRef(0)
   translation.setViewKey(viewKey)
 
   React.useEffect(() => {
     if (!inlineAvailable || !translation.enabled || state.textPager.navigationPending) {
-      anchorBlockRef.current = null
       anchorKeyRef.current = ''
       return
     }
-    const container = state.contentRef.current
-    const visible = visibleBlockIndices(container)
-    const candidates = visible.size === 0
-      ? translationBlocks
-      : translationBlocks.filter(block => visible.has(block.index))
-    const missing = candidates.filter(block => !translation.blocks[block.index])
-    if (missing.length === 0) return
-    if (anchorBlockRef.current === null) {
-      anchorBlockRef.current = firstVisibleBlock(container)
-      anchorKeyRef.current = viewKey
-      anchorRevisionRef.current = translation.revision
+    const run = () => {
+      const container = state.contentRef.current
+      const visible = visibleBlockIndices(container)
+      const candidates = visible.size === 0
+        ? translationBlocks
+        : translationBlocks.filter(block => visible.has(block.index))
+      const missing = candidates.filter(block => !translation.blocks[block.index])
+      if (missing.length === 0) return
+      if (anchorKeyRef.current === '') {
+        anchorPageRef.current = state.textPager.page
+        anchorKeyRef.current = viewKey
+        anchorRevisionRef.current = translation.revision
+      }
+      void translation.translateAll(missing, viewKey)
     }
-    void translation.translateAll(missing, viewKey)
+    let first = 0
+    let second = 0
+    if (typeof requestAnimationFrame === 'function') {
+      first = requestAnimationFrame(() => {
+        second = requestAnimationFrame(run)
+      })
+    } else {
+      run()
+    }
+    return () => {
+      if (typeof cancelAnimationFrame === 'function') {
+        if (first) cancelAnimationFrame(first)
+        if (second) cancelAnimationFrame(second)
+      }
+    }
   }, [
     inlineAvailable,
     translation.blocks,
@@ -71,10 +87,8 @@ export function SidebarReader(props: SidebarReaderProps) {
   ])
 
   React.useEffect(() => {
-    const index = anchorBlockRef.current
-    if (index === null) return
+    if (anchorKeyRef.current === '') return
     if (anchorKeyRef.current !== viewKey) {
-      anchorBlockRef.current = null
       anchorKeyRef.current = ''
       return
     }
@@ -82,8 +96,7 @@ export function SidebarReader(props: SidebarReaderProps) {
     const frame = (typeof requestAnimationFrame === 'function'
       ? requestAnimationFrame
       : (fn: () => void) => { fn(); return 0 })(() => {
-      state.textPager.scrollToBlock(index)
-      anchorBlockRef.current = null
+      state.textPager.goToPage(anchorPageRef.current)
       anchorKeyRef.current = ''
     })
     return () => {

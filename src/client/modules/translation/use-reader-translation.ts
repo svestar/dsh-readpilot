@@ -2,11 +2,9 @@ import { React } from '../../runtime.ts'
 import { messageOf } from '../../lib/helpers.ts'
 import {
   DEFAULT_TRANSLATION_PROVIDER,
-  readTranslationEnabled,
   readTranslationNotice,
   readTranslationProvider,
   readTranslationTarget,
-  saveTranslationEnabled,
   saveTranslationNotice,
   saveTranslationProvider,
   saveTranslationTarget,
@@ -18,6 +16,10 @@ import type {
 } from '../../../shared/contracts/translation.ts'
 import type { TranslationBlockView } from './blocks.ts'
 import type { CallRpc, Screen, Selection, TextFn } from '../../lib/types.ts'
+import {
+  rememberTranslationEnabled,
+  translationEnabledForBook,
+} from './session-state.ts'
 
 export interface BlockTranslation {
   text: string
@@ -53,7 +55,10 @@ export function useReaderTranslation({
   selection,
   activeSessionId,
 }: ReaderTranslationOptions) {
-  const [enabled, setEnabledState] = React.useState(readTranslationEnabled)
+  const bookId = screen.kind === 'book' ? screen.detail.book.id : null
+  const chapterId = screen.kind === 'book' ? screen.content.chapterId : ''
+  const chapterKey = `${bookId ?? ''}\u0000${chapterId}`
+  const [enabled, setEnabledState] = React.useState(() => translationEnabledForBook(bookId))
   const [targetLanguage, setTargetLanguageState] = React.useState(readTranslationTarget)
   const [provider, setProviderState] = React.useState(readTranslationProvider)
   const [noticeAcknowledged, setNoticeAcknowledged] = React.useState(readTranslationNotice)
@@ -65,10 +70,6 @@ export function useReaderTranslation({
   const selectionRequestRef = React.useRef(0)
   const versionRef = React.useRef(0)
   const viewKeyRef = React.useRef('')
-
-  const bookId = screen.kind === 'book' ? screen.detail.book.id : null
-  const chapterId = screen.kind === 'book' ? screen.content.chapterId : ''
-  const chapterKey = `${bookId ?? ''}\u0000${chapterId}`
 
   const refreshProviders = React.useCallback(async () => {
     try {
@@ -85,6 +86,12 @@ export function useReaderTranslation({
   React.useEffect(() => {
     void refreshProviders()
   }, [refreshProviders])
+
+  React.useEffect(() => {
+    setEnabledState(translationEnabledForBook(bookId))
+    setBlocks({})
+    setSelectionResult(null)
+  }, [bookId])
 
   React.useEffect(() => {
     versionRef.current += 1
@@ -131,13 +138,13 @@ export function useReaderTranslation({
 
   const setEnabled = React.useCallback((value: boolean) => {
     setEnabledState(value)
-    saveTranslationEnabled(value)
+    rememberTranslationEnabled(bookId, value)
     if (!value) {
       versionRef.current += 1
       setBlocks({})
       setPanelError('')
     }
-  }, [])
+  }, [bookId])
 
   const toggleEnabled = React.useCallback(() => {
     setEnabled(!enabled)

@@ -33,6 +33,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     ? `${screen.detail.book.id}\u0000${screen.content.chapterId}:${effectiveMode === 'paged' ? view.textPager.navigationToken : visibilityTick}`
     : ''
   const anchorBlockRef = React.useRef<number | null>(null)
+  const anchorPageRef = React.useRef(0)
   const anchorKeyRef = React.useRef('')
   const anchorRevisionRef = React.useRef(0)
   translation.setViewKey(viewKey)
@@ -74,17 +75,35 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
       anchorBlockRef.current = null
       anchorKeyRef.current = ''
     }
-    const container = view.contentRef.current
-    const visible = visibleBlockIndices(container)
-    const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
-    const missing = candidates.filter(block => !translation.blocks[block.index])
-    if (missing.length === 0) return
-    if (anchorBlockRef.current === null) {
-      anchorBlockRef.current = firstVisibleBlock(container)
-      anchorKeyRef.current = viewKey
-      anchorRevisionRef.current = translation.revision
+    const run = () => {
+      const container = view.contentRef.current
+      const visible = visibleBlockIndices(container)
+      const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
+      const missing = candidates.filter(block => !translation.blocks[block.index])
+      if (missing.length === 0) return
+      if (anchorKeyRef.current === '') {
+        anchorBlockRef.current = firstVisibleBlock(container)
+        anchorPageRef.current = view.textPager.page
+        anchorKeyRef.current = viewKey
+        anchorRevisionRef.current = translation.revision
+      }
+      void translation.translateAll(missing, viewKey)
     }
-    void translation.translateAll(missing, viewKey)
+    let first = 0
+    let second = 0
+    if (typeof requestAnimationFrame === 'function') {
+      first = requestAnimationFrame(() => {
+        second = requestAnimationFrame(run)
+      })
+    } else {
+      run()
+    }
+    return () => {
+      if (typeof cancelAnimationFrame === 'function') {
+        if (first) cancelAnimationFrame(first)
+        if (second) cancelAnimationFrame(second)
+      }
+    }
   }, [
     inlineAvailable,
     translation.blocks,
@@ -101,7 +120,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
 
   React.useEffect(() => {
     const index = anchorBlockRef.current
-    if (index === null) return
+    if (anchorKeyRef.current === '') return
     if (anchorKeyRef.current !== viewKey) {
       anchorBlockRef.current = null
       anchorKeyRef.current = ''
@@ -110,10 +129,10 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     if (translation.revision === anchorRevisionRef.current) return
     const restore = () => {
       const container = view.contentRef.current
-      const element = container?.querySelector<HTMLElement>(`[data-block-index="${index}"]`)
+      const element = index === null ? null : container?.querySelector<HTMLElement>(`[data-block-index="${index}"]`)
       if (effectiveMode === 'paged') {
-        view.textPager.scrollToBlock(index)
-      } else {
+        view.textPager.goToPage(anchorPageRef.current)
+      } else if (index !== null) {
         try {
           element?.scrollIntoView({ block: 'start', inline: 'start' })
         } catch {
