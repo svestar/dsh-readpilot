@@ -100,6 +100,22 @@ test('page_of_point_anchor_uses_block_fraction', () => {
   assert.equal(pageOfAnchor(geometry, point(1, 0), layout), 2)
 })
 
+test('page_of_anchor_at_fragment_boundary_uses_next_page', () => {
+  const geometry: PageGeometry = {
+    blocks: [{
+      index: 0,
+      rects: [
+        rect(916, 100, 876, 'translation'),
+        rect(1832, 100, 876, 'translation'),
+      ],
+    }],
+  }
+  const layout = frame(2, 876, 40, 2)
+  // 0.5 是两段译文的分界；浮点噪声不能把它算回第 0 页。
+  assert.equal(pageOfAnchor(geometry, point(0, 0.5 - 1e-9, 'translation'), layout), 1)
+  assert.equal(pageOfAnchor(geometry, point(0, 0.25, 'translation'), layout), 0)
+})
+
 test('page_of_anchor_handles_missing_geometry', () => {
   assert.equal(pageOfAnchor(null, point(3, 0), frame(1, 800, 40, 4)), 0)
   assert.equal(pageOfAnchor({ blocks: [] }, point(3, 0), frame(1, 800, 40, 4)), 0)

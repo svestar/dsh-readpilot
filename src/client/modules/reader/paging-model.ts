@@ -88,6 +88,9 @@ function columnOfX(x: number, pitch: number): number {
   return Math.max(0, Math.round(x / pitch))
 }
 
+/** 锚点恰好落在栏片段起点时，浮点误差不应把它算回上一片段。 */
+const PAGE_EDGE_TOLERANCE = 0.5
+
 /** 锚点在当前布局里落到哪一页。几何缺失时退回首页，由调用方决定是否保留旧页。 */
 export function pageOfAnchor(
   geometry: PageGeometry | null,
@@ -117,7 +120,7 @@ export function pageOfAnchor(
     const height = Math.max(0, rect.height)
     if (height <= 0) continue
     column = columnOfX(rect.left, layout.pitch)
-    if (remaining < height) break
+    if (remaining < height - PAGE_EDGE_TOLERANCE) break
     remaining -= height
   }
   return clampPageIndex(Math.floor(column / layout.columns), layout.pageCount)
