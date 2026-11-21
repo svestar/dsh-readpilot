@@ -64,7 +64,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       return
     }
     setPage(0)
-    setNavigationToken(value => value + 1)
     const inner = innerRef.current
     if (inner) inner.scrollLeft = 0
   }, [active, chapterId, layout])
