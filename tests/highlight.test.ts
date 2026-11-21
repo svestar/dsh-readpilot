@@ -74,6 +74,22 @@ test('note_block_match_ignores_raw_markdown_block_hash', () => {
   assert.deepEqual(resolved.match, { start: 0, end: 6 })
 })
 
+test('resolve_note_block_falls_back_to_block_index', () => {
+  const { document } = parseHTML(
+    '<html><body><p data-block-index="0"><strong>other</strong></p></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveNoteBlock(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 0,
+    blockHash: hashText('**target**'),
+  } as any)
+  assert.ok(resolved)
+  assert.equal(resolved.match, null)
+  assert.equal(resolved.block.getAttribute('data-block-index'), '0')
+})
+
 test('block_jump_fraction_maps_intra_block_offset', () => {
   assert.equal(blockJumpFraction(0, 100), 0)
   assert.equal(blockJumpFraction(50, 100), 0.5)

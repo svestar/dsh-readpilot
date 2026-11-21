@@ -35,6 +35,7 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
   const [selection, setSelection] = React.useState<any>(null)
   const anchorTokenRef = React.useRef(0)
   const progressSkipRef = React.useRef(true)
+  const pendingBlockRef = React.useRef<{ chapterId: string; blockIndex: number; blockOffset: number } | null>(null)
 
   const palette = resolveReaderPalette(readPaletteId())
   const contentRef = React.useRef<HTMLDivElement | null>(null)
@@ -44,7 +45,15 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
   const selectChapter = React.useCallback(async (bookId: string, chapterId: string, target?: SelectTarget) => {
     try {
       const content = await call('chapter', { bookId, chapterId })
-      const offset = Number.isInteger(target?.blockIndex) && Number.isInteger(target?.blockOffset)
+      const hasBlockTarget = Number.isInteger(target?.blockIndex)
+      pendingBlockRef.current = hasBlockTarget
+        ? {
+          chapterId: content.chapterId,
+          blockIndex: target!.blockIndex!,
+          blockOffset: Number.isInteger(target?.blockOffset) ? target!.blockOffset! : 0,
+        }
+        : null
+      const offset = hasBlockTarget && Number.isInteger(target?.blockOffset)
         ? offsetInChapter(content.blocks, target!.blockIndex!, target!.blockOffset!)
         : typeof target?.offset === 'number' ? target.offset : null
       const fraction = chapterFractionForOffset(content.blocks, offset)
@@ -54,6 +63,7 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
       setScreen(previous => previous.kind === 'book' ? { ...previous, content } : previous)
       return true
     } catch (cause) {
+      pendingBlockRef.current = null
       setError(`${t('loadFailed')}：${cause instanceof Error ? cause.message : String(cause)}`)
       return false
     }
@@ -224,6 +234,7 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
     setSelection,
     anchorTokenRef,
     progressSkipRef,
+    pendingBlockRef,
     palette,
     contentRef,
     rootRef,

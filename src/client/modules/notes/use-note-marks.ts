@@ -1,5 +1,4 @@
 import { React } from '../../runtime.ts'
-import { hashText } from '../reader/anchor.ts'
 import { isAnnotationKind } from './mark-filters.ts'
 import {
   applyEpubNoteMarks,
@@ -132,12 +131,12 @@ export function useNoteMarks({
             if (resolved.match) {
               match = resolved.match
               nodes = resolved.nodes
-            } else if (!note.blockHash || hashText(resolved.block.textContent ?? '') === note.blockHash) {
+            } else {
               fallbackBlock = resolved.block
             }
           }
         }
-        if (!match) {
+        if (!match && !fallbackBlock) {
           match = findNoteOccurrence(combined.text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
           if (!match) {
             match = findNoteOccurrence(combined.text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)

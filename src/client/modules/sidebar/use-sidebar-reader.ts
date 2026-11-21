@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { noteLayoutKey } from '../../lib/helpers.ts'
+import { blockJumpFraction, noteLayoutKey } from '../../lib/helpers.ts'
 import { buildReaderResource } from '../reader/resource.ts'
 import { usePageWidth } from '../reader/use-page-width.ts'
 import { useNotes } from '../notes/use-notes.ts'
@@ -52,6 +52,7 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     setSelection,
     anchorTokenRef,
     progressSkipRef,
+    pendingBlockRef,
     palette,
     contentRef,
     rootRef,
@@ -90,6 +91,15 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     anchor,
     selectChapter,
   })
+  React.useEffect(() => {
+    if (mode !== 'text' || screen.kind !== 'book') return
+    const pending = pendingBlockRef.current
+    if (!pending || pending.chapterId !== screen.content.chapterId) return
+    pendingBlockRef.current = null
+    const target = contentRef.current?.querySelector<HTMLElement>(`[data-block-index="${pending.blockIndex}"]`) ?? null
+    const fraction = blockJumpFraction(pending.blockOffset, target?.textContent?.length ?? 0)
+    textPager.goToBlock(pending.blockIndex, fraction)
+  }, [contentRef, mode, pendingBlockRef, screen, textPager])
 
   const {
     visual,
