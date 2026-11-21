@@ -229,6 +229,14 @@ test('fraction_at_block_boundary_moves_to_next_block', () => {
   assert.deepEqual(anchorOfFraction('c1', blocks, 0.25), point(1, 0))
 })
 
+test('fraction_of_translation_anchor_is_after_source', () => {
+  const blocks = [{ text: 'a'.repeat(100) }, { text: 'b'.repeat(300) }]
+  const sourceEnd = fractionOfAnchor(point(0, 1), blocks)
+  assert.equal(fractionOfAnchor(point(0, 0, 'translation'), blocks), sourceEnd)
+  assert.ok(sourceEnd > fractionOfAnchor(point(0, 0), blocks))
+  assert.equal(fractionOfAnchor(point(1, 0.5, 'translation'), blocks), 1)
+})
+
 test('fraction_of_unknown_block_falls_back_to_start', () => {
   assert.equal(fractionOfAnchor(point(9, 0.5), [{ text: 'a'.repeat(100) }]), 0)
 })

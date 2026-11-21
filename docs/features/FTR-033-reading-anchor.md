@@ -30,6 +30,7 @@
 
 - 文本分页的锚点是块级位置，块内用高度比例近似；同一段落跨页时可能前后偏移半页以内。
 - 同一块的原文与译文片段共享块索引，锚点用 part 区分；仅译文页也能恢复。
+- 译文部分的进度比例记到源块末尾，避免停在译文页时进度回跳到块起点。
 - 空块或旧锚点不在当前几何快照时，退回最近的前一个块，不会直接回到章首。
 - 锚点章节不匹配时忽略，不会把用户拉到别的章节；token 只消费一次，重复 resize、字体或图片加载不会重复跳转。
 - `anchorPage` 仍用于 EPUB 原版视觉分页；文本分页不再用页比例。
@@ -40,5 +41,6 @@
 - 正常：章节比例与块锚点往返（`fraction_round_trips_block_anchor`）。
 - 边界：比例正好落在块边界时进入下一块（`fraction_at_block_boundary_moves_to_next_block`）。
 - 边界：锚点块缺失时退回最近块（`page_of_anchor_falls_back_to_nearest_block`）。
+- 边界：译文锚点的进度在源块末尾之后，不回跳到块起点（`fraction_of_translation_anchor_is_after_source`）。
 - 正常：比例 0/0.5/1 分别落到首页、中间页、末页（`anchor_page_restores_fraction`）。
 - 正常：阅读进度保存章节内比例，重新打开按比例恢复（`progress_percent_persists`）。

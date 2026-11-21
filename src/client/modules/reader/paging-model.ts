@@ -239,7 +239,11 @@ export function fractionOfAnchor(
   for (let index = 0; index < weights.length; index += 1) {
     const weight = weights[index]
     if (index === anchor.blockIndex) {
-      return clampFraction((before + clampFraction(anchor.blockFraction) * weight) / total)
+      // 译文跟在源块之后，进度记到源块末尾；用块内比例会把译文页算回块起点。
+      const within = anchor.part === 'translation'
+        ? weight
+        : clampFraction(anchor.blockFraction) * weight
+      return clampFraction((before + within) / total)
     }
     before += weight
   }
