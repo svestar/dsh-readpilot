@@ -33,6 +33,11 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
   const menuRef = React.useRef<HTMLDivElement | null>(null)
   const [position, setPosition] = React.useState<{ left: number; top: number } | null>(null)
   const [presetOpen, setPresetOpen] = React.useState(false)
+  const [presetKey, setPresetKey] = React.useState('')
+  const selectionKey = selection
+    ? `${selection.x}:${selection.y}:${selection.blockIndex ?? ''}:${selection.text}`
+    : ''
+  const presetVisible = presetOpen && presetKey === selectionKey
 
   React.useEffect(() => {
     if (!selection) {
@@ -67,6 +72,14 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
       window.removeEventListener('resize', place)
     }
   }, [selection?.x, selection?.y])
+
+  React.useEffect(() => {
+    // 工具栏消失（点击其他区域）后清掉子菜单状态，下一次选区只显示工具栏。
+    if (!selection) {
+      setPresetOpen(false)
+      setPresetKey('')
+    }
+  }, [selection])
 
   if (!selection || !document.body) return null
   // 译文选区与不可锚定的选区不能建正文批注/划线，只保留翻译和提问。
@@ -105,10 +118,13 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
     ? h('div', { className: 'dsh-readpilot-preset-picker' },
       h('button', {
         type: 'button',
-        'aria-expanded': presetOpen,
-        onClick: () => setPresetOpen(open => !open),
+        'aria-expanded': presetVisible,
+        onClick: () => {
+          setPresetOpen(!presetVisible)
+          setPresetKey(selectionKey)
+        },
       }, t('presetAction')),
-      presetOpen
+      presetVisible
         ? h('div', { className: 'dsh-readpilot-preset-menu' },
           presets.length > 0
             ? presets.map(preset => h('button', {

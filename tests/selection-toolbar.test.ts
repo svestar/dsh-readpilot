@@ -32,6 +32,88 @@ function setup() {
   return { body, portals }
 }
 
+/** 有状态的最小 React harness：用于验证工具栏本地 state 在选区变化后的复位。 */
+function setupStateful() {
+  ;(globalThis as any).document = { body: { id: 'document-body' } }
+  const refs: any[] = []
+  const states: any[] = []
+  let hookIndex = 0
+  let effects: Array<() => void> = []
+  const React = {
+    createElement(type: any, props: any, ...children: any[]) {
+      return { type, props: { ...(props ?? {}), children }, children }
+    },
+    useRef(initial: any) {
+      const index = hookIndex++
+      refs[index] ??= { current: initial }
+      return refs[index]
+    },
+    useState(initial: any) {
+      const index = hookIndex++
+      if (!(index in states)) states[index] = typeof initial === 'function' ? initial() : initial
+      return [states[index], (value: any) => {
+        states[index] = typeof value === 'function' ? value(states[index]) : value
+      }]
+    },
+    useEffect(fn: () => void) { effects.push(fn) },
+    Component: class {},
+  }
+  bindRuntime((name: string) => {
+    if (name === 'react') return React
+    if (name === 'react-dom') return { createPortal: (node: any) => node }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast' }
+    throw new Error(`unexpected require: ${name}`)
+  })
+  return {
+    render(selection: any) {
+      hookIndex = 0
+      effects = []
+      const node = SelectionToolbar({
+        t: (key: string) => key,
+        selection,
+        onAsk() {},
+        onTranslate() {},
+        onNote() {},
+        onHighlight() {},
+        presets: [{ id: 'p1', title: 'Preset 1', template: '{{text}}', builtin: false }],
+        onPreset() {},
+        onManagePresets() {},
+      })
+      for (const effect of effects) effect()
+      return node
+    },
+  }
+}
+
+function findButton(node: any, label: string): any {
+  if (node == null || typeof node !== 'object') return null
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const found = findButton(child, label)
+      if (found) return found
+    }
+    return null
+  }
+  if (node.type === 'button' && collectText(node).includes(label)) return node
+  return findButton(node.children, label)
+}
+
+test('selection_toolbar_resets_preset_menu_after_dismiss', () => {
+  const { render } = setupStateful()
+  const selection = { text: 'source', blockIndex: 0, offset: 0, x: 100, y: 120 }
+  let node = render(selection)
+  const toggle = findButton(node, 'presetAction')
+  assert.ok(toggle)
+  toggle.props.onClick()
+  node = render(selection)
+  assert.ok(hasClass(node, 'dsh-readpilot-preset-menu'))
+
+  render(null)
+  node = render(selection)
+  assert.ok(findButton(node, 'presetAction'))
+  assert.ok(!hasClass(node, 'dsh-readpilot-preset-menu'))
+})
+
 test('selection_toolbar_portals_menu_to_document_body', () => {
   const { body, portals } = setup()
   const element = SelectionToolbar({
