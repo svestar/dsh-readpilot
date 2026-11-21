@@ -3,7 +3,6 @@ import assert from 'node:assert/strict'
 import {
   anchorAtPage,
   anchorOfFraction,
-  contentPageCount,
   fractionOfAnchor,
   layoutInfoOf,
   pageOfAnchor,
@@ -81,30 +80,6 @@ test('turn_stops_at_book_edges', () => {
   assert.equal(turnTarget({
     page: 1, pageCount: 4, delta: 0, previousChapterId: 'c0', nextChapterId: 'c2',
   }), null)
-})
-
-test('content_page_count_ignores_trailing_empty_columns', () => {
-  const geometry: PageGeometry = {
-    blocks: [
-      { index: 0, rects: [rect(0, 100, 400), rect(440, 100, 400)] },
-      { index: 1, rects: [rect(880, 100, 400), rect(1320, 100, 400)] },
-      { index: 2, rects: [rect(1760, 100, 400), rect(2200, 100, 400)] },
-    ],
-  }
-  // scrollWidth 侧可能多算一页，真实内容只占 6 栏 = 3 个双页。
-  assert.equal(contentPageCount(geometry, frame(2, 400, 40, 4)), 3)
-})
-
-test('content_page_count_counts_translation_fragments', () => {
-  const geometry: PageGeometry = {
-    blocks: [{ index: 0, rects: [rect(0, 100), rect(840, 100, 800, 'translation')] }],
-  }
-  assert.equal(contentPageCount(geometry, frame(1, 800, 40, 2)), 2)
-})
-
-test('content_page_count_empty_geometry_is_one', () => {
-  assert.equal(contentPageCount(null, frame(1, 800, 40, 3)), 1)
-  assert.equal(contentPageCount({ blocks: [] }, frame(2, 400, 40, 3)), 1)
 })
 
 test('chapter_end_survives_layout_growth', () => {

@@ -8,7 +8,6 @@ import {
 import {
   anchorAtPage,
   anchorOfFraction,
-  contentPageCount,
   fractionOfAnchor,
   layoutInfoOf,
   pageOfAnchor,
@@ -164,12 +163,9 @@ export function useTextPager({
       const width = Number.isFinite(usedWidth) && usedWidth > 0 ? usedWidth : inner.clientWidth
       const height = inner.clientHeight
       if (width <= 0 || height <= 0) return
-      const measured = layoutInfoOf(measurePageMetrics(width, inner.scrollWidth, layout, PAGE_GAP))
+      const metrics = measurePageMetrics(width, inner.scrollWidth, layout, PAGE_GAP)
+      const info = layoutInfoOf(metrics)
       const geometry = readPageGeometry(inner)
-      // scrollWidth 会把末尾只剩外边距的空白栏算进去，按真实内容列数夹掉幽灵页。
-      const info: LayoutInfo = geometry.blocks.length > 0
-        ? { ...measured, pageCount: Math.max(1, Math.min(measured.pageCount, contentPageCount(geometry, measured))) }
-        : measured
       geometryRef.current = geometry
       metricsRef.current = info
       const current = anchorRef.current
