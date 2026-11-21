@@ -68,6 +68,14 @@ export function inline(text: string, prefix: string): any[] {
   return nodes
 }
 
+/** 选区是否落在译文节点内或与译文节点相交。 */
+export function selectionTouchesTranslation(range: Range, container: Element): boolean {
+  for (const node of container.querySelectorAll('[data-translation-index]')) {
+    if (range.intersectsNode(node)) return true
+  }
+  return false
+}
+
 export function selectionAnchor(range: Range, container: Element): { blockIndex: number; offset: number } | null {
   const startNode = range.startContainer
   const element = startNode.nodeType === 1 ? startNode as Element : startNode.parentElement

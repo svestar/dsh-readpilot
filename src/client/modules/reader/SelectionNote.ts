@@ -69,6 +69,8 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
   }, [selection?.x, selection?.y])
 
   if (!selection || !document.body) return null
+  // 译文选区与不可锚定的选区不能建正文批注/划线，只保留翻译和提问。
+  const anchorable = selection.blockIndex != null && selection.translated !== true
   // The menu is fixed to the viewport. Rendering it in place would let any
   // ancestor with a filter/transform (the glass sidebar's backdrop-filter, for
   // one) become its containing block, so viewport coordinates would land off
@@ -83,9 +85,8 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
     },
     onPointerUp: (event: any) => event.stopPropagation(),
   },
-  selection.blockIndex == null
-    ? null
-    : h('div', { className: 'dsh-readpilot-selection-colors', role: 'group', 'aria-label': t('highlight') },
+  anchorable
+    ? h('div', { className: 'dsh-readpilot-selection-colors', role: 'group', 'aria-label': t('highlight') },
       COLORS.map(color => h(Tooltip, {
         key: color,
         label: `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
@@ -98,7 +99,8 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
         'data-color': color,
         'aria-label': `${t('highlight')}：${t(`highlight${color[0].toUpperCase()}${color.slice(1)}`)}`,
         onClick: () => onHighlight(color),
-      })))),
+      }))))
+    : null,
   presets && onPreset
     ? h('div', { className: 'dsh-readpilot-preset-picker' },
       h('button', {
@@ -132,7 +134,7 @@ export function SelectionToolbar({ t, selection, onAsk, onTranslate, onNote, onH
     : null,
   onAsk ? h('button', { type: 'button', onClick: onAsk }, t('askCompanion')) : null,
   onTranslate ? h('button', { type: 'button', onClick: onTranslate }, t('translateAction')) : null,
-  h('button', { type: 'button', onClick: () => onNote() }, t('noteAction'))), document.body)
+  anchorable ? h('button', { type: 'button', onClick: () => onNote() }, t('noteAction')) : null), document.body)
 }
 
 interface NoteDialogProps {

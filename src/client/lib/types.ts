@@ -46,6 +46,8 @@ export interface Selection {
   y: number
   /** PDF double-page selection may come from the right page's chapter. */
   chapterId?: string
+  /** 选区落在译文节点内或与译文节点相交，不能建正文批注/划线。 */
+  translated?: boolean
 }
 
 export interface VisualPdf {

@@ -1,7 +1,7 @@
 import { React } from '../../runtime.ts'
 import { readPaletteId, resolveReaderPalette } from '../../lib/preferences.ts'
 import { parseReaderResource } from '../reader/resource.ts'
-import { selectionAnchor } from '../markdown/render.ts'
+import { selectionAnchor, selectionTouchesTranslation } from '../markdown/render.ts'
 import { chapterFractionForOffset } from './navigation.ts'
 import type { SidebarBook, SidebarMode } from './navigation.ts'
 import type { ReadingAnchor } from '../reader/paging.ts'
@@ -161,6 +161,7 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
     let blockIndex: number | null = null
     let offset = 0
     const container = contentRef.current
+    const translated = container ? selectionTouchesTranslation(range, container) : false
     if (container?.contains(range.commonAncestorContainer)) {
       const anchor = selectionAnchor(range, container)
       if (anchor) {
@@ -179,6 +180,13 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
         offset = (Number(span.getAttribute('data-offset')) || 0) + before.toString().length + leading
       }
     }
+    if (blockIndex === null && container) {
+      const translation = node?.closest?.('[data-translation-index]') as HTMLElement | null
+      if (translation) {
+        const index = Number(translation.getAttribute('data-translation-index'))
+        if (Number.isInteger(index) && index >= 0) blockIndex = index
+      }
+    }
     if (blockIndex === null) return
     setSelection({
       text: text.slice(0, 2000),
@@ -186,6 +194,7 @@ export function useSidebarResource({ call, t, sessionId, useTabInfo }: SidebarRe
       y: rect.top,
       blockIndex,
       offset,
+      translated,
     })
   }, [])
 

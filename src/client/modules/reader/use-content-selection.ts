@@ -1,7 +1,7 @@
 import { React } from '../../runtime.ts'
 import type { StateSetter } from '../../runtime.ts'
 import type { Selection } from '../../lib/types.ts'
-import { selectionAnchor } from '../markdown/render.ts'
+import { selectionAnchor, selectionTouchesTranslation } from '../markdown/render.ts'
 
 interface ContentSelectionOptions {
   contentRef: { current: HTMLDivElement | null }
@@ -34,6 +34,7 @@ export function useContentSelection({ contentRef, setSelection }: ContentSelecti
       y: rect.top,
       blockIndex: anchor ? anchor.blockIndex : null,
       offset: anchor ? anchor.offset : 0,
+      translated: selectionTouchesTranslation(range, container),
     })
   }, [contentRef, setSelection])
 }
