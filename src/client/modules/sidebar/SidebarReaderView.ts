@@ -39,7 +39,7 @@ export function SidebarReader(props: SidebarReaderProps) {
   translation.setViewKey(viewKey)
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled) {
+    if (!inlineAvailable || !translation.enabled || state.textPager.navigationPending) {
       anchorBlockRef.current = null
       anchorKeyRef.current = ''
       return
@@ -66,6 +66,7 @@ export function SidebarReader(props: SidebarReaderProps) {
     translation.translateAll,
     translationBlocks,
     state.contentRef,
+    state.textPager.navigationPending,
     viewKey,
   ])
 

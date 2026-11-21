@@ -35,6 +35,7 @@ export interface TextPager {
   goPage: (delta: number) => void
   scrollToBlock: (blockIndex: number) => void
   navigationToken: number
+  navigationPending: boolean
 }
 
 export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0, anchor, selectChapter }: TextPagerOptions): TextPager {
@@ -42,6 +43,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
   const [pageCount, setPageCount] = React.useState(1)
   const [stride, setStride] = React.useState(0)
   const [navigationToken, setNavigationToken] = React.useState(0)
+  const [navigationPending, setNavigationPending] = React.useState(false)
   const frameRef = React.useRef<HTMLDivElement | null>(null)
   const innerRef = React.useRef<HTMLDivElement | null>(null)
   const pendingLastRef = React.useRef<string | null>(null)
@@ -61,6 +63,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
   React.useEffect(() => {
     if (!active) {
       pendingLastRef.current = null
+      setNavigationPending(false)
       return
     }
     setPage(0)
@@ -71,6 +74,7 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
   React.useEffect(() => {
     if (pendingLastRef.current !== null && pendingLastRef.current !== chapterId) {
       pendingLastRef.current = null
+      setNavigationPending(false)
     }
   }, [chapterId])
 
@@ -98,7 +102,10 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
       if (width <= 0 || height <= 0) return
       const metrics = measurePageMetrics(width, content, layout, PAGE_GAP)
       const pendingLast = pendingLastRef.current === chapterId
-      if (pendingLast) pendingLastRef.current = null
+      if (pendingLast) {
+        pendingLastRef.current = null
+        setNavigationPending(false)
+      }
       setStride(metrics.stride)
       setPageCount(metrics.pageCount)
       if (anchor && anchor.chapterId === chapterId && anchor.token !== appliedAnchorRef.current) {
@@ -194,7 +201,10 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     const neighbour = direction > 0 ? nextChapter : prevChapter
     if (!neighbour) return
     setNavigationToken(value => value + 1)
-    if (direction < 0) pendingLastRef.current = neighbour.id
+    if (direction < 0) {
+      pendingLastRef.current = neighbour.id
+      setNavigationPending(true)
+    }
     void selectChapter(bookId, neighbour.id)
   }, [active, bookId, nextChapter, page, pageCount, prevChapter, selectChapter])
 
@@ -259,5 +269,6 @@ export function useTextPager({ enabled, layout, screen, fontSize, pageWidth = 0,
     goPage,
     scrollToBlock,
     navigationToken,
+    navigationPending,
   }
 }

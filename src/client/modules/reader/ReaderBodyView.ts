@@ -65,7 +65,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
   }, [inlineAvailable, translation.enabled, view.contentRef, view.textPager.innerRef])
 
   React.useEffect(() => {
-    if (!inlineAvailable || !translation.enabled) {
+    if (!inlineAvailable || !translation.enabled || view.textPager.navigationPending) {
       anchorBlockRef.current = null
       anchorKeyRef.current = ''
       return
@@ -94,6 +94,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     translation.translateAll,
     translationBlocks,
     view.contentRef,
+    view.textPager.navigationPending,
     viewKey,
     visibilityTick,
   ])
