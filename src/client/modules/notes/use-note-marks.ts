@@ -22,7 +22,8 @@ export interface SourceNoteHighlight {
 }
 
 /**
- * 源文批注定位：块内精确匹配 → 源文全文精确匹配（排除译文）→ 块索引整块兜底。
+ * 源文批注定位：块内精确匹配 → 源文块全文精确匹配（排除标题与译文）→ 块索引整块兜底。
+ * 全文匹配用渲染后的块内偏移换算 preferred，避免标题与块间分隔符造成错位。
  * blockHash 只随笔记保存，不参与定位：它按原始 Markdown 计算，渲染后是纯文本。
  */
 export function resolveSourceNoteHighlight(root: Element, note: Note): SourceNoteHighlight {
@@ -31,8 +32,11 @@ export function resolveSourceNoteHighlight(root: Element, note: Note): SourceNot
   const scoped = collectTextNodes(root)
   const nodes: Text[] = []
   let text = ''
+  let blockStart = -1
   for (const node of scoped.nodes) {
-    if (node.parentElement?.closest('[data-translation-index]')) continue
+    const parent = node.parentElement
+    if (!parent?.closest('[data-block-index]') || parent.closest('[data-translation-index]')) continue
+    if (resolved?.block && blockStart < 0 && resolved.block.contains(node)) blockStart = text.length
     nodes.push(node)
     text += node.nodeValue ?? ''
   }
@@ -40,10 +44,13 @@ export function resolveSourceNoteHighlight(root: Element, note: Note): SourceNot
   const compactText = () => (compact ??= compactAnchorText(text))
   const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
   const quote = stripped || note.quote
-  const preferred = typeof note.start === 'number' ? note.start : note.offset + note.quote.length - quote.length
+  const offset = Number.isInteger(note.offset) && note.offset >= 0 ? note.offset : 0
+  const preferred = blockStart >= 0
+    ? blockStart + offset
+    : typeof note.start === 'number' ? note.start : offset
   const match = text
     ? findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
-      ?? findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
+      ?? findNoteOccurrence(text, note.quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
     : null
   return { block: resolved?.block ?? null, nodes: match ? nodes : resolved?.nodes ?? nodes, match }
 }

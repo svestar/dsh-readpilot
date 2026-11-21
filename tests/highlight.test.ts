@@ -133,6 +133,34 @@ test('note_highlight_does_not_match_translation_for_source_note', () => {
   assert.equal(resolved.block?.getAttribute('data-block-index'), '0')
 })
 
+test('note_highlight_does_not_match_chapter_title', () => {
+  const { document } = parseHTML(
+    '<html><body><h1>target</h1><div data-block-index="0"><p>other</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 0,
+  } as any)
+  assert.equal(resolved.match, null)
+  assert.equal(resolved.block?.getAttribute('data-block-index'), '0')
+})
+
+test('note_highlight_uses_rendered_block_offset_for_duplicate_quotes', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>target padding</p></div><div data-block-index="1"><p>other</p></div><div data-block-index="2"><p>target</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 1,
+    start: 0,
+  } as any)
+  assert.deepEqual(resolved.match, { start: 19, end: 25 })
+})
+
 test('block_jump_fraction_maps_intra_block_offset', () => {
   assert.equal(blockJumpFraction(0, 100), 0)
   assert.equal(blockJumpFraction(50, 100), 0.5)
