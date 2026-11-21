@@ -8,7 +8,7 @@
 
 ## 行为
 
-保存含引用原文的批注后，阅读界面在正文中高亮该 `quote`；批注记录章节偏移与块哈希，优先按偏移定位，引文兜底。已有批注自动高亮。txt/md、PDF overlay 与 EPUB iframe 都显示高亮。点击高亮打开编辑框；保存走 `notes.update`，删除走 `notes.delete`，完成后刷新高亮与列表。右栏批注提供“跳转”，点击跳到对应章节与块内位置。EPUB 跳转在 iframe 内滚动到 mark 并短暂描边，iframe 自身有滚动条时也能定位。工具栏按选区定位，尺寸变化后重测。译文选区不显示划线/批注。工具栏挂 `document.body`，视口定位。点击外部关闭；再次划词只显示工具栏。源文批注在源文块内按块内偏移匹配，标题/译文不参与；找不到引文时按块索引兜底整块；译文、翻页或布局变化后高亮重测；点击批注跳到引文在块内位置。
+保存含引用原文的批注后，阅读界面在正文中高亮该 `quote`；批注记录章节偏移与块哈希。已有批注自动高亮。txt/md、PDF overlay 与 EPUB iframe 都显示高亮。点击高亮可编辑；保存/删除后刷新高亮与列表。右栏批注提供“跳转”，点击跳到对应章节与块内位置。EPUB 跳转在 iframe 内滚动到 mark 并短暂描边，iframe 自身有滚动条时也能定位。工具栏按选区定位，尺寸变化后重测。译文选区不显示划线/批注。工具栏挂 `document.body`，视口定位。点击外部关闭；再次划词只显示工具栏。源文批注先在块内按偏移匹配，失败后回退源文全文精确匹配，仍无则按块索引兜底整块；译文、翻页或布局变化后高亮重测；点击批注跳到引文在块内位置。
 
 ## 接口与代码映射
 
@@ -23,7 +23,7 @@
 
 ## 约束与失败行为
 
-quote 在章节文本中找不到时先做空白归一化匹配，再尝试块哈希；仍找不到则不高亮，但批注列表点击仍按记录的块与偏移跳转，不报错。高亮使用独立 overlay 或 EPUB iframe 内注入的 mark 元素实现，不修改原书内容与脚本；EPUB 只增加标记与配色样式，不改变原书布局。编辑保存或删除后，正文高亮与右栏列表同步刷新；操作失败时保留原批注并显示错误。高亮颜色取自当前配色的 `--reader-highlight`，切换配色后随之更新。quote 为空或缺少定位信息时不渲染高亮。
+quote 先在源文块内按偏移匹配，失败后在源文全文做空白归一化匹配（排除译文），仍无且块存在时整块兜底；无块且无匹配则不高亮。批注列表点击仍按记录的块与偏移跳转，不报错。高亮用独立 overlay 或 EPUB iframe 内 mark，不修改原书内容与布局。编辑保存或删除后正文与右栏同步刷新；失败时保留原批注并显示错误。高亮颜色取自当前配色的 `--reader-highlight`。quote 为空或缺定位信息时不渲染。
 
 ## 验收与测试
 
@@ -31,6 +31,6 @@ quote 在章节文本中找不到时先做空白归一化匹配，再尝试块�
 - 边界：quote 不在文本中时返回空结果且不产生高亮（`find_note_occurrence_missing`）。
 - 边界：选区包含译文时不显示批注与划线入口（`selection_toolbar_hides_note_and_highlight_for_translation`）。
 - 边界：关闭工具栏后再次划词不恢复提示词子菜单（`selection_toolbar_resets_preset_menu_after_dismiss`）。
-- 正常路径：源文批注按块内偏移匹配，越界回退块首，原始 Markdown 块哈希不阻止渲染文本匹配（`note_block_match_uses_intra_block_offset`、`note_block_match_ignores_raw_markdown_block_hash`、`resolve_note_block_falls_back_to_block_index`）。
+- 正常路径：源文批注按块内偏移匹配，越界回退块首；跨块或旧块索引回退源文全文，译文不参与，块哈希不阻断（`note_block_match_uses_intra_block_offset`、`note_block_match_ignores_raw_markdown_block_hash`、`note_highlight_prefers_exact_quote_across_blocks`、`note_highlight_does_not_match_translation_for_source_note`、`resolve_note_block_falls_back_to_block_index`）。
 - 正常路径：批注跳转把块内偏移换算成块内比例，越界回退 0（`block_jump_fraction_maps_intra_block_offset`）。
 - 边界：页码、布局就绪或译文版本变化会改变高亮重绘键（`note_layout_key_changes_with_page_and_translation`）。

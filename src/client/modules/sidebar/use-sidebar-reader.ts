@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { blockJumpFraction, noteLayoutKey } from '../../lib/helpers.ts'
+import { noteLayoutKey } from '../../lib/helpers.ts'
 import { buildReaderResource } from '../reader/resource.ts'
 import { usePageWidth } from '../reader/use-page-width.ts'
 import { useNotes } from '../notes/use-notes.ts'
@@ -12,7 +12,7 @@ import { useActionReceipts } from '../reader/use-action-receipts.ts'
 import { useSidebarProgress } from './use-sidebar-progress.ts'
 import { useSidebarResource } from './use-sidebar-resource.ts'
 import { visualForChapter } from '../reader/screen.ts'
-import { prefillCompanionQuote, preserveSidebarVisual } from './navigation.ts'
+import { prefillCompanionQuote, preserveSidebarVisual, consumePendingBlock } from './navigation.ts'
 import { pageSpanWidth } from '../reader/paging.ts'
 import type { ReaderAction, ReaderActionType } from '../../../shared/contracts/actions.ts'
 import type { CallRpc, ComposerInputActions, TextFn } from '../../lib/types.ts'
@@ -92,13 +92,17 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     selectChapter,
   })
   React.useEffect(() => {
-    if (mode !== 'text' || screen.kind !== 'book') return
+    if (mode !== 'text') {
+      pendingBlockRef.current = null
+      return
+    }
+    if (screen.kind !== 'book') return
     const pending = pendingBlockRef.current
     if (!pending || pending.chapterId !== screen.content.chapterId) return
-    pendingBlockRef.current = null
-    const target = contentRef.current?.querySelector<HTMLElement>(`[data-block-index="${pending.blockIndex}"]`) ?? null
-    const fraction = blockJumpFraction(pending.blockOffset, target?.textContent?.length ?? 0)
-    textPager.goToBlock(pending.blockIndex, fraction)
+    // 块尚未渲染时保留 pending，等下一次渲染重试，避免落到块首。
+    if (consumePendingBlock(pending, contentRef.current, textPager.goToBlock)) {
+      pendingBlockRef.current = null
+    }
   }, [contentRef, mode, pendingBlockRef, screen, textPager])
 
   const {

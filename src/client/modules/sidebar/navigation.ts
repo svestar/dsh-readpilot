@@ -1,4 +1,5 @@
 import type { ComposerInputActions, Visual } from '../../lib/types.ts'
+import { blockJumpFraction } from '../../lib/helpers.ts'
 import { quoteDraft } from '../reader/SelectionNote.ts'
 
 export function preserveSidebarVisual(previous: Visual | null, next: Visual | null, bookChanged: boolean): Visual | null {
@@ -16,6 +17,21 @@ export function chapterFractionForOffset(
   const chars = (blocks ?? []).reduce((sum, block) => sum + (block.text?.length ?? 0), 0)
   if (chars <= 0) return null
   return Math.max(0, Math.min(1, offset / chars))
+}
+
+/**
+ * 渲染后消费侧栏的待跳转块。块还没出现时返回 false，调用方保留 pending 等下一次渲染重试。
+ */
+export function consumePendingBlock(
+  pending: { blockIndex: number; blockOffset: number } | null,
+  root: Element | null,
+  goToBlock: (blockIndex: number, fraction: number) => void,
+): boolean {
+  if (!pending) return false
+  const block = root?.querySelector(`[data-block-index="${pending.blockIndex}"]`) ?? null
+  if (!block) return false
+  goToBlock(pending.blockIndex, blockJumpFraction(pending.blockOffset, block.textContent?.length ?? 0))
+  return true
 }
 
 

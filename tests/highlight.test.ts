@@ -2,6 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { parseHTML } from 'linkedom'
 import { blockJumpFraction, noteBlockMatch, noteLayoutKey, resolveNoteBlock } from '../src/client/lib/helpers.ts'
+import { resolveSourceNoteHighlight } from '../src/client/modules/notes/use-note-marks.ts'
 import { hashText } from '../src/client/modules/reader/anchor.ts'
 
 const globalAny = globalThis as any
@@ -88,6 +89,48 @@ test('resolve_note_block_falls_back_to_block_index', () => {
   assert.ok(resolved)
   assert.equal(resolved.match, null)
   assert.equal(resolved.block.getAttribute('data-block-index'), '0')
+})
+
+test('note_highlight_prefers_exact_quote_across_blocks', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>alpha </p></div><div data-block-index="1"><p>beta</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'alpha beta',
+    offset: 0,
+    blockIndex: 0,
+  } as any)
+  assert.equal(resolved.block?.getAttribute('data-block-index'), '0')
+  assert.deepEqual(resolved.match, { start: 0, end: 10 })
+})
+
+test('note_highlight_recovers_quote_when_block_index_moved', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>other</p></div><div data-block-index="1"><p>target</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 0,
+  } as any)
+  assert.deepEqual(resolved.match, { start: 5, end: 11 })
+  assert.ok(resolved.nodes.some(node => node.parentElement?.closest('[data-block-index="1"]')))
+})
+
+test('note_highlight_does_not_match_translation_for_source_note', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>other</p></div><div data-translation-index="0"><p>target</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'target',
+    offset: 0,
+    blockIndex: 0,
+  } as any)
+  assert.equal(resolved.match, null)
+  assert.equal(resolved.block?.getAttribute('data-block-index'), '0')
 })
 
 test('block_jump_fraction_maps_intra_block_offset', () => {

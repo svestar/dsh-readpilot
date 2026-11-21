@@ -15,6 +15,39 @@ import type { PageLayout } from '../reader/paging.ts'
 import type { MutableRef } from '../../lib/types.ts'
 import type { Note, PageView, Screen, Visual } from '../../lib/types.ts'
 
+export interface SourceNoteHighlight {
+  block: Element | null
+  nodes: Text[]
+  match: { start: number; end: number } | null
+}
+
+/**
+ * 源文批注定位：块内精确匹配 → 源文全文精确匹配（排除译文）→ 块索引整块兜底。
+ * blockHash 只随笔记保存，不参与定位：它按原始 Markdown 计算，渲染后是纯文本。
+ */
+export function resolveSourceNoteHighlight(root: Element, note: Note): SourceNoteHighlight {
+  const resolved = resolveNoteBlock(root, note)
+  if (resolved?.match) return { block: resolved.block, nodes: resolved.nodes, match: resolved.match }
+  const scoped = collectTextNodes(root)
+  const nodes: Text[] = []
+  let text = ''
+  for (const node of scoped.nodes) {
+    if (node.parentElement?.closest('[data-translation-index]')) continue
+    nodes.push(node)
+    text += node.nodeValue ?? ''
+  }
+  let compact: CompactAnchor | null = null
+  const compactText = () => (compact ??= compactAnchorText(text))
+  const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
+  const quote = stripped || note.quote
+  const preferred = typeof note.start === 'number' ? note.start : note.offset + note.quote.length - quote.length
+  const match = text
+    ? findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
+      ?? findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
+    : null
+  return { block: resolved?.block ?? null, nodes: match ? nodes : resolved?.nodes ?? nodes, match }
+}
+
 interface NoteMarksOptions {
   activeChapterId: string
   contentRef: MutableRef<HTMLDivElement | null>
@@ -125,23 +158,14 @@ export function useNoteMarks({
         let nodes = combined.nodes
         let match: { start: number; end: number } | null = null
         let fallbackBlock: Element | null = null
-        if (!target.pdf) {
-          const resolved = resolveNoteBlock(root, note)
-          if (resolved) {
-            if (resolved.match) {
-              match = resolved.match
-              nodes = resolved.nodes
-            } else {
-              fallbackBlock = resolved.block
-            }
-          }
-        }
-        if (!match && !fallbackBlock) {
+        if (target.pdf) {
           match = findNoteOccurrence(combined.text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
-          if (!match) {
-            match = findNoteOccurrence(combined.text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
-          }
-          nodes = combined.nodes
+            ?? findNoteOccurrence(combined.text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
+        } else {
+          const resolved = resolveSourceNoteHighlight(root, note)
+          match = resolved.match
+          fallbackBlock = resolved.match ? null : resolved.block
+          nodes = resolved.nodes
         }
         if (!match && !fallbackBlock) continue
         const pdfRects = match && target.pdf && target.view ? pdfNoteRects(target.view, match) : null

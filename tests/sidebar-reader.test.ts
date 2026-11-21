@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/modules/sidebar/navigation.ts'
+import { parseHTML } from 'linkedom'
+import { consumePendingBlock, preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/modules/sidebar/navigation.ts'
 
 test('sidebar_pdf_visual_keeps_current_page_when_chapter_updates', () => {
   const current = { kind: 'pdf' as const, page: 2, scale: 1.5 }
@@ -22,6 +23,32 @@ test('sidebar_chapter_offset_maps_to_reading_fraction', () => {
   assert.equal(chapterFractionForOffset(blocks, 50), 1)
   assert.equal(chapterFractionForOffset(blocks, null), null)
   assert.equal(chapterFractionForOffset([], 1), null)
+})
+
+test('sidebar_pending_block_jumps_with_rendered_text_fraction', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>abcdefghij</p></div></body></html>',
+  )
+  const calls: Array<[number, number]> = []
+  const consumed = consumePendingBlock(
+    { blockIndex: 0, blockOffset: 4 },
+    document.body as unknown as Element,
+    (blockIndex, fraction) => calls.push([blockIndex, fraction]),
+  )
+  assert.equal(consumed, true)
+  assert.deepEqual(calls, [[0, 0.4]])
+})
+
+test('sidebar_pending_block_waits_until_the_block_exists', () => {
+  const { document } = parseHTML('<html><body><div data-block-index="1"></div></body></html>')
+  let called = false
+  assert.equal(consumePendingBlock(
+    { blockIndex: 0, blockOffset: 4 },
+    document.body as unknown as Element,
+    () => { called = true },
+  ), false)
+  assert.equal(called, false)
+  assert.equal(consumePendingBlock(null, document.body as unknown as Element, () => { called = true }), false)
 })
 
 test('sidebar_companion_quote_uses_native_quote_insertion', () => {
