@@ -76,7 +76,7 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     const run = () => {
       const container = view.contentRef.current
       const visible = visibleBlockIndices(container)
-      const candidates = visible.size === 0 ? translationBlocks : translationBlocks.filter(block => visible.has(block.index))
+      const candidates = translationBlocks.filter(block => visible.has(block.index))
       const missing = candidates.filter(block => !translation.blocks[block.index])
       const tail = tailBlocks.filter(block => !translation.blocks[block.index])
       const batch = [...tail]

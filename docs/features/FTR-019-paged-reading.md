@@ -43,5 +43,7 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器�
 - 边界：跨章前进落到下一章章首，回翻落到上一章章末（`turn_crosses_to_next_chapter_start`、`turn_crosses_to_previous_chapter_end`）。
 - 边界：译文使页数增长后章末锚点仍在末页（`chapter_end_survives_layout_growth`）。
 - 正常：双页两栏映射到同一页（`double_page_maps_both_columns_to_same_page`）。
+- 正常：译文片段可见时映射回源块索引（`visible_translation_fragment_maps_to_source_block`）。
+- 边界：没有可见块时返回空集合，不回退整章（`visible_blocks_empty_when_nothing_intersects`）。
 - 正常：全书百分比按块比例与章节字数计算（`chapter_fraction_percent_uses_content_fraction`）。
 - 正常：进度保存章节内比例，重新打开按比例恢复（`progress_percent_persists`）。

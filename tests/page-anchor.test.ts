@@ -9,6 +9,7 @@ import {
   turnTarget,
 } from '../src/client/modules/reader/paging-model.ts'
 import { chapterFractionPercent, measurePageMetrics } from '../src/client/modules/reader/paging.ts'
+import { visibleBlockIndices } from '../src/client/modules/reader/block-visibility.ts'
 import type { BlockRect, LayoutInfo, PageGeometry } from '../src/client/modules/reader/paging-model.ts'
 
 function frame(columns: number, columnWidth: number, gap: number, pageCount: number): LayoutInfo {
@@ -230,6 +231,31 @@ test('fraction_at_block_boundary_moves_to_next_block', () => {
 
 test('fraction_of_unknown_block_falls_back_to_start', () => {
   assert.equal(fractionOfAnchor(point(9, 0.5), [{ text: 'a'.repeat(100) }]), 0)
+})
+
+function fakeContainer(children: any[]): any {
+  return {
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 800, bottom: 600, width: 800, height: 600 }),
+    querySelectorAll: () => children,
+  }
+}
+
+function fakeBlock(attribute: string, index: number, rect: { left: number; top: number; right: number; bottom: number }) {
+  return {
+    getAttribute: (name: string) => name === attribute ? String(index) : null,
+    getBoundingClientRect: () => ({ ...rect, width: rect.right - rect.left, height: rect.bottom - rect.top }),
+  }
+}
+
+test('visible_translation_fragment_maps_to_source_block', () => {
+  const source = fakeBlock('data-block-index', 0, { left: 840, top: 0, right: 1640, bottom: 100 })
+  const translation = fakeBlock('data-translation-index', 0, { left: 0, top: 0, right: 800, bottom: 100 })
+  assert.deepEqual([...visibleBlockIndices(fakeContainer([source, translation]))], [0])
+})
+
+test('visible_blocks_empty_when_nothing_intersects', () => {
+  const far = fakeBlock('data-translation-index', 3, { left: 1680, top: 0, right: 2480, bottom: 100 })
+  assert.deepEqual([...visibleBlockIndices(fakeContainer([far]))], [])
 })
 
 test('chapter_fraction_percent_uses_content_fraction', () => {
