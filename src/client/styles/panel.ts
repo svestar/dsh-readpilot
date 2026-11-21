@@ -72,7 +72,7 @@ export const PANEL_STYLES = `.dsh-readpilot-status-pill[data-state="off"]{opacit
 .dsh-readpilot-sidebar-reader-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:600}
 .dsh-readpilot-sidebar-reader-body{flex:1;min-height:0;display:flex;overflow:hidden;padding:0 4px}
 .dsh-readpilot-sidebar-reader{padding:4px 8px;height:100%;overflow:hidden}
-.dsh-readpilot-sidebar-reader .dsh-readpilot-page-frame{padding:8px 4px;height:100%}
+.dsh-readpilot-sidebar-reader .dsh-readpilot-page-frame{padding:8px 4px;height:100%;width:auto;max-width:100%;aspect-ratio:210/297;align-self:center;margin:0 auto}
 .dsh-readpilot-sidebar-state{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:6px;height:100%;padding:20px;text-align:center;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-sidebar-empty-title{font-size:13px;color:var(--dsw-alias-label-primary)}
 .dsh-readpilot-sidebar-empty-hint{font-size:11.5px;line-height:1.5}

@@ -103,7 +103,6 @@ export function SidebarReader(props: SidebarReaderProps) {
     contentRef,
     rootRef,
     textPager,
-    pageFrameStyle,
     visual,
     pageViews,
     loadedView,
@@ -174,7 +173,7 @@ export function SidebarReader(props: SidebarReaderProps) {
       ref: contentRef,
       style: { fontSize: '15px' },
     },
-    h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef, style: pageFrameStyle },
+    h('div', { className: 'dsh-readpilot-page-frame', ref: textPager.frameRef },
       h('div', {
         className: 'dsh-readpilot-reader-inner dsh-readpilot-paged-inner',
         ref: textPager.innerRef,

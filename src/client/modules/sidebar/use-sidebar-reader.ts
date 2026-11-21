@@ -1,7 +1,6 @@
 import { React } from '../../runtime.ts'
 import { noteLayoutKey } from '../../lib/helpers.ts'
 import { buildReaderResource } from '../reader/resource.ts'
-import { usePageWidth } from '../reader/use-page-width.ts'
 import { useNotes } from '../notes/use-notes.ts'
 import { useTextPager } from '../reader/use-text-pager.ts'
 import { useVisual } from '../reader/use-visual.ts'
@@ -13,10 +12,8 @@ import { useSidebarProgress } from './use-sidebar-progress.ts'
 import { useSidebarResource } from './use-sidebar-resource.ts'
 import { visualForChapter } from '../reader/screen.ts'
 import { prefillCompanionQuote, preserveSidebarVisual, consumePendingBlock } from './navigation.ts'
-import { pageSpanWidth } from '../reader/paging.ts'
 import type { ReaderAction, ReaderActionType } from '../../../shared/contracts/actions.ts'
 import type { CallRpc, ComposerInputActions, TextFn } from '../../lib/types.ts'
-import type { PageLayout } from '../reader/paging.ts'
 import type { SidebarMode } from './navigation.ts'
 
 const SIDEBAR_ACTION_TYPES: ReaderActionType[] = ['goto', 'open_panel', 'notesRefresh']
@@ -78,16 +75,11 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     openOtherBook,
   })
 
-  const textPageWidth = usePageWidth({
-    enabled: mode === 'text' && screen.kind === 'book',
-    containerRef: contentRef,
-  })
   const textPager = useTextPager({
     enabled: mode === 'text' && screen.kind === 'book',
     layout: 'single',
     screen,
     fontSize: SIDEBAR_FONT_SIZE,
-    pageWidth: textPageWidth,
     anchor,
     selectChapter,
   })
@@ -273,9 +265,6 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     setMode(next)
   }
 
-  const pageSpan = pageSpanWidth(textPageWidth, 'single' as PageLayout)
-  const pageFrameStyle = pageSpan > 0 ? { width: `${pageSpan}px`, maxWidth: '100%', margin: '0 auto' } : undefined
-
   const barProps = screen.kind === 'book'
     ? mode === 'text'
       ? {
@@ -327,8 +316,6 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     contentRef,
     rootRef,
     textPager,
-    pageSpan,
-    pageFrameStyle,
     visual,
     pageViews,
     loadedView,
