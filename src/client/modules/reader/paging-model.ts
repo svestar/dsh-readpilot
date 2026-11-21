@@ -88,6 +88,20 @@ function columnOfX(x: number, pitch: number): number {
   return Math.max(0, Math.round(x / pitch))
 }
 
+/** 几何快照里真正有内容的栏数；用来剔除末尾只剩外边距的空白栏。 */
+export function contentPageCount(geometry: PageGeometry | null, layout: LayoutInfo): number {
+  let maxColumn = -1
+  for (const block of geometry?.blocks ?? []) {
+    for (const rect of block.rects) {
+      if (rect.width <= 0.5 || rect.height <= 0.5) continue
+      const column = columnOfX(rect.left, layout.pitch)
+      if (column > maxColumn) maxColumn = column
+    }
+  }
+  if (maxColumn < 0) return 1
+  return Math.max(1, Math.ceil((maxColumn + 1) / layout.columns))
+}
+
 /** 锚点在当前布局里落到哪一页。几何缺失时退回首页，由调用方决定是否保留旧页。 */
 export function pageOfAnchor(
   geometry: PageGeometry | null,
