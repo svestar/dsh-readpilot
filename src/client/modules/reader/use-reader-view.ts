@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { blockIndexAtOffset, messageOf, normalizeFontSize, reflowEnabledFor } from '../../lib/helpers.ts'
+import { blockIndexAtOffset, blockJumpFraction, messageOf, normalizeFontSize, reflowEnabledFor } from '../../lib/helpers.ts'
 import { usePageWidth } from './use-page-width.ts'
 import { useTextPager } from './use-text-pager.ts'
 import { useVisual } from './use-visual.ts'
@@ -142,6 +142,7 @@ export function useReaderView({
           blockIndex: Number.isInteger(target.blockIndex)
             ? target.blockIndex!
             : blockIndexAtOffset(content.blocks, target.offset ?? 0),
+          blockOffset: Number.isInteger(target.blockOffset) && target.blockOffset! >= 0 ? target.blockOffset! : null,
           flash: Boolean(target.flash),
         }
         : null
@@ -269,7 +270,8 @@ export function useReaderView({
       window.setTimeout(() => target.classList.remove('dsh-readpilot-flash'), 1500)
     }
     if (isTextFormat && effectiveMode === 'paged') {
-      textPager.goToBlock(pending.blockIndex!)
+      const fraction = blockJumpFraction(pending.blockOffset ?? 0, target?.textContent?.length ?? 0)
+      textPager.goToBlock(pending.blockIndex!, fraction)
       flash()
       return
     }

@@ -119,6 +119,8 @@ export interface ChatMessage {
 
 export interface SelectTarget {
   blockIndex?: number
+  /** 块内字符偏移，用于跳到批注引文而不是块首。 */
+  blockOffset?: number
   offset?: number
   flash?: boolean
 }
@@ -134,5 +136,6 @@ export type SelectChapter = (bookId: string, chapterId: string, target?: SelectT
 export interface PendingScroll {
   chapterId: string
   blockIndex: number | null
+  blockOffset: number | null
   flash: boolean
 }

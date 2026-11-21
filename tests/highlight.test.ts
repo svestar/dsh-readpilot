@@ -1,5 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { blockJumpFraction, noteBlockMatch, noteLayoutKey } from '../src/client/lib/helpers.ts'
 
 const globalAny = globalThis as any
 
@@ -40,4 +41,33 @@ test('find_note_occurrence_uses_context', () => {
   const text = '开头 target 结尾；另一段 target 后续'
   const match = plugin.findNoteOccurrence(text, 'target', 0, '另一段 ', ' 后续')
   assert.deepEqual(match, { start: text.lastIndexOf('target'), end: text.lastIndexOf('target') + 6 })
+})
+
+test('note_block_match_uses_intra_block_offset', () => {
+  const text = 'alpha beta alpha gamma'
+  assert.deepEqual(noteBlockMatch(text, { quote: 'alpha', offset: 0 }), { start: 0, end: 5 })
+  assert.deepEqual(noteBlockMatch(text, { quote: 'alpha', offset: 11 }), { start: 11, end: 16 })
+  assert.deepEqual(noteBlockMatch(text, { quote: 'alpha', offset: 99 }), { start: 0, end: 5 })
+})
+
+test('note_block_match_uses_block_context', () => {
+  const text = '开头 target 结尾；另一段 target 后续'
+  const match = noteBlockMatch(text, { quote: 'target', offset: 3, quotePrefix: '另一段 ', quoteSuffix: ' 后续' })
+  assert.deepEqual(match, { start: text.lastIndexOf('target'), end: text.lastIndexOf('target') + 6 })
+})
+
+test('block_jump_fraction_maps_intra_block_offset', () => {
+  assert.equal(blockJumpFraction(0, 100), 0)
+  assert.equal(blockJumpFraction(50, 100), 0.5)
+  assert.equal(blockJumpFraction(100, 100), 1)
+  assert.equal(blockJumpFraction(101, 100), 0)
+  assert.equal(blockJumpFraction(-1, 100), 0)
+  assert.equal(blockJumpFraction(10, 0), 0)
+})
+
+test('note_layout_key_changes_with_page_and_translation', () => {
+  const base = noteLayoutKey(0, true, '1:')
+  assert.notEqual(base, noteLayoutKey(1, true, '1:'))
+  assert.notEqual(base, noteLayoutKey(0, false, '1:'))
+  assert.notEqual(base, noteLayoutKey(0, true, '1:a'))
 })

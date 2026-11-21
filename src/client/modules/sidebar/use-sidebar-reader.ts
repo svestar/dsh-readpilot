@@ -1,4 +1,5 @@
 import { React } from '../../runtime.ts'
+import { noteLayoutKey } from '../../lib/helpers.ts'
 import { buildReaderResource } from '../reader/resource.ts'
 import { usePageWidth } from '../reader/use-page-width.ts'
 import { useNotes } from '../notes/use-notes.ts'
@@ -191,6 +192,7 @@ export function useSidebarReader({ call, t, sessionId, inputActions, useTabInfo,
     selection,
     setSelection,
     selectChapter,
+    layoutKey: noteLayoutKey(textPager.page, textPager.layoutReady, ''),
   })
   useSelectionDismiss(selection, setSelection, epubFrameRef)
 

@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { messageOf } from '../../lib/helpers.ts'
+import { messageOf, noteLayoutKey } from '../../lib/helpers.ts'
 import { useReaderState } from './use-reader-state.ts'
 import { useReaderPreferences } from './use-reader-preferences.ts'
 import { useReaderCompanion } from './use-reader-companion.ts'
@@ -80,6 +80,17 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     progressSkipRef: view.progressSkipRef,
   })
 
+  const translationRevision = React.useMemo(
+    () => Object.values(translation.blocks)
+      .map(block => `${block.text.length}:${block.loading ? 1 : 0}`)
+      .join('|'),
+    [translation.blocks],
+  )
+  const notesLayoutKey = noteLayoutKey(
+    view.textPager.page,
+    view.textPager.layoutReady,
+    `${translation.enabled ? 1 : 0}:${translationRevision}`,
+  )
   const notes = useReaderNotes({
     call,
     t,
@@ -93,6 +104,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     messages: companion.messages,
     nativeMode: companion.nativeMode,
     eventSeq: companion.eventSeq,
+    noteLayoutKey: notesLayoutKey,
   })
 
   const receipts = useReaderAgent({

@@ -85,6 +85,18 @@ export function timestampOf(value: unknown): number {
   return 0
 }
 
+export function blockJumpFraction(offset: unknown, length: unknown): number {
+  const value = typeof offset === 'number' && Number.isFinite(offset) ? offset : 0
+  const total = typeof length === 'number' && Number.isFinite(length) ? length : 0
+  if (total <= 0 || value < 0 || value > total) return 0
+  return Math.min(1, Math.max(0, value / total))
+}
+
+/** 笔记高亮重绘键：页码、布局就绪和译文版本任一变化都要重新测量。 */
+export function noteLayoutKey(page: number, layoutReady: boolean, translationRevision: string): string {
+  return `${page}:${layoutReady ? 1 : 0}:${translationRevision}`
+}
+
 export function blockIndexAtOffset(blocks: ReadonlyArray<{ text?: string }> | null | undefined, offset: number): number {
   if (!Array.isArray(blocks) || blocks.length === 0) return 0
   const wanted = Number.isFinite(offset) ? offset : 0

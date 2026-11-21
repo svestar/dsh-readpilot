@@ -19,6 +19,7 @@ interface ReaderNotesOptions {
   messages: ChatMessage[]
   nativeMode: boolean
   eventSeq: number
+  noteLayoutKey?: string
 }
 
 /** Annotations, long notes and memory state for the current book. */
@@ -35,6 +36,7 @@ export function useReaderNotes({
   messages,
   nativeMode,
   eventSeq,
+  noteLayoutKey,
 }: ReaderNotesOptions) {
   const activeBookId = screen.kind === 'book' ? screen.detail.book.id : null
   const lastMessage = messages[messages.length - 1]
@@ -71,6 +73,7 @@ export function useReaderNotes({
     selection,
     setSelection,
     selectChapter: view.selectChapter,
+    layoutKey: noteLayoutKey,
   })
 
   return { longNotes, memory, notes, activeBookId }

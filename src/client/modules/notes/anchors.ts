@@ -68,6 +68,31 @@ export function findNoteOccurrence(
   return best ? { start: best.start, end: best.end } : null
 }
 
+export interface NoteBlockMatchInput {
+  quote: string
+  offset: number
+  quotePrefix?: string
+  quoteSuffix?: string
+}
+
+/**
+ * 在单个源文块的文本里按块内偏移匹配批注引文。
+ * 块内偏移来自选区，标题和译文不参与，避免合并文本的偏移错位。
+ */
+export function noteBlockMatch(
+  blockText: string,
+  note: NoteBlockMatchInput,
+  compactText?: () => CompactAnchor,
+): { start: number; end: number } | null {
+  if (!blockText || !note.quote) return null
+  const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
+  const quote = stripped || note.quote
+  const offset = Number.isInteger(note.offset) && note.offset >= 0 && note.offset <= blockText.length
+    ? note.offset
+    : 0
+  return findNoteOccurrence(blockText, quote, offset, note.quotePrefix, note.quoteSuffix, compactText)
+}
+
 export function collectTextNodes(root: Element | null | undefined): { nodes: Text[]; text: string } {
   if (!root) return { nodes: [], text: '' }
   const doc = root.ownerDocument ?? document

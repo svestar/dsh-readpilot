@@ -6,6 +6,7 @@ import {
   collectTextNodes,
   compactAnchorText,
   findNoteOccurrence,
+  noteBlockMatch,
   pdfChapterIdForPage,
   pdfNoteRects,
   rangeForNodes,
@@ -34,6 +35,7 @@ interface NoteMarksOptions {
   pendingEpubNoteRef: MutableRef<string | null>
   noteLayerRef: MutableRef<HTMLDivElement | null>
   noteLayersRef: MutableRef<Array<HTMLDivElement | null>>
+  layoutKey?: string
 }
 
 export function useNoteMarks({
@@ -55,6 +57,7 @@ export function useNoteMarks({
   pendingEpubNoteRef,
   noteLayerRef,
   noteLayersRef,
+  layoutKey,
 }: NoteMarksOptions): void {
   React.useEffect(() => {
     const targets: Array<{
@@ -110,31 +113,45 @@ export function useNoteMarks({
         && typeof note.quote === 'string'
         && note.quote)
       if (relevant.length === 0) return
-      const { nodes, text } = collectTextNodes(root)
+      const combined = collectTextNodes(root)
       const doc = root.ownerDocument ?? document
       const layerRect = layer.getBoundingClientRect()
       let compact: CompactAnchor | null = null
-      const compactText = () => (compact ??= compactAnchorText(text))
+      const compactText = () => (compact ??= compactAnchorText(combined.text))
       for (const note of relevant) {
         const stripped = note.quote.replace(/^[\s•·▪◦●]+/, '')
         const quote = stripped || note.quote
         const shift = note.quote.length - quote.length
         const preferred = typeof note.start === 'number' ? note.start : note.offset + shift
-        let match = findNoteOccurrence(text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
-        if (!match) {
-          match = findNoteOccurrence(text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
-        }
+        let nodes = combined.nodes
+        let match: { start: number; end: number } | null = null
         let block: Element | null = null
-        if (!match && Number.isInteger(note.blockIndex)) {
+        if (!target.pdf && Number.isInteger(note.blockIndex)) {
           const candidate = root.querySelector(`[data-block-index="${note.blockIndex}"]`)
-          if (candidate && (!note.blockHash || hashText(candidate.textContent ?? '') === note.blockHash)) block = candidate
+          if (candidate && (!note.blockHash || hashText(candidate.textContent ?? '') === note.blockHash)) {
+            block = candidate
+            const scoped = collectTextNodes(candidate)
+            if (scoped.text) {
+              let scopedCompact: CompactAnchor | null = null
+              const scopedCompactText = () => (scopedCompact ??= compactAnchorText(scoped.text))
+              match = noteBlockMatch(scoped.text, note, scopedCompactText)
+              if (match) nodes = scoped.nodes
+            }
+          }
+        }
+        if (!match) {
+          match = findNoteOccurrence(combined.text, quote, preferred, note.quotePrefix, note.quoteSuffix, compactText)
+          if (!match) {
+            match = findNoteOccurrence(combined.text, note.quote, note.offset, note.quotePrefix, note.quoteSuffix, compactText)
+          }
+          nodes = combined.nodes
         }
         if (!match && !block) continue
         const pdfRects = match && target.pdf && target.view ? pdfNoteRects(target.view, match) : null
         let rects: Array<{ left: number; top: number; width: number; height: number }>
         if (pdfRects) rects = pdfRects
-        else if (block) {
-          const blockRange = document.createRange()
+        else if (!match && block) {
+          const blockRange = doc.createRange()
           blockRange.selectNodeContents(block)
           rects = [...blockRange.getClientRects()]
         } else {
@@ -163,6 +180,23 @@ export function useNoteMarks({
     const schedule = () => {
       if (!frame) frame = requestAnimationFrame(paint)
     }
+    // 译文插入/文本更新会改变多栏布局，但不会触发 React 依赖；用 DOM 变更兜住。
+    const observer = typeof MutationObserver === 'function'
+      ? new MutationObserver(records => {
+        for (const record of records) {
+          const inLayer = targets.some(target => target.layer.contains(record.target as Node))
+          if (!inLayer) {
+            schedule()
+            return
+          }
+        }
+      })
+      : null
+    if (observer) {
+      for (const target of targets) {
+        if (target.root) observer.observe(target.root, { childList: true, subtree: true, characterData: true })
+      }
+    }
     const onClick = (event: MouseEvent) => {
       const target = event.target as Element | null
       const hit = target?.closest?.('.dsh-readpilot-note-hit') as HTMLElement | null
@@ -174,6 +208,7 @@ export function useNoteMarks({
     window.addEventListener('resize', schedule)
     paint()
     return () => {
+      observer?.disconnect()
       if (frame) cancelAnimationFrame(frame)
       for (const target of targets) {
         target.layer.removeEventListener('click', onClick)
@@ -181,7 +216,7 @@ export function useNoteMarks({
       }
       window.removeEventListener('resize', schedule)
     }
-  }, [activeChapterId, contentRef, fontSize, layout, notes, openNoteEditor, paged, pageView, pageViews, screen, visual])
+  }, [activeChapterId, contentRef, fontSize, layout, layoutKey, notes, openNoteEditor, paged, pageView, pageViews, screen, visual])
 
   React.useEffect(() => {
     const frame = epubFrameRef.current

@@ -39,6 +39,7 @@ interface NotesOptions {
   selection: Selection | null
   setSelection: StateSetter<Selection | null>
   selectChapter: SelectChapter
+  layoutKey?: string
 }
 
 export function useNotes({
@@ -60,6 +61,7 @@ export function useNotes({
   selection,
   setSelection,
   selectChapter,
+  layoutKey,
 }: NotesOptions) {
   const [notes, setNotes] = React.useState<Note[]>([])
   const [notesLoading, setNotesLoading] = React.useState(false)
@@ -128,6 +130,7 @@ export function useNotes({
     }
     void selectChapter(screen.detail.book.id, note.chapterId, {
       blockIndex: note.blockIndex,
+      blockOffset: note.offset,
       flash: true,
     })
   }, [screen, selectChapter])
@@ -345,6 +348,7 @@ export function useNotes({
     pendingEpubNoteRef,
     noteLayerRef,
     noteLayersRef,
+    layoutKey,
   })
 
   const annotations = notes.filter(note => note.kind !== 'bookmark')
