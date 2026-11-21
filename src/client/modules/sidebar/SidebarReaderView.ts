@@ -10,7 +10,6 @@ import { tailTranslationBlocksOf, translationBlocksOf } from '../translation/blo
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { TranslationCard } from '../translation/TranslationCard.ts'
 import { visibleBlockIndices } from '../reader/block-visibility.ts'
-import { downloadPagerTrace } from '../reader/pager-trace.ts'
 import { useSidebarReader } from './use-sidebar-reader.ts'
 import type { SidebarReaderProps } from './use-sidebar-reader.ts'
 import type { PageLayout } from '../reader/paging.ts'
@@ -249,11 +248,6 @@ export function SidebarReader(props: SidebarReaderProps) {
       onPrev: barProps.onPrev,
       onNext: barProps.onNext,
       translationControl: h(TranslationControl, { t, state: translation, settingsOnly: !inlineAvailable }),
-      diagnosticControl: h('button', {
-        type: 'button',
-        className: 'dsh-readpilot-secondary',
-        onClick: downloadPagerTrace,
-      }, t('exportDiagnostics')),
       onHistory: () => {
         setHistoryOpen(true)
         void refreshActionReceipts()

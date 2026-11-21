@@ -212,7 +212,6 @@ export const enWorkspace = {
       actionHistoryShort: 'History',
       actionHistoryHint: 'Agent write actions from the last 10 minutes; undo them here',
       actionHistoryEmpty: 'No actions yet',
-      exportDiagnostics: 'Export trace',
       actionAdded: 'Annotation added',
       actionUpdated: 'Annotation updated',
       actionDeleted: 'Annotation deleted',

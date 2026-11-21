@@ -14,7 +14,6 @@ import {
   turnTarget,
 } from './paging-model.ts'
 import { readPageGeometry } from './page-geometry.ts'
-import { traceAnchor, traceGeometry, tracePager } from './pager-trace.ts'
 import type { PageLayout, ReadingAnchor } from './paging.ts'
 import type { AnchorTarget, LayoutInfo, PageGeometry } from './paging-model.ts'
 import type { MutableRef, Screen, SelectChapter } from '../../lib/types.ts'
@@ -93,7 +92,6 @@ export function useTextPager({
     readyRef.current = false
     setLayoutReady(false)
     setLayoutTick(value => value + 1)
-    tracePager('notify-layout', {})
   }, [])
 
   const scrollToPage = React.useCallback((pageIndex: number, info: LayoutInfo) => {
@@ -133,14 +131,6 @@ export function useTextPager({
     setPageCount(1)
     setLayoutReady(false)
     if (innerRef.current) innerRef.current.scrollLeft = 0
-    tracePager('chapter', {
-      chapterId,
-      bookId,
-      chapterIndex,
-      toc: toc.length,
-      next: nextChapter?.id ?? null,
-      anchor: traceAnchor(next),
-    })
   }, [active, bookId, chapterId])
 
   // 外部锚点（重开书、设置切换、聊天跳转）按章节字重转成块锚点。
@@ -189,20 +179,6 @@ export function useTextPager({
       const signature = `${width}|${height}|${inner.scrollWidth}|${info.pageCount}|${info.pitch}`
       const settled = lastSignatureRef.current === signature
       lastSignatureRef.current = signature
-      tracePager('measure', {
-        chapterId,
-        width: Math.round(width),
-        height,
-        scrollWidth: inner.scrollWidth,
-        pageCount: info.pageCount,
-        pitch: Number(info.pitch.toFixed(2)),
-        columns: info.columns,
-        scrollLeft: Math.round(inner.scrollLeft),
-        anchor: traceAnchor(current),
-        nextPage,
-        settled,
-        geometry: traceGeometry(geometry),
-      })
       if (!settled) {
         readyRef.current = false
         setLayoutReady(false)
@@ -261,19 +237,9 @@ export function useTextPager({
       previousChapterId: prevChapter?.id ?? null,
       nextChapterId: nextChapter?.id ?? null,
     })
-    tracePager('turn', {
-      delta,
-      page,
-      pageCount: info.pageCount,
-      current,
-      anchor: traceAnchor(anchorRef.current),
-      target,
-      chapterId,
-    })
     if (!target) return
     if (target.kind === 'page') {
       const next = anchorAtPage(geometryRef.current, target.page, info, chapterId)
-      tracePager('turn-page', { targetPage: target.page, anchor: traceAnchor(next) })
       anchorRef.current = next
       setAnchorState(next)
       setPage(target.page)

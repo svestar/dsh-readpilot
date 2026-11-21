@@ -3,7 +3,6 @@ import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.t
 import { tailTranslationBlocksOf, translationBlocksOf } from '../translation/blocks.ts'
 import { TranslationControl } from '../translation/TranslationControl.ts'
 import { visibleBlockIndices } from './block-visibility.ts'
-import { downloadPagerTrace } from './pager-trace.ts'
 import { ReaderBar } from './ReaderBar.ts'
 import { VisualReader } from './VisualReader.ts'
 import { pageSpanWidth } from './paging.ts'
@@ -203,11 +202,6 @@ export function ReaderBodyView({ t, model, onHistory }: ReaderBodyProps) {
     reflow: prefs.reflowMode,
     onHistory,
     translationControl: h(TranslationControl, { t, state: translation, settingsOnly: !inlineAvailable }),
-    diagnosticControl: h('button', {
-      type: 'button',
-      className: 'dsh-readpilot-secondary',
-      onClick: downloadPagerTrace,
-    }, t('exportDiagnostics')),
   })
 
   const visualReader = view.visual ? h(VisualReader, {
