@@ -4,17 +4,17 @@
 - **名称：** 分页阅读
 - **状态：** active
 - **代码：** `src/client/modules/reader/paging.ts`（`measurePageMetrics`、`chapterFractionPercent`）；`src/client/modules/reader/paging-model.ts`（`pageOfAnchor`、`anchorAtPage`、`turnTarget`）；`src/client/modules/reader/page-geometry.ts`（`readPageGeometry`）；`src/client/modules/reader/use-page-width.ts`（`usePageWidth`）；`src/client/modules/reader/use-text-pager.ts`（`useTextPager`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/ReaderPanelView.ts`
-- **测试：** `tests/page-anchor.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
+- **测试：** `tests/page-anchor.test.ts`；`tests/page-geometry.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
 
 打开书籍按格式决定初始视图：PDF 始终分页；EPUB/txt/md 沿用记忆的阅读模式与单/双页布局，首次默认分页、单页。工具栏提供翻页/章节、标题、位置与 PDF 页码/缩放；阅读模式、单双页与重排由阅读设置面板管理（见 [FTR-032](FTR-032-reader-settings.md)）。
 
-Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器保存内容锚点（章节、块、块内比例，或章首/章末），页码只是当前布局的投影。同章翻页是页 ± 1；末页向前落到下一章章首，首页向后落到上一章章末；章末锚点在译文到达后继续跟随布局，直到用户再次翻页。译文节点与原文块共享块索引并参与锚点几何，只有译文的页也能定位。字号、页宽、单双页、图片或译文变化都会重测，屏幕上的首段内容不变。
+Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器保存内容锚点（章节、块、块内比例，或章首/章末），页码只是当前布局的投影。同章翻页是页 ± 1；末页向前落到下一章章首，首页向后落到上一章章末；章末锚点在译文到达后继续跟随布局，直到用户再次翻页。译文片段参与同一块的锚点几何，只有译文的页也能定位。字号、页宽、单双页、图片或译文变化都会重测，屏幕上的首段内容不变。
 
 位置显示：文本与 EPUB 为本章页码与全书百分比；PDF 原版为页/总页数；PDF 重排为章节页；双页显示跨页序号。百分比按章节字数加权，文本页内比例由块锚点计算，不受译文开关影响。
 
-页宽按 A4 比例（210/297）夹取后居中；文本左右 56px（窄屏 22），滚动列内 28px（窄屏 16）。滚轮只在分页模式翻页，累计超阈值才翻页，忽略 `ctrl`/`meta`/`alt`。
+页宽按 A4 比例（210/297）夹取后居中；文本左右 56px（窄屏 22），滚动列内 28px（窄屏 16）。滚轮只在分页模式翻页，累计超阈值才翻，忽略修饰键。
 
 ## 接口与代码映射
 
@@ -39,10 +39,11 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器�
 
 ## 验收与测试
 
-- 正常：同章翻页与回翻（`turn_moves_inside_chapter`、`anchor_at_page_round_trips_through_page_of_anchor`）。
 - 边界：跨章前进落到下一章章首，回翻落到上一章章末（`turn_crosses_to_next_chapter_start`、`turn_crosses_to_previous_chapter_end`）。
 - 边界：译文使页数增长后章末锚点仍在末页（`chapter_end_survives_layout_growth`）。
 - 正常：双页两栏映射到同一页（`double_page_maps_both_columns_to_same_page`）。
+- 集成：译文片段合并、坐标归一化与零尺寸过滤（`read_page_geometry_merges_translation_fragments`）。
+- 集成：适配器几何与锚点模型往返，仅译文页可定位（`read_page_geometry_round_trips_translation_page`）。
 - 正常：译文片段可见时映射回源块索引（`visible_translation_fragment_maps_to_source_block`）。
 - 边界：没有可见块时返回空集合，不回退整章（`visible_blocks_empty_when_nothing_intersects`）。
 - 正常：全书百分比按块比例与章节字数计算（`chapter_fraction_percent_uses_content_fraction`）。
