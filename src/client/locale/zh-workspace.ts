@@ -212,6 +212,7 @@ export const zhWorkspace = {
       actionHistoryShort: '历史',
       actionHistoryHint: '最近 10 分钟的 Agent 写操作，可在这里撤销',
       actionHistoryEmpty: '还没有操作记录',
+      exportDiagnostics: '导出诊断',
       actionAdded: '新增批注',
       actionUpdated: '修改批注',
       actionDeleted: '删除批注',

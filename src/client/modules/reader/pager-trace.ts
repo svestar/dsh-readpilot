@@ -1,3 +1,4 @@
+import { downloadText } from '../../lib/helpers.ts'
 import type { AnchorTarget, PageGeometry } from './paging-model.ts'
 
 /** 临时诊断：记录翻页/测量轨迹，定位跳页后移除。 */
@@ -19,6 +20,14 @@ export function traceAnchor(anchor: AnchorTarget | null): unknown {
     fraction: Number(anchor.blockFraction.toFixed(3)),
     part: anchor.part ?? 'source',
   }
+}
+
+/** 把当前轨迹导出为文本文件；没有轨迹时也给出空文件，避免按钮无反馈。 */
+export function downloadPagerTrace(): void {
+  if (typeof window === 'undefined') return
+  const list = (window as unknown as { __readpilotPagerTrace?: string[] }).__readpilotPagerTrace
+  const lines = Array.isArray(list) && list.length > 0 ? list : ['(empty trace)']
+  downloadText('dsh-readpilot-pager-trace.txt', lines.join('\n'))
 }
 
 export function traceGeometry(geometry: PageGeometry | null): Record<string, unknown> {
