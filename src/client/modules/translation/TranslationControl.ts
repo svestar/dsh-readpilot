@@ -57,9 +57,10 @@ export function TranslationControl({ t, state, settingsOnly = false }: Translati
           value: state.provider,
           onChange: (event: any) => state.setProvider(event.target.value),
         },
-        h('option', { value: state.defaultProvider }, t('translationAuto')),
-        state.providers.providers.map(provider => h('option', { key: provider.id, value: provider.id },
-          `${provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`)))),
+        state.providers.providers.length
+          ? state.providers.providers.map(provider => h('option', { key: provider.id, value: provider.id },
+            `${provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`))
+          : h('option', { value: state.provider }, state.provider))),
       state.noticeAcknowledged
         ? null
         : h('div', { className: 'dsh-readpilot-translation-notice' },

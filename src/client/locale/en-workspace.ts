@@ -47,7 +47,6 @@ export const enWorkspace = {
       translating: 'Translating…',
       translationTarget: 'Target language',
       translationProvider: 'Translation provider',
-      translationAuto: 'Auto',
       translationPaid: 'paid',
       translationNotice: 'Translated text is sent to the selected provider and never written to the companion context.',
       translationNoticeOk: 'Got it',

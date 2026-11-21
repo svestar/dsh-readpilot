@@ -47,7 +47,6 @@ export const zhWorkspace = {
       translating: '翻译中…',
       translationTarget: '目标语言',
       translationProvider: '翻译源',
-      translationAuto: '自动',
       translationPaid: '付费',
       translationNotice: '译文会发送给所选翻译服务；不会写入伴读上下文。',
       translationNoticeOk: '知道了',

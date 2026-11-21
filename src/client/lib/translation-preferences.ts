@@ -2,7 +2,7 @@ export const TRANSLATION_TARGET_KEY = 'dsh-readpilot.translation-target'
 export const TRANSLATION_PROVIDER_KEY = 'dsh-readpilot.translation-provider'
 export const TRANSLATION_NOTICE_KEY = 'dsh-readpilot.translation-notice'
 export const DEFAULT_TRANSLATION_TARGET = 'zh-CN'
-export const DEFAULT_TRANSLATION_PROVIDER = 'auto'
+export const DEFAULT_TRANSLATION_PROVIDER = 'bing'
 
 export const TRANSLATION_TARGETS: ReadonlyArray<{ id: string; label: string }> = [
   { id: 'zh-CN', label: '简体中文' },
@@ -36,7 +36,7 @@ export function saveTranslationTarget(value: string): void {
 export function readTranslationProvider(): string {
   try {
     const value = window.localStorage.getItem(TRANSLATION_PROVIDER_KEY)
-    return typeof value === 'string' && value ? value : DEFAULT_TRANSLATION_PROVIDER
+    return typeof value === 'string' && value && value !== 'auto' ? value : DEFAULT_TRANSLATION_PROVIDER
   } catch {
     return DEFAULT_TRANSLATION_PROVIDER
   }

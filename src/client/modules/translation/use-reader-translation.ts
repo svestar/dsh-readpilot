@@ -1,7 +1,6 @@
 import { React } from '../../runtime.ts'
 import { messageOf } from '../../lib/helpers.ts'
 import {
-  DEFAULT_TRANSLATION_PROVIDER,
   readTranslationNotice,
   readTranslationProvider,
   readTranslationTarget,
@@ -105,11 +104,11 @@ export function useReaderTranslation({
     setSelectionResult(null)
   }, [bookId])
 
-  const providerArg = provider === DEFAULT_TRANSLATION_PROVIDER ? undefined : provider
+  const providerArg = provider
   const requestArgs = React.useCallback((text: string) => ({
     text,
     targetLanguage,
-    ...(providerArg ? { provider: providerArg } : {}),
+    provider: providerArg,
     ...(activeSessionId ? { sessionId: activeSessionId } : {}),
   }), [activeSessionId, providerArg, targetLanguage])
 
@@ -220,7 +219,7 @@ export function useReaderTranslation({
     try {
       const value: TranslationBatchResult = await call('translateBatch', {
         targetLanguage,
-        ...(providerArg ? { provider: providerArg } : {}),
+        provider: providerArg,
         ...(activeSessionId ? { sessionId: activeSessionId } : {}),
         items: usable.map(block => ({ id: String(block.index), text: block.text })),
       })
@@ -301,6 +300,5 @@ export function useReaderTranslation({
     setViewKey,
     translateAll,
     clearCache,
-    defaultProvider: DEFAULT_TRANSLATION_PROVIDER,
   }
 }
