@@ -37,7 +37,7 @@
 
 ## 门禁
 
-- `pnpm run verify`：typecheck、boundaries、build、test、sizes、docs、package。
+- `pnpm run verify`：typecheck、boundaries、build、test、sizes、docs、paths、package。
 - 文档门禁：`python scripts/check_docs.py`；门禁自测：`python scripts/test_check_docs.py`（两者都在 docs-check workflow 中）。门禁会校验 `navigation.md`：每个 FTR 必须恰好出现一次。
 - 路径门禁：`python scripts/check_code_paths.py --strict`；校验 FTR 代码字段、索引路径，以及索引重复的符号注解。自测：`python scripts/test_check_code_paths.py`。
 - 合并前按 `docs/quality-gates.md` 逐项核对。

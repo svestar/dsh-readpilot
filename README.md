@@ -46,7 +46,7 @@ DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可�
 
 ## 开发
 
-需要 Node 22.18+ 与 pnpm。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
+需要 Node 22.18+ 与 pnpm。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs、paths 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
 
 ```text
 index.ts                       Host 入口：app、工具、HTTP 与 systemPrompt
