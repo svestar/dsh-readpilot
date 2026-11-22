@@ -11,7 +11,7 @@ DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可�
 - **扫描版 PDF**：无文本层也能原版逐页查看；搜索、重排、批注与摘要会禁用。
 - **Markdown**：GFM 标题、表格、任务 / 嵌套列表、引用、代码、脚注、删除线、自动链接与行内图片；原始 HTML 按文本显示。
 - **批注**：选中文字即可划线或写批注，支持五种颜色；批注与书签列表可筛选、折叠、跳转。
-- **翻译**：划选文字即可查看译文；打开阅读栏“译”开关后正文内联双语，按可见段落翻译，重排与分页模式都随阅读位置更新。走宿主翻译服务，不占用伴读 Token、不进入上下文，译文带本地缓存。
+- **翻译**：划选文字即可查看译文；打开阅读栏“译”开关后正文内联双语，按可见段落翻译，字号、页宽或译文重排后仍保持当前位置。主阅读区和工作区侧栏阅读区都支持，PDF/EPUB 原版只做选区翻译；走宿主翻译服务，不占用伴读 Token、不进入上下文，译文带本地缓存。
 - **AI 伴读**：每本书一个原生会话，可新建或从书库工作区绑定旧对话；选区引用、页码跳转、工具卡、推理与审批都走宿主；会话失效自动重建。
 - **提示词**：12 个内置模板，`{{selection}}`、`{{book}}`、`{{chapter}}`、`{{notes}}` 自动装配选段、书名、章节与批注；模板可新建、编辑、删除、恢复默认。
 - **长笔记**：Markdown 存于书库 `notes/`，可用外部编辑器；对话回答可一键收藏；Agent 写入先生成草稿，先看 diff 再应用；支持自动应用、历史恢复、显示设置与导出。
@@ -35,14 +35,15 @@ DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可�
 1. 打开“智读”，选择本地书籍目录作为书库。
 2. 点开一本书，用“Aa 阅读设置”调整版式。
 3. 选中正文：点颜色创建划线，“批注”写体会，“问伴读”带引用提问。
-4. 在右侧伴读栏对话，或让 Agent 查书、读章节、写批注、整理长笔记。
-5. 在“长笔记”标签管理笔记、草稿、历史与导出；在设置页做备份。
+4. 需要双语时打开阅读栏“译”，在“译 ▾”里选择目标语言和翻译源；选中文字也可单独翻译。
+5. 在右侧伴读栏对话，或新建 / 绑定历史对话；也可让 Agent 查书、读章节、写批注、整理长笔记。
+6. 在“长笔记”标签管理笔记、草稿、历史与导出；在设置页做备份。
 
 完整步骤见 [USAGE.md](USAGE.md)。
 
 ## 数据与隐私
 
-原书不复制、不上传。设置、进度、会话绑定与解析缓存在 `$DSH_HOME/dsh-readpilot/`；EPUB 资产在 `assets/`，PDF 页面缓存在 `cache/pages/`；长笔记与导出在书库 `notes/`。备份不包含原书、工作区、会话或缓存。
+原书不复制、不上传。设置、进度、会话绑定与解析缓存在 `$DSH_HOME/dsh-readpilot/`，译文缓存是同目录的 `translations.json`；EPUB 资产在 `assets/`，PDF 页面缓存在 `cache/pages/`；长笔记与导出在书库 `notes/`。启用翻译时只把所选段落或可见段落发送给所选翻译服务。备份不包含原书、工作区、会话或缓存。
 
 ## 开发
 
@@ -50,9 +51,9 @@ DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可�
 
 ```text
 index.ts                       Host 入口：app、工具、HTTP 与 systemPrompt
-src/host/modules/<feature>/    library、reading、search、notes、memory、
-                               prompts、companion、actions、backup、media、tools
-src/client/modules/<feature>/  阅读器、书库、笔记、伴读、侧栏、帮助、工具卡片、
+src/host/modules/<feature>/    library、reading、search、notes、memory、prompts、
+                               companion、translation、actions、backup、media、tools
+src/client/modules/<feature>/  阅读器、书库、笔记、伴读、翻译、侧栏、帮助、工具卡片、
                               Markdown 渲染与通用组件
 src/shared/                    双端契约、Markdown、跳转链接与提示词渲染
 ```
