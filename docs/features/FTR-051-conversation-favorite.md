@@ -3,7 +3,7 @@
 - **ID：** FTR-051
 - **名称：** 对话收藏
 - **状态：** active
-- **代码：** `src/host/modules/notes/favorite.ts`（`findFavoriteTurn`、`renderFavoriteNote`、`createFavoriteHandler`）；`src/host/modules/notes/service.ts`（`favoriteConversation`）；`src/host/api.ts`（`favoriteConversation`）；`src/shared/contracts/notes.ts`（`NOTES_ENDPOINTS.favoriteConversation`）；`src/client/modules/companion/ConversationFavorite.ts`（`ConversationFavorite`）；`src/client/modules/companion/register-conversation-favorite.ts`（`registerConversationFavorite`）；`src/client/plugin.ts`（`apply`）
+- **代码：** `src/host/modules/notes/favorite.ts`（`findFavoriteTurn`、`renderFavoriteNote`、`createFavoriteHandler`）；`src/host/modules/notes/service.ts`（`favoriteConversation`）；`src/host/api.ts`（`favoriteConversation`）；`src/shared/contracts/notes.ts`（`NOTES_ENDPOINTS.favoriteConversation`）；`src/client/modules/companion/ConversationFavorite.ts`（`ConversationFavorite`）；`src/client/modules/companion/register-conversation-favorite.ts`（`registerConversationFavorite`）；`src/client/plugin.ts`（`apply`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
 - **测试：** `tests/conversation-favorite.test.ts`
 
 ## 行为

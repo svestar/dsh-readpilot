@@ -3,7 +3,7 @@
 - **ID：** FTR-042
 - **名称：** 提示词预设
 - **状态：** active
-- **代码：** `src/host/modules/prompts/store.ts`（`createPromptPresetStore`、`DEFAULT_PROMPT_PRESETS`）；`src/shared/prompt-render.ts`（`renderPrompt`）；`src/host/modules/prompts/handlers.ts`（`createPromptHandlers`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`）；`src/client/modules/companion/PromptPresetManager.ts`（`PromptPresetManager`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
+- **代码：** `src/host/modules/prompts/store.ts`（`createPromptPresetStore`、`DEFAULT_PROMPT_PRESETS`）；`src/shared/prompt-render.ts`（`renderPrompt`）；`src/host/modules/prompts/handlers.ts`（`createPromptHandlers`）；`src/client/modules/reader/SelectionNote.ts`（`SelectionToolbar`）；`src/client/modules/companion/PromptPresetManager.ts`（`PromptPresetManager`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）
 - **测试：** `tests/prompt-presets.test.ts`
 
 ## 行为

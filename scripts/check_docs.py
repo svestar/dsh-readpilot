@@ -5,6 +5,10 @@ Beyond headings and length, this gate checks that the facts a feature document
 points at exist: every file it cites is on disk, and every acceptance anchor is
 defined in the test files that document itself declares. A stale path or a
 borrowed anchor is how docs and code drift apart unnoticed.
+
+Symbol checks are textual: an identifier may be a declaration, object property,
+string literal or local entry. Comments can satisfy them and exports are not
+required; docs/README.md defines the convention.
 """
 from pathlib import Path
 from collections import Counter
@@ -25,12 +29,12 @@ INDEX_HEADER = "| ID | 名称 | 文档路径 | 代码路径 | 测试路径 | 状
 NAVIGATION_FILE = "docs/features/navigation.md"
 ROADMAP_HEADER = "| ID | 功能 | 解决什么问题 | 验收线索 | 优先级 | 排期 | 状态 |"
 # Backticked repo-relative file paths, as used by the `代码`/`测试` fields and the index.
-PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md))`")
+PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md|css|json|yml|yaml))`")
 # Backticked `path:symbol` references in mapping tables.
 MAPPING_RE = re.compile(
     r"`([^`\n:]+):([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)`"
 )
-CODE_ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py))`（([^）]*)）")
+CODE_ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py|css|json|yml|yaml))`（([^）]*)）")
 ANCHOR_RE = re.compile(r"（`([a-z0-9_]+)`）")
 NARRATION_PHRASES = ("本次修改", "本次变更", "之前是", "现在改为", "原实现是")
 errors: list[str] = []
@@ -59,7 +63,7 @@ def check_narration(owner: str, text: str) -> None:
 def check_mapping_refs(owner: str, text: str) -> None:
     """Every `path:symbol` in a mapping table must point at a real definition."""
     for path, symbol in MAPPING_RE.findall(text):
-        if "*" in path or path.endswith("/") or not path.startswith(("src/", "tests/", "scripts/")):
+        if "*" in path or path.endswith("/") or not (path.startswith(("src/", "tests/", "scripts/")) or path == "index.ts"):
             continue
         target = ROOT / path
         if not target.is_file():
@@ -81,7 +85,7 @@ def check_code_annotations(owner: str, code: str) -> None:
             continue
         body = read(target)
         for symbol in re.findall(r"`([^`]+)`", inner):
-            if symbol.endswith((".md", ".ts", ".js", ".mjs", ".py")):
+            if symbol.endswith((".md", ".ts", ".js", ".mjs", ".py", ".css", ".json", ".yml", ".yaml")):
                 continue
             leaf = symbol.split(".")[-1]
             if not re.search(rf"(?<![A-Za-z0-9_]){re.escape(leaf)}(?![A-Za-z0-9_])", body):

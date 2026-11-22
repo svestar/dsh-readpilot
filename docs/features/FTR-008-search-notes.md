@@ -3,7 +3,7 @@
 - **ID：** FTR-008
 - **名称：** 检索与笔记
 - **状态：** active
-- **代码：** `src/host/modules/notes/store.ts`（`createNotesStore`）；`src/host/modules/search/service.ts`（`createSearch`）；`src/host/modules/notes/notes-handlers.ts`（`createNotesHandlers`、`handleNotes`）；`src/host/register-tools.ts`（`registerTools`）；`src/client/modules/reader/use-search.ts`（`useSearch`）；`src/client/modules/notes/SearchPanelView.ts`（`SearchPanel`、`SearchAllDialog`）；`src/client/modules/notes/NotesBodyView.ts`（`NotesBody`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）
+- **代码：** `src/host/modules/notes/store.ts`（`createNotesStore`）；`src/host/modules/search/service.ts`（`createSearch`）；`src/host/modules/notes/notes-handlers.ts`（`createNotesHandlers`、`handleNotes`）；`src/host/register-tools.ts`（`registerTools`）；`src/client/modules/reader/use-search.ts`（`useSearch`）；`src/client/modules/notes/SearchPanelView.ts`（`SearchPanel`、`SearchAllDialog`）；`src/client/modules/notes/NotesBodyView.ts`（`NotesBody`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`src/client/modules/reader/use-reader-find.ts`（`useReaderFind`）
 - **测试：** `tests/notes.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
@@ -20,8 +20,6 @@
 | `registerTools` | `src/host/register-tools.ts:registerTools` | 注册 `reader_search` 与 `reader_note` |
 | `useSearch` | `src/client/modules/reader/use-search.ts:useSearch` | 搜索状态、提交、关闭与重置 |
 | `SearchPanel` / `SearchAllDialog` / `NotesBody` | `src/client/modules/notes/SearchPanelView.ts:SearchPanel`；`src/client/modules/notes/SearchPanelView.ts:SearchAllDialog`；`src/client/modules/notes/NotesBodyView.ts:NotesBody` | 搜索结果、全部结果弹窗与笔记列表 |
-| `useReaderFind` | `src/client/modules/reader/use-reader-find.ts:useReaderFind` | 组合搜索、笔记与阅读布局 |
-| `enqueueWrite` | `src/host/lib/write-queue.ts:enqueueWrite` | 同一文件的读改写串行执行 |
 
 ## 约束与失败行为
 

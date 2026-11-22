@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
 import { tailTranslationBlocksOf, translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
+import { forgetTranslationEnabled, rememberTranslationEnabled, translationEnabledForBook } from '../src/client/modules/translation/session-state.ts'
 import { fakeContext } from './support/api-helpers.ts'
 
 function translatorFixture() {
@@ -170,4 +171,23 @@ test('translation_falls_back_without_host_translator', async t => {
   assert.equal(result.provider, 'bing')
   assert.match(calls[0].url, /edge\.microsoft\.com/)
   assert.match(String(calls[0].init.body), /Hello/)
+})
+
+test('translation_enabled_is_remembered_per_book', () => {
+  const bookA = 'test-session-state-a'
+  const bookB = 'test-session-state-b'
+  forgetTranslationEnabled(bookA)
+  forgetTranslationEnabled(bookB)
+  assert.equal(translationEnabledForBook(bookA), false)
+  rememberTranslationEnabled(bookA, true)
+  assert.equal(translationEnabledForBook(bookA), true)
+  assert.equal(translationEnabledForBook(bookB), false)
+  rememberTranslationEnabled(bookA, false)
+  assert.equal(translationEnabledForBook(bookA), false)
+  rememberTranslationEnabled(bookB, true)
+  forgetTranslationEnabled(bookB)
+  assert.equal(translationEnabledForBook(bookB), false)
+  assert.equal(translationEnabledForBook(null), false)
+  rememberTranslationEnabled(null, true)
+  assert.equal(translationEnabledForBook(null), false)
 })

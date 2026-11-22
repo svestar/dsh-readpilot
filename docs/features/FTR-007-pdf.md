@@ -3,7 +3,7 @@
 - **ID：** FTR-007
 - **名称：** PDF 文本
 - **状态：** active
-- **代码：** `src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`）
+- **代码：** `src/host/modules/reading/formats/pdf/index.ts`（`parsePdf`）；`src/host/modules/reading/formats.ts`（`parseBookAsync`）
 - **测试：** `tests/pdf.test.ts`
 
 ## 行为

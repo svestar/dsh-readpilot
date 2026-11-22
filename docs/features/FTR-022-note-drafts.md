@@ -3,7 +3,7 @@
 - **ID：** FTR-022
 - **名称：** 笔记草稿
 - **状态：** active
-- **代码：** `src/host/modules/notes/drafts.ts`（`createNoteDraftStore`）；`src/host/modules/notes/note-file-handlers.ts`（`toolNoteFiles`）；`src/host/modules/notes/draft-handlers.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/host/modules/notes/tools.ts`（`reader_notes`）；`src/client/modules/notes/use-long-notes.ts`（`useLongNotes`）；`src/client/modules/notes/apply-state.ts`（`nextActiveOnApply`）；`src/client/modules/notes/DraftNotice.ts`（`DraftNotice`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）
+- **代码：** `src/host/modules/notes/drafts.ts`（`createNoteDraftStore`）；`src/host/modules/notes/note-file-handlers.ts`（`toolNoteFiles`）；`src/host/modules/notes/draft-handlers.ts`（`createDraftHandlers`、`noteDrafts`、`noteDraftCreate`）；`src/host/modules/notes/tools.ts`（`reader_notes`）；`src/client/modules/notes/use-long-notes.ts`（`useLongNotes`）；`src/client/modules/notes/apply-state.ts`（`nextActiveOnApply`）；`src/client/modules/notes/DraftNotice.ts`（`DraftNotice`）；`src/client/modules/notes/LongNotesView.ts`（`LongNotes`）；`src/host/api.ts`（`setAutoApplyNotes`）
 - **测试：** `tests/note-drafts.test.ts`；`tests/prompt.test.ts`；`tests/note-apply-state.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
@@ -21,7 +21,6 @@
 | `createNoteDraftStore` | `src/host/modules/notes/drafts.ts:createNoteDraftStore` | 草稿的增删应用与路径安全 |
 | `noteDrafts` | `src/host/modules/notes/draft-handlers.ts:noteDrafts` | UI 的 list/apply/reject |
 | `noteDraftCreate` | `src/host/modules/notes/draft-handlers.ts:noteDraftCreate` | 工具创建草稿；自动应用开启时立即应用 |
-| `setAutoApplyNotes` | `src/host/api.ts:setAutoApplyNotes` | 切换全局自动应用开关 |
 | `toolNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:toolNoteFiles` | 工具的 index/read |
 | `reader_notes` | `src/host/modules/notes/tools.ts:reader_notes` | Agent 入口；写操作只出草稿 |
 | `useLongNotes` / `LongNotes` | `src/client/modules/notes/use-long-notes.ts:useLongNotes`；`src/client/modules/notes/LongNotesView.ts:LongNotes` | 草稿轮询、应用/拒绝与 diff UI |

@@ -3,7 +3,7 @@
 - **ID：** FTR-005
 - **名称：** 伴读面板
 - **状态：** active
-- **代码：** `src/client/modules/companion/NativeCompanion.ts`；`src/client/modules/companion/ChatPanel.ts`；`src/client/modules/companion/use-companion.ts`；`src/client/plugin.ts`；`src/client/modules/companion/ChatContent.ts`
+- **代码：** `src/client/modules/companion/NativeCompanion.ts`；`src/client/modules/companion/ChatPanel.ts`；`src/client/modules/companion/use-companion.ts`；`src/client/plugin.ts`；`src/client/modules/companion/ChatContent.ts`；`src/client/modules/reader/use-reader-composer.ts`（`useReaderComposer`）
 - **测试：** `tests/client-chat.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为
@@ -18,7 +18,6 @@
 | `createNativeChatBoundary` | `src/client/modules/companion/NativeCompanion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
 | `ChatPanel` | `src/client/modules/companion/ChatPanel.ts:ChatPanel` | 四个标签、原生/折叠聊天与输入区 |
 | `useCompanion` | `src/client/modules/companion/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、就绪后应用只读策略 |
-| `ReaderPanelView` / `createPlugin` | `src/client/modules/reader/ReaderPanelView.ts:ReaderPanelView`；`src/client/plugin.ts:createPlugin` | 组装阅读器并注册 session 子槽 |
 | `askCompanion` | `src/client/modules/reader/use-reader-composer.ts:askCompanion` | 选中文字后预填引用并聚焦伴读输入框 |
 
 ## 约束与失败行为

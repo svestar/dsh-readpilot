@@ -68,9 +68,10 @@
     "boundaries": "node scripts/check-boundaries.mjs",
     "test": "node --test \"tests/*.test.ts\" \"tests/*.test.mjs\"",
     "docs": "python scripts/check_docs.py",
+    "paths": "python scripts/check_code_paths.py --strict",
     "sizes": "python scripts/check_sizes.py",
     "check:package": "node scripts/check-package.mjs",
-    "verify": "pnpm run typecheck && pnpm run boundaries && pnpm run build && pnpm test && pnpm run sizes && pnpm run docs && pnpm run check:package",
+    "verify": "pnpm run typecheck && pnpm run boundaries && pnpm run build && pnpm test && pnpm run sizes && pnpm run docs && pnpm run paths && pnpm run check:package",
     "smoke": "node scripts/smoke-install.mjs"
   },
   "dependencies": {

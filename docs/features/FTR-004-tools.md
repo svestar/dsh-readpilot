@@ -3,7 +3,7 @@
 - **ID：** FTR-004
 - **名称：** Agent 工具
 - **状态：** active
-- **代码：** `src/host/register-tools.ts`；`src/host/api.ts`；`src/host/modules/notes/files/store.ts`；`src/host/modules/notes/drafts.ts`；`src/host/modules/memory/handlers.ts`
+- **代码：** `src/host/register-tools.ts`；`src/host/api.ts`；`src/host/modules/notes/files/store.ts`；`src/host/modules/notes/drafts.ts`；`src/host/modules/memory/handlers.ts`；`src/host/modules/notes/tools.ts`（`createNotesTools`）；`src/host/modules/memory/tools.ts`（`createMemoryTools`）；`src/host/modules/notes/note-file-handlers.ts`（`createNoteFileHandlers`）；`src/host/modules/notes/draft-handlers.ts`（`createDraftHandlers`）
 - **测试：** `tests/tools.test.ts`
 
 ## 行为
@@ -15,15 +15,10 @@ Host 向 `ctx.tools` 注册十四个工具：`reader_books` 列出书库与进�
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
 | `registerTools` | `src/host/register-tools.ts:registerTools` | 注册十四个工具 |
-| `reader_note` | `src/host/modules/notes/tools.ts:reader_note` | 批注 add/list/update/delete 并排队刷新 |
-| `reader_notes` | `src/host/modules/notes/tools.ts:reader_notes` | 长笔记读写与草稿操作 |
-| `reader_memory` | `src/host/modules/memory/tools.ts:reader_memory` | 记忆的 read/update/forget |
 | `toolContext` | `src/host/api.ts:toolContext` | 最近阅读/指定书的进度、目录、笔记摘要与最近动作 |
 | `toolRead` | `src/host/api.ts:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
 | `toolSearch` | `src/host/api.ts:toolSearch` | 把书名解析为书 id 后调用检索 |
 | `toolNote` | `src/host/api.ts:toolNote` | 解析书名/章节并读写该书的批注 |
-| `toolNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:toolNoteFiles` | 工具侧的 list/read 长笔记 |
-| `noteDraftCreate` | `src/host/modules/notes/draft-handlers.ts:noteDraftCreate` | 工具侧生成草稿；自动应用开启时立即应用 |
 | `memoryTool` | `src/host/modules/memory/handlers.ts:memoryTool` | 工具侧读取/更新/忘记记忆 |
 | `losslessJson` | `src/host/register-tools.ts:losslessJson` | 注册前把结果归一为无损 JSON |
 

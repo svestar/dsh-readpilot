@@ -13,12 +13,14 @@
 - [FTR-014 EPUB 章节合并](FTR-014-epub-chapter-merge.md)
 - [FTR-015 文本编码](FTR-015-text-encoding.md)
 - [FTR-019 分页阅读](FTR-019-paged-reading.md)
+- [FTR-054 阅读页框与滚轮](FTR-054-reader-page-frame.md)
 - [FTR-031 重排阅读](FTR-031-reflow.md)
 - [FTR-032 阅读设置](FTR-032-reader-settings.md)
 - [FTR-033 阅读位置锚点](FTR-033-reading-anchor.md)
 - [FTR-047 扫描版 PDF](FTR-047-scanned-pdf.md)
 - [FTR-050 Markdown 语法](FTR-050-markdown.md)
-- [FTR-053 翻译](FTR-053-translation.md)
+- [FTR-053 双语阅读](FTR-053-translation.md)
+- [FTR-056 翻译服务与缓存](FTR-056-translation-service.md)
 
 ## 笔记与批注
 
@@ -33,6 +35,7 @@
 - [FTR-025 笔记历史](FTR-025-note-history.md)
 - [FTR-030 批注总览](FTR-030-annotations-overview.md)
 - [FTR-040 跨模式划线锚点](FTR-040-cross-mode-anchor.md)
+- [FTR-055 侧栏批注定位](FTR-055-sidebar-note-locate.md)
 - [FTR-051 对话收藏](FTR-051-conversation-favorite.md)
 
 ## 伴读与 Agent

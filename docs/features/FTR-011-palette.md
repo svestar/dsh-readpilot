@@ -3,7 +3,7 @@
 - **ID：** FTR-011
 - **名称：** 阅读配色
 - **状态：** active
-- **代码：** `src/client/lib/preferences.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`、`data-palette`）
+- **代码：** `src/client/lib/preferences.ts`（`READER_PALETTES`、`READER_PALETTE_IDS`、`resolveReaderPalette`、`applyPaletteToFrame`）；`src/client/modules/reader/Header.ts`（`Header`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`、`data-palette`）；`src/client/modules/reader/use-reader-preferences.ts`（`useReaderPreferences`）
 - **测试：** `tests/palette.test.ts`
 
 ## 行为

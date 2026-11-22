@@ -3,7 +3,7 @@
 - **ID：** FTR-006
 - **名称：** EPUB 文本
 - **状态：** active
-- **代码：** `src/host/modules/reading/formats/epub/index.ts`（`parseEpub`）
+- **代码：** `src/host/modules/reading/formats/epub/index.ts`（`parseEpub`）；`src/host/modules/reading/formats.ts`（`parseBookAsync`）；`src/host/modules/reading/formats/epub/html.ts`（`imageBlock`、`tableRows`）
 - **测试：** `tests/epub.test.ts`
 
 ## 行为

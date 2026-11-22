@@ -3,7 +3,7 @@
 - **ID：** FTR-041
 - **名称：** 工具结果卡片
 - **状态：** active
-- **代码：** `src/client/modules/reader/ReaderToolView.ts`（`ReaderBooksToolView`、`ReaderSearchToolView`、`ReaderOpenToolView`、`parseReaderBooksResult`、`parseReaderSearchResult`、`parseReaderOpenResult`）；`src/client/modules/toolview/register.ts`（`registerToolViews`）；`src/client/modules/reader/resource.ts`（`buildReaderResource`）
+- **代码：** `src/client/modules/reader/ReaderToolView.ts`（`ReaderBooksToolView`、`ReaderSearchToolView`、`ReaderOpenToolView`、`parseReaderBooksResult`、`parseReaderSearchResult`、`parseReaderOpenResult`）；`src/client/modules/toolview/register.ts`（`registerToolViews`）；`src/client/modules/reader/resource.ts`（`buildReaderResource`）；`src/client/plugin.ts`（`apply`）
 - **测试：** `tests/reader-tool-view.test.ts`
 
 ## 行为

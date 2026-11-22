@@ -3,7 +3,7 @@
 - **ID：** FTR-020
 - **名称：** 长笔记
 - **状态：** active
-- **代码：** `src/host/modules/notes/files/store.ts`；`src/host/api.ts`；`src/host/modules/library/service.ts`；`src/client/modules/notes/use-long-notes.ts`；`src/client/modules/notes/LongNotesView.ts`；`src/client/modules/markdown/DshMarkdown.ts`
+- **代码：** `src/host/modules/notes/files/store.ts`；`src/host/api.ts`；`src/host/modules/library/service.ts`；`src/client/modules/notes/use-long-notes.ts`；`src/client/modules/notes/LongNotesView.ts`；`src/client/modules/markdown/DshMarkdown.ts`；`src/host/modules/notes/note-file-handlers.ts`（`createNoteFileHandlers`）；`src/host/modules/library/book.ts`（`scanLibrary`）；`src/client/modules/notes/note-resource.ts`（`parseNoteResource`、`buildNoteResource`）
 - **测试：** `tests/note-files.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/note-resource.test.ts`
 
 ## 行为
@@ -18,12 +18,9 @@
 |---|---|---|
 | `createNoteFileStore` | `src/host/modules/notes/files/store.ts:createNoteFileStore` | 长笔记的 list/read/create/write/remove 与历史快照 |
 | `parseFrontMatter` / `serializeNote` | `src/host/modules/notes/files/store.ts:parseFrontMatter`；`serializeNote` | 读写 front-matter 与正文 |
-| `handleNoteFiles` | `src/host/modules/notes/note-file-handlers.ts:handleNoteFiles` | `noteFiles` RPC 的 list/read/create/write/remove/history/restore 分发 |
 | `openNoteFile` | `src/host/api.ts:openNoteFile` | 校验笔记路径并交给系统默认应用打开 |
-| `scanLibrary` | `src/host/modules/library/book.ts:scanLibrary` | 书库扫描跳过带 marker 的 `notes/` |
 | `useLongNotes` | `src/client/modules/notes/use-long-notes.ts:useLongNotes` | 列表、编辑器、保存、冲突、删除、历史与外部打开状态 |
 | `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 长笔记标签的列表、编辑器、历史与导出区 |
-| `parseNoteResource` / `buildNoteResource` | `src/client/modules/notes/note-resource.ts:parseNoteResource`；`buildNoteResource` | 活动笔记资源地址的生成与解析 |
 
 ## 约束与失败行为
 

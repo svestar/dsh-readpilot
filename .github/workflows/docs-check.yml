@@ -6,6 +6,8 @@ on:
     paths:
       - "**/*.md"
       - "scripts/check_docs.py"
+      - "scripts/check_code_paths.py"
+      - "scripts/test_check_code_paths.py"
       - ".github/workflows/docs-check.yml"
 
 permissions:
@@ -25,3 +27,5 @@ jobs:
           python-version: "3.12"
       - run: python scripts/check_docs.py
       - run: python scripts/test_check_docs.py
+      - run: python scripts/check_code_paths.py --strict
+      - run: python scripts/test_check_code_paths.py

@@ -30,6 +30,12 @@ class CheckDocsTest(unittest.TestCase):
         (self.root / "src" / "sample.ts").write_text(
             "export function targetSymbol() {}\n", encoding="utf-8"
         )
+        (self.root / "src" / "sample.css").write_text(
+            ":root { --target-token: #fff; }\n", encoding="utf-8"
+        )
+        (self.root / "index.ts").write_text(
+            "export function apply() {}\n", encoding="utf-8"
+        )
         self.checker.ROOT = self.root
         self.checker.errors = []
 
@@ -75,6 +81,14 @@ class CheckDocsTest(unittest.TestCase):
         self.checker.errors = []
         self.checker.check_mapping_refs("doc", "`src/missing.ts:targetSymbol`")
         self.assertTrue(any("映射路径不存在" in error for error in self.errors()))
+
+    def test_mapping_reference_accepts_root_index(self) -> None:
+        self.checker.check_mapping_refs("doc", "`index.ts:apply`")
+        self.assertEqual(self.errors(), [])
+
+    def test_code_annotation_accepts_stylesheet_token(self) -> None:
+        self.checker.check_code_annotations("doc", "`src/sample.css`（`--target-token`）")
+        self.assertEqual(self.errors(), [])
 
     def test_mapping_ignores_globs_and_directories(self) -> None:
         self.checker.check_mapping_refs(

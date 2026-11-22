@@ -3,7 +3,7 @@
 - **ID：** FTR-003
 - **名称：** 伴读与检索
 - **状态：** active
-- **代码：** `src/host/api.ts`（`setCompanionSession`、`sessionAlive`、`search`）
+- **代码：** `src/host/api.ts`（`setCompanionSession`、`sessionAlive`、`search`）；`src/host/modules/search/service.ts`（`createSearch`）
 - **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为

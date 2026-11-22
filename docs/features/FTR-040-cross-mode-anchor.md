@@ -3,7 +3,7 @@
 - **ID：** FTR-040
 - **名称：** 跨模式划线锚点
 - **状态：** active
-- **代码：** `src/host/modules/notes/store.ts`（`NoteRecord.start`、`end`、`blockHash`）；`src/host/modules/notes/notes-handlers.ts`（`handleNotes`）；`src/client/modules/notes/anchors.ts`（`findNoteOccurrence`）；`src/client/modules/reader/anchor.ts`（`hashText`）；`src/client/modules/notes/use-notes.ts`（`useNotes`）；`src/client/modules/notes/anchors.ts`（`compactAnchorText`、`applyEpubNoteMarks`）
+- **代码：** `src/host/modules/notes/store.ts`（`NoteRecord.start`、`end`、`blockHash`）；`src/host/modules/notes/notes-handlers.ts`（`handleNotes`）；`src/client/modules/notes/anchors.ts`（`findNoteOccurrence`、`compactAnchorText`、`applyEpubNoteMarks`）；`src/client/modules/reader/anchor.ts`（`hashText`）；`src/client/modules/notes/use-notes.ts`（`useNotes`）
 - **测试：** `tests/anchor.test.ts`；`tests/notes.test.ts`
 
 ## 行为

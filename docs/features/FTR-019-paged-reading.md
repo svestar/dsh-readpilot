@@ -3,7 +3,7 @@
 - **ID：** FTR-019
 - **名称：** 分页阅读
 - **状态：** active
-- **代码：** `src/client/modules/reader/paging.ts`（`measurePageMetrics`、`chapterFractionPercent`）；`src/client/modules/reader/paging-model.ts`（`pageOfAnchor`、`anchorAtPage`、`turnTarget`）；`src/client/modules/reader/page-geometry.ts`（`readPageGeometry`）；`src/client/modules/reader/use-page-width.ts`（`usePageWidth`）；`src/client/modules/reader/use-text-pager.ts`（`useTextPager`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/ReaderPanelView.ts`
+- **代码：** `src/client/modules/reader/paging.ts`（`measurePageMetrics`、`chapterFractionPercent`）；`src/client/modules/reader/paging-model.ts`（`pageOfAnchor`、`anchorAtPage`、`turnTarget`）；`src/client/modules/reader/page-geometry.ts`（`readPageGeometry`）；`src/client/modules/reader/use-text-pager.ts`（`useTextPager`）；`src/client/modules/reader/use-visual.ts`（`useVisual`）；`src/client/modules/reader/ReaderPanelView.ts`
 - **测试：** `tests/page-anchor.test.ts`；`tests/page-geometry.test.ts`；`tests/paging.test.ts`；`tests/client-assembly.test.ts`；`tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`
 
 ## 行为
@@ -12,9 +12,7 @@
 
 Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器保存内容锚点（章节、块、块内比例，或章首/章末），页码只是当前布局的投影。同章翻页是页 ± 1；末页向前落到下一章章首，首页向后落到上一章章末；章末锚点在译文到达后继续跟随布局，直到用户再次翻页。译文片段参与同一块的锚点几何，只有译文的页也能定位。字号、页宽、单双页、图片或译文变化都会重测，屏幕上的首段内容不变。
 
-位置显示：文本与 EPUB 为本章页码与全书百分比；PDF 原版为页/总页数；PDF 重排为章节页；双页显示跨页序号。百分比按章节字数加权，文本页内比例由块锚点计算，不受译文开关影响。
-
-页宽按 A4 比例（210/297）夹取后居中；文本左右 56px（窄屏 22），滚动列内 28px（窄屏 16）。滚轮只在分页模式翻页，累计超阈值才翻，忽略修饰键。
+位置显示：文本与 EPUB 为本章页码与全书百分比；PDF 原版为页/总页数；PDF 重排为章节页；双页显示跨页序号。百分比按章节字数加权，文本页内比例由块锚点计算，不受译文开关影响。页框宽度、页内边距与滚轮命中见 [FTR-054](FTR-054-reader-page-frame.md)。
 
 ## 接口与代码映射
 
@@ -34,7 +32,7 @@ Reflowable 内容用 CSS 多栏：单页一栏、双页两栏。文本分页器�
 - 锚点按块内高度比例恢复，长段落跨页时可能有半页以内误差；空块或旧锚点退回最近的块。
 - 译文片段与原文片段共享块索引，用 part 区分；译文关闭或缺失时退回原文片段。
 - 双页页码按 `floor(栏索引 / 2)` 计算，同一跨页的两栏属于同一页。
-- 进度保存 `chapterFraction`（0–1），文本分页按块权重计算，译文开关不改变同一位置的保存值。
+- 进度保存 `chapterFraction`（0–1），译文开关不改变保存值。
 - PDF/EPUB 视觉页不受内容锚点影响；仅文本分页使用块锚点。
 
 ## 验收与测试
