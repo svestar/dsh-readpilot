@@ -71,7 +71,7 @@ export function useTextPager({
   // 页框会在切换/加载时卸载重挂；用 callback ref 把新节点交给滚轮 effect，避免监听留在旧节点上。
   const [frameNode, setFrameNode] = React.useState<HTMLDivElement | null>(null)
   const frameRef = React.useCallback((node: HTMLDivElement | null) => {
-    if (node) setFrameNode(node)
+    setFrameNode(node)
   }, [])
   const innerRef = React.useRef<HTMLDivElement | null>(null)
   const anchorRef = React.useRef<AnchorTarget | null>(null)

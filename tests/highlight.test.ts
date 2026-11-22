@@ -105,6 +105,20 @@ test('note_highlight_prefers_exact_quote_across_blocks', () => {
   assert.deepEqual(resolved.match, { start: 0, end: 10 })
 })
 
+test('note_highlight_matches_cross_block_quote_without_boundary_space', () => {
+  const { document } = parseHTML(
+    '<html><body><div data-block-index="0"><p>alpha</p></div><div data-block-index="1"><p>beta</p></div></body></html>',
+  )
+  ;(document.defaultView as any).NodeFilter = { SHOW_TEXT: 4 }
+  const resolved = resolveSourceNoteHighlight(document.body as unknown as Element, {
+    quote: 'alpha\nbeta',
+    offset: 0,
+    blockIndex: 0,
+  } as any)
+  assert.deepEqual(resolved.match, { start: 0, end: 9 })
+  assert.ok(resolved.nodes.some(node => node.parentElement?.closest('[data-block-index="1"]')))
+})
+
 test('note_highlight_recovers_quote_when_block_index_moved', () => {
   const { document } = parseHTML(
     '<html><body><div data-block-index="0"><p>other</p></div><div data-block-index="1"><p>target</p></div></body></html>',
