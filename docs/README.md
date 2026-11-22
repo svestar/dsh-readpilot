@@ -8,6 +8,21 @@
 - `docs/roadmap.md` 记录尚未实现的候选与排期，不描述现有行为；落地后转为 FTR 并从该页删除。
 - `docs/templates/` 提供新建文档的骨架，模板中的占位符必须全部替换。
 
+## 测试组织
+
+- FTR 的「测试」字段同时表示验收锚点和集成覆盖：锚点必须能在声明的测试文件中找到；`tests/api-*.test.ts` 作为 API 集成覆盖可以没有锚点。
+- 测试文件名用 kebab-case（`sidebar-reader.test.ts`），测试名用 snake_case（`sidebar_pending_block_jumps_with_rendered_text_fraction`），一个测试聚焦一个行为；跨功能冒烟除外。
+- 多处使用的夹具放 `tests/support/`，不在测试文件里复制 `makePdf`、`buildBlankPdf` 这类构造代码。
+- `tests/smoke.test.ts` 是跨功能冒烟，不属于单一 FTR；它覆盖书库、阅读、检索、批注、进度、扫描 PDF 与 Markdown 图片。
+- 新增测试文件必须二选一：列入相关 FTR 的「测试」字段和索引，或在下面登记为基础设施/服务层测试。
+
+基础设施与服务层测试：
+
+- `tests/contract.test.ts`、`tests/client-rpc.test.ts`、`tests/router.test.ts`、`tests/rpc-route.test.ts`：接口契约、客户端 RPC 信封与路由分发（见 ADR-014）。
+- `tests/config.test.ts`、`tests/entry.test.ts`、`tests/manifest.test.ts`：插件配置、根入口与清单装配。
+- `tests/lib.test.ts`：通用库（截断、JSON 写入、写队列、插件错误）。
+- `tests/library-service.test.ts`：书库服务层的配置与重复副本删除。
+
 ## 新增或修改功能
 
 1. 分配或复用 `FTR-NNN`，避免 ID 重复。
@@ -24,6 +39,7 @@
 
 - `pnpm run verify`：typecheck、boundaries、build、test、sizes、docs、package。
 - 文档门禁：`python scripts/check_docs.py`；门禁自测：`python scripts/test_check_docs.py`（两者都在 docs-check workflow 中）。门禁会校验 `navigation.md`：每个 FTR 必须恰好出现一次。
+- 路径门禁：`python scripts/check_code_paths.py --strict`；校验 FTR 代码字段、索引路径，以及索引重复的符号注解。自测：`python scripts/test_check_code_paths.py`。
 - 合并前按 `docs/quality-gates.md` 逐项核对。
 
 ## 拆分与删除

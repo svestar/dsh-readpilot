@@ -4,6 +4,7 @@ import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
+import { buildBlankPdf } from './support/api-helpers.ts'
 
 function fakeContext() {
   const workspaces: any[] = []
@@ -25,33 +26,7 @@ function fakeContext() {
   }
 }
 
-function buildBlankPdf(): Buffer {
-  const objects = [
-    '<< /Type /Catalog /Pages 2 0 R >>',
-    '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
-    '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] >>',
-  ]
-  const chunks: Buffer[] = []
-  let offset = 0
-  const write = (value: string) => {
-    const bytes = Buffer.from(value, 'latin1')
-    chunks.push(bytes)
-    offset += bytes.length
-  }
-  write('%PDF-1.4\n')
-  const offsets = objects.map((body, index) => {
-    const start = offset
-    write(`${index + 1} 0 obj\n${body}\nendobj\n`)
-    return start
-  })
-  const xrefOffset = offset
-  write(`xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`)
-  for (const start of offsets) write(`${String(start).padStart(10, '0')} 00000 n \n`)
-  write(`trailer\n<< /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xrefOffset}\n%%EOF\n`)
-  return Buffer.concat(chunks)
-}
-
-test('smoke: library, reading, search, annotation and progress', async t => {
+test('smoke_library_reading_search_annotation_progress', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-smoke-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const library = join(root, 'books')
@@ -89,7 +64,7 @@ test('smoke: library, reading, search, annotation and progress', async t => {
   assert.equal((await api.state()).progress[bookId].percent, 25)
 })
 
-test('smoke: scanned pdf opens and renders a page', async t => {
+test('smoke_scanned_pdf_opens_and_renders_a_page', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-smoke-'))
   t.after(() => rm(root, { recursive: true, force: true }))
   const library = join(root, 'books')

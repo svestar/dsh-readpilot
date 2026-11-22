@@ -34,7 +34,7 @@ PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md|css|json|yml|y
 MAPPING_RE = re.compile(
     r"`([^`\n:]+):([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)`"
 )
-CODE_ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py|css|json|yml|yaml))`（([^）]*)）")
+CODE_ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py|md|css|json|yml|yaml))`（([^）]*)）")
 ANCHOR_RE = re.compile(r"（`([a-z0-9_]+)`）")
 NARRATION_PHRASES = ("本次修改", "本次变更", "之前是", "现在改为", "原实现是")
 errors: list[str] = []

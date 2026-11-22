@@ -6,9 +6,9 @@ Mapping tables may reference implementation files that the code field omits;
 those are reported as warnings so existing docs stay valid. `--strict` turns
 them into failures and can be used while tightening a feature.
 
-This gate is path-level only: symbol existence (text-level) and test anchors
-stay in check_docs.py. Symbols may be exports, object properties, components or
-local entry points, as documented in docs/README.md.
+The gate also compares the symbol annotations repeated by the index with each
+FTR's code field, so a path can stay consistent while its symbols drift.
+Symbol existence (text-level) and test anchors stay in check_docs.py.
 """
 from collections import defaultdict
 from pathlib import Path
@@ -26,6 +26,9 @@ PATH_RE = re.compile(r"`((?:[\w.-]+/)*[\w.-]+\.(?:ts|js|mjs|py|md|css|json|yml|y
 MAPPING_RE = re.compile(
     r"`([^`\n:]+):([A-Za-z_][A-Za-z0-9_]*(?:\.[A-Za-z_][A-Za-z0-9_]*)*)`"
 )
+ANNOTATION_RE = re.compile(r"`([^`]+\.(?:ts|js|mjs|py|md|css|json|yml|yaml))`（([^）]*)）")
+SYMBOL_RE = re.compile(r"`([^`]+)`")
+FILE_SUFFIXES = (".ts", ".js", ".mjs", ".py", ".md", ".css", ".json", ".yml", ".yaml")
 ID_RE = re.compile(r"^- \*\*ID：\*\*\s*(FTR-\d+)", re.M)
 errors: list[str] = []
 warnings: list[str] = []
@@ -42,6 +45,23 @@ def field(text: str, label: str) -> str:
 
 def code_paths(text: str) -> list[str]:
     return PATH_RE.findall(field(text, "代码"))
+
+
+def annotations_in(text: str) -> dict[str, set[str]]:
+    """Symbols declared in ``path``（``symbol``…） annotations."""
+    annotations: dict[str, set[str]] = {}
+    for relative, inner in ANNOTATION_RE.findall(text):
+        symbols = {
+            symbol
+            for symbol in SYMBOL_RE.findall(inner)
+            if not symbol.endswith(FILE_SUFFIXES)
+        }
+        annotations.setdefault(relative, set()).update(symbols)
+    return annotations
+
+
+def code_annotations(text: str) -> dict[str, set[str]]:
+    return annotations_in(field(text, "代码"))
 
 
 def mapping_paths(text: str) -> list[str]:
@@ -65,7 +85,7 @@ def index_rows(text: str) -> dict[str, list[str]]:
     return rows
 
 
-def check_feature(path: Path) -> tuple[str, list[str]]:
+def check_feature(path: Path) -> tuple[str, list[str], dict[str, set[str]]]:
     text = read(path)
     matched = ID_RE.search(text)
     feature_id = matched.group(1) if matched else path.name.split("-", 2)[0]
@@ -79,10 +99,14 @@ def check_feature(path: Path) -> tuple[str, list[str]]:
     for relative in mapping_paths(text):
         if relative not in declared:
             warnings.append(f"{path.name} 的映射路径未登记到代码字段：{relative}")
-    return feature_id, declared
+    return feature_id, declared, code_annotations(text)
 
 
-def check_index(rows: dict[str, list[str]], by_feature: dict[str, list[str]]) -> None:
+def check_index(
+    rows: dict[str, list[str]],
+    by_feature: dict[str, list[str]],
+    annotations: dict[str, dict[str, set[str]]],
+) -> None:
     for feature_id, declared in by_feature.items():
         row = rows.get(feature_id)
         if row is None:
@@ -98,6 +122,23 @@ def check_index(rows: dict[str, list[str]], by_feature: dict[str, list[str]]) ->
             if extra:
                 detail.append(f"代码字段多出：{'、'.join(extra)}")
             errors.append(f"{feature_id} 的代码路径与索引不一致（{'；'.join(detail)}）")
+        indexed_symbols = annotations_in(row[3])
+        declared_symbols = annotations.get(feature_id, {})
+        for relative in sorted(indexed & set(declared)):
+            index_set = indexed_symbols.get(relative, set())
+            doc_set = declared_symbols.get(relative, set())
+            if index_set == doc_set:
+                continue
+            detail = []
+            missing = sorted(index_set - doc_set)
+            extra = sorted(doc_set - index_set)
+            if missing:
+                detail.append(f"索引多出：{'、'.join(missing)}")
+            if extra:
+                detail.append(f"代码字段多出：{'、'.join(extra)}")
+            warnings.append(
+                f"{feature_id} 的代码符号与索引不一致（{relative}：{'；'.join(detail)}）"
+            )
     for feature_id in rows:
         if feature_id not in by_feature:
             errors.append(f"{feature_id} 出现在索引但缺少 FTR 文档")
@@ -128,12 +169,14 @@ def main() -> int:
 
     features = sorted((ROOT / "docs" / "features").glob("FTR-*.md"))
     by_feature: dict[str, list[str]] = {}
+    annotations: dict[str, dict[str, set[str]]] = {}
     for path in features:
-        feature_id, declared = check_feature(path)
+        feature_id, declared, symbols = check_feature(path)
         by_feature[feature_id] = declared
+        annotations[feature_id] = symbols
     index_path = ROOT / "docs" / "features" / "index.md"
     if index_path.is_file():
-        check_index(index_rows(read(index_path)), by_feature)
+        check_index(index_rows(read(index_path)), by_feature, annotations)
     else:
         errors.append("缺少 docs/features/index.md")
 

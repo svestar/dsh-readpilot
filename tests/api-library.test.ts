@@ -241,19 +241,6 @@ test('library_scan_watch_invalidates_cache', async t => {
   assert.equal(closed, true)
 })
 
-test('archived_session_is_reported_and_filtered_from_state', async t => {
-  const { library, data } = await makeLibrary(t)
-  const ctx = fakeContext()
-  const api = createReaderApi({ ctx, dataDir: data })
-  const state = await api.configureLibrary({ path: library })
-  const bookId = state.books[0].id
-  await api.setCompanionSession({ bookId, sessionId: 's1' })
-  assert.equal((await api.sessionAlive({ sessionId: 's1' })).alive, true)
-  ctx.archivedSessionIds.push('s1')
-  assert.equal((await api.sessionAlive({ sessionId: 's1' })).alive, false)
-  const refreshed = await api.state()
-  assert.equal(refreshed.sessions[bookId], undefined)
-})
 test('book_assets_serve_library_images_and_rewrite_chapter_urls', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

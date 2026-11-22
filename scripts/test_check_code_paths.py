@@ -89,12 +89,42 @@ class CheckCodePathsTest(unittest.TestCase):
         self.checker.check_feature(path)
         self.assertTrue(any("重复" in warning for warning in self.checker.warnings))
 
+    def test_markdown_code_annotation_is_parsed(self) -> None:
+        annotations = self.checker.code_annotations("- **代码：** `docs/spec.md`（`heading`）")
+        self.assertEqual(annotations, {"docs/spec.md": {"heading"}})
+
     def test_index_drift_is_an_error(self) -> None:
         rows = self.checker.index_rows(
             "| `FTR-001` | 示例 | `docs/features/FTR-001-sample.md` | `src/other.ts` | `tests/sample.test.ts` | active |"
         )
-        self.checker.check_index(rows, {"FTR-001": ["src/sample.ts"]})
+        self.checker.check_index(rows, {"FTR-001": ["src/sample.ts"]}, {})
         self.assertTrue(any("索引不一致" in error for error in self.checker.errors))
+
+    def test_index_symbol_drift_is_a_warning(self) -> None:
+        rows = self.checker.index_rows(
+            "| `FTR-001` | 示例 | `docs/features/FTR-001-sample.md` | `src/sample.ts`（`other`） | `tests/sample.test.ts` | active |"
+        )
+        annotations = {"FTR-001": {"src/sample.ts": {"target"}}}
+        self.checker.check_index(rows, {"FTR-001": ["src/sample.ts"]}, annotations)
+        self.assertEqual(self.checker.errors, [])
+        self.assertTrue(any("代码符号与索引不一致" in warning for warning in self.checker.warnings))
+
+    def test_index_missing_symbol_annotation_is_a_warning(self) -> None:
+        rows = self.checker.index_rows(
+            "| `FTR-001` | 示例 | `docs/features/FTR-001-sample.md` | `src/sample.ts` | `tests/sample.test.ts` | active |"
+        )
+        annotations = {"FTR-001": {"src/sample.ts": {"target"}}}
+        self.checker.check_index(rows, {"FTR-001": ["src/sample.ts"]}, annotations)
+        self.assertTrue(any("代码字段多出：target" in warning for warning in self.checker.warnings))
+
+    def test_index_matching_symbols_is_clean(self) -> None:
+        rows = self.checker.index_rows(
+            "| `FTR-001` | 示例 | `docs/features/FTR-001-sample.md` | `src/sample.ts`（`target`） | `tests/sample.test.ts` | active |"
+        )
+        annotations = {"FTR-001": {"src/sample.ts": {"target"}}}
+        self.checker.check_index(rows, {"FTR-001": ["src/sample.ts"]}, annotations)
+        self.assertEqual(self.checker.errors, [])
+        self.assertEqual(self.checker.warnings, [])
 
     def test_repository_passes_strict(self) -> None:
         env = {**os.environ, "PYTHONIOENCODING": "utf-8"}
