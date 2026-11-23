@@ -1,6 +1,7 @@
 import { React, h } from '../../runtime.ts'
 import { renderBlocks, renderBlocksWithTranslations } from '../markdown/render.ts'
 import { ReaderBar } from '../reader/ReaderBar.ts'
+import { Toc } from '../reader/Toc.ts'
 import { SelectionToolbar } from '../reader/SelectionNote.ts'
 import { NoteDialog } from '../reader/SelectionNote.ts'
 import { ActionHistory } from '../reader/ActionHistory.ts'
@@ -11,6 +12,7 @@ import { TranslationControl } from '../translation/TranslationControl.ts'
 import { TranslationCard } from '../translation/TranslationCard.ts'
 import { visibleBlockIndices } from '../reader/block-visibility.ts'
 import { useSidebarReader } from './use-sidebar-reader.ts'
+import { tocUsesPages } from './navigation.ts'
 import type { SidebarReaderProps } from './use-sidebar-reader.ts'
 import type { PageLayout } from '../reader/paging.ts'
 
@@ -23,6 +25,7 @@ export function SidebarReader(props: SidebarReaderProps) {
     selection: state.selection,
     activeSessionId: props.sessionId ?? null,
   })
+  const [tocOpen, setTocOpen] = React.useState(false)
   const bookScreen = state.screen.kind === 'book' ? state.screen : null
   const inlineAvailable = bookScreen !== null
     && state.mode === 'text'
@@ -109,6 +112,7 @@ export function SidebarReader(props: SidebarReaderProps) {
     visualLoading,
     visualError,
     stepPdfPage,
+    goPdfPage,
     onPdfMouseUp,
     onEpubLoad,
     epubFrameRef,
@@ -124,6 +128,8 @@ export function SidebarReader(props: SidebarReaderProps) {
     noteError,
     noteInputRef,
     activeBookId,
+    activeChapterId,
+    selectChapter,
     deleteNote,
     closeNoteEditor,
     saveNote,
@@ -200,24 +206,47 @@ export function SidebarReader(props: SidebarReaderProps) {
       epubFrameRef,
     })
 
+  const tocPages = tocUsesPages(screen.detail.book.format, mode, Boolean(screen.detail.scanOnly))
+  const jumpFromToc = (chapterId: string) => {
+    setTocOpen(false)
+    const target = screen.detail.toc.find(item => item.id === chapterId)
+    if (tocPages && typeof target?.page === 'number') {
+      goPdfPage(target.page)
+      return
+    }
+    void selectChapter(screen.detail.book.id, chapterId)
+  }
+  const jumpToTocPage = (page: number) => {
+    setTocOpen(false)
+    goPdfPage(page)
+  }
+
   return h('div', { className: 'dsh-readpilot-sidebar-reader-root', ref: rootRef },
     h('div', { className: 'dsh-readpilot-sidebar-reader-head' },
       h('div', { className: 'dsh-readpilot-sidebar-reader-title', title: book.title }, book.title),
-      screen.detail.scanOnly ? null : h('div', { className: 'dsh-readpilot-segmented' },
+      h('div', { className: 'dsh-readpilot-sidebar-reader-actions' },
         h('button', {
           type: 'button',
-          className: 'dsh-readpilot-segment',
-          'data-active': mode === 'text' ? 'true' : 'false',
-          onClick: () => switchMode('text'),
-        }, t('sidebarTextMode')),
-        h('button', {
-          type: 'button',
-          className: 'dsh-readpilot-segment',
-          'data-active': mode === 'original' ? 'true' : 'false',
-          disabled: !canOriginal,
-          title: canOriginal ? t('sidebarOriginalMode') : t('sidebarOriginalUnavailable'),
-          onClick: () => switchMode('original'),
-        }, t('sidebarOriginalMode')))),
+          className: 'dsh-readpilot-sidebar-toc-toggle',
+          'aria-expanded': tocOpen ? 'true' : 'false',
+          'aria-controls': 'dsh-readpilot-sidebar-toc',
+          onClick: () => setTocOpen(open => !open),
+        }, t('toc')),
+        screen.detail.scanOnly ? null : h('div', { className: 'dsh-readpilot-segmented' },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-segment',
+            'data-active': mode === 'text' ? 'true' : 'false',
+            onClick: () => switchMode('text'),
+          }, t('sidebarTextMode')),
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-segment',
+            'data-active': mode === 'original' ? 'true' : 'false',
+            disabled: !canOriginal,
+            title: canOriginal ? t('sidebarOriginalMode') : t('sidebarOriginalUnavailable'),
+            onClick: () => switchMode('original'),
+          }, t('sidebarOriginalMode'))))),
     selection && !noteEditor
       ? h(SelectionToolbar, {
         t,
@@ -228,7 +257,33 @@ export function SidebarReader(props: SidebarReaderProps) {
         onHighlight: (color: string) => { void addHighlight(color) },
       })
       : null,
-    h('div', { className: 'dsh-readpilot-sidebar-reader-body' }, body),
+    h('div', { className: 'dsh-readpilot-sidebar-reader-body' },
+      body,
+      tocOpen
+        ? h('div', { className: 'dsh-readpilot-sidebar-toc-layer' },
+          h('button', {
+            type: 'button',
+            className: 'dsh-readpilot-sidebar-toc-backdrop',
+            'aria-label': t('close'),
+            onClick: () => setTocOpen(false),
+          }),
+          h('div', {
+            id: 'dsh-readpilot-sidebar-toc',
+            className: 'dsh-readpilot-sidebar-toc-panel',
+            role: 'dialog',
+            'aria-label': t('toc'),
+          },
+          h(Toc, {
+            t,
+            detail: screen.detail,
+            activeChapter: activeChapterId ?? screen.content.chapterId,
+            activePage: visual?.kind === 'pdf' ? visual.page : undefined,
+            scanOnly: screen.detail.scanOnly,
+            pageJump: tocPages,
+            onSelect: jumpFromToc,
+            onPageSelect: jumpToTocPage,
+          })))
+        : null),
     h(ReaderBar, {
       t,
       format: screen.detail.book.format,

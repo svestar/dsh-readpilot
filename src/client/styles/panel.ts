@@ -69,8 +69,16 @@ export const PANEL_STYLES = `.dsh-readpilot-status-pill[data-state="off"]{opacit
 
 .dsh-readpilot-sidebar-reader-root{display:flex;flex-direction:column;height:100%;min-height:0;background:var(--reader-bg,var(--dsw-alias-bg-base));color:var(--reader-fg,var(--dsw-alias-label-primary))}
 .dsh-readpilot-sidebar-reader-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border-bottom:1px solid var(--reader-border,var(--dsw-alias-border-l2))}
-.dsh-readpilot-sidebar-reader-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:600}
-.dsh-readpilot-sidebar-reader-body{flex:1;min-height:0;display:flex;overflow:hidden;padding:0 4px}
+.dsh-readpilot-sidebar-reader-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;font-weight:600}
+.dsh-readpilot-sidebar-reader-actions{display:flex;align-items:center;gap:6px;min-width:0}
+.dsh-readpilot-sidebar-toc-toggle{flex:none;height:24px;padding:0 8px;white-space:nowrap;border:1px solid var(--dsw-alias-border-l2);border-radius:6px;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:12px;cursor:pointer}
+.dsh-readpilot-sidebar-toc-toggle:hover,.dsh-readpilot-sidebar-toc-toggle[aria-expanded="true"]{background:var(--dsw-alias-bg-layer-2);color:var(--dsw-alias-label-primary)}
+.dsh-readpilot-sidebar-reader-body{position:relative;flex:1;min-height:0;display:flex;overflow:hidden;padding:0 4px}
+.dsh-readpilot-sidebar-toc-layer{position:absolute;inset:0;z-index:6;display:flex;min-height:0}
+.dsh-readpilot-sidebar-toc-backdrop{position:absolute;inset:0;padding:0;border:0;background:rgba(15,23,42,.22)}
+.dsh-readpilot-sidebar-toc-panel{position:relative;z-index:1;display:flex;flex-direction:column;width:min(280px,88%);min-height:0;border-right:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-1);box-shadow:8px 0 24px rgba(15,23,42,.2)}
+.dsh-readpilot-sidebar-toc-panel .dsh-readpilot-toc{display:flex;flex-direction:column;flex:1;width:100%;min-height:0;border-right:0}
+.dsh-readpilot-sidebar-toc-panel .dsh-readpilot-toc-list{flex:1;min-height:0;overflow:auto;padding-bottom:40px}
 .dsh-readpilot-sidebar-reader{padding:4px 8px;height:100%;overflow:hidden}
 .dsh-readpilot-sidebar-reader .dsh-readpilot-page-frame{padding:8px 4px;height:100%;width:auto;max-width:100%;aspect-ratio:210/297;align-self:center;margin:0 auto}
 .dsh-readpilot-sidebar-reader-root .dsh-readpilot-translation-popover{top:auto;bottom:calc(100% + 6px)}

@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { parseHTML } from 'linkedom'
-import { consumePendingBlock, preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset } from '../src/client/modules/sidebar/navigation.ts'
+import { consumePendingBlock, preserveSidebarVisual, prefillCompanionQuote, chapterFractionForOffset, tocUsesPages } from '../src/client/modules/sidebar/navigation.ts'
 
 test('sidebar_pdf_visual_keeps_current_page_when_chapter_updates', () => {
   const current = { kind: 'pdf' as const, page: 2, scale: 1.5 }
@@ -14,6 +14,14 @@ test('sidebar_epub_visual_keeps_same_href_and_follows_chapter_change', () => {
   const current = { kind: 'epub' as const, href: 'ch1.xhtml' }
   assert.deepEqual(preserveSidebarVisual(current, { kind: 'epub', href: 'ch1.xhtml' }, false), current)
   assert.deepEqual(preserveSidebarVisual(current, { kind: 'epub', href: 'ch2.xhtml' }, false), { kind: 'epub', href: 'ch2.xhtml' })
+})
+
+test('sidebar_toc_uses_pages_for_pdf_original', () => {
+  assert.equal(tocUsesPages('pdf', 'original', false), true)
+  assert.equal(tocUsesPages('pdf', 'original', true), true)
+  assert.equal(tocUsesPages('pdf', 'text', false), false)
+  assert.equal(tocUsesPages('epub', 'original', false), false)
+  assert.equal(tocUsesPages('txt', 'text', false), false)
 })
 
 test('sidebar_chapter_offset_maps_to_reading_fraction', () => {

@@ -43,6 +43,11 @@ export interface SidebarBook {
 
 export type SidebarMode = 'text' | 'original'
 
+/** PDF 原版与扫描版目录按页跳转；文本重排与其他格式按章节跳转。 */
+export function tocUsesPages(format: SidebarBook['format'], mode: SidebarMode, scanOnly: boolean): boolean {
+  return format === 'pdf' && (mode === 'original' || scanOnly)
+}
+
 /**
  * Put a selected passage into the session composer.
  * @param actions - the session's composer actions, when the host provides them.
