@@ -1,5 +1,5 @@
 import { React } from '../../runtime.ts'
-import { CHAT_WIDTH_DEFAULT, clampChatWidth, readChatWidth, saveChatWidth } from '../../lib/helpers.ts'
+import { CHAT_WIDTH_DEFAULT, chatWidthLimit, clampChatWidth, readChatWidth, saveChatWidth } from '../../lib/helpers.ts'
 
 /** Companion panel width: persisted, clamped to the viewport and drag-resizable. */
 export function useChatResize() {
@@ -61,5 +61,13 @@ export function useChatResize() {
     saveChatWidth(next)
   }, [])
 
-  return { chatWidth, startResize, moveResize, endResize, resetResize, resizeKeyDown }
+  return {
+    chatWidth,
+    maxWidth: chatWidthLimit(window.innerWidth),
+    startResize,
+    moveResize,
+    endResize,
+    resetResize,
+    resizeKeyDown,
+  }
 }

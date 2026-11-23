@@ -89,7 +89,9 @@ test('fold_transcript_skips_context_messages', () => {
 
 test('clamp_chat_width_bounds', () => {
   assert.equal(plugin.clampChatWidth(200, 1440), 360)
-  assert.equal(plugin.clampChatWidth(900, 1440), 640)
+  assert.equal(plugin.clampChatWidth(640, 1440), 640)
+  assert.equal(plugin.clampChatWidth(900, 1440), 850)
+  assert.equal(plugin.clampChatWidth(900, 1920), 900)
   assert.equal(plugin.clampChatWidth(400, 900), 360)
   assert.equal(plugin.clampChatWidth(400, 700), 360)
   assert.equal(plugin.clampChatWidth(Number.NaN, 1440), 420)

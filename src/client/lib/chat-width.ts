@@ -2,14 +2,21 @@ export const CHAT_WIDTH_KEY = 'dsh-readpilot.chat-width'
 
 export const CHAT_WIDTH_DEFAULT = 420
 export const CHAT_WIDTH_MIN = 360
-export const CHAT_WIDTH_MAX = 640
+
+/** 阅读页左侧目录栏宽度，与 `.dsh-readpilot-book` 网格列宽一致。 */
+const TOC_COLUMN_WIDTH = 230
+/** 伴读栏拉宽时仍保留给主阅读区的最小宽度。 */
+const READER_MIN_WIDTH = 360
+
+/** 伴读栏在当前视口下可拖到的最大宽度：只受目录与正文所需空间约束。 */
+export function chatWidthLimit(viewportWidth: number): number {
+  if (!Number.isFinite(viewportWidth)) return CHAT_WIDTH_DEFAULT
+  return Math.max(CHAT_WIDTH_MIN, Math.round(viewportWidth - TOC_COLUMN_WIDTH - READER_MIN_WIDTH))
+}
 
 export function clampChatWidth(value: number, viewportWidth: number): number {
   const numeric = Number.isFinite(value) ? value : CHAT_WIDTH_DEFAULT
-  const available = Number.isFinite(viewportWidth)
-    ? viewportWidth - 230 - 360
-    : CHAT_WIDTH_MAX
-  const upper = Math.min(CHAT_WIDTH_MAX, Math.max(CHAT_WIDTH_MIN, available))
+  const upper = chatWidthLimit(viewportWidth)
   return Math.round(Math.min(Math.max(numeric, CHAT_WIDTH_MIN), upper))
 }
 

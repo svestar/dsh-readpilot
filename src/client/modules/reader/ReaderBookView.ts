@@ -124,7 +124,7 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     chatCompose,
     chatWidth: companion.chatWidth,
     minWidth: 360,
-    maxWidth: 640,
+    maxWidth: companion.maxWidth,
     startResize: companion.startResize,
     moveResize: companion.moveResize,
     endResize: companion.endResize,
