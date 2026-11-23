@@ -134,6 +134,20 @@ export function createMemoryHandlers({
         }
         return memoryStatus(book)
       }
+      if (payload.action === 'historyRestore' || payload.action === 'historyRemove' || payload.action === 'historyClear') {
+        const scope = payload.scope === 'reader' ? 'reader' : 'book'
+        const cardId = scope === 'reader' ? null : book.id
+        if (payload.action === 'historyRestore') {
+          await store.restoreHistory(cardId, String(payload.id ?? ''))
+        } else if (payload.action === 'historyRemove') {
+          await store.removeHistory(cardId, String(payload.id ?? ''))
+        } else {
+          await store.clearHistory(cardId)
+        }
+        if (scope === 'reader') await rebuildAllMemory()
+        else await rebuildMemory(book.id)
+        return memoryStatus(book)
+      }
       if (payload.action === 'status' || payload.action === undefined) return memoryStatus(book)
       throw new ReaderError('invalid-memory-action', `未知记忆操作：${String(payload.action)}`)
     } catch (error) {

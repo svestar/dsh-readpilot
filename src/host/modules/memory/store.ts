@@ -28,6 +28,9 @@ export interface MemoryStore {
   writeReader(text: string): Promise<MemoryCard>
   listHistory(bookId: string | null): Promise<MemoryHistoryEntry[]>
   readHistory(bookId: string | null, id: string): Promise<MemoryHistorySnapshot>
+  restoreHistory(bookId: string | null, id: string): Promise<MemoryCard>
+  removeHistory(bookId: string | null, id: string): Promise<boolean>
+  clearHistory(bookId: string | null): Promise<number>
   undo(bookId: string | null): Promise<MemoryCard>
   clearBook(bookId: string): Promise<void>
   clearReader(): Promise<void>
@@ -197,10 +200,8 @@ export function createMemoryStore(dataDir: string): MemoryStore {
     return { id: snapshotId, text, createdAt: createdAtOf(snapshotId), characters: text.length }
   }
 
-  async function undo(name: string): Promise<MemoryCard> {
-    const entries = await listHistory(name)
-    if (entries.length === 0) throw new MemoryStoreError('history-empty', '没有可撤销的历史快照')
-    const restored = await readHistory(name, entries[0].id)
+  async function restoreHistory(name: string, id: string): Promise<MemoryCard> {
+    const restored = await readHistory(name, id)
     const path = cardPath(name)
     const current = await readTextFile(path)
     if (current) await snapshot(name, current)
@@ -212,6 +213,35 @@ export function createMemoryStore(dataDir: string): MemoryStore {
     return { text: restored.text, characters: restored.text.length }
   }
 
+  async function removeHistory(name: string, id: string): Promise<boolean> {
+    const snapshotId = assertHistoryId(id)
+    const dir = cardHistoryDir(name)
+    const path = join(dir, `${snapshotId}.md`)
+    assertInside(dir, path)
+    if (await readTextFile(path) === null) return false
+    await rm(path, { force: true })
+    return true
+  }
+
+  async function clearHistory(name: string): Promise<number> {
+    const dir = cardHistoryDir(name)
+    let entries: string[]
+    try {
+      entries = await readdir(dir)
+    } catch {
+      return 0
+    }
+    const ids = entries.filter(entry => entry.endsWith('.md') && HISTORY_ID_PATTERN.test(entry.slice(0, -'.md'.length)))
+    await Promise.all(ids.map(entry => rm(join(dir, entry), { force: true })))
+    return ids.length
+  }
+
+  async function undo(name: string): Promise<MemoryCard> {
+    const entries = await listHistory(name)
+    if (entries.length === 0) throw new MemoryStoreError('history-empty', '没有可撤销的历史快照')
+    return restoreHistory(name, entries[0].id)
+  }
+
   return {
     readBook: async bookId => readCard(assertBookId(bookId)),
     readReader: async () => readCard(READER_CARD),
@@ -219,6 +249,9 @@ export function createMemoryStore(dataDir: string): MemoryStore {
     writeReader: async text => writeCard(READER_CARD, text, MAX_READER_CHARACTERS),
     listHistory: async bookId => listHistory(cardName(bookId)),
     readHistory: async (bookId, id) => readHistory(cardName(bookId), id),
+    restoreHistory: async (bookId, id) => restoreHistory(cardName(bookId), id),
+    removeHistory: async (bookId, id) => removeHistory(cardName(bookId), id),
+    clearHistory: async bookId => clearHistory(cardName(bookId)),
     undo: async bookId => undo(cardName(bookId)),
     clearBook: async bookId => clearCard(assertBookId(bookId)),
     clearReader: async () => clearCard(READER_CARD),

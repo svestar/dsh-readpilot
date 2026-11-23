@@ -223,6 +223,7 @@ export const enWorkspace = {
       memoryHistoryCount: 'history',
       memoryHistoryEmpty: '(empty snapshot)',
       memoryHint: 'Off by default. When on, the companion records only durable preferences, views and conclusions, never plot facts. Each card is capped at 600 characters and every update can be undone.',
+      memoryHistoryClearConfirm: 'Clear all reader card history? The current card stays unchanged.',
       memoryFailed: 'Memory action failed',
       clear: 'Clear',
       refresh: 'Refresh',

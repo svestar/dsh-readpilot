@@ -19,6 +19,9 @@ export interface MemoryState {
   setMode: (mode: MemoryMode) => Promise<void>
   setBookState: (state: BookMemoryState) => Promise<void>
   saveCard: (scope: MemoryScope, text: string) => Promise<void>
+  restoreHistory: (scope: MemoryScope, id: string) => Promise<void>
+  removeHistory: (scope: MemoryScope, id: string) => Promise<void>
+  clearHistory: (scope: MemoryScope) => Promise<void>
   undo: (scope: MemoryScope) => Promise<void>
   clear: (scope: MemoryScope) => Promise<void>
 }
@@ -92,6 +95,9 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
     setMode: mode => run('setMode', { mode }),
     setBookState: state => run('setBook', { state }),
     saveCard: (scope, text) => run('write', { scope, text }),
+    restoreHistory: (scope, id) => run('historyRestore', { scope, id }),
+    removeHistory: (scope, id) => run('historyRemove', { scope, id }),
+    clearHistory: scope => run('historyClear', { scope }),
     undo: scope => run('undo', { scope }),
     clear: scope => run('clear', { scope }),
   }

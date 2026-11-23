@@ -1,5 +1,6 @@
 import { React, h } from '../../runtime.ts'
 import type { TextFn } from '../../lib/types.ts'
+import { ConfirmDialog } from '../common/ConfirmDialog.ts'
 
 export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'
@@ -34,6 +35,9 @@ export interface MemoryPanelProps {
   onMode: (mode: MemoryMode) => void
   onBookState: (state: BookMemoryState) => void
   onSave: (scope: MemoryScope, text: string) => void
+  onRestoreHistory: (scope: MemoryScope, id: string) => void
+  onRemoveHistory: (scope: MemoryScope, id: string) => void
+  onClearHistory: (scope: MemoryScope) => void
   onUndo: (scope: MemoryScope) => void
   onClear: (scope: MemoryScope) => void
 }
@@ -52,6 +56,14 @@ function effectiveLabel(t: TextFn, effective: 'on' | 'off'): string {
   return effective === 'on' ? t('memoryEffectiveOn') : t('memoryEffectiveOff')
 }
 
+interface HistoryActions {
+  onRestore: (id: string) => void
+  onRemove: (id: string) => void
+  onClear: () => void
+}
+
+type HistoryConfirm = { kind: 'clear' } | { kind: 'remove'; id: string }
+
 function cardEditor(
   t: TextFn,
   scope: MemoryScope,
@@ -59,6 +71,7 @@ function cardEditor(
   setText: (value: string) => void,
   history: MemoryHistoryView[],
   props: MemoryPanelProps,
+  historyActions?: HistoryActions,
 ) {
   return h('div', { className: 'dsh-readpilot-memory-card dsh-readpilot-card' },
     h('div', { className: 'dsh-readpilot-memory-card-head' },
@@ -95,12 +108,36 @@ function cardEditor(
     history.length > 0
       ? h('details', { className: 'dsh-readpilot-memory-history' },
         h('summary', null, `${t('history')} · ${history.length}`),
+        historyActions
+          ? h('div', { className: 'dsh-readpilot-long-editor-actions' },
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-note-delete',
+              disabled: props.busy,
+              onClick: historyActions.onClear,
+            }, t('historyClear')))
+          : null,
         history.slice(0, 10).map(entry => h('details', {
           key: entry.id,
           className: 'dsh-readpilot-memory-history-entry',
         },
         h('summary', null, `${new Date(entry.createdAt).toLocaleString()} · ${entry.characters} ${t('noteContextChars')}`),
-        h('pre', { className: 'dsh-readpilot-memory-history-text' }, entry.text || t('memoryHistoryEmpty')))))
+        h('pre', { className: 'dsh-readpilot-memory-history-text' }, entry.text || t('memoryHistoryEmpty')),
+        historyActions
+          ? h('div', { className: 'dsh-readpilot-long-editor-actions' },
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-note-jump',
+              disabled: props.busy,
+              onClick: () => historyActions.onRestore(entry.id),
+            }, t('historyRestore')),
+            h('button', {
+              type: 'button',
+              className: 'dsh-readpilot-note-delete',
+              disabled: props.busy,
+              onClick: () => historyActions.onRemove(entry.id),
+            }, t('historyDelete')))
+          : null)))
       : null)
 }
 
@@ -108,6 +145,21 @@ export function MemoryPanel(props: MemoryPanelProps) {
   const { t, status } = props
   const [bookDraft, setBookDraft] = React.useState('')
   const [readerDraft, setReaderDraft] = React.useState('')
+  const [historyConfirm, setHistoryConfirm] = React.useState<HistoryConfirm | null>(null)
+
+  const readerHistoryActions: HistoryActions = {
+    onRestore: id => props.onRestoreHistory('reader', id),
+    onRemove: id => setHistoryConfirm({ kind: 'remove', id }),
+    onClear: () => setHistoryConfirm({ kind: 'clear' }),
+  }
+
+  const settleHistoryConfirm = (ok: boolean) => {
+    const pending = historyConfirm
+    setHistoryConfirm(null)
+    if (!ok || !pending) return
+    if (pending.kind === 'clear') props.onClearHistory('reader')
+    else props.onRemoveHistory('reader', pending.id)
+  }
 
   React.useEffect(() => {
     setBookDraft(status?.bookText ?? '')
@@ -189,6 +241,16 @@ export function MemoryPanel(props: MemoryPanelProps) {
           'data-state': status.effective,
         }, `${t('memoryEffective')} ${effectiveLabel(t, status.effective)}`))),
     cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props),
-    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props),
-    h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')))
+    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, readerHistoryActions),
+    h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')),
+    h(ConfirmDialog, {
+      t,
+      message: !historyConfirm
+        ? ''
+        : historyConfirm.kind === 'clear'
+          ? t('memoryHistoryClearConfirm')
+          : t('historyDeleteConfirm'),
+      onConfirm: () => settleHistoryConfirm(true),
+      onCancel: () => settleHistoryConfirm(false),
+    }))
 }

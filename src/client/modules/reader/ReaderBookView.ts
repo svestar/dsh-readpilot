@@ -86,6 +86,9 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     onMode: memory.setMode,
     onBookState: memory.setBookState,
     onSave: memory.saveCard,
+    onRestoreHistory: memory.restoreHistory,
+    onRemoveHistory: memory.removeHistory,
+    onClearHistory: memory.clearHistory,
     onUndo: memory.undo,
     onClear: memory.clear,
   })

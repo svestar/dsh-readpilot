@@ -223,6 +223,7 @@ export const zhWorkspace = {
       memoryHistoryCount: '历史',
       memoryHistoryEmpty: '（空快照）',
       memoryHint: '记忆默认关闭；开启后伴读只记录长期有效的偏好、观点与结论，不记情节。每张卡最多 600 字，每次更新可撤销。',
+      memoryHistoryClearConfirm: '清空读者卡的全部历史记录？当前内容不受影响。',
       memoryFailed: '记忆操作失败',
       clear: '清空',
       refresh: '刷新',

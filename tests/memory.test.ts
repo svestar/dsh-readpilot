@@ -213,6 +213,54 @@ test('memory_store_caps_clear_and_undo_clear', async t => {
   assert.equal((await store.undo(null)).text, '读者偏好')
 })
 
+test('memory_store_history_restore', async t => {
+  const dir = await makeDataDir(t)
+  const store = createMemoryStore(dir)
+
+  await store.writeReader('A')
+  await store.writeReader('B')
+  const history = await store.listHistory(null)
+  assert.equal(history.length, 1)
+  assert.equal(history[0].text, 'A')
+
+  const restored = await store.restoreHistory(null, history[0].id)
+  assert.deepEqual(restored, { text: 'A', characters: 1 })
+  assert.deepEqual(await store.readReader(), { text: 'A', characters: 1 })
+  const afterRestore = await store.listHistory(null)
+  assert.equal(afterRestore.length, 2)
+  assert.ok(afterRestore.some(entry => entry.text === 'B'))
+})
+
+test('memory_store_history_remove_and_clear', async t => {
+  const dir = await makeDataDir(t)
+  const store = createMemoryStore(dir)
+
+  await store.writeReader('A')
+  await store.writeReader('B')
+  const history = await store.listHistory(null)
+  assert.equal(history.length, 1)
+
+  assert.equal(await store.removeHistory(null, history[0].id), true)
+  assert.equal(await store.removeHistory(null, history[0].id), false)
+  assert.equal((await store.listHistory(null)).some(entry => entry.id === history[0].id), false)
+  await assert.rejects(
+    () => store.restoreHistory(null, history[0].id),
+    (error: any) => error?.code === 'history-not-found',
+  )
+
+  assert.equal(await store.clearHistory(null), 0)
+  await store.writeReader('C')
+  assert.equal(await store.clearHistory(null), 1)
+  assert.deepEqual(await store.listHistory(null), [])
+  assert.equal(await store.clearHistory(null), 0)
+  assert.deepEqual(await store.readReader(), { text: 'C', characters: 1 })
+
+  await assert.rejects(
+    () => store.removeHistory(null, '../evil'),
+    (error: any) => error?.code === 'invalid-history',
+  )
+})
+
 test('memory_store_rejects_path_traversal', async t => {
   const dir = await makeDataDir(t)
   const store = createMemoryStore(dir)

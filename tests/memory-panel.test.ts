@@ -46,10 +46,16 @@ test('memory_panel_shows_history_snapshot_text', () => {
     onMode() {},
     onBookState() {},
     onSave() {},
+    onRestoreHistory() {},
+    onRemoveHistory() {},
+    onClearHistory() {},
     onUndo() {},
     onClear() {},
   })
   const text = collectText(view)
   assert.match(text, /旧的本书记忆/)
   assert.match(text, /旧的读者卡偏好/)
+  assert.equal(text.split('historyRestore').length - 1, 1)
+  assert.equal(text.split('historyDelete').length - 1, 1)
+  assert.equal(text.split('historyClear').length - 1, 1)
 })
