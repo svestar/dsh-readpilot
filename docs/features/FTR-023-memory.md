@@ -21,7 +21,7 @@
 | `MemoryMode` / `effectiveMemoryState` | `src/shared/contracts/companion.ts:effectiveMemoryState` | 全局与单书状态合成生效状态 |
 | `createMemoryStore` | `src/host/modules/memory/store.ts:createMemoryStore` | 读写两张卡、历史与撤销，执行 600 字上限 |
 | `buildReadingMemory` | `src/host/modules/memory/context.ts:buildReadingMemory` | 生成 `<reading_memory>` 并按预算截断 |
-| `memory` | `src/host/modules/memory/handlers.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear |
+| `memory` | `src/host/modules/memory/handlers.ts:memory` | 记忆页的 status/setMode/setBook/write/undo/clear，以及 historyRestore/historyRemove/historyClear |
 | `memoryTool` | `src/host/modules/memory/handlers.ts:memoryTool` | Agent 侧 read/update/forget，校验生效状态与上限 |
 | `memoryContextFor` | `src/host/modules/memory/handlers.ts:memoryContextFor` | 按会话返回缓存的记忆文本 |
 | `MemoryPanel` / `useMemory` | `src/client/modules/companion/MemoryPanel.ts:MemoryPanel`；`src/client/modules/companion/use-memory.ts:useMemory` | 记忆页与轮询状态 |
