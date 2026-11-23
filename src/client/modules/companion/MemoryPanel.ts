@@ -62,7 +62,9 @@ interface HistoryActions {
   onClear: () => void
 }
 
-type HistoryConfirm = { kind: 'clear' } | { kind: 'remove'; id: string }
+type HistoryConfirm =
+  | { kind: 'clear'; scope: MemoryScope }
+  | { kind: 'remove'; scope: MemoryScope; id: string }
 
 function cardEditor(
   t: TextFn,
@@ -147,18 +149,18 @@ export function MemoryPanel(props: MemoryPanelProps) {
   const [readerDraft, setReaderDraft] = React.useState('')
   const [historyConfirm, setHistoryConfirm] = React.useState<HistoryConfirm | null>(null)
 
-  const readerHistoryActions: HistoryActions = {
-    onRestore: id => props.onRestoreHistory('reader', id),
-    onRemove: id => setHistoryConfirm({ kind: 'remove', id }),
-    onClear: () => setHistoryConfirm({ kind: 'clear' }),
-  }
+  const historyActionsFor = (scope: MemoryScope): HistoryActions => ({
+    onRestore: id => props.onRestoreHistory(scope, id),
+    onRemove: id => setHistoryConfirm({ kind: 'remove', scope, id }),
+    onClear: () => setHistoryConfirm({ kind: 'clear', scope }),
+  })
 
   const settleHistoryConfirm = (ok: boolean) => {
     const pending = historyConfirm
     setHistoryConfirm(null)
     if (!ok || !pending) return
-    if (pending.kind === 'clear') props.onClearHistory('reader')
-    else props.onRemoveHistory('reader', pending.id)
+    if (pending.kind === 'clear') props.onClearHistory(pending.scope)
+    else props.onRemoveHistory(pending.scope, pending.id)
   }
 
   React.useEffect(() => {
@@ -240,15 +242,17 @@ export function MemoryPanel(props: MemoryPanelProps) {
           className: 'dsh-readpilot-status-pill',
           'data-state': status.effective,
         }, `${t('memoryEffective')} ${effectiveLabel(t, status.effective)}`))),
-    cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props),
-    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, readerHistoryActions),
+    cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props, historyActionsFor('book')),
+    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, historyActionsFor('reader')),
     h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')),
     h(ConfirmDialog, {
       t,
       message: !historyConfirm
         ? ''
         : historyConfirm.kind === 'clear'
-          ? t('memoryHistoryClearConfirm')
+          ? historyConfirm.scope === 'book'
+            ? t('memoryBookHistoryClearConfirm')
+            : t('memoryHistoryClearConfirm')
           : t('historyDeleteConfirm'),
       onConfirm: () => settleHistoryConfirm(true),
       onCancel: () => settleHistoryConfirm(false),

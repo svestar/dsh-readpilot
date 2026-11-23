@@ -45,7 +45,7 @@
 - [FTR-005 伴读面板](FTR-005-companion-panel.md)
 - [FTR-017 阅读助手](FTR-017-reading-assistant.md)
 - [FTR-023 记忆](FTR-023-memory.md)
-- [FTR-057 读者卡历史管理](FTR-057-reader-card-history.md)
+- [FTR-057 记忆历史管理](FTR-057-memory-history.md)
 - [FTR-026 对话页码跳转](FTR-026-chat-jump.md)
 - [FTR-034 工作区跳转](FTR-034-workspace-jump.md)
 - [FTR-036 伴读对话标题](FTR-036-companion-title.md)
