@@ -7,6 +7,7 @@ import {
   saveTranslationNotice,
   saveTranslationProvider,
   saveTranslationTarget,
+  translationConsentStep,
 } from '../../lib/translation-preferences.ts'
 import type {
   TranslationBatchResult,
@@ -47,6 +48,8 @@ interface ReaderTranslationOptions {
   activeSessionId: string | null
 }
 
+type PendingTranslation = { kind: 'toggle' } | { kind: 'selection'; source: string; x: number; y: number }
+
 export function useReaderTranslation({
   call,
   t,
@@ -65,6 +68,8 @@ export function useReaderTranslation({
   const [blocks, setBlocks] = React.useState<Record<number, BlockTranslation>>({})
   const [selectionResult, setSelectionResult] = React.useState<SelectionTranslation | null>(null)
   const [panelError, setPanelError] = React.useState('')
+  const [noticeOpen, setNoticeOpen] = React.useState(false)
+  const pendingRef = React.useRef<PendingTranslation | null>(null)
   const selectionRequestRef = React.useRef(0)
   const versionRef = React.useRef(0)
   const viewKeyRef = React.useRef('')
@@ -144,13 +149,7 @@ export function useReaderTranslation({
     }
   }, [bookId])
 
-  const toggleEnabled = React.useCallback(() => {
-    setEnabled(!enabled)
-  }, [enabled, setEnabled])
-
-  const translateSelection = React.useCallback(async (): Promise<void> => {
-    const source = selection?.text?.trim() ?? ''
-    if (!source) return
+  const runSelection = React.useCallback(async (source: string, x: number, y: number): Promise<void> => {
     const result: SelectionTranslation = {
       source,
       text: '',
@@ -158,8 +157,8 @@ export function useReaderTranslation({
       cached: false,
       loading: true,
       error: '',
-      x: selection?.x ?? 0,
-      y: selection?.y ?? 0,
+      x,
+      y,
     }
     setSelectionResult(result)
     const version = versionRef.current
@@ -175,14 +174,54 @@ export function useReaderTranslation({
         cached: value?.cached === true,
         loading: false,
         error: '',
-        x: result.x,
-        y: result.y,
+        x,
+        y,
       })
     } catch (cause) {
       if (versionRef.current !== version || selectionRequestRef.current !== request) return
       setSelectionResult({ ...result, loading: false, error: messageOf(cause) })
     }
-  }, [call, requestArgs, selection])
+  }, [call, requestArgs])
+
+  const toggleEnabled = React.useCallback(() => {
+    const step = translationConsentStep(readTranslationNotice(), enabled)
+    if (step === 'disable') {
+      setEnabled(false)
+      return
+    }
+    if (step === 'translate') {
+      setEnabled(true)
+      return
+    }
+    pendingRef.current = { kind: 'toggle' }
+    setNoticeOpen(true)
+  }, [enabled, setEnabled])
+
+  const translateSelection = React.useCallback(async (): Promise<void> => {
+    const source = selection?.text?.trim() ?? ''
+    if (!source) return
+    if (!readTranslationNotice()) {
+      pendingRef.current = { kind: 'selection', source, x: selection?.x ?? 0, y: selection?.y ?? 0 }
+      setNoticeOpen(true)
+      return
+    }
+    await runSelection(source, selection?.x ?? 0, selection?.y ?? 0)
+  }, [runSelection, selection])
+
+  const confirmNotice = React.useCallback(() => {
+    const pending = pendingRef.current
+    pendingRef.current = null
+    setNoticeOpen(false)
+    acknowledgeNotice()
+    if (!pending) return
+    if (pending.kind === 'toggle') setEnabled(true)
+    else void runSelection(pending.source, pending.x, pending.y)
+  }, [acknowledgeNotice, runSelection, setEnabled])
+
+  const dismissNotice = React.useCallback(() => {
+    pendingRef.current = null
+    setNoticeOpen(false)
+  }, [])
 
   const closeSelection = React.useCallback(() => {
     selectionRequestRef.current += 1
@@ -283,6 +322,7 @@ export function useReaderTranslation({
     provider,
     providers,
     noticeAcknowledged,
+    noticeOpen,
     blocks,
     selectionResult,
     panelError,
@@ -291,6 +331,8 @@ export function useReaderTranslation({
     setTargetLanguage,
     setProvider,
     acknowledgeNotice,
+    confirmNotice,
+    dismissNotice,
     translateSelection,
     closeSelection,
     setViewKey,

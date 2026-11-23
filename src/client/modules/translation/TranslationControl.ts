@@ -1,5 +1,6 @@
 import { React, h } from '../../runtime.ts'
 import { TRANSLATION_TARGETS } from '../../lib/translation-preferences.ts'
+import { ConfirmDialog } from '../common/ConfirmDialog.ts'
 import type { TextFn } from '../../lib/types.ts'
 import type { useReaderTranslation } from './use-reader-translation.ts'
 
@@ -77,5 +78,11 @@ export function TranslationControl({ t, state, settingsOnly = false }: Translati
           className: 'dsh-readpilot-note-jump',
           onClick: () => void state.clearCache(),
         }, t('translationClearCache'))))
-    : null)
+    : null,
+  h(ConfirmDialog, {
+    t,
+    message: state.noticeOpen ? t('translationNotice') : '',
+    onConfirm: state.confirmNotice,
+    onCancel: state.dismissNotice,
+  }))
 }

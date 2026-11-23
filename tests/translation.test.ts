@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi } from '../src/host/app.ts'
 import { tailTranslationBlocksOf, translationBlocksOf } from '../src/client/modules/translation/blocks.ts'
+import { translationConsentStep } from '../src/client/lib/translation-preferences.ts'
 import { forgetTranslationEnabled, rememberTranslationEnabled, translationEnabledForBook } from '../src/client/modules/translation/session-state.ts'
 import { fakeContext } from './support/api-helpers.ts'
 
@@ -43,6 +44,13 @@ async function setup(t: any) {
   const api = createReaderApi({ ctx: fakeContext({ translator: fixture.translator }), dataDir: data })
   return { api, calls: fixture.calls, requests: fixture.requests }
 }
+
+test('translation_consent_steps', () => {
+  assert.equal(translationConsentStep(false, false), 'notice')
+  assert.equal(translationConsentStep(true, false), 'translate')
+  assert.equal(translationConsentStep(false, true), 'disable')
+  assert.equal(translationConsentStep(true, true), 'disable')
+})
 
 test('translation_providers_and_cache', async t => {
   const { api, calls, requests } = await setup(t)

@@ -8,7 +8,7 @@
 
 ## 行为
 
-阅读栏“译”开关（设置浮层、默认 Bing、偏好与缓存见 [FTR-056](FTR-056-translation-service.md)）。默认关闭，切走再回来保持。主区/侧栏支持；重排阅读翻译当前可见块，译文追加在段落后；滚动/翻页后继续翻译新块。原文、`data-block-index`、选区和划线锚点不变，译文节点只带 `data-translation-index`。
+阅读栏“译”开关（设置浮层、默认 Bing、偏好与缓存见 [FTR-056](FTR-056-translation-service.md)）。默认关闭，切走再回来保持。首次开启或首次选区翻译先弹隐私确认，确认后才请求翻译，取消则保持关闭；确认结果持久化。主区/侧栏支持；重排阅读翻译当前可见块，译文追加在段落后；滚动/翻页后继续翻译新块。原文、`data-block-index`、选区和划线锚点不变，译文节点只带 `data-translation-index`。
 
 译文是分页布局的输入：译文节点会改变多栏宽度和页数，分页器据此重算页码，但屏幕上的块锚点不变；译文片段与原文块共享块索引，只有译文的页也能定位。翻译批次按章应用，不按页丢弃；跨章回翻到上一章章末时，按完整章节扫描并优先预翻译末尾 12 块，不受批量 80 段限制。翻译开关导致的译文增删同样触发重测。
 
@@ -33,3 +33,4 @@
 - 正常：章末预翻译只取尾部块（`translation_tail_prefetch_keeps_last_blocks`）。
 - 边界：章节超过 80 段时，章末预翻译仍取真正末尾（`translation_tail_prefetch_scans_past_batch_limit`）。
 - 正常：翻译开关按书记住，换书或清除后回到关闭（`translation_enabled_is_remembered_per_book`）。
+- 边界：未确认隐私时先提示，确认后才开启或翻译，取消保持关闭（`translation_consent_steps`）。

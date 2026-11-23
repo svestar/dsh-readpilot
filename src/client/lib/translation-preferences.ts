@@ -65,3 +65,11 @@ export function saveTranslationNotice(value: boolean): void {
     // Translation preference persistence is best effort.
   }
 }
+
+export type TranslationConsentStep = 'disable' | 'translate' | 'notice'
+
+/** 主开关点击后的走向：已开启则关闭；未确认隐私先弹窗，确认后才开启。 */
+export function translationConsentStep(acknowledged: boolean, enabled: boolean): TranslationConsentStep {
+  if (enabled) return 'disable'
+  return acknowledged ? 'translate' : 'notice'
+}
