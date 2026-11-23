@@ -9,6 +9,7 @@ export interface MemoryCard {
 
 export interface MemoryHistoryEntry {
   id: string
+  text: string
   createdAt: number
   characters: number
 }
@@ -181,7 +182,7 @@ export function createMemoryStore(dataDir: string): MemoryStore {
       if (!HISTORY_ID_PATTERN.test(id)) continue
       const text = await readTextFile(join(dir, entry))
       if (text === null) continue
-      history.push({ id, createdAt: createdAtOf(id), characters: text.length })
+      history.push({ id, text, createdAt: createdAtOf(id), characters: text.length })
     }
     return history.sort((left, right) => right.createdAt - left.createdAt || right.id.localeCompare(left.id))
   }

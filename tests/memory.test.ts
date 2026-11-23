@@ -133,6 +133,7 @@ test('memory_store_history_and_undo', async t => {
   const history = await store.listHistory('book1')
   assert.equal(history.length, 2)
   assert.equal(history[0].characters, 1)
+  assert.equal(history[0].text, 'B')
   const newest = await store.readHistory('book1', history[0].id)
   assert.equal(newest.text, 'B')
   assert.equal(newest.characters, 1)
@@ -207,6 +208,8 @@ test('memory_store_caps_clear_and_undo_clear', async t => {
   await store.writeReader('读者偏好')
   await store.clearReader()
   assert.deepEqual(await store.readReader(), { text: '', characters: 0 })
+  const readerHistory = await store.listHistory(null)
+  assert.equal(readerHistory[0].text, '读者偏好')
   assert.equal((await store.undo(null)).text, '读者偏好')
 })
 

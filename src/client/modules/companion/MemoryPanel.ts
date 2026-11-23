@@ -9,6 +9,7 @@ export const MAX_MEMORY_CHARACTERS = 600
 
 export interface MemoryHistoryView {
   id: string
+  text: string
   createdAt: number
   characters: number
 }
@@ -94,8 +95,12 @@ function cardEditor(
     history.length > 0
       ? h('details', { className: 'dsh-readpilot-memory-history' },
         h('summary', null, `${t('history')} · ${history.length}`),
-        history.slice(0, 10).map(entry => h('div', { key: entry.id, className: 'dsh-readpilot-long-hint' },
-          `${new Date(entry.createdAt).toLocaleString()} · ${entry.characters} ${t('noteContextChars')}`)))
+        history.slice(0, 10).map(entry => h('details', {
+          key: entry.id,
+          className: 'dsh-readpilot-memory-history-entry',
+        },
+        h('summary', null, `${new Date(entry.createdAt).toLocaleString()} · ${entry.characters} ${t('noteContextChars')}`),
+        h('pre', { className: 'dsh-readpilot-memory-history-text' }, entry.text || t('memoryHistoryEmpty')))))
       : null)
 }
 

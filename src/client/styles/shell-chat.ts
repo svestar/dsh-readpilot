@@ -85,6 +85,8 @@ export const SHELL_CHAT_STYLES = `
 .dsh-readpilot-memory-card textarea:focus{outline:2px solid var(--dsw-alias-brand-primary);outline-offset:1px}
 .dsh-readpilot-memory-history{font-size:11px}
 .dsh-readpilot-memory-history summary{cursor:pointer;color:var(--dsw-alias-label-secondary)}
+.dsh-readpilot-memory-history-entry{margin-top:6px;padding-top:6px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-memory-history-text{margin:6px 0 0;padding:7px 8px;border-radius:6px;background:var(--dsw-alias-bg-base);color:var(--dsw-alias-label-primary);font:inherit;font-size:11px;line-height:1.6;white-space:pre-wrap;word-break:break-word;max-height:180px;overflow:auto}
 .dsh-readpilot-history{display:flex;flex-direction:column;gap:5px;max-height:240px;overflow:auto;padding:7px 8px;border:1px solid var(--dsw-alias-border-l2);border-radius:8px;background:var(--dsw-alias-bg-layer-1)}
 .dsh-readpilot-history-row{display:flex;align-items:center;gap:7px;padding:2px 0;border-bottom:1px solid var(--dsw-alias-border-l2)}
 .dsh-readpilot-history-row:last-child{border-bottom:0}

@@ -221,6 +221,7 @@ export const enWorkspace = {
       actionStatus: 'Status updated',
       memoryUndo: 'Undo last',
       memoryHistoryCount: 'history',
+      memoryHistoryEmpty: '(empty snapshot)',
       memoryHint: 'Off by default. When on, the companion records only durable preferences, views and conclusions, never plot facts. Each card is capped at 600 characters and every update can be undone.',
       memoryFailed: 'Memory action failed',
       clear: 'Clear',
