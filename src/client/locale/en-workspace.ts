@@ -48,7 +48,7 @@ export const enWorkspace = {
       translationTarget: 'Target language',
       translationProvider: 'Translation provider',
       translationPaid: 'paid',
-      translationNotice: 'Translated text is sent to the selected provider and never written to the companion context.',
+      translationNotice: 'Translation sends the source text to the selected online service (Bing by default), so the text leaves this device. Translations stay in a local cache and are never added to the companion conversation.',
       translationNoticeOk: 'Got it',
       translationClearCache: 'Clear translation cache',
       translationCached: 'cached',

@@ -48,7 +48,7 @@ export const zhWorkspace = {
       translationTarget: '目标语言',
       translationProvider: '翻译源',
       translationPaid: '付费',
-      translationNotice: '译文会发送给所选翻译服务；不会写入伴读上下文。',
+      translationNotice: '翻译会把原文发送给所选的在线翻译服务（默认 Bing），内容会离开本机；译文只缓存在本地，不会写入伴读对话。',
       translationNoticeOk: '知道了',
       translationClearCache: '清除译文缓存',
       translationCached: '缓存',
