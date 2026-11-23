@@ -180,6 +180,37 @@ test('memory_rpc_requires_opt_in', async t => {
   assert.equal(api.memoryContextFor('s1'), '')
 })
 
+test('memory_history_rpc_roundtrip', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: 'c001' })
+  await api.memory({ action: 'setMode', bookId, mode: 'on' })
+
+  await api.memory({ action: 'write', bookId, scope: 'book', text: 'B1' })
+  const book = await api.memory({ action: 'write', bookId, scope: 'book', text: 'B2' })
+  assert.equal(book.bookHistory.length, 1)
+  const restored = await api.memory({ action: 'historyRestore', bookId, scope: 'book', id: book.bookHistory[0].id })
+  assert.equal(restored.bookText, 'B1')
+  assert.match(api.memoryContextFor('s1'), /B1/)
+
+  await api.memory({ action: 'write', bookId, scope: 'reader', text: 'R1' })
+  const reader = await api.memory({ action: 'write', bookId, scope: 'reader', text: 'R2' })
+  const removed = await api.memory({ action: 'historyRemove', bookId, scope: 'reader', id: reader.readerHistory[0].id })
+  assert.equal(removed.readerHistory.length, 0)
+  assert.equal(removed.readerText, 'R2')
+  const beforeClear = await api.memory({ action: 'write', bookId, scope: 'reader', text: 'R3' })
+  assert.equal(beforeClear.readerHistory.length, 1)
+  const cleared = await api.memory({ action: 'historyClear', bookId, scope: 'reader' })
+  assert.equal(cleared.readerHistory.length, 0)
+  assert.equal(cleared.readerText, 'R3')
+  await assert.rejects(
+    () => api.memory({ action: 'historyRestore', bookId, scope: 'book', id: '../evil' }),
+    (error: any) => error?.code === 'invalid-history',
+  )
+})
+
 test('note_history_rpc_roundtrip', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

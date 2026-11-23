@@ -4,7 +4,7 @@
 - **名称：** 记忆历史管理
 - **状态：** active
 - **代码：** `src/host/modules/memory/store.ts`（`restoreHistory`、`removeHistory`、`clearHistory`）；`src/host/modules/memory/handlers.ts`（`memory`）；`src/client/modules/companion/use-memory.ts`（`useMemory`）；`src/client/modules/companion/MemoryPanel.ts`（`MemoryPanel`）
-- **测试：** `tests/memory.test.ts`；`tests/memory-panel.test.ts`
+- **测试：** `tests/memory.test.ts`；`tests/memory-panel.test.ts`；`tests/api-notes.test.ts`
 
 ## 行为
 
@@ -29,3 +29,5 @@
 - 正常路径：恢复所选本书记忆历史后卡片回到旧版本，当前版本进入历史（`memory_store_history_restore`）。
 - 正常路径/边界：读者卡删除单条返回真、重复删除返回假、缺失快照恢复返回 `history-not-found`；清空返回数量且当前卡不变，非法 id 返回 `invalid-history`（`memory_store_history_remove_and_clear`）。
 - 正常路径：本书记忆与读者卡的历史条都显示恢复、删除与清空按钮（`memory_panel_shows_history_snapshot_text`）。
+- 正常路径：`historyRestore` / `historyRemove` / `historyClear` RPC 往返，恢复后记忆上下文重建，非法 id 返回 `invalid-history`（`memory_history_rpc_roundtrip`）。
+- 正常路径：删除与清空需确认，确认后按卡片 scope 执行，取消不触发；恢复直接执行（`memory_panel_history_confirm_flow`）。
