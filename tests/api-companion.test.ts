@@ -35,6 +35,36 @@ test('companion_policy_sets_read_only_once', async t => {
   assert.equal(missing.mode, null)
 })
 
+test('companion_policy_prefers_permission_preset', async t => {
+  const { data } = await makeLibrary(t)
+  const calls: Array<{ session: any; preset: string }> = []
+  const session = {
+    append() {
+      throw new Error('raw sandbox append should not run when the preset service is available')
+    },
+  }
+  const ctx = {
+    get(name: string) {
+      if (name === 'sessions') return { get: (id: string) => id === 's1' ? session : undefined }
+      if (name === 'permissionPresets') {
+        return {
+          set(target: any, preset: string) {
+            calls.push({ session: target, preset })
+          },
+        }
+      }
+      return undefined
+    },
+  }
+  const api = createReaderApi({ ctx, dataDir: data })
+
+  const result = await api.setCompanionPolicy({ sessionId: 's1' })
+  assert.equal(result.applied, true)
+  assert.equal(calls.length, 1)
+  assert.equal(calls[0].session, session)
+  assert.equal(calls[0].preset, 'read-only')
+})
+
 test('archived_session_is_reported_and_filtered_from_state', async t => {
   const { library, data } = await makeLibrary(t)
   const ctx = fakeContext()

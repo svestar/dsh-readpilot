@@ -152,10 +152,7 @@ export function useCompanion({
     }
     chatRef.current = record
     setChatBinding(record)
-    reference.ready.then(() => {
-      if (chatRef.current !== record) return
-      void call('companionPolicy', { sessionId }).catch(() => {})
-    }).catch((error: unknown) => {
+    reference.ready.catch((error: unknown) => {
       if (chatRef.current === record) {
         if (isMissingSessionError(error) && screen.kind === 'book') {
           releaseChat()
@@ -166,7 +163,17 @@ export function useCompanion({
       }
     })
     return reference
-  }, [nativeMode, releaseChat, runtime, t, call, screen, invalidateSession])
+  }, [nativeMode, releaseChat, runtime, t, screen, invalidateSession])
+
+  /** Apply read-only once, after a companion session is newly created. */
+  const applyNewSessionPolicy = React.useCallback(async (sessionId: string, reference: any): Promise<void> => {
+    try {
+      await reference.ready
+      await call('companionPolicy', { sessionId })
+    } catch {
+      // Policy setup is best effort; the session remains usable.
+    }
+  }, [call])
 
   React.useEffect(() => {
     if (!activeSessionId) {
@@ -188,6 +195,7 @@ export function useCompanion({
     boundSessionId: chatBinding?.sessionId ?? activeSessionId,
     chatOpen,
     bindSession,
+    applyNewSessionPolicy,
     rememberSession,
     forgetSession,
     setChatOpen,
@@ -252,9 +260,10 @@ export function useCompanion({
     rememberSession(book.id, session)
     const reference = bindSession(session)
     if (!reference) throw new Error(t('loadFailed'))
+    await applyNewSessionPolicy(session, reference)
     await renameCompanionSession(runtime, session, companionSessionTitle(book.title)).catch(() => {})
     return session
-  }, [activeSessionId, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId])
+  }, [activeSessionId, applyNewSessionPolicy, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId])
 
   const send = React.useCallback(async () => {
     const text = draft.trim()

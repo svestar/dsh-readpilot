@@ -17,12 +17,12 @@
 | `NativeCompanion` | `src/client/modules/companion/NativeCompanion.ts:NativeCompanion` | 在 SessionProvider 内渲染 embedded `conversation.content`，固定 Chat 视图 |
 | `createNativeChatBoundary` | `src/client/modules/companion/NativeCompanion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
 | `ChatPanel` | `src/client/modules/companion/ChatPanel.ts:ChatPanel` | 四个标签、原生/折叠聊天与输入区 |
-| `useCompanion` | `src/client/modules/companion/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、就绪后应用只读策略 |
+| `useCompanion` | `src/client/modules/companion/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、新建会话后应用只读策略 |
 | `askCompanion` | `src/client/modules/reader/use-reader-composer.ts:askCompanion` | 选中文字后预填引用并聚焦伴读输入框 |
 
 ## 约束与失败行为
 
-`main` 面板注册声明 `dsh-readpilot.companion` 子槽，`scope` 为 `session`；父组件只有在拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不存在、注册失败或渲染抛错时，`createNativeChatBoundary` 先通知外层切回折叠，再显示现有折叠：只显示 `user/message` 与 `assistant/message` 的文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生路径的 Composer 自己处理发送、停止、排队与模型；折叠路径继续使用 `session.prompt(..., 'queue')`。会话就绪后客户端调用 `companionPolicy`，Host 先查 `sandboxPolicy.overrideOf`，必要时追加 `sandbox/mode: read-only`；同一会话只追加一次，且只由会话就绪触发。窄屏（≤1100px）伴读栏变为覆盖正文的抽屉；宽屏宽度下限 360px、默认 420px，上限随视口放宽（只保留目录与正文所需空间），按浏览器记住。没有书库工作区时输入禁用并提示先创建书库。原生会话头不出现，历史与标题操作仍在 Chat 面板。切换 DSH 页面后重新进入阅读面板时，会恢复上次的书与章节；只有主动回到书库或关闭书籍才显示书库。
+`main` 面板注册声明 `dsh-readpilot.companion` 子槽，`scope` 为 `session`；只有拿到 `SessionProvider`、`renderSlot` 和会话引用时才渲染原生路径。Factory 不可用或抛错时，`createNativeChatBoundary` 通知外层切回折叠：仅 `user/assistant` 文本块，跳过工具、推理、附件与审批；助手 Markdown 仍按基础子集渲染。原生 Composer 自己处理发送、停止、排队与模型；折叠路径继续用 `session.prompt(..., 'queue')`。新建伴读会话绑定后，首次发送前调用 `companionPolicy`：Host 优先用完整 `read-only` 预设同步 sandbox/approval，服务不可用时回退到 `sandbox/mode`；已有会话、切换、重启不改权限。窄屏（≤1100px）为覆盖正文的抽屉；宽屏宽度 360px 起、默认 420px，上限随视口放宽，按浏览器记住。无书库工作区时禁用输入并提示先创建。原生会话头不出现，历史与标题操作仍在 Chat 面板。切换页面再进入阅读面板会恢复上次书/章节；只有回书库或关闭书籍才显示书库。
 
 ## 验收与测试
 
@@ -31,5 +31,6 @@
 - 正常路径：有 SessionProvider 与 renderSlot 时优先原生，Factory 缺失或抛错后切到折叠（`companion_mode_uses_native_until_failure`）。
 - 正常路径：折叠仍只保留真实用户输入与助手文本（`fold_transcript_keeps_text`、`fold_transcript_skips_non_text`、`fold_transcript_skips_context_messages`）。
 - 边界：宽度不小于 360px，上限随视口可用空间放宽，非法值回退 420px（`clamp_chat_width_bounds`）。
+- 正常路径：新建伴读会话优先用完整 `read-only` 预设，旧 Host 回退到 `sandbox/mode`（`companion_policy_prefers_permission_preset`、`companion_policy_sets_read_only_once`）。
 - 正常路径：切换页面后重新挂载阅读面板，仍恢复上次的书/章节画面（`reader_screen_cache_remembers_last_screen`）。
 - 边界：归档/删除/未知会话错误可被识别，普通网络错误不误判（`missing_session_errors_are_detected`）。

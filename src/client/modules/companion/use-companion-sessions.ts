@@ -15,6 +15,7 @@ interface CompanionSessionsOptions {
   boundSessionId: string | null
   chatOpen: boolean
   bindSession: (sessionId: string | null) => any
+  applyNewSessionPolicy: (sessionId: string, reference: any) => Promise<void>
   rememberSession: (bookId: string, sessionId: string) => void
   forgetSession: (bookId: string) => void
   setChatOpen: StateSetter<boolean>
@@ -34,6 +35,7 @@ export function useCompanionSessions({
   boundSessionId,
   chatOpen,
   bindSession,
+  applyNewSessionPolicy,
   rememberSession,
   forgetSession,
   setChatOpen,
@@ -123,7 +125,9 @@ export function useCompanionSessions({
       const binding = await call('session', { bookId: book.id, sessionId })
       for (const unboundBookId of binding?.unboundBookIds ?? []) forgetSession(unboundBookId)
       rememberSession(book.id, sessionId)
-      if (!bindSession(sessionId)) throw new Error(t('loadFailed'))
+      const reference = bindSession(sessionId)
+      if (!reference) throw new Error(t('loadFailed'))
+      await applyNewSessionPolicy(sessionId, reference)
       setDraft('')
       setChatError('')
       setChatTab('chat')
@@ -138,6 +142,7 @@ export function useCompanionSessions({
       setBindingBusy(false)
     }
   }, [
+    applyNewSessionPolicy,
     bindSession,
     bindingBusy,
     boundSessionId,

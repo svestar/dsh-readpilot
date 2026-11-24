@@ -111,9 +111,25 @@ export function createCompanionService(options: CompanionServiceOptions) {
     if (!session || typeof session.append !== 'function') {
       return { sessionId, mode: null, applied: false }
     }
+    if (readOnlySessions.has(sessionId)) {
+      return { sessionId, mode: 'read-only', applied: false }
+    }
+    // Prefer the permission preset so sandbox and approval stay in sync. A raw
+    // sandbox override can leave approval at `never`, which DSH reports as
+    // "custom" instead of "read-only".
+    const presets = options.ctx?.get('permissionPresets')
+    if (presets && typeof presets.set === 'function') {
+      try {
+        presets.set(session, 'read-only')
+        readOnlySessions.add(sessionId)
+        return { sessionId, mode: 'read-only', applied: true }
+      } catch {
+        // Older hosts without the read-only preset fall back to the raw event.
+      }
+    }
     const policy = options.ctx?.get('sandboxPolicy')
     const current = policy && typeof policy.overrideOf === 'function' ? policy.overrideOf(session) : undefined
-    if (current === 'read-only' || readOnlySessions.has(sessionId)) {
+    if (current === 'read-only') {
       readOnlySessions.add(sessionId)
       return { sessionId, mode: 'read-only', applied: false }
     }
