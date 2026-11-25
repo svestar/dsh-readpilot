@@ -25,7 +25,7 @@ A reading plugin for the DSH (DeepSeek Harness) Web GUI. It supports TXT, Markdo
 
 - Five highlight colors, annotations, bookmarks, filters and jumps.
 - Long notes in Markdown, draft diffs, history restore and export.
-- Memory, note context, backup and restore.
+- Memory (including an independent role/style card), note context, backup and restore.
 
 ## Installation
 

@@ -24,8 +24,10 @@ export interface MemoryHistorySnapshot {
 export interface MemoryStore {
   readBook(bookId: string): Promise<MemoryCard>
   readReader(): Promise<MemoryCard>
+  readRole(): Promise<MemoryCard>
   writeBook(bookId: string, text: string): Promise<MemoryCard>
   writeReader(text: string): Promise<MemoryCard>
+  writeRole(text: string): Promise<MemoryCard>
   listHistory(bookId: string | null): Promise<MemoryHistoryEntry[]>
   readHistory(bookId: string | null, id: string): Promise<MemoryHistorySnapshot>
   restoreHistory(bookId: string | null, id: string): Promise<MemoryCard>
@@ -34,15 +36,18 @@ export interface MemoryStore {
   undo(bookId: string | null): Promise<MemoryCard>
   clearBook(bookId: string): Promise<void>
   clearReader(): Promise<void>
+  clearRole(): Promise<void>
 }
 
 const MEMORY_DIR = 'memory'
 const READER_CARD = 'reader'
+const ROLE_CARD = 'role'
 const HISTORY_DIR = '.history'
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
 const HISTORY_ID_PATTERN = /^\d{1,16}-[a-f0-9]{1,32}$/
 const MAX_BOOK_CHARACTERS = 600
 const MAX_READER_CHARACTERS = 600
+const MAX_ROLE_CHARACTERS = 600
 const MAX_HISTORY = 10
 
 export class MemoryStoreError extends Error {
@@ -56,7 +61,7 @@ export class MemoryStoreError extends Error {
 }
 
 function assertBookId(bookId: unknown): string {
-  if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId) || bookId === READER_CARD) {
+  if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId) || bookId === READER_CARD || bookId === ROLE_CARD) {
     throw new MemoryStoreError('invalid-book', 'bookId 不合法')
   }
   return bookId
@@ -111,7 +116,9 @@ export function createMemoryStore(dataDir: string): MemoryStore {
   let lastSnapshotAt = 0
 
   function cardName(bookId: string | null): string {
-    return bookId === null ? READER_CARD : assertBookId(bookId)
+    if (bookId === null) return READER_CARD
+    if (bookId === ROLE_CARD) return ROLE_CARD
+    return assertBookId(bookId)
   }
 
   function cardPath(name: string): string {
@@ -245,8 +252,10 @@ export function createMemoryStore(dataDir: string): MemoryStore {
   return {
     readBook: async bookId => readCard(assertBookId(bookId)),
     readReader: async () => readCard(READER_CARD),
+    readRole: async () => readCard(ROLE_CARD),
     writeBook: async (bookId, text) => writeCard(assertBookId(bookId), text, MAX_BOOK_CHARACTERS),
     writeReader: async text => writeCard(READER_CARD, text, MAX_READER_CHARACTERS),
+    writeRole: async text => writeCard(ROLE_CARD, text, MAX_ROLE_CHARACTERS),
     listHistory: async bookId => listHistory(cardName(bookId)),
     readHistory: async (bookId, id) => readHistory(cardName(bookId), id),
     restoreHistory: async (bookId, id) => restoreHistory(cardName(bookId), id),
@@ -255,5 +264,6 @@ export function createMemoryStore(dataDir: string): MemoryStore {
     undo: async bookId => undo(cardName(bookId)),
     clearBook: async bookId => clearCard(assertBookId(bookId)),
     clearReader: async () => clearCard(READER_CARD),
+    clearRole: async () => clearCard(ROLE_CARD),
   }
 }

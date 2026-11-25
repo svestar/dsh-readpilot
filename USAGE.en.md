@@ -97,9 +97,9 @@ When globally off, no book injects notes; when globally on, each book can follow
 
 ### Memory
 
-Memory is off by default. The Memory tab sets the default and lets this book follow, always enable or always disable it. When on, the companion can record stable reading preferences, views about the book or author, long-term questions and similar facts; the Reader card records cross-book preferences. Keep each item concise (about 60 characters); each card is limited to 600 characters. Memory stores only durable information and does not record plot details, one-off questions or reading progress.
+Memory is off by default. The Memory tab sets the default and lets this book follow, always enable or always disable it. When on, the companion can record stable reading preferences, views about the book or author, long-term questions and similar facts; the Reader card records cross-book preferences; the Role / style card stores answer role, tone and format preferences separately. Keep each item concise (about 60 characters); each card is limited to 600 characters. Memory stores only durable information and does not record plot details, one-off questions or reading progress. The role/style card guides replies but cannot override system rules, tool permissions or the current request.
 
-Every overwrite or clear keeps a history snapshot, up to 10 entries. Expand an entry to view the old body; both Book memory and the Reader card support restoring a selected version, deleting one entry or clearing all history. Restoring first saves the current body to history; deleting and clearing require confirmation and do not change the current card.
+Every overwrite or clear keeps a history snapshot, up to 10 entries. Expand an entry to view the old body; Book memory, the Reader card and the Role / style card all support restoring a selected version, deleting one entry or clearing all history. Restoring first saves the current body to history; deleting and clearing require confirmation and do not change the current card.
 
 ### History and undo
 

@@ -85,8 +85,10 @@ test('memory_panel_shows_history_snapshot_text', () => {
     effective: 'on',
     bookText: '当前本书记忆',
     readerText: '当前读者卡',
+    roleText: '当前角色/风格',
     bookHistory: [{ id: '1-a', text: '旧的本书记忆', createdAt: 1, characters: 5 }],
     readerHistory: [{ id: '2-b', text: '旧的读者卡偏好', createdAt: 2, characters: 7 }],
+    roleHistory: [{ id: '3-c', text: '旧的角色设定', createdAt: 3, characters: 6 }],
   }
   const view = MemoryPanel({
     t: key => key,
@@ -107,9 +109,10 @@ test('memory_panel_shows_history_snapshot_text', () => {
   const text = collectText(view)
   assert.match(text, /旧的本书记忆/)
   assert.match(text, /旧的读者卡偏好/)
-  assert.equal(text.split('historyRestore').length - 1, 2)
-  assert.equal(text.split('historyDelete').length - 1, 2)
-  assert.equal(text.split('historyClear').length - 1, 2)
+  assert.match(text, /旧的角色设定/)
+  assert.equal(text.split('historyRestore').length - 1, 3)
+  assert.equal(text.split('historyDelete').length - 1, 3)
+  assert.equal(text.split('historyClear').length - 1, 3)
 })
 
 test('memory_panel_history_confirm_flow', () => {
@@ -124,8 +127,10 @@ test('memory_panel_history_confirm_flow', () => {
       effective: 'on',
       bookText: 'B',
       readerText: 'R',
+      roleText: 'S',
       bookHistory: [{ id: '1-a', text: 'old book', createdAt: 1, characters: 8 }],
       readerHistory: [{ id: '2-b', text: 'old reader', createdAt: 2, characters: 10 }],
+      roleHistory: [{ id: '3-c', text: 'old role', createdAt: 3, characters: 8 }],
     },
     loading: false,
     error: '',
@@ -164,6 +169,11 @@ test('memory_panel_history_confirm_flow', () => {
   confirmOf(view()).props.onConfirm()
   assert.deepEqual(cleared, ['reader'])
 
-  historyButtons(view(), 'historyRestore')[1].props.onClick()
-  assert.deepEqual(restored, [['reader', '2-b']])
+  historyButtons(view(), 'historyClear')[2].props.onClick()
+  assert.equal(confirmOf(view()).props.message, 'memoryRoleHistoryClearConfirm')
+  confirmOf(view()).props.onConfirm()
+  assert.deepEqual(cleared, ['reader', 'role'])
+
+  historyButtons(view(), 'historyRestore')[2].props.onClick()
+  assert.deepEqual(restored, [['role', '3-c']])
 })
