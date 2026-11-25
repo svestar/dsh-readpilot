@@ -287,7 +287,7 @@ export function useReaderTranslation({
         dropLoading(usable)
         return
       }
-      setPanelError(t('translationFailed') + `：${messageOf(cause, t)}`)
+      setPanelError(t('translationFailed') + `${t('errorSeparator')}${messageOf(cause, t)}`)
       setBlocks(current => {
         const next = { ...current }
         for (const block of usable) {
@@ -306,7 +306,7 @@ export function useReaderTranslation({
       setBlocks({})
       setSelectionResult(null)
     } catch (cause) {
-      setPanelError(t('translationFailed') + `：${messageOf(cause, t)}`)
+      setPanelError(t('translationFailed') + `${t('errorSeparator')}${messageOf(cause, t)}`)
     }
   }, [call, t])
 

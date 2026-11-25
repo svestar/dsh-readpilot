@@ -188,7 +188,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
       setSnapshot(value)
       setScreen({ kind: 'library' })
     } catch (cause) {
-      setError(`${t('configureFailed')}：${messageOf(cause, t)}`)
+      setError(`${t('configureFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }

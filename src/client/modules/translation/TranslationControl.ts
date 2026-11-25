@@ -60,7 +60,11 @@ export function TranslationControl({ t, state, settingsOnly = false }: Translati
         },
         state.providers.providers.length
           ? state.providers.providers.map(provider => h('option', { key: provider.id, value: provider.id },
-            `${provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`))
+            `${provider.id === 'google'
+              ? t('providerGoogle')
+              : provider.id === 'bing'
+                ? t('providerBing')
+                : provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`))
           : h('option', { value: state.provider }, state.provider))),
       state.noticeAcknowledged
         ? null

@@ -55,7 +55,7 @@ export function useChatJump({
       await selectChapter(target.bookId, chapterId, { offset, flash: true })
       if (typeof window !== 'undefined' && window.innerWidth <= 1100) setChatOpen(false)
     } catch (cause) {
-      setChatError(`${t('chatJumpFailed')}：${messageOf(cause, t)}`)
+      setChatError(`${t('chatJumpFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       jumpingRef.current = false
     }

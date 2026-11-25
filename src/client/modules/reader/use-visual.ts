@@ -82,7 +82,7 @@ export function useVisual({
         setPageViews([])
         setPdfPageCount(0)
         setLoadedView(null)
-        setVisualError(`${t('loadFailed')}：${messageOf(cause, t)}`)
+        setVisualError(`${t('loadFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       })
       .finally(() => {
         if (!cancelled) setVisualLoading(false)

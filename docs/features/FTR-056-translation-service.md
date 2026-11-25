@@ -10,7 +10,7 @@
 
 翻译走 Host `translator`，不经过伴读会话。未挂载时 Google/Bing 用匿名 HTTP fallback；付费 DeepSeek 源仍需宿主 `translator`。
 
-阅读栏设置浮层选择目标语言与翻译源（默认 Bing），显示隐私说明并提供清空缓存；首次翻译前的确认见 [FTR-053](FTR-053-translation.md)。默认值与选择持久化。
+阅读栏设置浮层选择目标语言与翻译源（默认 Bing），显示隐私说明并提供清空缓存；Google/Bing 的显示名称跟随当前 UI 语言，首次翻译前的确认见 [FTR-053](FTR-053-translation.md)。默认值与选择持久化。
 
 译文按 provider、语言和源哈希缓存到 `$DSH_HOME/dsh-readpilot/translations.json`，上限 3000 条。
 

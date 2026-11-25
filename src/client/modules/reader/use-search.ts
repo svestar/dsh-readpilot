@@ -45,7 +45,7 @@ export function useSearch({ call, screen, t, selectChapter }: SearchOptions) {
       })
     } catch (cause) {
       setSearchResults({ matches: [], truncated: false, booksScanned: 0, booksTotal: 0, unreadable: false })
-      setSearchError(`${t('searchFailed')}：${messageOf(cause, t)}`)
+      setSearchError(`${t('searchFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setSearchBusy(false)
     }

@@ -71,7 +71,7 @@ export function useCompanionSessions({
       setConversations(Array.isArray(value?.sessions) ? value.sessions.slice() : [])
     } catch (cause) {
       if (requestRef.current === request && bookIdRef.current === requestedBookId) {
-        setConversationsError(`${t('companionSessionsFailed')}：${messageOf(cause, t)}`)
+        setConversationsError(`${t('companionSessionsFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     } finally {
       if (requestRef.current === request && bookIdRef.current === requestedBookId) {
@@ -139,7 +139,7 @@ export function useCompanionSessions({
       await refreshConversations(book.id)
       return true
     } catch (cause) {
-      setConversationsError(`${t('companionSessionFailed')}：${messageOf(cause, t)}`)
+      setConversationsError(`${t('companionSessionFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       return false
     } finally {
       setBindingBusy(false)
@@ -188,7 +188,7 @@ export function useCompanionSessions({
       await refreshConversations(book.id)
       return true
     } catch (cause) {
-      setConversationsError(`${t('companionSessionFailed')}：${messageOf(cause, t)}`)
+      setConversationsError(`${t('companionSessionFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       return false
     } finally {
       setBindingBusy(false)

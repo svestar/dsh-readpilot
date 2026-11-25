@@ -110,7 +110,7 @@ export function useCompanion({
         releaseChat()
         invalidateSession(screen.detail.book.id)
       } else {
-        setChatError(`${t('loadFailed')}：${messageOf(error, t)}`)
+        setChatError(`${t('loadFailed')}${t('errorSeparator')}${messageOf(error, t)}`)
       }
       return null
     }
@@ -161,7 +161,7 @@ export function useCompanion({
           releaseChat()
           invalidateSession(screen.detail.book.id)
         } else {
-          setChatError(`${t('loadFailed')}：${messageOf(error, t)}`)
+          setChatError(`${t('loadFailed')}${t('errorSeparator')}${messageOf(error, t)}`)
         }
       }
     })
@@ -328,7 +328,7 @@ export function useCompanion({
       setChatError('')
       setDraft('')
     } catch (error) {
-      setChatError(`${t('sendFailed')}：${messageOf(error, t)}`)
+      setChatError(`${t('sendFailed')}${t('errorSeparator')}${messageOf(error, t)}`)
     } finally {
       setSending(false)
     }
@@ -342,7 +342,7 @@ export function useCompanion({
     try {
       await reference.binding.session.loadOlder()
     } catch (error) {
-      setChatError(`${t('loadFailed')}：${messageOf(error, t)}`)
+      setChatError(`${t('loadFailed')}${t('errorSeparator')}${messageOf(error, t)}`)
     } finally {
       setLoadingEarlier(false)
     }

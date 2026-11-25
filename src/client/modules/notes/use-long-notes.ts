@@ -59,7 +59,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
         return same ? previous : next.slice()
       })
     } catch (cause) {
-      if (requestRef.current === request) setError(`${t('notesFailed')}：${messageOf(cause, t)}`)
+      if (requestRef.current === request) setError(`${t('notesFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       // A silent poll may supersede an explicit load; the latest request must
       // always settle the spinner or the list stays "loading" forever.
@@ -81,7 +81,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       setDrafts(value.drafts.slice())
     } catch (cause) {
       if (draftRequestRef.current === request && bookRef.current === bookId) {
-        setError(`${t('notesFailed')}：${messageOf(cause, t)}`)
+        setError(`${t('notesFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     }
   }, [activeBookId, call, t])
@@ -170,7 +170,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       resetHistory()
     } catch (cause) {
       if (readRef.current === request && bookRef.current === bookId) {
-        setError(`${t('notesFailed')}：${messageOf(cause, t)}`)
+        setError(`${t('notesFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     }
   }, [activeBookId, call, t])
@@ -230,8 +230,8 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       if (bookRef.current === bookId) {
         const code = (cause as { code?: string } | null)?.code
         setError(code === 'open-failed'
-          ? `${t('openExternalFailed')}：${messageOf(cause, t)}`
-          : `${t('noteSaveFailed')}：${messageOf(cause, t)}`)
+          ? `${t('openExternalFailed')}${t('errorSeparator')}${messageOf(cause, t)}`
+          : `${t('noteSaveFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     } finally {
       setSaving(false)
@@ -269,7 +269,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       await load()
     } catch (cause) {
       if (bookRef.current === bookId) {
-        setError(`${t('noteDeleteFailed')}：${messageOf(cause, t)}`)
+        setError(`${t('noteDeleteFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     } finally {
       setSaving(false)
@@ -297,7 +297,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       await loadDrafts()
       await load()
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setDraftBusyId(null)
     }
@@ -312,7 +312,7 @@ export function useLongNotes({ call, t, activeBookId, notesTabActive, draftWatch
       await call('noteDrafts.reject', { bookId, draftId: item.id })
       if (bookRef.current === bookId) await loadDrafts()
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('draftActionFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setDraftBusyId(null)
     }

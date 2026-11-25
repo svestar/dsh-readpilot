@@ -64,7 +64,7 @@ export function useLongNoteActions({
       const value = await call('noteFiles.history', { bookId, id: active.note.id })
       if (bookRef.current === bookId) setHistory(value.history.slice())
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setHistoryBusy(false)
     }
@@ -97,7 +97,7 @@ export function useLongNoteActions({
       await loadHistory()
       await load()
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setHistoryBusy(false)
     }
@@ -117,7 +117,7 @@ export function useLongNoteActions({
       })
       if (bookRef.current === bookId) await loadHistory()
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setHistoryBusy(false)
     }
@@ -136,7 +136,7 @@ export function useLongNoteActions({
       })
       if (bookRef.current === bookId) await loadHistory()
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('historyFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('historyFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setHistoryBusy(false)
     }
@@ -152,7 +152,7 @@ export function useLongNoteActions({
       if (bookRef.current !== bookId) return
       downloadText(value.fileName, value.markdown)
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('exportFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setExporting(false)
     }
@@ -174,7 +174,7 @@ export function useLongNoteActions({
         throw error
       }
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('exportFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('exportFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setExporting(false)
     }
@@ -188,7 +188,7 @@ export function useLongNoteActions({
     try {
       await call('openNoteFile', { bookId, id: active.note.id })
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('openExternalFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('openExternalFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setExternalBusy(false)
     }

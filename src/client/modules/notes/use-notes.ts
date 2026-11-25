@@ -97,7 +97,7 @@ export function useNotes({
       setNotes(list)
     } catch (cause) {
       if (notesRequestRef.current === request) {
-        setNotesError(`${t('notesFailed')}：${messageOf(cause, t)}`)
+        setNotesError(`${t('notesFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       }
     } finally {
       if (notesRequestRef.current === request) setNotesLoading(false)
@@ -147,7 +147,7 @@ export function useNotes({
         noteId: note.id,
       })
     } catch (cause) {
-      setNotesError(`${t('noteDeleteFailed')}：${messageOf(cause, t)}`)
+      setNotesError(`${t('noteDeleteFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       setNoteDeletingId(null)
       return
     }
@@ -215,7 +215,7 @@ export function useNotes({
         ...fields,
       })
     } catch (cause) {
-      setNoteError(`${t('noteSaveFailed')}：${messageOf(cause, t)}`)
+      setNoteError(`${t('noteSaveFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       setNoteSaving(false)
       return
     }
@@ -273,7 +273,7 @@ export function useNotes({
         annotation: context.pageLabel,
       })
     } catch (cause) {
-      setNoteError(`${t('noteSaveFailed')}：${messageOf(cause, t)}`)
+      setNoteError(`${t('noteSaveFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       setNoteSaving(false)
       return
     }
@@ -317,7 +317,7 @@ export function useNotes({
         })
       }
     } catch (cause) {
-      setNoteError(`${t('noteSaveFailed')}：${messageOf(cause, t)}`)
+      setNoteError(`${t('noteSaveFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
       setNoteSaving(false)
       return
     }

@@ -91,7 +91,7 @@ export function useReaderCompanion({
       runtime.uiWorkspace.openSession(sessionId)
       openReaderSidebar(sessionId)
     } catch (cause) {
-      setError(`${t('openWorkspaceFailed')}：${messageOf(cause, t)}`)
+      setError(`${t('openWorkspaceFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setOpeningWorkspace(false)
     }

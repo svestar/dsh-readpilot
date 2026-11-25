@@ -51,7 +51,7 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
       const value = await call('memory.status', { bookId })
       if (bookRef.current === bookId) setStatus(value as MemoryView)
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('memoryFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('memoryFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setLoading(false)
     }
@@ -80,7 +80,7 @@ export function useMemory({ call, t, activeBookId, notesTabActive }: MemoryOptio
       const value = await (call as any)(`memory.${action}`, { ...payload, bookId })
       if (bookRef.current === bookId) setStatus(value as MemoryView)
     } catch (cause) {
-      if (bookRef.current === bookId) setError(`${t('memoryFailed')}：${messageOf(cause, t)}`)
+      if (bookRef.current === bookId) setError(`${t('memoryFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }

@@ -45,7 +45,7 @@ export function useReaderState({ call, t }: { call: CallRpc; t: TextFn }) {
       cachedSnapshot = value
       setSnapshot(value)
     } catch (cause) {
-      setError(`${t('loadFailed')}：${messageOf(cause, t)}`)
+      setError(`${t('loadFailed')}${t('errorSeparator')}${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }
