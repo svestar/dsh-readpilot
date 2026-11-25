@@ -8,7 +8,7 @@ import type { CallRpc, TextFn } from '../../lib/types.ts'
 
 /** Sidebar entry, main reader panel and the embedded companion occurrence. */
 export function registerReader(ctx: any, t: TextFn, call: CallRpc, runtime: any): void {
-  const ReaderErrorBoundary = createReaderErrorBoundary()
+  const ReaderErrorBoundary = createReaderErrorBoundary(t)
   const NativeChatBoundary = createNativeChatBoundary()
 
   ctx.effect(() => ctx.slots.inject('sidebar.panellist', () => ctx.slots.register({

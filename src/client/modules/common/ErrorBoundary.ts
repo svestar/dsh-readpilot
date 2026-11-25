@@ -1,6 +1,7 @@
 import { React, h } from '../../runtime.ts'
+import type { TextFn } from '../../lib/types.ts'
 
-export function createReaderErrorBoundary(): any {
+export function createReaderErrorBoundary(t: TextFn = key => key): any {
   if (typeof React.Component !== 'function') {
     return function ReaderErrorBoundaryPassthrough({ children }: { children?: any }) {
       return children
@@ -29,7 +30,7 @@ export function createReaderErrorBoundary(): any {
         return h('div', {
           className: 'dsh-readpilot-error',
           style: { padding: 20, whiteSpace: 'pre-wrap', fontFamily: 'monospace' },
-        }, `阅读器渲染失败\n${String(this.state.error?.stack ?? this.state.error)}`)
+        }, `${t('renderFailed')}\n${String(this.state.error?.stack ?? this.state.error)}`)
       }
       return this.props.children
     }

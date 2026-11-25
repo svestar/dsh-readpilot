@@ -3,6 +3,7 @@ export const enWorkspace = {
       askCompanion: 'Ask companion',
       loadFailed: 'Could not load',
       errorSeparator: ': ',
+      renderFailed: 'Reader failed to render',
       mdCopy: 'Copy',
       mdCopied: 'Copied',
       mdCode: 'Code block',

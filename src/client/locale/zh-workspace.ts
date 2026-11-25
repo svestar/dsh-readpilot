@@ -3,6 +3,7 @@ export const zhWorkspace = {
       askCompanion: '问伴读',
       loadFailed: '加载失败',
       errorSeparator: '：',
+      renderFailed: '阅读器渲染失败',
       mdCopy: '复制',
       mdCopied: '已复制',
       mdCode: '代码块',
