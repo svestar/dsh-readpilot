@@ -27,3 +27,4 @@
 | `ADR-023` | ADR-023：Markdown 使用共享扁平块解析器 | `docs/decisions/ADR-023-markdown-blocks.md` |
 | `ADR-024` | ADR-024：迁移到 kit 架构 | `docs/decisions/ADR-024-kit-architecture.md` |
 | `ADR-025` | ADR-025：分页位置使用内容锚点与布局快照 | `docs/decisions/ADR-025-paging-anchor.md` |
+| `ADR-026` | ADR-026：本地化与工作区语言 | `docs/decisions/ADR-026-localization.md` |

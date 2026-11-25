@@ -1,64 +1,78 @@
 # 智读 ReadPilot
 
-[![npm version](https://img.shields.io/npm/v/dsh-readpilot.svg)](https://www.npmjs.com/package/dsh-readpilot) · [GitHub](https://github.com/svestar/dsh-readpilot)
+<img src="icon.svg" width="76" align="right" alt="智读 ReadPilot">
 
-DSH（DeepSeek Harness）Web GUI 的 AI 阅读插件。把本机书库变成可检索、可批注、可与 Agent 共读的工作区，支持 TXT、Markdown、EPUB 与 PDF。
+DSH（DeepSeek Harness）Web GUI 的阅读插件，支持 TXT、Markdown、EPUB 与 PDF。原版/重排阅读、分页、批注、翻译、原生伴读、长笔记和备份都在同一个工作区。
+
+[![npm version](https://img.shields.io/npm/v/dsh-readpilot.svg)](https://www.npmjs.com/package/dsh-readpilot) [![license](https://img.shields.io/badge/license-MIT-1f6f5c.svg)](LICENSE) · [使用说明](USAGE.md) · [更新日志](CHANGELOG.md) · [English](README.en.md)
 
 ## 功能
 
-- **书库**：四种格式扫描；封面、阅读状态、评分、标签、搜索与排序；内容相同的副本可识别并清理。
-- **阅读**：原版 / 重排、滚动 / 分页、单页 / 双页；字号、配色与毛玻璃；目录、搜索、进度、书签与页码跳转；侧栏单页共读，浮动目录可覆盖查看。
-- **扫描版 PDF**：无文本层也能原版逐页查看；搜索、重排、批注与摘要会禁用。
-- **Markdown**：GFM 标题、表格、任务 / 嵌套列表、引用、代码、脚注、删除线、自动链接与行内图片；原始 HTML 按文本显示。
-- **批注**：选中文字即可划线或写批注，支持五种颜色；批注与书签列表可筛选、折叠、跳转。
-- **翻译**：划选文字即可查看译文；首次开启或选区翻译会先确认隐私，原文会发送给所选在线服务。打开阅读栏“译”开关后正文内联双语，按可见段落翻译，字号、页宽或译文重排后仍保持当前位置。主阅读区和工作区侧栏阅读区都支持，PDF/EPUB 原版只做选区翻译；不占用伴读 Token、不进入上下文，译文只缓存在本地。
-- **AI 伴读**：每本书一个原生会话，可新建或从书库工作区绑定旧对话；选区引用、页码跳转、工具卡、推理与审批都走宿主；会话失效自动重建；伴读栏可随视口拖动加宽。
-- **提示词**：12 个内置模板，`{{selection}}`、`{{book}}`、`{{chapter}}`、`{{notes}}` 自动装配选段、书名、章节与批注；模板可新建、编辑、删除、恢复默认。
-- **长笔记**：Markdown 存于书库 `notes/`，可用外部编辑器；对话回答可一键收藏；Agent 写入先生成草稿，先看 diff 再应用；支持自动应用、历史恢复、显示设置与导出。
-- **笔记上下文**：默认关闭；开启后按书把笔记以 `<reading_notes>` 注入伴读上下文（单篇 4000 字符、总计 24000 字符），不限制 `reader_notes` 工具读取。
-- **记忆**：默认关闭；可按书或全局开启，保存稳定的偏好、观点与长期问题；本书卡与读者卡历史可展开查看，也可恢复、删除单条或清空。
-- **Agent 动作与撤销**：跳转、打开侧栏、划线、标签、状态可驱动阅读器与书库；写操作进入“历史”，10 分钟内可撤销。
-- **备份与迁移**：导出批注、长笔记、预设、记忆、进度、标签 / 状态 / 评分与伴读设置；换机后按内容匹配覆盖恢复，恢复前自动快照。
+### 阅读
+
+- 四种格式；原版/重排、滚动/分页、单页/双页。
+- 目录、搜索、书签、页码跳转；扫描版 PDF 可原版逐页查看。
+- 工作区侧栏单页共读；浮动目录覆盖正文，不改变排版。
+
+### 翻译与伴读
+
+- 划词翻译；阅读栏“译”开启正文内联双语，首次使用先确认隐私。
+- 每本书一个 DSH 原生会话，可新建或绑定工作区旧对话。
+- 选区引用、提示词、Agent 阅读动作；工具卡、推理与审批走宿主。
+- 译文缓存在本地，不写入伴读上下文。
+
+### 笔记与数据
+
+- 五种颜色划线/批注、书签、筛选与跳转。
+- 长笔记 Markdown、草稿 diff、历史恢复与导出。
+- 记忆、笔记上下文、备份与恢复。
 
 ## 安装
 
-任选一种：
+在 DSH「插件 → 添加插件」中搜索 `dsh-readpilot` 并启用，然后刷新页面。
 
-- 在 DSH“插件 → 添加插件”中搜索 `dsh-readpilot` 并启用，刷新页面；
-- 执行 `npm install dsh-readpilot`，再在插件管理中启用；
-- 让 DSH Agent 安装：“安装 dsh-readpilot 插件”。
+也可以执行：
+
+```bash
+npm install dsh-readpilot
+```
 
 兼容 DSH `0.2.2-rc.2`–`0.2.x`。
 
 ## 快速开始
 
 1. 打开“智读”，选择本地书籍目录作为书库。
-2. 点开一本书，用“Aa 阅读设置”调整版式。
-3. 选中正文：点颜色创建划线，“批注”写体会，“问伴读”带引用提问。
-4. 需要双语时打开阅读栏“译”，首次会先确认隐私；在“译 ▾”里选择目标语言和翻译源，选中文字也可单独翻译。
-5. 在右侧伴读栏对话，或新建 / 绑定历史对话；也可让 Agent 查书、读章节、写批注、整理长笔记。
-6. 在“长笔记”标签管理笔记、草稿、历史与导出；在设置页做备份。
+2. 打开一本书，用“Aa 阅读设置”调整版式。
+3. 选中正文划线或批注；需要双语时打开阅读栏“译”；右侧打开伴读。
 
 完整步骤见 [USAGE.md](USAGE.md)。
 
 ## 数据与隐私
 
-原书不复制、不上传。设置、进度、会话绑定与解析缓存在 `$DSH_HOME/dsh-readpilot/`，译文缓存是同目录的 `translations.json`；EPUB 资产在 `assets/`，PDF 页面缓存在 `cache/pages/`；长笔记与导出在书库 `notes/`。启用翻译时只把所选段落或可见段落发送给所选在线翻译服务，原文会离开本机。备份不包含原书、工作区、会话或缓存。
+- **原书**：不复制、不上传。
+- **翻译**：只把所选段落或可见段落发送给所选在线翻译服务，原文会离开本机；译文只缓存在本地，不写入伴读对话。
+- **本地数据**：设置、进度、会话绑定、解析缓存和译文缓存位于 `$DSH_HOME/dsh-readpilot/`；长笔记在书库 `notes/`。
+- **备份**：包含批注、长笔记、提示词预设、记忆、阅读进度、标签 / 状态 / 评分与伴读设置；不包含原书、工作区、会话或缓存。
 
-## 开发
+## 开发与架构
 
-需要 Node 22.18+ 与 pnpm。`pnpm run verify` 依次运行 typecheck、boundaries、build、test、sizes、docs、paths 与打包检查；`pnpm run smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
+需要 Node 22.18+ 与 pnpm。
+
+```bash
+pnpm run verify
+pnpm run smoke
+```
+
+`verify` 覆盖 typecheck、boundaries、build、test、sizes、docs、paths 和打包检查；`smoke` 在一次性 `DSH_HOME` 中验证安装与 RPC 面。
 
 ```text
-index.ts                       Host 入口：app、工具、HTTP 与 systemPrompt
-src/host/modules/<feature>/    library、reading、search、notes、memory、prompts、
-                               companion、translation、actions、backup、media、tools
-src/client/modules/<feature>/  阅读器、书库、笔记、伴读、翻译、侧栏、帮助、工具卡片、
-                              Markdown 渲染与通用组件
+index.ts                       Host 入口
+src/host/modules/<feature>/    Host 功能模块：书库、阅读、笔记、伴读、翻译等
+src/client/modules/<feature>/  Client 功能模块：阅读器、书库、笔记、侧栏等
 src/shared/                    双端契约、Markdown、跳转链接与提示词渲染
 ```
 
-功能清单见 [docs/features/index.md](docs/features/index.md)，架构取舍见 `docs/decisions/`。
+功能清单见 [docs/features/index.md](docs/features/index.md)，架构取舍见 [docs/decisions/](docs/decisions/)。
 
 ## 许可证
 
