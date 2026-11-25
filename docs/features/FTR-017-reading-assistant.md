@@ -12,7 +12,7 @@
 
 `reader_context` 是只读工具：不传书时按 `progress.updatedAt` 返回最近阅读的书；传 `book` 时返回指定书的元数据、进度、前 60 条目录和最近 10 条笔记。现有 `reader_books`、`reader_open`、`reader_read`、`reader_search`、`reader_note` 保持不变。
 
-阅读位置注入走 Host `systemPrompt.context`：客户端在会话就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 回调按 `agent.session.id` 返回 `<reading_context>`，只对该会话可见，不写 `AGENTS.md`，说明按工作区语言生成。书名/章节各截断 300 字符，最多 200 个会话。笔记和记忆上下文分别见 [FTR-021](FTR-021-note-context.md) 与 [FTR-023](FTR-023-memory.md)。提示词要求 `reader_notes` 写操作只在用户明确要求时使用，正文只写文档内容，不带“未保存/待确认”等状态行；自动应用以工具结果 `applied` 为准。PDF 页码跳转由客户端自动处理（见 [FTR-026](FTR-026-chat-jump.md)）。短笔记用 `reader_note`，长笔记用 `reader_notes`，含糊时先问；`reader_memory` 只在记忆开启时更新。
+阅读位置注入走 Host `systemPrompt.context`：客户端在会话就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 回调按 `agent.session.id` 返回 `<reading_context>`，只对该会话可见，不写 `AGENTS.md`，说明按工作区语言生成。书名/章节各截断 300 字符，最多 200 个会话。笔记和记忆上下文分别见 [FTR-021](FTR-021-note-context.md) 与 [FTR-023](FTR-023-memory.md)。提示词：`reader_notes` 写操作仅在明确要求时使用，正文只写内容；长笔记看 `applied`，短笔记看 `note`/`deleted`，`delete` 立即删除。改长笔记前先读相关笔记。PDF 页码见 [FTR-026](FTR-026-chat-jump.md)。短/长笔记用 `reader_note` / `reader_notes`，不确定先问；`reader_memory` 记忆开启时更新。
 
 ## 接口与代码映射
 

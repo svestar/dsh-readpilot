@@ -14,7 +14,7 @@ test('workspace_prompt_created_and_managed', async t => {
   const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.match(created, /dsh-readpilot:prompt:begin/)
   assert.match(created, /dsh-readpilot:prompt:end/)
-  assert.match(created, /workspace-language:zh/)
+  assert.match(created, /workspace-language:zh;version:2/)
   assert.ok(created.includes(READING_PROMPT))
   assert.match(created, /reader_context/)
 
@@ -67,9 +67,12 @@ test('workspace_prompt_replaces_managed_block', async t => {
 })
 
 test('workspace_prompt_keeps_status_out_of_note_body', () => {
-  assert.match(READING_PROMPT, /body\/text 就是笔记正文本身/)
-  assert.match(READING_PROMPT, /不要在正文里写“未保存”/)
-  assert.match(READING_PROMPT, /状态只在对话回复里/)
+  assert.match(READING_PROMPT, /body` \/ `text` 只写正文/)
+  assert.match(READING_PROMPT, /不写保存状态/)
+  assert.ok(READING_PROMPT.includes('长笔记看 `applied`'))
+  assert.ok(READING_PROMPT.includes('短笔记看 `note` / `deleted`'))
+  assert.ok(READING_PROMPT_EN.includes('`applied` for long notes'))
+  assert.ok(READING_PROMPT_EN.includes('`note` / `deleted` for short notes'))
 })
 
 test('companion_context_is_scoped_to_session', async t => {
