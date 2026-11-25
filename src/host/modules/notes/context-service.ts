@@ -1,5 +1,6 @@
 import type { BookNoteState, CompanionSettings } from '../../../shared/contracts/companion.ts'
 import { effectiveNotesEnabled } from '../../../shared/contracts/companion.ts'
+import type { Settings } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 import { buildReadingNotes, type ReadingNote } from './context.ts'
 import type { NoteFileStore } from './files/index.ts'
@@ -10,6 +11,7 @@ export interface NotesContextDependencies {
   resolveBook(bookId: unknown): Promise<Book>
   notes: NotesStore
   store(): Promise<NoteFileStore>
+  currentSettings(): Promise<Settings>
   getSettings(): CompanionSettings
   setSettings(value: CompanionSettings): void
   loadSettings(): Promise<CompanionSettings>
@@ -22,6 +24,7 @@ export function createNotesContext({
   resolveBook,
   notes,
   store,
+  currentSettings,
   getSettings,
   setSettings,
   loadSettings,
@@ -46,7 +49,8 @@ export function createNotesContext({
       const highlights = (await notes.list(book.id))
         .filter(note => note.kind === 'annotation' && note.note.trim())
         .map(note => ({ quote: note.quote, annotation: note.note }))
-      const text = buildReadingNotes({ bookTitle: book.title, notes: readingNotes, highlights })
+      const language = (await currentSettings()).workspaceLanguage ?? 'zh'
+      const text = buildReadingNotes({ bookTitle: book.title, notes: readingNotes, highlights, language })
       cache.set(book.id, { text, characters: text.length, updatedAt: Date.now() })
       if (cache.size > 50) {
         const oldest = [...cache.entries()]

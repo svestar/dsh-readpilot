@@ -1,5 +1,6 @@
 import type { CompanionSettings } from '../../../shared/contracts/companion.ts'
 import { effectiveMemoryState } from '../../../shared/contracts/companion.ts'
+import type { Settings } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 import { buildReadingMemory } from './context.ts'
 import { MemoryStoreError } from './store.ts'
@@ -11,6 +12,7 @@ export interface MemoryHandlerDeps {
   books(): Promise<Book[]>
   findBook(books: Book[], key: unknown): Book | undefined
   store: MemoryStore
+  librarySettings(): Promise<Settings>
   getSettings(): CompanionSettings
   setSettings(value: CompanionSettings): void
   loadSettings(): Promise<CompanionSettings>
@@ -24,6 +26,7 @@ export function createMemoryHandlers({
   books,
   findBook,
   store,
+  librarySettings,
   getSettings,
   setSettings,
   loadSettings,
@@ -37,9 +40,14 @@ export function createMemoryHandlers({
         cache.delete(bookId)
         return 0
       }
-      const book = await resolveBook(bookId)
+      const [book, settings] = await Promise.all([resolveBook(bookId), librarySettings()])
       const [reader, card] = await Promise.all([store.readReader(), store.readBook(bookId)])
-      const text = buildReadingMemory({ bookTitle: book.title, reader: reader.text, book: card.text })
+      const text = buildReadingMemory({
+        bookTitle: book.title,
+        reader: reader.text,
+        book: card.text,
+        language: settings.workspaceLanguage ?? 'zh',
+      })
       cache.set(bookId, { text, characters: text.length, updatedAt: Date.now() })
       return text.length
     } catch {

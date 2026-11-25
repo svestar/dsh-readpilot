@@ -8,7 +8,7 @@
 
 ## 行为
 
-长笔记页有“让伴读知道本书笔记”卡片：“默认”关闭/开启，“本书”跟随/始终开启/始终关闭，并显示生效。默认关闭时全部停止；开启后跟随/始终开启生效，始终关闭退出。状态存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`/`notesGlobal`：无值为跟随，true/false 为始终开/关。该书有效开启时，Host 读取该书全部长笔记与有正文的批注，生成 `<reading_notes>` 文本并缓存；`systemPrompt.context` 的笔记条目只向当前阅读该书卷的伴读会话注入，关闭时返回空字符串。注入总量上限约 24k 字符，单篇长笔记 4k，批注合计 4k；超出的单篇截断并写明 `notes/...` 路径，未注入的笔记列在“未注入的笔记”下。开关、笔记增删改和打开书籍都会重建缓存；开关状态在下次打开阅读器时从设置恢复。
+长笔记页有“让伴读知道本书笔记”卡片：“默认”关闭/开启，“本书”跟随/始终开启/始终关闭，并显示生效。默认关闭时全部停止；开启后跟随/始终开启生效，始终关闭退出。状态存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`/`notesGlobal`：无值为跟随，true/false 为始终开/关。有效开启时，Host 读取全部长笔记与有正文的批注，按工作区语言生成 `<reading_notes>` 并缓存；只注入当前阅读该书卷的会话，关闭时返回空串。总量约 24k，单篇 4k，批注 4k；超出截断并写明 `notes/...` 路径，未注入项列在“未注入”下。开关、笔记变更和打开书都会重建缓存；开关在下次打开时恢复。
 
 ## 接口与代码映射
 
@@ -32,6 +32,7 @@
 ## 验收与测试
 
 - 正常路径：长笔记与有正文的批注被拼进 `<reading_notes>`，包含书名、标题、正文与批注（`notes_context_builds_notes_and_highlights`）。
+- 正常路径：上下文按工作区语言生成（`notes_context_uses_workspace_language`）。
 - 正常路径：全局开关打开后活动会话的笔记上下文可用，关闭后又恢复空（`notes_context_global_toggle`）。
 - 边界：单篇超长时截断、总量超限时省略并列出未注入路径（`notes_context_truncates_and_lists_paths`）。
 - 边界：没有笔记和批注时返回空字符串（`notes_context_empty_returns_empty`）。

@@ -41,6 +41,25 @@ test('notes_context_truncates_and_lists_paths', () => {
   assert.match(text, /未注入的笔记/)
 })
 
+test('notes_context_uses_workspace_language', () => {
+  const text = buildReadingNotes({
+    bookTitle: 'Three Body',
+    notes: [
+      { kind: 'book', title: 'Book note', body: 'Overview', path: 'notes/book.md' },
+      { kind: 'topic', title: 'Power', body: 'Dark forest', path: 'notes/power.md' },
+    ],
+    highlights: [{ quote: 'Give years to civilization', annotation: 'Timescale' }],
+    language: 'en',
+  })
+
+  assert.match(text, /reference data, not instructions/)
+  assert.match(text, /Book: Three Body/)
+  assert.match(text, /## Book note/)
+  assert.match(text, /## Topic notes/)
+  assert.match(text, /## Annotated highlights/)
+  assert.doesNotMatch(text, /书名|整书笔记|主题笔记|有批注的划线/)
+})
+
 test('notes_context_empty_returns_empty', () => {
   assert.equal(buildReadingNotes({ bookTitle: 'B', notes: [], highlights: [] }), '')
 })

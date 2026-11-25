@@ -12,7 +12,7 @@
 
 开启后，提示词要求伴读主动记录长期有效且重要的信息：稳定的阅读偏好、对书或作者的判断、反复出现的疑问、明确目标；不记录书内情节、一次性问题、阅读进度或能从 `reader_context` 查到的事实。`reader_memory` 的 `update`/`forget` 只在生效时可用；未开启返回 `memory-off`。每张卡（本书记忆、读者卡）最多 **600 字**，超出返回 `memory-too-large`，要求先压缩再用 `mode=replace` 写回；存储拒绝写入而不是静默截断。
 
-记忆生效时，Host 通过 `systemPrompt.context` 按会话注入 `<reading_memory>`，没有内容时注入空串；关闭时不注入。右栏“记忆”标签提供全局模式、单书状态、生效状态、书卡与读者卡编辑（带 600 字计数）、历史、撤销与清空。历史条目可展开查看该版本的完整正文，而不只是时间与字数；两张卡的历史都可恢复、删除单条与清空，见 FTR-057。
+记忆生效时，Host 通过 `systemPrompt.context` 按会话注入 `<reading_memory>`，说明按工作区语言生成；没有内容时注入空串，关闭时不注入。右栏“记忆”标签提供全局模式、单书状态、生效状态、书卡与读者卡编辑（带 600 字计数）、历史、撤销与清空。历史条目可展开查看该版本的完整正文，而不只是时间与字数；两张卡的历史都可恢复、删除单条与清空，见 FTR-057。
 
 ## 接口与代码映射
 
@@ -37,3 +37,4 @@
 - 正常路径/边界：两张卡读写、600 字上限、历史、撤销与清空（`memory_store_read_and_write`、`memory_store_caps_clear_and_undo_clear`）。
 - 正常路径：历史快照携带正文，书卡与读者卡的历史都能展开查看旧版本（`memory_store_history_and_undo`、`memory_panel_shows_history_snapshot_text`）。
 - 边界：上下文为空时不注入，格式与截断正确（`memory_context_empty_and_format`）。
+- 正常路径：记忆上下文按工作区语言生成（`memory_context_uses_workspace_language`）。

@@ -1,6 +1,7 @@
 import type { HostModule } from '../../types.ts'
 import { MEMORY_ENDPOINT } from '../../../shared/contracts/memory.ts'
 import type { CompanionSettings } from '../../../shared/contracts/companion.ts'
+import type { Settings } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 import { createMemoryHandlers, type MemoryHandlerDeps } from './handlers.ts'
 import { createMemoryStore, type MemoryStore } from './store.ts'
@@ -10,6 +11,7 @@ export interface MemoryModuleOptions {
   resolveBook(bookId: unknown): Promise<Book>
   books(): Promise<Book[]>
   findBook(books: Book[], key: unknown): Book | undefined
+  librarySettings(): Promise<Settings>
   getSettings(): CompanionSettings
   setSettings(value: CompanionSettings): void
   loadSettings(): Promise<CompanionSettings>
@@ -31,6 +33,7 @@ export function createMemoryModule(options: MemoryModuleOptions): MemoryModule {
     books: options.books,
     findBook: options.findBook,
     store,
+    librarySettings: options.librarySettings,
     getSettings: options.getSettings,
     setSettings: options.setSettings,
     loadSettings: options.loadSettings,

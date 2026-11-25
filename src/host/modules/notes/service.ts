@@ -47,6 +47,7 @@ export function createNotesService(options: NotesServiceOptions) {
     resolveBook: options.resolveBook,
     notes,
     store: noteFiles.store,
+    currentSettings: options.currentSettings,
     getSettings: options.getSettings,
     setSettings: options.setSettings,
     loadSettings: options.loadSettings,

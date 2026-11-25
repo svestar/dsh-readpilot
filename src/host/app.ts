@@ -114,6 +114,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     resolveBook: library.resolveBook,
     books: () => library.books(),
     findBook: (books, key) => books.find(book => book.id === key || book.title === key),
+    librarySettings: library.currentSettings,
     getSettings,
     setSettings,
     loadSettings,

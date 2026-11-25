@@ -114,6 +114,28 @@ test('tool_context_hydrates_session_mapping_without_opening_reader', async t => 
   assert.equal(context.bookId, bookId)
   assert.match(api.companionContextOf('session-without-ui'), /书名：demo|书名：/)
 })
+test('companion_context_uses_workspace_language', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library, locale: 'en' })
+  const bookId = state.books[0].id
+
+  await api.setCompanionContext({
+    sessionId: 'session-english-context',
+    bookId,
+    title: 'demo',
+    chapter: 'Chapter one',
+    view: { mode: 'paged', pageStart: 2, pageEnd: 3, pageTotal: 8, selection: 'selected' },
+  })
+  const context = api.companionContextOf('session-english-context')
+  assert.match(context, /The following is the current reading position/)
+  assert.match(context, /Book: demo/)
+  assert.match(context, /View: page 2–3 of 8/)
+  assert.match(context, /Selected text: selected/)
+  assert.match(context, /do not spoil unread chapters/)
+  assert.doesNotMatch(context, /书名|章节|用户选中/)
+})
+
 test('reading_view_is_normalized_and_available_from_tool_context', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })

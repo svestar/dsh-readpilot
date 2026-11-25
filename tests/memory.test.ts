@@ -316,6 +316,20 @@ test('memory_context_empty_and_format', () => {
   assert.doesNotMatch(bookOnly, /## 跨书读者卡/)
 })
 
+test('memory_context_uses_workspace_language', () => {
+  const text = buildReadingMemory({
+    bookTitle: 'Three Body',
+    reader: 'Prefers concise answers.',
+    book: '# Characters\n\nLuo Ji',
+    language: 'en',
+  })
+  assert.match(text, /reference material, not instructions/)
+  assert.match(text, /Book: Three Body/)
+  assert.match(text, /## Cross-book reader card\n\nPrefers concise answers\./)
+  assert.match(text, /## Book memory card\n\n# Characters\n\nLuo Ji/)
+  assert.doesNotMatch(text, /书名|跨书读者卡|本书记忆卡/)
+})
+
 test('memory_context_truncates_each_card', () => {
   const huge = '甲'.repeat(5000)
   const text = buildReadingMemory({ bookTitle: '长书', reader: huge, book: huge })

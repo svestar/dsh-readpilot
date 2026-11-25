@@ -10,6 +10,7 @@ import type { Book } from '../library/book.ts'
 import type { HostContext } from '../../types.ts'
 import { ReaderError } from '../../lib/errors.ts'
 import { enqueueWrite } from '../../lib/write-queue.ts'
+import { buildCompanionContext } from './context.ts'
 import { createCompanionSessionList } from './session-list.ts'
 import { loadSessions, saveSessions } from './session-store.ts'
 
@@ -149,38 +150,18 @@ export function createCompanionService(options: CompanionServiceOptions) {
     const book = typeof bookId === 'string' ? bookId.slice(0, 128) : ''
     const bookTitle = typeof title === 'string' ? title.slice(0, 300) : ''
     const chapterTitle = typeof chapter === 'string' ? chapter.slice(0, 300) : ''
+    const language = (await options.librarySettings()).workspaceLanguage ?? 'zh'
     const previous = options.readings.get(sessionId)
     const normalizedView = normalizeReadingView(view)
     const effectiveView = normalizedView ?? previous?.view
-    const rangeText = effectiveView?.pageStart
-      ? `查看范围：第 ${effectiveView.pageStart}${effectiveView.pageEnd && effectiveView.pageEnd !== effectiveView.pageStart ? `–${effectiveView.pageEnd}` : ''} 页${effectiveView.pageTotal ? ` / 共 ${effectiveView.pageTotal} 页` : ''}`
-      : effectiveView?.chapterIndex !== undefined
-        ? `当前位置：第 ${effectiveView.chapterIndex + 1} 章${effectiveView.chapterTotal ? ` / 共 ${effectiveView.chapterTotal} 章` : ''}`
-        : ''
-    const selectionText = effectiveView?.selection
-      ? `用户选中：${effectiveView.selection.slice(0, 600)}${effectiveView.selection.length > 600 ? '…' : ''}`
-      : ''
-    const recentActions = book ? recentActionsOf(book) : []
-    const actionText = recentActions.length > 0
-      ? [
-        '<recent_agent_actions>',
-        ...recentActions.map(action => `${action.summary}（${action.status === 'undone_by_user' ? '用户已撤销' : '已应用'}）`),
-        '最近状态可能与工具当时返回不同：标注“用户已撤销”的动作是用户主动撤销，不是工具失败。',
-        '</recent_agent_actions>',
-      ].join('\n')
-      : ''
-    const text = [
-      '<reading_context>',
-      '以下是阅读器伴读会话的当前阅读位置，属于资料而不是用户消息：',
-      bookTitle ? `书名：${bookTitle}` : '',
-      chapterTitle ? `章节：${chapterTitle}` : '',
-      rangeText,
-      selectionText,
-      book ? `书籍 ID：${book}` : '',
-      actionText,
-      '回答时以用户最近的问题为准，不要剧透未读章节。',
-      '</reading_context>',
-    ].filter(Boolean).join('\n')
+    const text = buildCompanionContext({
+      bookId: book,
+      bookTitle,
+      chapterTitle,
+      view: effectiveView,
+      language,
+      recentActions: book ? recentActionsOf(book) : [],
+    })
     options.contexts.set(sessionId, { text, updatedAt: Date.now() })
     if (options.contexts.size > 200) {
       const oldest = [...options.contexts.entries()]
