@@ -179,7 +179,7 @@ export function useReaderTranslation({
       })
     } catch (cause) {
       if (versionRef.current !== version || selectionRequestRef.current !== request) return
-      setSelectionResult({ ...result, loading: false, error: messageOf(cause) })
+      setSelectionResult({ ...result, loading: false, error: messageOf(cause, t) })
     }
   }, [call, requestArgs])
 
@@ -287,12 +287,12 @@ export function useReaderTranslation({
         dropLoading(usable)
         return
       }
-      setPanelError(t('translationFailed') + `：${messageOf(cause)}`)
+      setPanelError(t('translationFailed') + `：${messageOf(cause, t)}`)
       setBlocks(current => {
         const next = { ...current }
         for (const block of usable) {
           const previous = next[block.index]
-          if (previous?.loading) next[block.index] = { ...previous, loading: false, error: messageOf(cause) }
+          if (previous?.loading) next[block.index] = { ...previous, loading: false, error: messageOf(cause, t) }
         }
         return next
       })
@@ -306,7 +306,7 @@ export function useReaderTranslation({
       setBlocks({})
       setSelectionResult(null)
     } catch (cause) {
-      setPanelError(t('translationFailed') + `：${messageOf(cause)}`)
+      setPanelError(t('translationFailed') + `：${messageOf(cause, t)}`)
     }
   }, [call, t])
 

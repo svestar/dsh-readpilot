@@ -154,7 +154,7 @@ export function useReaderView({
       }
       return true
     } catch (cause) {
-      setError(`${t('loadFailed')}：${messageOf(cause)}`)
+      setError(`${t('loadFailed')}：${messageOf(cause, t)}`)
       return false
     } finally {
       setBusy(false)
@@ -221,7 +221,7 @@ export function useReaderView({
       )))
       setScreen({ kind: 'book', detail, content })
     } catch (cause) {
-      setError(`${t('loadFailed')}：${messageOf(cause)}`)
+      setError(`${t('loadFailed')}：${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }

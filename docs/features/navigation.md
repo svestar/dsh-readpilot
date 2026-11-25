@@ -72,3 +72,4 @@
 - [FTR-029 键盘快捷键](FTR-029-shortcuts.md)
 - [FTR-035 工作区侧边栏阅读](FTR-035-workspace-sidebar-reader.md)
 - [FTR-049 帮助手册](FTR-049-help-manual.md)
+- [FTR-058 错误消息本地化](FTR-058-error-localization.md)

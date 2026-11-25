@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { messageOf } from '../src/client/lib/helpers.ts'
 import { createRpc } from '../src/client/lib/rpc.ts'
+import { enErrors, zhErrors } from '../src/client/locale/errors.ts'
 
 /**
  * The browser caller is plain `fetch` plus the envelope, so stubbing `fetch` is
@@ -32,4 +34,17 @@ test('client_rpc_unwraps_the_envelope_and_keeps_error_codes', async () => {
   } finally {
     globalThis.fetch = original
   }
+})
+
+test('client_error_dictionaries_cover_the_same_codes', () => {
+  assert.deepEqual(Object.keys(zhErrors).sort(), Object.keys(enErrors).sort())
+  assert.ok(Object.keys(zhErrors).every(key => key.startsWith('error.')))
+})
+
+test('client_error_message_uses_the_current_ui_language', () => {
+  const error = Object.assign(new Error('没有这个接口'), { code: 'unknown-endpoint' })
+  const t = (key: string) => key === 'error.unknown-endpoint' ? 'Unknown endpoint' : key
+  assert.equal(messageOf(error, t), 'Unknown endpoint')
+  assert.equal(messageOf(new Error('plain'), t), 'plain')
+  assert.equal(messageOf(error), '没有这个接口')
 })

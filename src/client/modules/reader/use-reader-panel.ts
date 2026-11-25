@@ -188,7 +188,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
       setSnapshot(value)
       setScreen({ kind: 'library' })
     } catch (cause) {
-      setError(`${t('configureFailed')}：${messageOf(cause)}`)
+      setError(`${t('configureFailed')}：${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }
@@ -199,7 +199,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
       const directory = await runtime.uiWorkspace.pickDirectory()
       if (directory) setPath(directory)
     } catch (cause) {
-      setError(messageOf(cause))
+      setError(messageOf(cause, t))
     }
   }, [runtime, setError])
 

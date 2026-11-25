@@ -27,7 +27,7 @@ export function usePromptPresetActions({
       setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
       setPresetError('')
     } catch (cause) {
-      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause, t)}`)
       throw cause
     }
   }, [call, locale, t])
@@ -38,7 +38,7 @@ export function usePromptPresetActions({
       setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
       setPresetError('')
     } catch (cause) {
-      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause, t)}`)
       throw cause
     }
   }, [call, locale, t])
@@ -49,7 +49,7 @@ export function usePromptPresetActions({
       setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
       setPresetError('')
     } catch (cause) {
-      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause)}`)
+      setPresetError(`${t('presetSaveFailed')}：${messageOf(cause, t)}`)
       throw cause
     }
   }, [call, locale, t])

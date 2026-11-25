@@ -75,7 +75,7 @@ export function useReaderComposer({
         return { ...previous, companion: { ...companion, notes } }
       })
     } catch (cause) {
-      setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
+      setError(`${t('noteContextFailed')}：${messageOf(cause, t)}`)
     } finally {
       setNoteContextBusy(false)
     }
@@ -98,7 +98,7 @@ export function useReaderComposer({
         return { ...previous, companion: { ...companion, notesGlobal: result.enabled } }
       })
     } catch (cause) {
-      setError(`${t('noteContextFailed')}：${messageOf(cause)}`)
+      setError(`${t('noteContextFailed')}：${messageOf(cause, t)}`)
     } finally {
       setNoteContextBusy(false)
     }
@@ -127,7 +127,7 @@ export function useReaderComposer({
         }
         : previous)
     } catch (cause) {
-      setError(`${t('autoApplyNotesFailed')}：${messageOf(cause)}`)
+      setError(`${t('autoApplyNotesFailed')}：${messageOf(cause, t)}`)
     } finally {
       setAutoApplyBusy(false)
     }
@@ -148,7 +148,7 @@ export function useReaderComposer({
       setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
       setPresetError('')
     } catch (cause) {
-      setPresetError(`${t('presetLoadFailed')}：${messageOf(cause)}`)
+      setPresetError(`${t('presetLoadFailed')}：${messageOf(cause, t)}`)
     }
   }, [call, t, workspaceLanguage])
 

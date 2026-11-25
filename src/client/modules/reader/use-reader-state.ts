@@ -37,11 +37,15 @@ export function useReaderState({ call, t }: { call: CallRpc; t: TextFn }) {
         await new Promise(resolve => setTimeout(resolve, 300))
         value = await call('state')
       }
-      if (!value || typeof value !== 'object') throw new Error('阅读器状态为空')
+      if (!value || typeof value !== 'object') {
+        const error = new Error('阅读器状态为空') as Error & { code: string }
+        error.code = 'client-invalid-state'
+        throw error
+      }
       cachedSnapshot = value
       setSnapshot(value)
     } catch (cause) {
-      setError(`${t('loadFailed')}：${messageOf(cause)}`)
+      setError(`${t('loadFailed')}：${messageOf(cause, t)}`)
     } finally {
       setBusy(false)
     }

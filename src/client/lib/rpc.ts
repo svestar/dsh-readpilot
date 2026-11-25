@@ -1,6 +1,12 @@
 import type { RpcResponse } from '../../shared/contract.ts'
 import type { CallRpc } from '../types.ts'
 
+function codedError(message: string, code: string): Error & { code: string } {
+  const error = new Error(message) as Error & { code: string }
+  error.code = code
+  return error
+}
+
 /**
  * The one browser-side RPC caller: POST `{ endpoint, payload }`, unwrap the
  * envelope, and re-attach the Host error `code` to the thrown Error.
@@ -10,7 +16,7 @@ import type { CallRpc } from '../types.ts'
  */
 export function createRpc(path: string, isReady?: () => boolean): CallRpc {
   return async (endpoint: string, payload?: unknown): Promise<any> => {
-    if (isReady && !isReady()) throw new Error('连接服务不可用')
+    if (isReady && !isReady()) throw codedError('连接服务不可用', 'client-offline')
     // Module operations use `notes.list` style names; the wire carries the
     // module endpoint plus an `action` field, as the Host handlers expect.
     const dot = endpoint.indexOf('.')
@@ -27,7 +33,10 @@ export function createRpc(path: string, isReady?: () => boolean): CallRpc {
         body: JSON.stringify({ endpoint: wireEndpoint, payload: wirePayload }),
       })
     } catch (error) {
-      throw new Error(`无法连接阅读器服务：${error instanceof Error ? error.message : String(error)}`)
+      throw codedError(
+        `无法连接阅读器服务：${error instanceof Error ? error.message : String(error)}`,
+        'client-connect-failed',
+      )
     }
 
     let result: RpcResponse<unknown> | null = null
@@ -36,11 +45,12 @@ export function createRpc(path: string, isReady?: () => boolean): CallRpc {
     } catch {
       result = null
     }
-    if (!result) throw new Error(`阅读器服务返回了无效响应（HTTP ${response.status}）`)
+    if (!result) throw codedError(`阅读器服务返回了无效响应（HTTP ${response.status}）`, 'client-invalid-response')
     if (result.ok !== true) {
-      const error = new Error(result.error?.message || `请求失败（HTTP ${response.status}）`) as Error & { code?: string }
-      error.code = result.error?.code
-      throw error
+      throw codedError(
+        result.error?.message || `请求失败（HTTP ${response.status}）`,
+        result.error?.code || 'client-request-failed',
+      )
     }
     return result.value
   }

@@ -1,6 +1,12 @@
-import type { ChatMessage, Screen } from './types.ts'
+import type { ChatMessage, Screen, TextFn } from './types.ts'
 
-export function messageOf(error: unknown): string {
+export function messageOf(error: unknown, t?: TextFn): string {
+  const code = (error as { code?: unknown } | null)?.code
+  if (t && typeof code === 'string' && code) {
+    const key = `error.${code}`
+    const localized = t(key)
+    if (localized && localized !== key) return localized
+  }
   return error instanceof Error ? error.message : String(error)
 }
 
