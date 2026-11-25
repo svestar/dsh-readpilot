@@ -79,6 +79,13 @@ test('tools_use_workspace_language', async t => {
     note: 'Marked',
   })
   assert.match(mark.message, /Annotation saved/)
+  const tagged = await registered.get('reader_tag')!.execute({ book, tags: ['sci-fi'] })
+  assert.match(tagged.message, /Tags saved/)
+  const status = await registered.get('reader_status')!.execute({ book, status: 'reading' })
+  assert.match(status.message, /Reading status saved/)
+  const allReceipts = await app.api.readerReceipts({ action: 'list', bookId: state.books[0].id })
+  assert.ok(allReceipts.receipts.some((item: any) => /Updated tags:/.test(item.summary)))
+  assert.ok(allReceipts.receipts.some((item: any) => /Updated reading status:/.test(item.summary)))
 })
 
 test('tools_read_bounded', async t => {
