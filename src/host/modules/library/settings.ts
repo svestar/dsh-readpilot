@@ -2,7 +2,7 @@ import type { Settings } from '../../../shared/contracts/library.ts'
 import { pathsFor } from '../../lib/data-paths.ts'
 import { readJson, writeJson } from '../../lib/fs-json.ts'
 
-const EMPTY_SETTINGS: Settings = { libraryDir: null, workspaceId: null }
+const EMPTY_SETTINGS: Settings = { libraryDir: null, workspaceId: null, workspaceLanguage: 'zh' }
 
 export async function loadSettings(dataDir: string): Promise<Settings> {
   const stored = await readJson<Partial<Settings>>(pathsFor(dataDir).settings, EMPTY_SETTINGS)

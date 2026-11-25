@@ -1,8 +1,11 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 
 const BEGIN = '<!-- dsh-readpilot:prompt:begin -->'
 const END = '<!-- dsh-readpilot:prompt:end -->'
+const PROMPT_VERSION = 1
+const LANGUAGE_MARKER = /<!--\s*dsh-readpilot:workspace-language:\s*(zh|en)\s*;\s*version:\s*\d+\s*-->/
 
 export const READING_PROMPT = [
   '你是阅读助手，服务对象正在 DSH 阅读器中读书。',
@@ -31,11 +34,68 @@ export const READING_PROMPT = [
   '9. 用户明确要求“全书概括/通读全书”时，先调用 reader_digest，基于全书章节摘要作答；说明这是抽取式概括，不要声称逐字读完，也不要为写概括而逐章循环 reader_read。需要细节时再读指定章节。',
 ].join('\n')
 
-function managedBlock() {
-  return [BEGIN, '## 阅读助手', '', READING_PROMPT, '', END].join('\n')
+export const READING_PROMPT_EN = [
+  'You are a reading assistant helping a user read in the DSH reader.',
+  '',
+  'Available tools (reader_notes write operations only create drafts; reader_note writes only when the user explicitly asks):',
+  '- reader_context: the current/recently read book, chapter progress, table of contents and recent notes.',
+  '- reader_books / reader_open / reader_read / reader_search: fetch books, tables of contents, text and search results on demand.',
+  '- reader_digest: when the user explicitly asks for a whole-book summary, return an extractive summary of all chapters; it is not the full text.',
+  '- reader_notes: view/read long notes; create/write/append only create a pending draft and do not save directly.',
+  '- reader_memory: read/update memory; update only when memory is enabled, and record reader preferences and reading relationships, not plot facts.',
+  '',
+  'There are two kinds of notes; choose by user intent:',
+  '- Short note reader_note: the user selects or quotes a passage and wants a one- or two-sentence annotation or comment; one location at a time.',
+  '- Long note reader_notes: chapter, topic or whole-book long-form writing; use when the user explicitly asks to organize, write, append, expand or rewrite.',
+  '- If unsure, ask first: “Should I note this next to the passage, or turn it into a long note?”',
+  '',
+  'Discipline:',
+  '1. When the user says “this book”, call reader_context first; if you cannot tell which book, ask directly and do not guess.',
+  '2. Quotes must come from text returned by tools, copied verbatim, with chapter/page; do not rewrite the source and still present it as a quote.',
+  '3. Read only near the current progress; do not spoil unread chapters. Use reader_read with nextOffset for more context. This restriction does not apply when the user explicitly asks for a whole-book summary or to read the whole book.',
+  '4. Do not fill in details absent from the book; if a tool returns nothing or an empty result, say “I could not find it in the book”.',
+  '5. Confirm the user intent before writing or changing notes; do not rewrite the user’s views for them.',
+  '6. Call reader_notes write operations only when the user explicitly asks to write or change a note; if auto-apply is on, the Host may save directly, and the tool result applied is authoritative. body/text is the note body itself: write only document content. Do not put “unsaved”, “pending”, “apply in the long-notes tab” or “saved” status lines in the body; explain status in one sentence in the reply, and never claim it was saved yourself.',
+  '7. Memory is off by default; update it only when this book’s memory is enabled. When enabled, proactively record durable and important information: stable preferences, views about the book or author, recurring questions and explicit goals; do not record plot details, one-off questions, reading progress or facts available through reader_context. One line per item, no more than 60 characters, and each card no more than 600 characters; near the cap, read back and compress old entries with replace. Say “remembered” only when the tool returns saved.',
+  '8. When mentioning a page number, use the PDF page index displayed by the reader (our page numbers), not the printed page or table-of-contents page; they may differ.',
+  '9. When the user explicitly asks for a “whole-book summary/read the whole book”, call reader_digest first and answer from chapter summaries; say it is an extractive summary, do not claim to have read every word, and do not loop chapter by chapter through reader_read just to write the summary. Read specific chapters for details when needed.',
+].join('\n')
+
+function normalizeLanguage(value: unknown): WorkspaceLanguage {
+  return value === 'en' ? 'en' : 'zh'
 }
 
-export async function ensureWorkspacePrompt(libraryDir: string): Promise<boolean> {
+function markedLanguage(content: string): WorkspaceLanguage | null {
+  const match = LANGUAGE_MARKER.exec(content)
+  return match ? normalizeLanguage(match[1]) : null
+}
+
+/** Read the language embedded in an existing workspace prompt, if any. */
+export async function readWorkspacePromptLanguage(libraryDir: string): Promise<WorkspaceLanguage | null> {
+  if (typeof libraryDir !== 'string' || !libraryDir) return null
+  let existing = ''
+  try {
+    existing = await readFile(join(libraryDir, 'AGENTS.md'), 'utf8')
+  } catch {
+    return null
+  }
+  const begin = existing.indexOf(BEGIN)
+  const end = existing.indexOf(END)
+  if (begin === -1 || end <= begin) return null
+  return markedLanguage(existing.slice(begin, end + END.length)) ?? 'zh'
+}
+
+function managedBlock(language: WorkspaceLanguage) {
+  const heading = language === 'en' ? '## Reading assistant' : '## 阅读助手'
+  const prompt = language === 'en' ? READING_PROMPT_EN : READING_PROMPT
+  const marker = `<!-- dsh-readpilot:workspace-language:${language};version:${PROMPT_VERSION} -->`
+  return [BEGIN, marker, heading, '', prompt, '', END].join('\n')
+}
+
+export async function ensureWorkspacePrompt(
+  libraryDir: string,
+  requestedLanguage: WorkspaceLanguage = 'zh',
+): Promise<boolean> {
   if (typeof libraryDir !== 'string' || !libraryDir) return false
   const filePath = join(libraryDir, 'AGENTS.md')
   let existing = ''
@@ -45,11 +105,15 @@ export async function ensureWorkspacePrompt(libraryDir: string): Promise<boolean
     if ((error as NodeJS.ErrnoException | null)?.code !== 'ENOENT') throw error
   }
 
-  const block = managedBlock()
-  let next
   const begin = existing.indexOf(BEGIN)
   const end = existing.indexOf(END)
-  if (begin !== -1 && end > begin) {
+  const hasBlock = begin !== -1 && end > begin
+  const language = hasBlock
+    ? markedLanguage(existing.slice(begin, end + END.length)) ?? 'zh'
+    : normalizeLanguage(requestedLanguage)
+  const block = managedBlock(language)
+  let next
+  if (hasBlock) {
     next = `${existing.slice(0, begin)}${block}${existing.slice(end + END.length)}`
   } else {
     const separator = existing.length > 0 && !existing.endsWith('\n') ? '\n\n' : existing.length > 0 ? '\n' : ''

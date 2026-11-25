@@ -79,7 +79,7 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     state: () => deps.state(),
     rescan: () => deps.library.rescan(),
     syncPrompt: () => deps.library.syncPrompt(),
-    configureLibrary: (payload?: { path?: unknown }) => deps.library.configure(payload),
+    configureLibrary: (payload?: { path?: unknown; locale?: unknown }) => deps.library.configure(payload),
     deleteDuplicate: (payload?: { bookId?: unknown }) => deps.library.deleteDuplicate(payload),
     backupExport: () => deps.backup.backupExport(),
     backupRestore: (payload?: any) => deps.backup.backupRestore(payload),

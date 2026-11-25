@@ -1,5 +1,6 @@
 import { React } from '../../runtime.ts'
 import { messageOf, noteLayoutKey } from '../../lib/helpers.ts'
+import { workspaceLanguageFromRuntime } from '../../lib/workspace-language.ts'
 import { useReaderState } from './use-reader-state.ts'
 import { useReaderPreferences } from './use-reader-preferences.ts'
 import { useReaderCompanion } from './use-reader-companion.ts'
@@ -183,7 +184,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     setBusy(true)
     setError('')
     try {
-      const value = await call('configure', { path })
+      const value = await call('configure', { path, locale: workspaceLanguageFromRuntime(runtime) })
       setSnapshot(value)
       setScreen({ kind: 'library' })
     } catch (cause) {
@@ -191,7 +192,7 @@ export function useReaderPanel({ call, t, runtime, SessionProvider, renderSlot, 
     } finally {
       setBusy(false)
     }
-  }, [call, setBusy, setError, setScreen, setSnapshot, t])
+  }, [call, runtime, setBusy, setError, setScreen, setSnapshot, t])
 
   const pickDirectory = React.useCallback(async (setPath: (value: string) => void) => {
     try {

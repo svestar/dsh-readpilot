@@ -15,9 +15,13 @@ export const LIBRARY_ENDPOINTS = {
 
 export type LibraryEndpoint = (typeof LIBRARY_ENDPOINTS)[keyof typeof LIBRARY_ENDPOINTS]
 
+/** Language chosen when the library workspace is first initialized. */
+export type WorkspaceLanguage = 'zh' | 'en'
+
 export interface Settings {
   libraryDir: string | null
   workspaceId: string | null
+  workspaceLanguage: WorkspaceLanguage
   title?: string
 }
 

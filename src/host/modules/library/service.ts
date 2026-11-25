@@ -36,7 +36,7 @@ export interface LibraryService extends LibraryMetaService {
   state(): Promise<ReaderState>
   rescan(): Promise<ReaderState>
   syncPrompt(): Promise<void>
-  configure(payload?: { path?: unknown }): Promise<ReaderState>
+  configure(payload?: { path?: unknown; locale?: unknown }): Promise<ReaderState>
   deleteDuplicate(payload?: { bookId?: unknown }): Promise<ReaderState>
   dispose(): Promise<void>
 }
@@ -70,6 +70,7 @@ export function createLibraryService(deps: LibraryServiceDependencies): LibraryS
     ctx: deps.ctx,
     dataDir: deps.dataDir,
     scan,
+    currentSettings,
     state,
   })
 

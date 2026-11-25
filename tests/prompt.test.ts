@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ensureWorkspacePrompt, READING_PROMPT } from '../src/host/modules/library/workspace-prompt.ts'
+import { ensureWorkspacePrompt, READING_PROMPT, READING_PROMPT_EN } from '../src/host/modules/library/workspace-prompt.ts'
 import { createReaderApi } from '../src/host/app.ts'
 
 test('workspace_prompt_created_and_managed', async t => {
@@ -14,6 +14,7 @@ test('workspace_prompt_created_and_managed', async t => {
   const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.match(created, /dsh-readpilot:prompt:begin/)
   assert.match(created, /dsh-readpilot:prompt:end/)
+  assert.match(created, /workspace-language:zh/)
   assert.ok(created.includes(READING_PROMPT))
   assert.match(created, /reader_context/)
 
@@ -24,6 +25,35 @@ test('workspace_prompt_created_and_managed', async t => {
   assert.match(preserved, /保留我/)
   assert.equal((preserved.match(/dsh-readpilot:prompt:begin/g) ?? []).length, 1)
   assert.equal((preserved.match(/dsh-readpilot:prompt:end/g) ?? []).length, 1)
+})
+
+test('workspace_prompt_initializes_english_and_freezes_language', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+
+  assert.equal(await ensureWorkspacePrompt(root, 'en'), true)
+  const english = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(english, /workspace-language:en/)
+  assert.match(english, /## Reading assistant/)
+  assert.ok(english.includes(READING_PROMPT_EN))
+
+  assert.equal(await ensureWorkspacePrompt(root, 'zh'), false)
+  const frozen = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(frozen, /workspace-language:en/)
+  assert.ok(frozen.includes(READING_PROMPT_EN))
+})
+
+test('workspace_prompt_keeps_legacy_chinese_without_marker', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(join(root, 'AGENTS.md'), '用户说明\n\n<!-- dsh-readpilot:prompt:begin -->\n旧内容\n<!-- dsh-readpilot:prompt:end -->\n', 'utf8')
+
+  assert.equal(await ensureWorkspacePrompt(root, 'en'), true)
+  const content = await readFile(join(root, 'AGENTS.md'), 'utf8')
+  assert.match(content, /用户说明/)
+  assert.match(content, /workspace-language:zh/)
+  assert.ok(content.includes(READING_PROMPT))
+  assert.equal(content.includes(READING_PROMPT_EN), false)
 })
 
 test('workspace_prompt_replaces_managed_block', async t => {

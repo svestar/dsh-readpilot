@@ -44,6 +44,7 @@ test('configure_creates_workspace', async t => {
 
   const first = await api.configureLibrary({ path: library })
   assert.ok(first.settings.workspaceId)
+  assert.equal(first.settings.workspaceLanguage, 'zh')
   assert.equal(ctx.workspaces.length, 1)
   assert.equal(first.books.length, 1)
   const promptFile = await readFile(join(library, 'AGENTS.md'), 'utf8')
@@ -53,6 +54,39 @@ test('configure_creates_workspace', async t => {
   const second = await api.configureLibrary({ path: library })
   assert.equal(ctx.workspaces.length, 1)
   assert.equal(second.settings.workspaceId, first.settings.workspaceId)
+})
+
+test('configure_records_workspace_language_once', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+
+  const first = await api.configureLibrary({ path: library, locale: 'en' })
+  assert.equal(first.settings.workspaceLanguage, 'en')
+  const english = await readFile(join(library, 'AGENTS.md'), 'utf8')
+  assert.match(english, /workspace-language:en/)
+  assert.match(english, /## Reading assistant/)
+
+  const second = await api.configureLibrary({ path: library, locale: 'zh' })
+  assert.equal(second.settings.workspaceLanguage, 'en')
+  const frozen = await readFile(join(library, 'AGENTS.md'), 'utf8')
+  assert.match(frozen, /workspace-language:en/)
+  assert.match(frozen, /## Reading assistant/)
+})
+
+test('configure_reuses_copied_prompt_language', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library, locale: 'en' })
+
+  const other = join(library, '..', 'copied-library')
+  await mkdir(other, { recursive: true })
+  await copyFile(join(library, 'AGENTS.md'), join(other, 'AGENTS.md'))
+
+  const state = await api.configureLibrary({ path: other, locale: 'zh' })
+  assert.equal(state.settings.workspaceLanguage, 'en')
+  const prompt = await readFile(join(other, 'AGENTS.md'), 'utf8')
+  assert.match(prompt, /workspace-language:en/)
+  assert.match(prompt, /## Reading assistant/)
 })
 
 test('session_mapping_persists', async t => {

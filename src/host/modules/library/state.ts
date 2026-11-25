@@ -19,7 +19,7 @@ export function createWorkspaceSync(currentSettings: () => Promise<Settings>): W
   async function syncFor(settings: Settings): Promise<void> {
     if (!settings.libraryDir || promptDir === settings.libraryDir) return
     try {
-      await ensureWorkspacePrompt(settings.libraryDir)
+      await ensureWorkspacePrompt(settings.libraryDir, settings.workspaceLanguage ?? 'zh')
       promptDir = settings.libraryDir
     } catch {
       // A read-only or removed library must not make the whole library page fail.
