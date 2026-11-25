@@ -34,6 +34,7 @@ export function useReaderCompanion({
     ? snapshot.sessions?.[activeBookId]?.sessionId ?? null
     : null
   const workspaceId = snapshot?.settings?.workspaceId ?? null
+  const workspaceLanguage = snapshot?.settings?.workspaceLanguage ?? 'zh'
 
   const [nativeFailed, setNativeFailed] = React.useState(false)
   const nativeMode = companionMode(hasProvider, hasRenderSlot, nativeFailed) === 'native'
@@ -45,6 +46,7 @@ export function useReaderCompanion({
     t,
     screen,
     workspaceId,
+    workspaceLanguage,
     activeSessionId,
     nativeMode,
     rememberSession,
@@ -100,6 +102,7 @@ export function useReaderCompanion({
     activeBookId,
     activeSessionId,
     workspaceId,
+    workspaceLanguage,
     nativeMode,
     nativeInputRef,
     handleNativeReady,

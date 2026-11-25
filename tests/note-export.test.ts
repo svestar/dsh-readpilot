@@ -1,6 +1,8 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
+import { createReaderApi } from '../src/host/app.ts'
 import { buildNotesMarkdown } from '../src/host/modules/notes/export.ts'
+import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 
 const STAMP = Date.UTC(2026, 10, 3, 12, 34, 56)
 const STAMP_TEXT = new Date(STAMP).toISOString()
@@ -49,6 +51,36 @@ test('note_export_full_export_includes_sections_and_metadata', () => {
   assert.deepEqual([...sectionOrder].sort((left, right) => left - right), sectionOrder)
   assert.ok(output.endsWith('\n'))
   assert.ok(!output.endsWith('\n\n'))
+})
+
+test('note_export_uses_workspace_language', () => {
+  const output = buildNotesMarkdown({ ...sampleInput(), language: 'en' })
+
+  assert.ok(output.startsWith('# 三体 — Reading notes\n\n'))
+  assert.ok(output.includes('> Author: 刘慈欣\n'))
+  assert.ok(output.includes('> Tags: 科幻, 小说\n'))
+  assert.ok(output.includes(`> Exported: ${STAMP_TEXT}\n`))
+  assert.ok(output.includes('\n## Book note\n\n总览：黑暗森林。\n'))
+  assert.ok(output.includes('\n## Topic notes\n\n### 权力\n\n黑暗森林法则。\n'))
+  assert.ok(output.includes('\n## Annotations and bookmarks\n\n### 第一章\n\n> 给岁月以文明\n\n时间尺度'))
+  assert.ok(output.includes('### 第二章\n\n- Bookmark: 关键转折 · 第 12 页'))
+})
+
+test('note_export_uses_english_file_names', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library, locale: 'en' })
+  const bookId = state.books[0].id
+  await api.handleRpc('noteFiles', { action: 'create', bookId, title: 'Chapter note', body: 'Body' })
+
+  const markdown = await api.handleRpc('exportNotes', { bookId })
+  assert.equal(markdown.ok, true)
+  assert.match(markdown.value.fileName, /reading-notes\.md$/)
+  assert.match(markdown.value.markdown, /Reading notes/)
+
+  const archive = await api.handleRpc('exportNotesArchive', { bookId })
+  assert.equal(archive.ok, true)
+  assert.match(archive.value.fileName, /long-notes\.zip$/)
 })
 
 test('note_export_empty_book_has_only_title_and_metadata', () => {

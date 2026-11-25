@@ -3,7 +3,11 @@ import assert from 'node:assert/strict'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { createPromptPresetStore, DEFAULT_PROMPT_PRESETS } from '../src/host/modules/prompts/store.ts'
+import {
+  createPromptPresetStore,
+  DEFAULT_PROMPT_PRESETS,
+  DEFAULT_PROMPT_PRESETS_EN,
+} from '../src/host/modules/prompts/store.ts'
 import { renderPrompt } from '../src/shared/prompt-render.ts'
 
 async function tempStore(t: any) {
@@ -58,10 +62,28 @@ test('prompt_presets_migrate_new_defaults_once', async t => {
   assert.ok(migrated.some(item => item.id === 'character'))
   assert.equal(migrated.some(item => item.id === 'terms'), false)
   const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
-  assert.equal(file.version, 3)
+  assert.equal(file.version, 4)
 
   assert.equal(await store.remove('character'), true)
   assert.equal((await store.list()).some(item => item.id === 'character'), false)
+})
+
+test('prompt_presets_localize_unedited_builtins', async t => {
+  const { store } = await tempStore(t)
+  const english = await store.list('en')
+  assert.equal(english.length, DEFAULT_PROMPT_PRESETS_EN.length)
+  assert.equal(english.find(item => item.id === 'explain')?.title, 'Explain this passage')
+  assert.match(english.find(item => item.id === 'explain')?.template ?? '', /Explain this passage/)
+
+  await store.save({ id: 'explain', title: 'My explanation', template: 'Custom {{selection}}' })
+  const editedEn = await store.list('en')
+  const editedZh = await store.list('zh')
+  assert.equal(editedEn.find(item => item.id === 'explain')?.title, 'My explanation')
+  assert.equal(editedZh.find(item => item.id === 'explain')?.title, 'My explanation')
+
+  await store.reset()
+  assert.equal((await store.list('en')).find(item => item.id === 'explain')?.title, 'Explain this passage')
+  assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '解释这段')
 })
 
 test('prompt_presets_simplify_untouched_defaults_on_v2', async t => {

@@ -141,15 +141,16 @@ export function useReaderComposer({
   const [promptPresets, setPromptPresets] = React.useState<PromptPreset[]>([])
   const [presetManagerOpen, setPresetManagerOpen] = React.useState(false)
   const [presetError, setPresetError] = React.useState('')
+  const workspaceLanguage = snapshot?.settings?.workspaceLanguage ?? 'zh'
   const refreshPromptPresets = React.useCallback(async () => {
     try {
-      const value = await call('prompts', { action: 'list' })
+      const value = await call('prompts', { action: 'list', locale: workspaceLanguage })
       setPromptPresets(Array.isArray(value.presets) ? value.presets : [])
       setPresetError('')
     } catch (cause) {
       setPresetError(`${t('presetLoadFailed')}：${messageOf(cause)}`)
     }
-  }, [call, t])
+  }, [call, t, workspaceLanguage])
 
   React.useEffect(() => {
     void refreshPromptPresets()
@@ -158,6 +159,7 @@ export function useReaderComposer({
   const { savePromptPreset, deletePromptPreset, resetPromptPresets } = usePromptPresetActions({
     call,
     t,
+    locale: workspaceLanguage,
     setPromptPresets,
     setPresetError,
   })

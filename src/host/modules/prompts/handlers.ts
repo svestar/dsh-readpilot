@@ -3,19 +3,21 @@ import { ReaderError } from '../../lib/errors.ts'
 
 export function createPromptHandlers({ store }: { store: PromptPresetStore }) {
   async function prompts(payload: any = {}): Promise<any> {
+    const language = payload.locale === 'en' ? 'en' : 'zh'
     try {
       if (payload.action === 'list') {
-        return { presets: await store.list() }
+        return { presets: await store.list(language) }
       }
       if (payload.action === 'save') {
         const preset = await store.save(payload)
-        return { preset, presets: await store.list() }
+        return { preset, presets: await store.list(language) }
       }
       if (payload.action === 'delete') {
-        return { deleted: await store.remove(payload.id), presets: await store.list() }
+        return { deleted: await store.remove(payload.id), presets: await store.list(language) }
       }
       if (payload.action === 'reset') {
-        return { presets: await store.reset() }
+        await store.reset()
+        return { presets: await store.list(language) }
       }
       throw new ReaderError('invalid-prompt-action', `未知预设操作：${String(payload.action)}`)
     } catch (error) {

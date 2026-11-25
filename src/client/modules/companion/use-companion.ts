@@ -5,6 +5,7 @@ import { companionSessionTitle, renameCompanionSession } from './session-title.t
 import { useChatResize } from './use-chat-resize.ts'
 import { useCompanionSessions } from './use-companion-sessions.ts'
 import type { CallRpc, ChatMessage, Screen, TextFn } from '../../lib/types.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 
 interface ChatBinding {
   sessionId: string
@@ -26,6 +27,7 @@ interface CompanionOptions {
   t: TextFn
   screen: Screen
   workspaceId: string | null
+  workspaceLanguage: WorkspaceLanguage
   activeSessionId: string | null
   nativeMode: boolean
   rememberSession: (bookId: string, sessionId: string) => void
@@ -38,6 +40,7 @@ export function useCompanion({
   t,
   screen,
   workspaceId,
+  workspaceLanguage,
   activeSessionId,
   nativeMode,
   rememberSession,
@@ -191,6 +194,7 @@ export function useCompanion({
     t,
     screen,
     workspaceId,
+    workspaceLanguage,
     activeSessionId,
     boundSessionId: chatBinding?.sessionId ?? activeSessionId,
     chatOpen,
@@ -261,9 +265,9 @@ export function useCompanion({
     const reference = bindSession(session)
     if (!reference) throw new Error(t('loadFailed'))
     await applyNewSessionPolicy(session, reference)
-    await renameCompanionSession(runtime, session, companionSessionTitle(book.title)).catch(() => {})
+    await renameCompanionSession(runtime, session, companionSessionTitle(book.title, workspaceLanguage)).catch(() => {})
     return session
-  }, [activeSessionId, applyNewSessionPolicy, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId])
+  }, [activeSessionId, applyNewSessionPolicy, bindSession, call, forgetSession, releaseChat, rememberSession, runtime, screen, t, workspaceId, workspaceLanguage])
 
   const send = React.useCallback(async () => {
     const text = draft.trim()

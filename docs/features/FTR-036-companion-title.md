@@ -3,18 +3,19 @@
 - **ID：** FTR-036
 - **名称：** 伴读对话标题
 - **状态：** active
-- **代码：** `src/client/modules/companion/session-title.ts`（`companionSessionTitle`、`renameCompanionSession`）；`src/client/modules/companion/use-companion.ts`（`useCompanion`）
+- **代码：** `src/client/modules/companion/session-title.ts`（`companionSessionTitle`、`renameCompanionSession`）；`src/client/modules/companion/use-companion.ts`（`useCompanion`）；`src/client/modules/companion/use-companion-sessions.ts`（`useCompanionSessions`）
 - **测试：** `tests/session-title.test.ts`
 
 ## 行为
 
-插件新建的伴读会话使用统一标题：
+插件新建的伴读会话按工作区语言使用统一标题：
 
 ```text
-《书名》· 伴读
+中文：《书名》· 伴读
+英文：Book Title · Companion
 ```
 
-书名取书库中的标题并去掉首尾空白；没有标题时使用“未命名书籍”。创建新会话并绑定后立即改名。已有绑定或用户手动绑定的旧对话保留原标题，不再由插件自动改名；用户可以在 DSH 侧栏重命名。标题写入通过 DSH Session controller 的 `rename`，与工作区手动重命名走同一路径，因此会固定标题，避免被首条消息的自动标题覆盖。改名失败不阻塞阅读、伴读或跳转。
+书名取书库中的标题并去掉首尾空白；中文无标题时用“未命名书籍”，英文用“Untitled book”。创建新会话并绑定后立即改名。已有绑定或用户手动绑定的旧对话保留原标题，不再由插件自动改名；用户可以在 DSH 侧栏重命名。标题写入通过 DSH Session controller 的 `rename`，与工作区手动重命名走同一路径，因此会固定标题，避免被首条消息的自动标题覆盖。改名失败不阻塞阅读、伴读或跳转。
 
 ## 接口与代码映射
 
@@ -30,4 +31,4 @@
 
 ## 验收与测试
 
-- 正常路径：书名生成 `《书名》· 伴读`，空白书名回退“未命名书籍”（`companion_session_title_is_stable_and_identifies_book`）。
+- 正常路径：中文/英文书名分别生成对应标题，空白书名回退本地化占位（`companion_session_title_is_stable_and_identifies_book`）。

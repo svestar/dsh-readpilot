@@ -8,9 +8,9 @@
 
 ## 行为
 
-长笔记标签的导出区提供“导出 Markdown”和“导出 ZIP”。Host 的 `exportNotes` 读取当前书的整书笔记、主题笔记、批注/书签，生成一篇 markdown：标题为 `# 《书名》阅读笔记`，引用块包含作者、标签、当前进度与导出时间；`## 整书笔记`、`## 主题笔记`、`## 批注与书签` 三个区块按内容有无出现，标记按章节分组。导出不包含记忆、草稿、书库索引或进度文件。
+长笔记标签的导出区提供“导出 Markdown”和“导出 ZIP”。Host 的 `exportNotes` 读取当前书的整书笔记、主题笔记、批注/书签，按工作区语言生成 markdown：中文标题为 `# 《书名》阅读笔记`，英文为 `# Book Title — Reading notes`；引用块包含作者、标签、当前进度与导出时间，`## 整书笔记`/`## 主题笔记`/`## 批注与书签` 在英文下为 `Book note`/`Topic notes`/`Annotations and bookmarks`，标记按章节分组。导出不包含记忆、草稿、书库索引或进度文件。
 
-“导出 Markdown”把 markdown 作为文件下载，文件名是 `<书名>-阅读笔记.md`；“导出 ZIP”把当前书 `notes/` 下的原始长笔记文件与 `manifest.json` 打包为 `<书名>-长笔记.zip`，不包含批注/书签、历史或草稿；书名为空或含路径分隔符时做安全替换；导出的时间固定为调用时的 ISO 字符串，导出是快照，不随后续编辑自动更新。导出直接触发文件下载，不写入书库。
+“导出 Markdown”把 markdown 作为文件下载，中文文件名是 `<书名>-阅读笔记.md`，英文是 `<书名>-reading-notes.md`；“导出 ZIP”把当前书 `notes/` 下的原始长笔记文件与 `manifest.json` 打包为 `<书名>-长笔记.zip` 或 `<书名>-long-notes.zip`，不包含批注/书签、历史或草稿；书名为空或含路径分隔符时做安全替换；导出的时间固定为调用时的 ISO 字符串，导出是快照，不随后续编辑自动更新。导出直接触发文件下载，不写入书库。
 
 ## 接口与代码映射
 
@@ -32,5 +32,6 @@
 - 正常路径：整书笔记、主题笔记、划线/批注/书签与元数据都进入导出，章节顺序稳定（`note_export_full_export_includes_sections_and_metadata`、`note_export_orders_marks_and_escapes_markdown_text`）。
 - 边界：空书只有标题与时间，空区块不输出，缺字段不出现 `undefined`（`note_export_empty_book_has_only_title_and_metadata`、`note_export_omits_empty_sections_and_handles_missing_text`）。
 - 正常路径：`exportedAt` 固定时输出确定（`note_export_time_is_deterministic_with_exported_at`）。
+- 正常路径：英文工作区生成英文标题、元数据、区块和文件名（`note_export_uses_workspace_language`、`note_export_uses_english_file_names`）。
 - 正常路径：ZIP 包含原始长笔记 .md 与 manifest，正文可读，不包含批注/书签（`export_notes_archive_rpc`）。
 - 正常路径：导出只返回下载内容，不写书库 `.exports/`（`export_notes_rpc`）。

@@ -1,5 +1,8 @@
-export function companionSessionTitle(bookTitle: unknown): string {
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+
+export function companionSessionTitle(bookTitle: unknown, language: WorkspaceLanguage = 'zh'): string {
   const title = typeof bookTitle === 'string' ? bookTitle.trim() : ''
+  if (language === 'en') return `${title || 'Untitled book'} · Companion`
   return `《${title || '未命名书籍'}》· 伴读`
 }
 

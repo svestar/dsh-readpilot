@@ -79,6 +79,8 @@ export function createNotesExport(deps: NotesExportDependencies) {
       pageLabel: record.kind === 'bookmark' ? record.annotation : undefined,
     }))
     const meta = await deps.libraryMeta()
+    const settings = await deps.currentSettings()
+    const language = settings.workspaceLanguage ?? 'zh'
     const markdown = buildNotesMarkdown({
       book: {
         title: book.title,
@@ -90,9 +92,10 @@ export function createNotesExport(deps: NotesExportDependencies) {
       },
       notes,
       marks,
+      language,
     })
-    const safeTitle = safeFileTitle(book.title, '阅读笔记')
-    const fileName = `${safeTitle}-阅读笔记.md`
+    const safeTitle = safeFileTitle(book.title, language === 'en' ? 'Reading notes' : '阅读笔记')
+    const fileName = `${safeTitle}-${language === 'en' ? 'reading-notes.md' : '阅读笔记.md'}`
     return { markdown, fileName }
   }
 
@@ -129,8 +132,9 @@ export function createNotesExport(deps: NotesExportDependencies) {
       notes: entries,
     }, null, 2)}\n`)
     const buffer = await zip.generateAsync({ type: 'nodebuffer', compression: 'DEFLATE' })
-    const safeTitle = safeFileTitle(book.title, '阅读笔记')
-    const fileName = `${safeTitle}-长笔记.zip`
+    const language = settings.workspaceLanguage ?? 'zh'
+    const safeTitle = safeFileTitle(book.title, language === 'en' ? 'Long notes' : '阅读笔记')
+    const fileName = `${safeTitle}-${language === 'en' ? 'long-notes.zip' : '长笔记.zip'}`
     return { base64: buffer.toString('base64'), fileName, count: files.length, notes: entries }
   }
 

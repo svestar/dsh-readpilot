@@ -2,6 +2,7 @@ import { React } from '../../runtime.ts'
 import { messageOf } from '../../lib/helpers.ts'
 import { companionSessionTitle, renameCompanionSession } from './session-title.ts'
 import type { CompanionSessionSummary } from '../../../shared/contracts/companion.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import type { CallRpc, Screen, TextFn } from '../../lib/types.ts'
 import type { StateSetter } from '../../runtime.ts'
 
@@ -11,6 +12,7 @@ interface CompanionSessionsOptions {
   t: TextFn
   screen: Screen
   workspaceId: string | null
+  workspaceLanguage: WorkspaceLanguage
   activeSessionId: string | null
   boundSessionId: string | null
   chatOpen: boolean
@@ -31,6 +33,7 @@ export function useCompanionSessions({
   t,
   screen,
   workspaceId,
+  workspaceLanguage,
   activeSessionId,
   boundSessionId,
   chatOpen,
@@ -132,7 +135,7 @@ export function useCompanionSessions({
       setChatError('')
       setChatTab('chat')
       setChatOpen(true)
-      await renameCompanionSession(runtime, sessionId, companionSessionTitle(book.title)).catch(() => {})
+      await renameCompanionSession(runtime, sessionId, companionSessionTitle(book.title, workspaceLanguage)).catch(() => {})
       await refreshConversations(book.id)
       return true
     } catch (cause) {
@@ -158,6 +161,7 @@ export function useCompanionSessions({
     setDraft,
     t,
     workspaceId,
+    workspaceLanguage,
   ])
 
   const selectConversation = React.useCallback(async (sessionId: string): Promise<boolean> => {
@@ -208,8 +212,8 @@ export function useCompanionSessions({
   const currentSessionTitle = React.useMemo(() => {
     const current = conversations.find(session => session.sessionId === activeSessionId)
     if (current?.title) return current.title
-    return screen.kind === 'book' ? companionSessionTitle(screen.detail.book.title) : ''
-  }, [activeSessionId, conversations, screen])
+    return screen.kind === 'book' ? companionSessionTitle(screen.detail.book.title, workspaceLanguage) : ''
+  }, [activeSessionId, conversations, screen, workspaceLanguage])
 
   return {
     conversations,
