@@ -22,10 +22,18 @@ export interface ReadingToolDependencies {
 }
 
 export function createReadingToolService(deps: ReadingToolDependencies) {
+  function missingBook(language: WorkspaceLanguage, book: unknown): ReaderError {
+    return new ReaderError(
+      'book-not-found',
+      language === 'en' ? `Book not found in the library: ${String(book)}` : `书库中找不到书籍：${String(book)}`,
+    )
+  }
+
   async function toolOpen({ book }: any = {}): Promise<any> {
+    const language = await deps.workspaceLanguage()
     const books = await deps.books()
     const found = deps.findBook(books, book)
-    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    if (!found) throw missingBook(language, book)
     const detail = await deps.reading.open({ bookId: found.id })
     return {
       bookId: found.id,
@@ -45,11 +53,11 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
   }
 
   async function toolDigest({ book, maxChars, perChapterChars }: any = {}): Promise<any> {
+    const language = await deps.workspaceLanguage()
     const books = await deps.books()
     const found = deps.findBook(books, book)
-    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    if (!found) throw missingBook(language, book)
     const parsed = await deps.reading.ensureParsed(found)
-    const language = await deps.workspaceLanguage()
     const digest = buildBookDigest(
       parsed.chapters.map(chapter => ({
         id: chapter.id,
@@ -70,12 +78,13 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
   }
 
   async function toolContext({ book, sessionId }: any = {}): Promise<any> {
+    const language = await deps.workspaceLanguage()
     const books = await deps.books()
     const activeReading = typeof sessionId === 'string' ? await deps.ensureSessionReading(sessionId) : undefined
     let found: Book | undefined
     if (book) {
       found = deps.findBook(books, book)
-      if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+      if (!found) throw missingBook(language, book)
     } else {
       if (activeReading) found = books.find(candidate => candidate.id === activeReading.bookId)
       if (!found) {
@@ -84,7 +93,14 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
           .filter(candidate => progress[candidate.id])
           .sort((left, right) => (progress[right.id].updatedAt ?? 0) - (progress[left.id].updatedAt ?? 0))[0]
       }
-      if (!found) throw new ReaderError('no-current-book', '还没有最近阅读的书籍，请先用 reader_books 选择一本书')
+      if (!found) {
+        throw new ReaderError(
+          'no-current-book',
+          language === 'en'
+            ? 'No current book; use reader_books to choose one first'
+            : '还没有最近阅读的书籍，请先用 reader_books 选择一本书',
+        )
+      }
     }
     const detail = await deps.reading.open({ bookId: found.id })
     const notes = await deps.notes(found.id)
@@ -118,16 +134,22 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
   }
 
   async function toolRead({ book, chapter: chapterKey, offset, limit }: any = {}): Promise<any> {
+    const language = await deps.workspaceLanguage()
     const books = await deps.books()
     const found = deps.findBook(books, book)
-    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    if (!found) throw missingBook(language, book)
     const parsed = await deps.reading.ensureParsed(found)
     const index = Number.isInteger(chapterKey) ? chapterKey - 1 : -1
     const target = parsed.chapters.find(item => item.id === chapterKey)
       ?? parsed.chapters.find(item => item.title === chapterKey)
       ?? (index >= 0 ? parsed.chapters[index] : undefined)
       ?? parsed.chapters[0]
-    if (!target) throw new ReaderError('chapter-not-found', '这本书没有可读的章节')
+    if (!target) {
+      throw new ReaderError(
+        'chapter-not-found',
+        language === 'en' ? 'This book has no readable chapter' : '这本书没有可读的章节',
+      )
+    }
     const text = chapterText(target)
     const start = Math.min(Math.max(Number.isInteger(offset) ? offset : 0, 0), text.length)
     const size = Math.min(Math.max(Number.isInteger(limit) ? limit : DEFAULT_READ_LIMIT, 200), MAX_READ_LIMIT)

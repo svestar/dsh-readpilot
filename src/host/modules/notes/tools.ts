@@ -1,6 +1,12 @@
 import type { ToolDefinition } from '../../types.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+import { ReaderError } from '../../lib/errors.ts'
 import { OUTPUT_SCHEMA, outputOf } from '../tools/shared.ts'
 import type { ReaderToolApi } from '../tools/facade.ts'
+
+function localized(language: WorkspaceLanguage, zh: string, en: string): string {
+  return language === 'en' ? en : zh
+}
 
 export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
   return [
@@ -26,6 +32,7 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
+        const language = await api.workspaceLanguage()
         const result = await api.toolNote(args ?? {})
         if (args?.action === 'list') return result
         const action = await api.pushReaderAction({ type: 'notesRefresh', bookId: result.bookId })
@@ -34,10 +41,10 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
           actionId: action.id,
           queued: true,
           message: args?.action === 'delete'
-            ? '批注已删除，阅读器会在 1 秒内刷新。'
+            ? localized(language, '批注已删除，阅读器会在 1 秒内刷新。', 'Annotation deleted; the reader will refresh within a second.')
             : args?.action === 'update'
-              ? '批注已更新，阅读器会在 1 秒内刷新。'
-              : '批注已保存，阅读器会在 1 秒内刷新。',
+              ? localized(language, '批注已更新，阅读器会在 1 秒内刷新。', 'Annotation updated; the reader will refresh within a second.')
+              : localized(language, '批注已保存，阅读器会在 1 秒内刷新。', 'Annotation saved; the reader will refresh within a second.'),
         }
       },
     },
@@ -67,6 +74,7 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
       async execute(args) {
         const action = args?.action
         if (action === 'index' || action === 'read') return await api.toolNoteFiles(args ?? {})
+        const language = await api.workspaceLanguage()
         if (action === 'delete') {
           const content = await api.toolNoteFiles({ action: 'read', book: args?.book, id: args?.id })
           const result = await api.toolNoteFiles({ ...args, action: 'remove' })
@@ -75,7 +83,7 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
               type: 'longNote.delete',
               bookId: result.bookId,
               bookTitle: result.bookTitle,
-              summary: `删除长笔记：${content.note.title}`,
+              summary: localized(language, `删除长笔记：${content.note.title}`, `Deleted long note: ${content.note.title}`),
               undo: { kind: 'restoreNoteFile', bookId: result.bookId, note: content.note, body: content.body },
             })
           }
@@ -91,7 +99,7 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
               type: 'longNote.write',
               bookId: result.draft.bookId,
               bookTitle: result.note.title,
-              summary: `自动应用长笔记：${result.note.title}`,
+              summary: localized(language, `自动应用长笔记：${result.note.title}`, `Auto-applied long note: ${result.note.title}`),
               undo: previous
                 ? { kind: 'restoreNoteFile', bookId: result.draft.bookId, note: previous.note, body: previous.body }
                 : { kind: 'deleteNoteFile', bookId: result.draft.bookId, noteId: result.note.id },
@@ -109,13 +117,20 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
             note: result.note ?? null,
             error: result.error,
             message: result.autoApplied
-              ? '笔记已自动应用。'
+              ? localized(language, '笔记已自动应用。', 'Note applied automatically.')
               : result.error
-                ? `草稿已创建，但自动应用失败：${result.error}。请在长笔记页确认。`
-                : '草稿已创建，等待用户在笔记面板确认。',
+                ? localized(
+                  language,
+                  `草稿已创建，但自动应用失败：${result.error}。请在长笔记页确认。`,
+                  `Draft created, but auto-apply failed: ${result.error}. Review it in the long-notes tab.`,
+                )
+                : localized(language, '草稿已创建，等待用户在笔记面板确认。', 'Draft created; waiting for the user to review it in the notes panel.'),
           }
         }
-        throw new Error(`未知操作：${String(action)}`)
+        throw new ReaderError(
+          'invalid-note-action',
+          localized(language, `未知操作：${String(action)}`, `Unknown action: ${String(action)}`),
+        )
       },
     },
   ]

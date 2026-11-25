@@ -54,6 +54,10 @@ test('tools_use_workspace_language', async t => {
 
   const goto = await registered.get('reader_goto')!.execute({ book })
   assert.match(goto.message, /Jump queued/)
+  await assert.rejects(
+    registered.get('reader_read')!.execute({ book: 'missing-book' }),
+    /Book not found in the library/,
+  )
   const digest = await registered.get('reader_digest')!.execute({ book })
   assert.match(digest.note, /extractive whole-book summary/)
   const added = await registered.get('reader_note')!.execute({
@@ -64,6 +68,7 @@ test('tools_use_workspace_language', async t => {
     note: 'English workspace',
   })
   assert.match(added.note.id, /^note-/)
+  assert.match(added.message, /Annotation saved/)
   const receipts = await app.api.readerReceipts({ action: 'list', bookId: state.books[0].id })
   const receipt = receipts.receipts.find((item: any) => item.type === 'annotation.add')
   assert.match(receipt.summary, /Added annotation/)

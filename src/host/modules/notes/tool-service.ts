@@ -22,10 +22,15 @@ export interface NotesToolDependencies {
 
 export function createNotesToolService(deps: NotesToolDependencies) {
   async function toolNote({ action, book, chapter, blockIndex, offset, quote, note, color, noteId }: any = {}): Promise<any> {
+    const language = await deps.workspaceLanguage()
     const books = await deps.books()
     const found = deps.findBook(books, book)
-    if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
-    const language = await deps.workspaceLanguage()
+    if (!found) {
+      throw new ReaderError(
+        'book-not-found',
+        localized(language, `书库中找不到书籍：${String(book)}`, `Book not found in the library: ${String(book)}`),
+      )
+    }
     if (action === 'list') {
       return {
         bookId: found.id,
@@ -35,7 +40,7 @@ export function createNotesToolService(deps: NotesToolDependencies) {
     }
     if (action === 'update' || action === 'delete') {
       const id = typeof noteId === 'string' ? noteId : ''
-      if (!id) throw new ReaderError('invalid-note', 'noteId 不能为空')
+      if (!id) throw new ReaderError('invalid-note', localized(language, 'noteId 不能为空', 'noteId is required'))
       const previous = (await deps.notes.list(found.id)).find(item => item.id === id)
       if (action === 'delete') {
         const deleted = await deps.notes.remove(found.id, id)
@@ -59,7 +64,12 @@ export function createNotesToolService(deps: NotesToolDependencies) {
       if (typeof note === 'string') patch.note = note
       if (typeof quote === 'string') patch.quote = quote
       if (typeof color === 'string') patch.color = color
-      if (Object.keys(patch).length === 0) throw new ReaderError('invalid-note', '更新批注需要 note、quote 或 color')
+      if (Object.keys(patch).length === 0) {
+        throw new ReaderError(
+          'invalid-note',
+          localized(language, '更新批注需要 note、quote 或 color', 'Updating an annotation needs note, quote or color'),
+        )
+      }
       const record = await deps.notes.update(found.id, id, patch)
       if (previous) {
         await deps.recordReaderReceipt({
@@ -78,16 +88,24 @@ export function createNotesToolService(deps: NotesToolDependencies) {
       return { bookId: found.id, bookTitle: found.title, noteId: id, note: record }
     }
     if (action !== 'add') {
-      throw new ReaderError('invalid-note-action', `未知笔记操作：${String(action)}`)
+      throw new ReaderError(
+        'invalid-note-action',
+        localized(language, `未知笔记操作：${String(action)}`, `Unknown note action: ${String(action)}`),
+      )
     }
     if (typeof quote !== 'string' || !quote.trim()) {
-      throw new ReaderError('invalid-note', '批注需要引用原文')
+      throw new ReaderError('invalid-note', localized(language, '批注需要引用原文', 'An annotation needs quoted text'))
     }
     const parsed = await deps.reading.ensureParsed(found)
     const target = parsed.chapters.find(item => item.id === chapter)
       ?? parsed.chapters.find(item => item.title === chapter)
       ?? parsed.chapters[0]
-    if (!target) throw new ReaderError('chapter-not-found', '这本书没有可读的章节')
+    if (!target) {
+      throw new ReaderError(
+        'chapter-not-found',
+        localized(language, '这本书没有可读的章节', 'This book has no readable chapter'),
+      )
+    }
     const record = await deps.notes.add(found.id, {
       kind: 'annotation',
       color,
