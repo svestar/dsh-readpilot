@@ -1,9 +1,15 @@
 import type { ToolDefinition } from '../../types.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+import { ReaderError } from '../../lib/errors.ts'
 import { OUTPUT_SCHEMA, outputOf } from '../tools/shared.ts'
 import type { ReaderToolApi } from '../tools/facade.ts'
 
+function localized(language: WorkspaceLanguage, zh: string, en: string): string {
+  return language === 'en' ? en : zh
+}
+
 export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
-  async function actionTarget(book: unknown, chapter: unknown, page: unknown) {
+  async function actionTarget(book: unknown, chapter: unknown, page: unknown, language: WorkspaceLanguage) {
     const opened = await api.toolOpen({ book })
     const toc: any[] = Array.isArray(opened?.toc) ? opened.toc : []
     let target = typeof chapter === 'string'
@@ -16,7 +22,12 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
       target = toc.find(item => item.id === opened.progress.chapterId)
     }
     target ??= toc[0]
-    if (!target) throw new Error('这本书没有可定位的章节')
+    if (!target) {
+      throw new ReaderError(
+        'chapter-not-found',
+        localized(language, '这本书没有可定位的章节', 'This book has no locatable chapter'),
+      )
+    }
     return { opened, target }
   }
 
@@ -38,7 +49,8 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        const { opened, target } = await actionTarget(args?.book, args?.chapter, args?.page)
+        const language = await api.workspaceLanguage()
+        const { opened, target } = await actionTarget(args?.book, args?.chapter, args?.page, language)
         const offset = Number.isInteger(args?.offset) && args.offset >= 0 ? args.offset : undefined
         const action = await api.pushReaderAction({
           type: 'goto',
@@ -55,7 +67,7 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
           chapterId: target.id,
           chapterTitle: target.title,
           offset: offset ?? null,
-          message: '跳转已排队，阅读器会在 1 秒内响应。',
+          message: localized(language, '跳转已排队，阅读器会在 1 秒内响应。', 'Jump queued; the reader will respond within a second.'),
         }
       },
     },
@@ -76,7 +88,8 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
-        const { opened, target } = await actionTarget(args?.book, args?.chapter, args?.page)
+        const language = await api.workspaceLanguage()
+        const { opened, target } = await actionTarget(args?.book, args?.chapter, args?.page, language)
         const offset = Number.isInteger(args?.offset) && args.offset >= 0 ? args.offset : undefined
         const action = await api.pushReaderAction({
           type: 'open_panel',
@@ -92,7 +105,7 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
           bookTitle: opened.title,
           chapterId: target.id,
           chapterTitle: target.title,
-          message: '打开阅读面板已排队。',
+          message: localized(language, '打开阅读面板已排队。', 'Open reader panel queued.'),
         }
       },
     },
@@ -116,6 +129,7 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
       },
       output: { schema: OUTPUT_SCHEMA, render: (_args, value) => outputOf(value) },
       async execute(args) {
+        const language = await api.workspaceLanguage()
         const result = await api.toolNote({ action: 'add', ...args })
         const action = await api.pushReaderAction({ type: 'notesRefresh', bookId: result.bookId })
         return {
@@ -126,7 +140,7 @@ export function createActionTools(api: ReaderToolApi): ToolDefinition[] {
           chapterId: result.chapterId,
           chapterTitle: result.chapterTitle,
           note: result.note,
-          message: '批注已保存，阅读器会在 1 秒内刷新。',
+          message: localized(language, '批注已保存，阅读器会在 1 秒内刷新。', 'Annotation saved; the reader will refresh within a second.'),
         }
       },
     },

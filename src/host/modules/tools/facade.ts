@@ -1,4 +1,5 @@
 import type { ReaderAction, ReaderActionInput } from '../../../shared/contracts/actions.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 
 export interface ReaderToolApi {
@@ -18,4 +19,5 @@ export interface ReaderToolApi {
   pushReaderAction(input: ReaderActionInput): Promise<ReaderAction>
   recordReaderReceipt(input: any): Promise<unknown>
   books(): Promise<Book[]>
+  workspaceLanguage(): Promise<WorkspaceLanguage>
 }

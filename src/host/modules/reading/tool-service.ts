@@ -1,5 +1,6 @@
 import { buildReaderJumpUrl } from '../../../shared/jump-url.ts'
 import type { Book } from '../library/book.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import { ReaderError } from '../../lib/errors.ts'
 import { buildBookDigest } from './digest.ts'
 import { chapterText } from './formats.ts'
@@ -17,6 +18,7 @@ export interface ReadingToolDependencies {
   recentActions(bookId: string): Array<{ id: string; type: string; summary: string; createdAt: number; undoable: boolean; status: string }>
   ensureSessionReading(sessionId: string): Promise<{ bookId: string; title: string; chapter: string; view?: CompanionReadingView } | undefined>
   progress(): Promise<Record<string, { chapterId?: string; chapterTitle?: string; percent?: number; updatedAt?: number }>>
+  workspaceLanguage(): Promise<WorkspaceLanguage>
 }
 
 export function createReadingToolService(deps: ReadingToolDependencies) {
@@ -47,6 +49,7 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
     const found = deps.findBook(books, book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
     const parsed = await deps.reading.ensureParsed(found)
+    const language = await deps.workspaceLanguage()
     const digest = buildBookDigest(
       parsed.chapters.map(chapter => ({
         id: chapter.id,
@@ -60,7 +63,9 @@ export function createReadingToolService(deps: ReadingToolDependencies) {
       title: found.title,
       format: found.format,
       ...digest,
-      note: '这是抽取式全书摘要，不是逐字全文；需要细节时用 reader_read 读取指定章节。',
+      note: language === 'en'
+        ? 'This is an extractive whole-book summary, not the full text; use reader_read for a specific chapter when you need details.'
+        : '这是抽取式全书摘要，不是逐字全文；需要细节时用 reader_read 读取指定章节。',
     }
   }
 

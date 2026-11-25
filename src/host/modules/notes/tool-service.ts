@@ -1,8 +1,13 @@
 import type { Book } from '../library/book.ts'
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import type { NotesStore } from './store.ts'
 import type { ReadingService } from '../reading/service.ts'
 import type { ReaderReceiptInput } from '../../../shared/contracts/actions.ts'
 import { ReaderError } from '../../lib/errors.ts'
+
+function localized(language: WorkspaceLanguage, zh: string, en: string): string {
+  return language === 'en' ? en : zh
+}
 
 export interface NotesToolDependencies {
   books(): Promise<Book[]>
@@ -12,6 +17,7 @@ export interface NotesToolDependencies {
   recordReaderReceipt(input: ReaderReceiptInput): Promise<unknown>
   notesEnabled(bookId: string): boolean
   rebuildNotesContext(bookId: string): Promise<number>
+  workspaceLanguage(): Promise<WorkspaceLanguage>
 }
 
 export function createNotesToolService(deps: NotesToolDependencies) {
@@ -19,6 +25,7 @@ export function createNotesToolService(deps: NotesToolDependencies) {
     const books = await deps.books()
     const found = deps.findBook(books, book)
     if (!found) throw new ReaderError('book-not-found', `书库中找不到书籍：${String(book)}`)
+    const language = await deps.workspaceLanguage()
     if (action === 'list') {
       return {
         bookId: found.id,
@@ -37,7 +44,11 @@ export function createNotesToolService(deps: NotesToolDependencies) {
             type: 'annotation.delete',
             bookId: found.id,
             bookTitle: found.title,
-            summary: `删除批注：${previous.quote.slice(0, 40) || previous.note.slice(0, 40)}`,
+            summary: localized(
+              language,
+              `删除批注：${previous.quote.slice(0, 40) || previous.note.slice(0, 40)}`,
+              `Deleted annotation: ${previous.quote.slice(0, 40) || previous.note.slice(0, 40)}`,
+            ),
             undo: { kind: 'restoreNote', bookId: found.id, note: previous },
           })
         }
@@ -55,7 +66,11 @@ export function createNotesToolService(deps: NotesToolDependencies) {
           type: 'annotation.update',
           bookId: found.id,
           bookTitle: found.title,
-          summary: `修改批注：${previous.quote.slice(0, 40) || id}`,
+          summary: localized(
+            language,
+            `修改批注：${previous.quote.slice(0, 40) || id}`,
+            `Updated annotation: ${previous.quote.slice(0, 40) || id}`,
+          ),
           undo: { kind: 'restoreNote', bookId: found.id, note: previous },
         })
       }
@@ -87,7 +102,11 @@ export function createNotesToolService(deps: NotesToolDependencies) {
       type: 'annotation.add',
       bookId: found.id,
       bookTitle: found.title,
-      summary: `新增批注：${record.quote.slice(0, 40) || '划线'}`,
+      summary: localized(
+        language,
+        `新增批注：${record.quote.slice(0, 40) || '划线'}`,
+        `Added annotation: ${record.quote.slice(0, 40) || 'highlight'}`,
+      ),
       undo: { kind: 'deleteNote', bookId: found.id, noteId: record.id },
     })
     return {

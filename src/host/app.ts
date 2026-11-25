@@ -199,6 +199,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     recentActions: bookId => actions.recentActionSummary(bookId),
     ensureSessionReading: sessionId => companion.ensureSessionReading(sessionId),
     progress: () => loadProgress(dataDir),
+    workspaceLanguage: async () => (await library.currentSettings()).workspaceLanguage ?? 'zh',
   })
   const notesTools = createNotesToolService({
     books: () => library.books(),
@@ -208,6 +209,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     recordReaderReceipt: input => actions.recordReaderReceipt(input),
     notesEnabled: bookId => effectiveNotesEnabled(getSettings(), bookId),
     rebuildNotesContext: bookId => notes.rebuildNotesContext(bookId),
+    workspaceLanguage: async () => (await library.currentSettings()).workspaceLanguage ?? 'zh',
   })
 
   const api = createApiFacade({
@@ -246,6 +248,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     pushReaderAction: input => api.pushReaderAction(input),
     recordReaderReceipt: input => api.recordReaderReceipt(input),
     books: () => library.books(),
+    workspaceLanguage: async () => (await library.currentSettings()).workspaceLanguage ?? 'zh',
   }
 
   libraryModule.module.tools = createLibraryTools(toolApi)

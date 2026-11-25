@@ -18,7 +18,7 @@ Agent 可通过五个工具改变阅读状态并收到回执：
 - `reader_tag`：整体替换书籍标签，Host 立即写入，并排队刷新书库。
 - `reader_status`：设置 want/reading/done/none，Host 立即写入，并排队刷新书库。
 
-导航与刷新动作进入 Host 内存队列。主阅读与侧栏阅读每秒轮询一次 `readerActions.take`：导航动作先到先执行；`notesRefresh` 只被当前书匹配的阅读器取走；`libraryRefresh` 由主阅读执行。动作取出即移除，避免两个阅读器重复执行。工具返回值包含 `actionId`、`queued`、目标书/章节或已写入的标签/状态，以及“1 秒内响应”的说明。
+导航与刷新动作进入 Host 内存队列。主阅读与侧栏阅读每秒轮询一次 `readerActions.take`：导航动作先到先执行；`notesRefresh` 只被当前书匹配的阅读器取走；`libraryRefresh` 由主阅读执行。动作取出即移除，避免两个阅读器重复执行。工具返回值包含 `actionId`、`queued`、目标书/章节或已写入的标签/状态，以及按工作区语言生成的“1 秒内响应”说明；批注写操作的回执摘要同样按工作区语言生成。
 
 ## 接口与代码映射
 
@@ -43,3 +43,4 @@ Agent 可通过五个工具改变阅读状态并收到回执：
 - 正常路径：队列按类型和书过滤、取出后移除（`reader_actions_take_filters_and_removes`）。
 - 正常路径：导航动作可一次取出全部类型（`reader_actions_take_all_returns_every_type`）。
 - 正常路径：`reader_goto` 解析首章并返回 queued 回执，`reader_note` 重写/删除批注并返回刷新回执，`reader_notes` 删除长笔记（`tools_read_bounded`）。
+- 正常路径：英文工作区的工具说明与批注摘要为英文（`tools_use_workspace_language`）。

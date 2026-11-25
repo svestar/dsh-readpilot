@@ -32,6 +32,50 @@ function fakeContext(tools: any) {
   }
 }
 
+test('tools_use_workspace_language', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-tools-en-'))
+  const library = join(root, 'books')
+  const data = join(root, 'data')
+  await mkdir(library, { recursive: true })
+  await writeFile(join(library, 'demo.txt'), '第一章 开始\n\n测试文字。', 'utf8')
+  t.after(() => rm(root, { recursive: true, force: true }))
+
+  const registered = new Map<string, any>()
+  const ctx = fakeContext({
+    register(definition: any) {
+      registered.set(definition.name, definition)
+      return () => registered.delete(definition.name)
+    },
+  })
+  const app = createApp({ ctx, dataDir: data })
+  const state = await app.api.configureLibrary({ path: library, locale: 'en' })
+  const book = state.books[0].title
+  registerTools(ctx, app.modules)
+
+  const goto = await registered.get('reader_goto')!.execute({ book })
+  assert.match(goto.message, /Jump queued/)
+  const digest = await registered.get('reader_digest')!.execute({ book })
+  assert.match(digest.note, /extractive whole-book summary/)
+  const added = await registered.get('reader_note')!.execute({
+    action: 'add',
+    book,
+    chapter: 'c001',
+    quote: '测试文字',
+    note: 'English workspace',
+  })
+  assert.match(added.note.id, /^note-/)
+  const receipts = await app.api.readerReceipts({ action: 'list', bookId: state.books[0].id })
+  const receipt = receipts.receipts.find((item: any) => item.type === 'annotation.add')
+  assert.match(receipt.summary, /Added annotation/)
+  const mark = await registered.get('reader_mark')!.execute({
+    book,
+    chapter: 'c001',
+    quote: '测试文字',
+    note: 'Marked',
+  })
+  assert.match(mark.message, /Annotation saved/)
+})
+
 test('tools_read_bounded', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-tools-'))
   const library = join(root, 'books')
