@@ -51,6 +51,8 @@ export const zhWorkspace = {
       translationProvider: '翻译源',
       providerGoogle: 'Google 翻译',
       providerBing: 'Bing 翻译',
+      providerDeepseekAccount: 'DeepSeek 账户',
+      providerDeepseekOfficial: 'DeepSeek 官方',
       translationPaid: '付费',
       translationNotice: '翻译会把原文发送给所选的在线翻译服务（默认 Bing），内容会离开本机；译文只缓存在本地，不会写入伴读对话。',
       translationNoticeOk: '知道了',

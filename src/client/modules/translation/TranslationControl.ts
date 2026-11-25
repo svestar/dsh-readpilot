@@ -64,7 +64,11 @@ export function TranslationControl({ t, state, settingsOnly = false }: Translati
               ? t('providerGoogle')
               : provider.id === 'bing'
                 ? t('providerBing')
-                : provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`))
+                : provider.id === 'deepseek-account'
+                  ? t('providerDeepseekAccount')
+                  : provider.id === 'deepseek-official'
+                    ? t('providerDeepseekOfficial')
+                    : provider.name}${provider.paid ? ` · ${t('translationPaid')}` : ''}`))
           : h('option', { value: state.provider }, state.provider))),
       state.noticeAcknowledged
         ? null

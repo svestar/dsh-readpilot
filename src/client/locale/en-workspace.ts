@@ -51,6 +51,8 @@ export const enWorkspace = {
       translationProvider: 'Translation provider',
       providerGoogle: 'Google Translate',
       providerBing: 'Bing Translator',
+      providerDeepseekAccount: 'DeepSeek account',
+      providerDeepseekOfficial: 'DeepSeek official',
       translationPaid: 'paid',
       translationNotice: 'Translation sends the source text to the selected online service (Bing by default), so the text leaves this device. Translations stay in a local cache and are never added to the companion conversation.',
       translationNoticeOk: 'Got it',
