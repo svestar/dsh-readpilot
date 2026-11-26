@@ -2,6 +2,7 @@ import { Modal, React, h } from '../../runtime.ts'
 import { renderPrompt } from '../../../shared/prompt-render.ts'
 import type { TextFn } from '../../lib/types.ts'
 import type { PromptPreset } from '../../../shared/contracts/prompts.ts'
+import { ConfirmDialog } from '../common/ConfirmDialog.ts'
 
 interface PromptPresetManagerProps {
   t: TextFn
@@ -22,6 +23,7 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
   const [template, setTemplate] = React.useState(initial?.template ?? '')
   const [busy, setBusy] = React.useState(false)
   const [localError, setLocalError] = React.useState('')
+  const [resetOpen, setResetOpen] = React.useState(false)
   const textareaRef = React.useRef<HTMLTextAreaElement | null>(null)
 
   const selected = presets.find(preset => preset.id === selectedId) ?? null
@@ -106,6 +108,7 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
     }
   }
   const reset = async () => {
+    setResetOpen(false)
     setBusy(true)
     setLocalError('')
     try {
@@ -191,11 +194,19 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
         ? h('div', { className: 'dsh-readpilot-note-dialog-error' }, localError || error)
         : null,
       h('div', { className: 'dsh-readpilot-preset-actions' },
-        h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: reset }, t('presetReset')),
         selectedId
           ? h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: () => void remove() }, t('delete'))
           : null,
         h('button', { type: 'button', className: 'dsh-readpilot-primary', disabled: busy, onClick: () => void save() }, busy ? t('loading') : t('save'))))),
   h('div', { className: 'dsh-readpilot-preset-footer' },
-    h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: onClose }, t('close'))))
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: () => setResetOpen(true) }, t('presetReset')),
+    h('button', { type: 'button', className: 'dsh-readpilot-secondary', disabled: busy, onClick: onClose }, t('close'))),
+  resetOpen
+    ? h(ConfirmDialog, {
+      t,
+      message: t('presetResetConfirm'),
+      onConfirm: () => void reset(),
+      onCancel: () => setResetOpen(false),
+    })
+    : null)
 }

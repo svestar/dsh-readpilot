@@ -11,6 +11,11 @@ import {
 import { renderPrompt } from '../src/shared/prompt-render.ts'
 import { createReaderApi } from '../src/host/app.ts'
 import { fakeContext, makeLibrary } from './support/api-helpers.ts'
+import { bindRuntime } from '../src/client/runtime.ts'
+import { PromptPresetManager } from '../src/client/modules/companion/PromptPresetManager.ts'
+import { ConfirmDialog } from '../src/client/modules/common/ConfirmDialog.ts'
+import { zhWorkspace } from '../src/client/locale/zh-workspace.ts'
+import { enWorkspace } from '../src/client/locale/en-workspace.ts'
 
 async function tempStore(t: any) {
   const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-presets-'))
@@ -188,5 +193,108 @@ test('render_prompt_replaces_placeholders_literally', () => {
     notes: '批注 A',
   })
   assert.equal(output, '《书名$&》第一章：选中 $1 文本\n批注 A')
+})
+
+function collectText(node: any): string {
+  if (node == null) return ''
+  if (typeof node === 'string' || typeof node === 'number') return String(node)
+  if (Array.isArray(node)) return node.map(collectText).join('')
+  return collectText(node.children)
+}
+
+function findAll(node: any, predicate: (node: any) => boolean, found: any[] = []): any[] {
+  if (node == null || typeof node !== 'object') return found
+  if (Array.isArray(node)) {
+    for (const child of node) findAll(child, predicate, found)
+    return found
+  }
+  if (predicate(node)) found.push(node)
+  return findAll(node.children, predicate, found)
+}
+
+const presetText = (key: string) => (zhWorkspace as Record<string, string>)[key] ?? key
+
+const managerPresets = [
+  { id: 'explain', title: '解释这段', template: '{{selection}}', builtin: true },
+  { id: 'preset-abc', title: '自定义', template: '{{book}}', builtin: false },
+]
+
+/** Renders PromptPresetManager with stateful hooks so confirm flows can re-render synchronously. */
+function renderManager() {
+  const calls = { reset: 0 }
+  const slots: any[] = []
+  let cursor = 0
+  let view: any = null
+  const React = {
+    createElement(type: any, attrs: any, ...children: any[]) {
+      return { type, props: attrs ?? {}, children }
+    },
+    useState(initial: any) {
+      const slot = cursor++
+      if (slot >= slots.length) slots[slot] = typeof initial === 'function' ? initial() : initial
+      return [slots[slot], (value: any) => {
+        slots[slot] = typeof value === 'function' ? value(slots[slot]) : value
+        render()
+      }]
+    },
+    useEffect() {},
+    useRef(initial: any) {
+      return { current: initial }
+    },
+  }
+  const render = () => {
+    cursor = 0
+    view = PromptPresetManager({
+      t: presetText,
+      presets: managerPresets,
+      onSave: async () => {},
+      onDelete: async () => {},
+      onReset: async () => { calls.reset += 1 },
+      onClose: () => {},
+    })
+  }
+  bindRuntime((name: string) => {
+    if (name === 'react') return React
+    if (name === 'react-dom') return { createPortal: (node: any) => node }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast' }
+    throw new Error(`unexpected require: ${name}`)
+  })
+  render()
+  return { view: () => view, calls }
+}
+
+test('prompt_preset_reset_lives_in_footer_and_requires_confirmation', async () => {
+  const { view, calls } = renderManager()
+  const footer = findAll(view(), node => node.props?.className === 'dsh-readpilot-preset-footer')[0]
+  assert.ok(footer)
+  assert.match(collectText(footer), /恢复全部默认/)
+  const actions = findAll(view(), node => node.props?.className === 'dsh-readpilot-preset-actions')[0]
+  assert.doesNotMatch(collectText(actions), /恢复全部默认/)
+
+  const clickReset = () => {
+    const button = findAll(view(), node => node.type === 'button' && collectText(node) === '恢复全部默认')[0]
+    assert.ok(button)
+    button.props.onClick()
+  }
+
+  clickReset()
+  assert.equal(calls.reset, 0)
+  const cancelDialog = findAll(view(), node => node.type === ConfirmDialog)[0]
+  assert.ok(cancelDialog)
+  assert.match(cancelDialog.props.message, /删除所有自定义提示词/)
+  cancelDialog.props.onCancel()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(calls.reset, 0)
+  assert.equal(findAll(view(), node => node.type === ConfirmDialog).length, 0)
+
+  clickReset()
+  const confirmDialog = findAll(view(), node => node.type === ConfirmDialog)[0]
+  assert.ok(confirmDialog)
+  confirmDialog.props.onConfirm()
+  await new Promise(resolve => setImmediate(resolve))
+  assert.equal(calls.reset, 1)
+
+  assert.match((enWorkspace as Record<string, string>).presetReset, /all/i)
+  assert.match((enWorkspace as Record<string, string>).presetResetConfirm, /custom/i)
 })
 

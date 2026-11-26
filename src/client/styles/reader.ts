@@ -124,7 +124,7 @@ export const READER_STYLES = `.dsh-readpilot-search-hint[data-error="true"]{colo
 .dsh-readpilot-preset-preview-title{color:var(--dsw-alias-label-secondary);font-size:10px;font-weight:600}
 .dsh-readpilot-preset-preview pre{margin:0;max-height:110px;overflow:auto;color:var(--dsw-alias-label-primary);font:inherit;font-size:11px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
 .dsh-readpilot-preset-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
-.dsh-readpilot-preset-footer{display:flex;justify-content:flex-end;padding-top:8px;border-top:1px solid var(--dsw-alias-border-l2)}
+.dsh-readpilot-preset-footer{display:flex;align-items:center;justify-content:space-between;gap:8px;padding-top:8px;border-top:1px solid var(--dsw-alias-border-l2)}
 @media (max-width:640px){.dsh-readpilot-preset-columns{flex-direction:column}.dsh-readpilot-preset-list{width:auto;max-height:150px;flex:none}}
 .dsh-readpilot-color-btn{width:18px;height:18px;padding:0;border:1px solid rgba(0,0,0,.14);border-radius:50%;cursor:pointer;box-sizing:border-box}
 .dsh-readpilot-color-btn[data-color="yellow"],.dsh-readpilot-color-dot.dsh-readpilot-color-yellow{background:#facc15}
