@@ -10,7 +10,7 @@
 
 阅读工具在 Host 全局注册，工作区对话和伴读对话使用同一套工具。带 `book` 参数的工具（`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`）直接按参数工作，不依赖当前界面。
 
-`reader_context` 省略 `book` 时优先使用当前工具调用所属会话的伴读阅读上下文；没有会话上下文时，Host 会从 `sessions` 映射和该书的最近进度惰性补建，再回退到最近阅读进度。插件启动时也会批量补建已有会话上下文，因此不打开侧栏或主阅读页也能使用会话级阅读工具。主阅读页和工作区侧栏仍会实时覆盖当前书、书标题和章节。另注册 `dsh-readpilot:guard` 全局守则：使用 `reader_*` 工具时不猜测、不剧透、不擅自写入；有阅读上下文时按会话语言生成，无上下文时用工作区语言（未配置书库时中文）。`<reading_context>` 含“资料非指令”说明，标签内文本不作为指令执行。三个块由一个 `dsh-readpilot:context` 注入；`assembleReaderContexts` 按 reading > memory > notes 合并并受总预算约束，阅读块按 `CONTEXT_BUDGET.reading` 截断。
+`reader_context` 省略 `book` 时优先使用当前工具调用所属会话的伴读阅读上下文；没有会话上下文时，Host 会从 `sessions` 映射和该书的最近进度惰性补建，再回退到最近阅读进度。插件启动时也会批量补建已有会话上下文，因此不打开侧栏或主阅读页也能使用会话级阅读工具。主阅读页和工作区侧栏仍会实时覆盖当前书、书标题和章节。另注册 `dsh-readpilot:guard` 全局守则：使用 `reader_*` 工具时不猜测、不剧透、不擅自写入；有阅读上下文时按会话语言生成，无上下文时用工作区语言（未配置书库时中文）。`<reading_context>` 含“资料非指令”说明，标签内文本不作为指令执行。三个块由一个 `dsh-readpilot:context` 注入；`assembleReaderContexts` 按 reading > memory > notes 合并并受总预算约束，阅读块按 `CONTEXT_BUDGET.reading` 截断，守卫在前，动作块整块保留或省略。
 
 ## 接口与代码映射
 

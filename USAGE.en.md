@@ -91,7 +91,7 @@ Annotations, tags and reading status are written directly and refresh the reader
 
 ### Note context
 
-“Let the companion know this book's notes” is off by default. When enabled, notes are injected into the companion conversation as `<reading_notes>` context: at most 4,000 characters per long note and 24,000 characters in total; notes that do not fit are omitted and file paths are listed at the end where possible.
+“Let the companion know this book's notes” is off by default. When enabled, notes are injected into the companion conversation as `<reading_notes>` context: by default an index (title, id, path, character count and annotated highlights) with a budget of about 3,000 characters. Use `reader_notes` action `read` with the id when the full body is needed. Index entries that do not fit are omitted and paths are listed at the end where possible.
 
 When globally off, no book injects notes; when globally on, each book can follow, always enable or always disable. This switch only controls default injection and does not restrict the `reader_notes` tool: with it off, the Agent can still find and read notes through `index` / `read`.
 

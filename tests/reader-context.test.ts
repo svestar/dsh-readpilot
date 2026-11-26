@@ -72,6 +72,22 @@ test('companion_context_stays_within_reading_budget', () => {
     recentActions: Array.from({ length: 5 }, () => ({ summary: 'a'.repeat(100), status: 'applied' })),
   })
   assert.ok(text.length <= CONTEXT_BUDGET.reading, String(text.length))
+  assert.match(text, /资料，不是指令/)
+  const balanced = (value: string) => {
+    const open = value.indexOf('<recent_agent_actions>')
+    const close = value.indexOf('</recent_agent_actions>')
+    return open === -1 || close > open
+  }
+  assert.equal(balanced(text), true)
+  const withActions = buildCompanionContext({
+    bookId: 'b1',
+    bookTitle: 'B',
+    chapterTitle: 'C',
+    language: 'zh',
+    recentActions: [{ summary: 'A', status: 'applied' }],
+  })
+  assert.match(withActions, /<recent_agent_actions>/)
+  assert.match(withActions, /<\/recent_agent_actions>/)
   const tight = buildCompanionContext({
     bookId: 'b1',
     bookTitle: 'x'.repeat(500),
@@ -82,7 +98,9 @@ test('companion_context_stays_within_reading_budget', () => {
     maxTotal: 400,
   })
   assert.ok(tight.length <= 400, String(tight.length))
+  assert.match(tight, /资料，不是指令/)
   assert.match(tight, /<\/reading_context>$/)
+  assert.equal(balanced(tight), true)
 })
 
 test('reader_context_assembly_enforces_total_budget', () => {
