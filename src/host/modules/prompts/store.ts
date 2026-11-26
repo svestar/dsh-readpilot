@@ -17,7 +17,7 @@ export interface PromptPresetInput {
 
 export interface PromptPresetStore {
   list(language?: WorkspaceLanguage): Promise<PromptPreset[]>
-  save(input: PromptPresetInput): Promise<PromptPreset>
+  save(input: PromptPresetInput, language?: WorkspaceLanguage): Promise<PromptPreset>
   remove(id: unknown): Promise<boolean>
   reset(): Promise<PromptPreset[]>
 }
@@ -86,13 +86,17 @@ function isKnownDefault(preset: PromptPreset): boolean {
   return preset.title === zh?.title
 }
 
-/** A built-in value that still matches one of the shipped defaults in either language. */
-function isDefaultPresetValue(preset: PromptPreset, title: string, template: string): boolean {
-  for (const defaults of [DEFAULT_PROMPT_PRESETS, DEFAULT_PROMPT_PRESETS_EN]) {
-    const item = defaults.find(candidate => candidate.id === preset.id)
-    if (item && item.title === title && item.template === template) return true
-  }
-  return LEGACY_DEFAULT_TEMPLATES[preset.id] === template
+/** Whether the value still matches the shipped default in the language being edited. */
+function isDefaultPresetValue(
+  preset: PromptPreset,
+  title: string,
+  template: string,
+  language: WorkspaceLanguage,
+): boolean {
+  const defaults = language === 'en' ? DEFAULT_PROMPT_PRESETS_EN : DEFAULT_PROMPT_PRESETS
+  const item = defaults.find(candidate => candidate.id === preset.id)
+  if (item && item.title === title && item.template === template) return true
+  return language === 'zh' && LEGACY_DEFAULT_TEMPLATES[preset.id] === template
 }
 
 function localizePreset(preset: PromptPreset, language: WorkspaceLanguage): PromptPreset {
@@ -170,7 +174,7 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
       })
     },
 
-    async save(input) {
+    async save(input, language = 'zh') {
       const title = assertTitle(input.title)
       const template = assertTemplate(input.template)
       const id = typeof input.id === 'string' && input.id.trim() ? assertId(input.id.trim()) : null
@@ -180,16 +184,12 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
         if (id && index === -1) throw new Error(`preset not found: ${id}`)
         if (index >= 0) {
           const current = presets[index]
-          const unchanged = current.title === title && current.template === template
-          if (unchanged) return current
-          if (current.builtin && !current.edited && isDefaultPresetValue(current, title, template)) {
-            return current
-          }
-          presets[index] = {
-            ...current,
-            title,
-            template,
-            ...(current.builtin ? { edited: true } : {}),
+          if (current.builtin && !current.edited) {
+            if (isDefaultPresetValue(current, title, template, language)) return current
+            presets[index] = { ...current, title, template, edited: true }
+          } else {
+            if (current.title === title && current.template === template) return current
+            presets[index] = { ...current, title, template }
           }
           await writePresetState(path, presets)
           return presets[index]

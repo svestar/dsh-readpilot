@@ -9,7 +9,7 @@ export function createPromptHandlers({ store }: { store: PromptPresetStore }) {
         return { presets: await store.list(language) }
       }
       if (payload.action === 'save') {
-        const preset = await store.save(payload)
+        const preset = await store.save(payload, language)
         return { preset, presets: await store.list(language) }
       }
       if (payload.action === 'delete') {
