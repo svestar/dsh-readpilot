@@ -8,7 +8,7 @@
 
 ## 行为
 
-Host 向 `ctx.tools` 注册十四个工具。核心工具为 `reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_digest`、`reader_note`、`reader_notes`、`reader_memory`；另有五个导航/库元数据工具。工具返回 JSON；读取默认 4000、上限 8000 字符，返回 `nextOffset`、`hasMore`、`locator`。books/search 声明结构化输出。`reader_open` 目录最多 200 章，`reader_search` 默认 20 条、上限 50 条。工具说明、动作摘要、错误消息和 `reader_digest` 的 note 按工作区语言生成。核心工具地图由 `buildToolPromptLines` 从工具定义生成，只收录 `prompt.core`，动作/scope 取自 schema，无需手改提示词。
+Host 向 `ctx.tools` 注册十四个工具。核心工具为 `reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_digest`、`reader_note`、`reader_notes`、`reader_memory`；另有五个导航/库元数据工具。工具返回 JSON；读取默认 4000、上限 8000 字符，返回 `nextOffset`、`hasMore`、`locator`。books/search 声明结构化输出。`reader_open` 目录最多 200 章，`reader_search` 默认 20 条、上限 50 条。工具结果说明、动作摘要、错误消息和 `reader_digest` 的 note 按工作区语言生成；工具 description 保持英文。核心工具地图由 `buildToolPromptLines` 从工具定义生成，只收录 `prompt.core`，动作/scope 取自 schema，无需手改提示词。
 
 ## 接口与代码映射
 
