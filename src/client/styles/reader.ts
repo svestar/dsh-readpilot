@@ -94,7 +94,7 @@ export const READER_STYLES = `.dsh-readpilot-search-hint[data-error="true"]{colo
 .dsh-readpilot-preset-menu button:hover{background:var(--dsw-alias-bg-layer-2)}
 .dsh-readpilot-preset-menu .dsh-readpilot-preset-manage{border-top:1px solid var(--dsw-alias-border-l2);border-radius:0 0 5px 5px;color:var(--dsw-alias-label-secondary)}
 .dsh-readpilot-preset-empty{padding:6px 8px;color:var(--dsw-alias-label-secondary);font-size:12px}
-.dsh-readpilot-preset-manager{width:min(820px,100%);max-height:min(86vh,720px);display:flex;flex-direction:column;gap:10px}
+.dsh-readpilot-preset-manager{width:min(820px,100%);max-height:min(86vh,720px);display:flex;flex-direction:column;gap:10px;padding:18px 20px;box-sizing:border-box}
 .dsh-readpilot-preset-header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 .dsh-readpilot-preset-header>div{display:flex;align-items:center;gap:6px;min-width:0;flex:1}
 .dsh-readpilot-preset-header h3{margin:0;font-size:14px;font-weight:650;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
