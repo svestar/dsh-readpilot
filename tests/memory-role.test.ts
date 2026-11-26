@@ -26,3 +26,46 @@ test('memory_role_rpc_roundtrip', async t => {
   assert.equal(saved.saved, true)
   assert.match(api.memoryContextFor('s1'), /温和的文学导师\n\n关注叙事结构/)
 })
+
+test('memory_role_follows_global_mode_not_book', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: 'c001' })
+  await api.memory({ action: 'setMode', bookId, mode: 'on' })
+  await api.memory({ action: 'write', bookId, scope: 'role', text: '严谨的文学导师' })
+  await api.memory({ action: 'write', bookId, scope: 'book', text: '本书事实' })
+  assert.match(api.memoryContextFor('s1'), /严谨的文学导师/)
+  assert.match(api.memoryContextFor('s1'), /本书事实/)
+
+  await api.memory({ action: 'setBook', bookId, state: 'off' })
+  const context = api.memoryContextFor('s1')
+  assert.match(context, /严谨的文学导师/)
+  assert.doesNotMatch(context, /本书事实/)
+  await assert.rejects(
+    () => api.memory({ action: 'write', bookId, scope: 'book', text: '另一条事实' }),
+    (error: any) => error?.code === 'memory-off',
+  )
+})
+
+test('memory_role_writes_require_global_mode', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.memory({ action: 'setMode', bookId, mode: 'off' })
+
+  for (const scope of ['role', 'reader']) {
+    await assert.rejects(
+      () => api.memory({ action: 'write', bookId, scope, text: '偏好' }),
+      (error: any) => error?.code === 'memory-off',
+      scope,
+    )
+    await assert.rejects(
+      () => api.memoryTool({ book: bookId, action: 'update', scope, text: '偏好' }),
+      (error: any) => error?.code === 'memory-off',
+      scope,
+    )
+  }
+})

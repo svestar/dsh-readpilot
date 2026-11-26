@@ -115,6 +115,57 @@ test('memory_panel_shows_history_snapshot_text', () => {
   assert.equal(text.split('historyClear').length - 1, 3)
 })
 
+test('memory_panel_disables_cards_outside_effective_scope', () => {
+  const React = {
+    createElement(type: any, props: any, ...children: any[]) {
+      return { type, props: props ?? {}, children }
+    },
+    useState(initial: any) {
+      return [typeof initial === 'function' ? initial() : initial, () => {}]
+    },
+    useEffect() {},
+  }
+  bindRuntime((name: string) => {
+    if (name === 'react') return React
+    if (name === 'react-dom') return { createPortal: (node: any) => node }
+    if (name === '@deepseek-ai/dsh-client-ui-primitives') return { Modal: 'Modal', Tooltip: 'Tooltip', Toast: 'Toast' }
+    throw new Error(`unexpected require: ${name}`)
+  })
+
+  const base = {
+    t: (key: string) => key,
+    loading: false,
+    error: '',
+    busy: false,
+    onRefresh() {},
+    onMode() {},
+    onBookState() {},
+    onSave() {},
+    onRestoreHistory() {},
+    onRemoveHistory() {},
+    onClearHistory() {},
+    onUndo() {},
+    onClear() {},
+  }
+  const status = (mode: 'on' | 'off', book: any, effective: 'on' | 'off'): MemoryView => ({
+    mode,
+    book,
+    effective,
+    bookText: 'B',
+    readerText: 'R',
+    roleText: 'S',
+    bookHistory: [],
+    readerHistory: [],
+    roleHistory: [],
+  })
+  const disabledSaves = (view: any) => findAll(view, node => node.type === 'button' && collectText(node) === 'save')
+    .map(node => node.props.disabled)
+
+  assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('off', 'inherit', 'off') })), [true, true, true])
+  assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('on', 'off', 'off') })), [true, false, false])
+  assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('on', 'inherit', 'on') })), [false, false, false])
+})
+
 test('memory_panel_history_confirm_flow', () => {
   const restored: Array<[string, string]> = []
   const removed: Array<[string, string]> = []

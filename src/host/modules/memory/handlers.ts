@@ -25,6 +25,12 @@ function memoryScope(value: unknown): 'book' | 'reader' | 'role' {
   return value === 'reader' ? 'reader' : value === 'role' ? 'role' : 'book'
 }
 
+/** Cross-book cards follow the global switch; the book card follows the per-book state. */
+function scopeActive(settings: CompanionSettings, bookId: string, scope: 'book' | 'reader' | 'role'): boolean {
+  if (scope === 'book') return effectiveMemoryState(settings, bookId) === 'on'
+  return settings.memory.mode === 'on'
+}
+
 export function createMemoryHandlers({
   resolveBook,
   books,
@@ -40,7 +46,8 @@ export function createMemoryHandlers({
 }: MemoryHandlerDeps) {
   async function rebuildMemory(bookId: string): Promise<number> {
     try {
-      if (effectiveMemoryState(getSettings(), bookId) !== 'on') {
+      const current = getSettings()
+      if (current.memory.mode !== 'on') {
         cache.delete(bookId)
         return 0
       }
@@ -50,7 +57,7 @@ export function createMemoryHandlers({
         bookTitle: book.title,
         reader: reader.text,
         role: role.text,
-        book: card.text,
+        book: effectiveMemoryState(current, bookId) === 'on' ? card.text : '',
         language: settings.workspaceLanguage ?? 'zh',
       })
       cache.set(bookId, { text, characters: text.length, updatedAt: Date.now() })
@@ -123,6 +130,7 @@ export function createMemoryHandlers({
       if (payload.action === 'write') {
         const text = typeof payload.text === 'string' ? payload.text : ''
         const scope = memoryScope(payload.scope)
+        if (!scopeActive(settings(), book.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
         if (scope === 'reader') {
           await store.writeReader(text)
           await rebuildAllMemory()
@@ -205,7 +213,7 @@ export function createMemoryHandlers({
         }
       }
       if (payload.action === 'forget') {
-        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭')
+        if (!scopeActive(getSettings(), found.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
         if (scope === 'reader') {
           await store.clearReader()
           await rebuildAllMemory()
@@ -219,7 +227,7 @@ export function createMemoryHandlers({
         return { forgotten: true, scope }
       }
       if (payload.action === 'update') {
-        if (effective !== 'on') throw new ReaderError('memory-off', '记忆已关闭')
+        if (!scopeActive(getSettings(), found.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
         const text = typeof payload.text === 'string' ? payload.text.trim() : ''
         if (!text) throw new ReaderError('invalid-memory', '记忆内容不能为空')
         const mode = payload.mode === 'replace' ? 'replace' : 'append'
@@ -252,7 +260,7 @@ export function createMemoryHandlers({
     if (typeof sessionId !== 'string' || !sessionId) return ''
     const reading = readings.get(sessionId)
     if (!reading) return ''
-    if (effectiveMemoryState(getSettings(), reading.bookId) !== 'on') return ''
+    if (getSettings().memory.mode !== 'on') return ''
     return cache.get(reading.bookId)?.text ?? ''
   }
 

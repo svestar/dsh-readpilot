@@ -75,7 +75,8 @@ function cardEditor(
   setText: (value: string) => void,
   history: MemoryHistoryView[],
   props: MemoryPanelProps,
-  historyActions?: HistoryActions,
+  historyActions: HistoryActions | undefined,
+  disabled: boolean,
 ) {
   return h('div', { className: 'dsh-readpilot-memory-card dsh-readpilot-card' },
     h('div', { className: 'dsh-readpilot-memory-card-head' },
@@ -87,6 +88,7 @@ function cardEditor(
       value: text,
       rows: 5,
       maxLength: MAX_MEMORY_CHARACTERS,
+      disabled,
       placeholder: scope === 'book' ? t('memoryBookPlaceholder') : scope === 'reader' ? t('memoryReaderPlaceholder') : t('memoryRolePlaceholder'),
       onChange: (event: any) => setText(event.target.value),
     }),
@@ -94,19 +96,19 @@ function cardEditor(
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-chat-send',
-        disabled: props.busy,
+        disabled: props.busy || disabled,
         onClick: () => props.onSave(scope, text),
       }, t('save')),
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-note-jump',
-        disabled: props.busy || history.length === 0,
+        disabled: props.busy || disabled || history.length === 0,
         onClick: () => props.onUndo(scope),
       }, t('memoryUndo')),
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-note-delete',
-        disabled: props.busy || !text.trim(),
+        disabled: props.busy || disabled || !text.trim(),
         onClick: () => props.onClear(scope),
       }, t('clear'))),
     history.length > 0
@@ -132,7 +134,7 @@ function cardEditor(
             h('button', {
               type: 'button',
               className: 'dsh-readpilot-note-jump',
-              disabled: props.busy,
+              disabled: props.busy || disabled,
               onClick: () => historyActions.onRestore(entry.id),
             }, t('historyRestore')),
             h('button', {
@@ -246,9 +248,9 @@ export function MemoryPanel(props: MemoryPanelProps) {
           className: 'dsh-readpilot-status-pill',
           'data-state': status.effective,
         }, `${t('memoryEffective')} ${effectiveLabel(t, status.effective)}`))),
-    cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props, historyActionsFor('book')),
-    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, historyActionsFor('reader')),
-    cardEditor(t, 'role', roleDraft, setRoleDraft, status.roleHistory, props, historyActionsFor('role')),
+    cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props, historyActionsFor('book'), status.effective !== 'on'),
+    cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, historyActionsFor('reader'), status.mode !== 'on'),
+    cardEditor(t, 'role', roleDraft, setRoleDraft, status.roleHistory, props, historyActionsFor('role'), status.mode !== 'on'),
     h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')),
     h(ConfirmDialog, {
       t,
