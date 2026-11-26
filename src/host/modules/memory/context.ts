@@ -1,4 +1,5 @@
 import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+import { CONTEXT_BUDGET } from '../prompt/context-budget.ts'
 
 export interface ReadingMemoryInput {
   bookTitle: string
@@ -9,7 +10,7 @@ export interface ReadingMemoryInput {
   language?: WorkspaceLanguage
 }
 
-const DEFAULT_MAX_TOTAL = 3000
+const DEFAULT_MAX_TOTAL = CONTEXT_BUDGET.memory
 const OPEN = '<reading_memory>'
 const CLOSE = '</reading_memory>'
 

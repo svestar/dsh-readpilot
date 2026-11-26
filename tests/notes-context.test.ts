@@ -1,6 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { buildReadingNotes } from '../src/host/modules/notes/context.ts'
+import { CONTEXT_BUDGET } from '../src/host/modules/prompt/context-budget.ts'
 
 test('notes_context_builds_notes_and_highlights', () => {
   const text = buildReadingNotes({
@@ -21,9 +22,33 @@ test('notes_context_builds_notes_and_highlights', () => {
   assert.match(text, /<\/reading_notes>$/)
 })
 
+test('notes_context_index_prefers_ids_and_paths', () => {
+  const text = buildReadingNotes({
+    bookTitle: '三体',
+    notes: [
+      { id: 'n1', kind: 'topic', title: '权力', body: '黑暗森林', path: 'notes/power.md' },
+    ],
+    highlights: [{ quote: '给岁月以文明', annotation: '时间尺度' }],
+  })
+
+  assert.match(text, /id：n1/)
+  assert.match(text, /权力/)
+  assert.match(text, /给岁月以文明/)
+  assert.doesNotMatch(text, /黑暗森林/)
+  assert.match(text, /reader_notes/)
+  assert.ok(text.length <= CONTEXT_BUDGET.notesIndex, String(text.length))
+})
+
+test('context_budget_leaves_room_for_all_blocks', () => {
+  assert.ok(CONTEXT_BUDGET.reading + CONTEXT_BUDGET.memory + CONTEXT_BUDGET.notesIndex <= CONTEXT_BUDGET.total)
+  assert.ok(CONTEXT_BUDGET.notesIndex < CONTEXT_BUDGET.notesFull)
+  assert.ok(CONTEXT_BUDGET.highlights <= CONTEXT_BUDGET.notesIndex)
+})
+
 test('notes_context_truncates_and_lists_paths', () => {
   const body = 'x'.repeat(5000)
   const text = buildReadingNotes({
+    mode: 'full',
     bookTitle: 'B',
     notes: Array.from({ length: 4 }, (_, index) => ({
       kind: 'topic' as const,

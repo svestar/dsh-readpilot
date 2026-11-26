@@ -13,6 +13,7 @@ import {
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
 import { loadSettings, saveSettings } from '../src/host/modules/library/settings.ts'
 import { buildToolPromptLines, type ToolPromptLine } from '../src/host/modules/tools/prompt-map.ts'
+import { CONTEXT_BUDGET } from '../src/host/modules/prompt/context-budget.ts'
 import { buildCompanionContext, buildReaderGuard } from '../src/host/modules/companion/context.ts'
 import { registerPromptContexts } from '../src/host/modules/companion/prompt-contexts.ts'
 import { createApp, createReaderApi } from '../src/host/app.ts'
@@ -343,6 +344,18 @@ test('reader_guard_uses_workspace_language_without_reading_context', async t => 
   await api.configureLibrary({ path: library, locale: 'en' })
 
   assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
+})
+
+test('companion_context_stays_within_reading_budget', () => {
+  const text = buildCompanionContext({
+    bookId: 'b1',
+    bookTitle: 'x'.repeat(500),
+    chapterTitle: 'y'.repeat(500),
+    view: { pageStart: 1, pageEnd: 2, pageTotal: 100, selection: 'z'.repeat(5000) },
+    language: 'zh',
+    recentActions: Array.from({ length: 5 }, () => ({ summary: 'a'.repeat(100), status: 'applied' })),
+  })
+  assert.ok(text.length <= CONTEXT_BUDGET.reading, String(text.length))
 })
 
 test('companion_context_carries_data_guard', () => {

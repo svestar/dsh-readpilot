@@ -41,7 +41,7 @@ export function createNotesContext({
       for (const note of noteFiles) {
         try {
           const value = await files.read(book, note.id)
-          readingNotes.push({ kind: note.kind, title: note.title, body: value.body, path: note.path })
+          readingNotes.push({ id: note.id, kind: note.kind, title: note.title, body: value.body, path: note.path })
         } catch {
           // A single unreadable note must not remove the rest of the context.
         }

@@ -67,7 +67,10 @@ test('note_context_toggle_and_injection', async t => {
   assert.equal(enabled.ok, true)
   assert.equal(enabled.value.enabled, true)
   assert.ok(enabled.value.characters > 0)
-  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  const injected = api.notesContextFor('s1')
+  assert.match(injected, /权力/)
+  assert.doesNotMatch(injected, /黑暗森林/)
+  assert.match(injected, /reader_notes/)
   assert.equal(api.notesContextFor('s2'), '')
   assert.equal((await api.state()).companion.notes[bookId], true)
 
@@ -351,14 +354,14 @@ test('notes_context_global_toggle', async t => {
   assert.equal(enabled.ok, true)
   assert.equal(enabled.value.enabled, true)
   assert.equal((await api.state()).companion.notesGlobal, true)
-  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  assert.match(api.notesContextFor('s1'), /权力/)
 
   const perBookOff = await api.handleRpc('setNoteContext', { bookId, enabled: false })
   assert.equal(perBookOff.ok, true)
   assert.equal(api.notesContextFor('s1'), '')
   const perBookOn = await api.handleRpc('setNoteContext', { bookId, enabled: true })
   assert.equal(perBookOn.ok, true)
-  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  assert.match(api.notesContextFor('s1'), /权力/)
 
   const disabled = await api.handleRpc('setNotesGlobal', { enabled: false })
   assert.equal(disabled.ok, true)
@@ -382,7 +385,7 @@ test('notes_context_book_state_inherit', async t => {
   assert.equal(api.notesContextFor('s1'), '')
 
   await api.setNotesGlobal({ enabled: true })
-  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  assert.match(api.notesContextFor('s1'), /权力/)
 
   const off = await api.handleRpc('setNoteContextState', { bookId, state: 'off' })
   assert.equal(off.value.effective, false)
@@ -390,5 +393,5 @@ test('notes_context_book_state_inherit', async t => {
 
   const inherit = await api.handleRpc('setNoteContextState', { bookId, state: 'inherit' })
   assert.equal(inherit.value.effective, true)
-  assert.match(api.notesContextFor('s1'), /黑暗森林/)
+  assert.match(api.notesContextFor('s1'), /权力/)
 })
