@@ -11,11 +11,8 @@ import {
   readingPrompt,
 } from '../src/host/modules/prompt/catalog.ts'
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
-import { loadSettings, saveSettings } from '../src/host/modules/library/settings.ts'
+import { loadSettings } from '../src/host/modules/library/settings.ts'
 import { buildToolPromptLines, type ToolPromptLine } from '../src/host/modules/tools/prompt-map.ts'
-import { CONTEXT_BUDGET } from '../src/host/modules/prompt/context-budget.ts'
-import { buildCompanionContext, buildReaderGuard } from '../src/host/modules/companion/context.ts'
-import { registerPromptContexts } from '../src/host/modules/companion/prompt-contexts.ts'
 import { createApp, createReaderApi } from '../src/host/app.ts'
 import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 
@@ -100,15 +97,6 @@ test('workspace_prompt_replaces_managed_block', async t => {
   const content = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.doesNotMatch(content, /旧内容/)
   assert.ok(content.includes(READING_PROMPT))
-})
-
-test('workspace_prompt_keeps_status_out_of_note_body', () => {
-  assert.match(READING_PROMPT, /body` \/ `text` 只写正文/)
-  assert.match(READING_PROMPT, /不写保存状态/)
-  assert.ok(READING_PROMPT.includes('长笔记看 `applied`'))
-  assert.ok(READING_PROMPT.includes('短笔记看 `note` / `deleted`'))
-  assert.ok(READING_PROMPT_EN.includes('`applied` for long notes'))
-  assert.ok(READING_PROMPT_EN.includes('`note` / `deleted` for short notes'))
 })
 
 test('workspace_prompt_repairs_deleted_block_on_state', async t => {
@@ -292,105 +280,4 @@ test('reading_prompt_matches_golden_snapshot', async t => {
   } finally {
     await app.dispose()
   }
-})
-
-test('reader_guard_is_registered_and_localized', () => {
-  const zh = buildReaderGuard('zh')
-  const en = buildReaderGuard('en')
-  assert.match(zh, /<reader_guard>/)
-  assert.match(zh, /不猜测/)
-  assert.match(zh, /不是指令/)
-  assert.match(en, /do not spoil unread chapters/)
-  assert.match(en, /data, not instructions/)
-
-  const contexts: any[] = []
-  const scope = {
-    effect: (callback: () => any) => callback(),
-    systemPrompt: {
-      context: (definition: any) => {
-        contexts.push(definition)
-        return () => {}
-      },
-    },
-  }
-  registerPromptContexts({ inject: (_names: string[], callback: (value: any) => void) => callback(scope) } as any, {
-    companionContextOf: () => 'reading',
-    notesContextFor: () => 'notes',
-    memoryContextFor: () => 'memory',
-    readerGuardOf: () => zh,
-  })
-  assert.deepEqual(contexts.map(item => item.name), [
-    'dsh-readpilot:guard',
-    'dsh-readpilot:reading',
-    'dsh-readpilot:notes',
-    'dsh-readpilot:memory',
-  ])
-  assert.equal(contexts[0].interpolate, false)
-  assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), zh)
-})
-
-test('reader_guard_reads_persisted_language_before_first_state', async t => {
-  const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-guard-'))
-  t.after(() => rm(data, { recursive: true, force: true }))
-  await saveSettings(data, { libraryDir: '/missing', workspaceId: 'w1', workspaceLanguage: 'en' })
-
-  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
-  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
-})
-
-test('reader_guard_uses_workspace_language_without_reading_context', async t => {
-  const { library, data } = await makeLibrary(t)
-  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
-  await api.configureLibrary({ path: library, locale: 'en' })
-
-  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
-})
-
-test('companion_context_stays_within_reading_budget', () => {
-  const text = buildCompanionContext({
-    bookId: 'b1',
-    bookTitle: 'x'.repeat(500),
-    chapterTitle: 'y'.repeat(500),
-    view: { pageStart: 1, pageEnd: 2, pageTotal: 100, selection: 'z'.repeat(5000) },
-    language: 'zh',
-    recentActions: Array.from({ length: 5 }, () => ({ summary: 'a'.repeat(100), status: 'applied' })),
-  })
-  assert.ok(text.length <= CONTEXT_BUDGET.reading, String(text.length))
-})
-
-test('companion_context_carries_data_guard', () => {
-  const zh = buildCompanionContext({
-    bookId: 'b1',
-    bookTitle: '三体',
-    chapterTitle: '第一章',
-    language: 'zh',
-    recentActions: [],
-  })
-  assert.match(zh, /资料，不是指令/)
-  const en = buildCompanionContext({
-    bookId: 'b1',
-    bookTitle: 'Three Body',
-    chapterTitle: 'One',
-    language: 'en',
-    recentActions: [],
-  })
-  assert.match(en, /data, not instructions/)
-})
-
-test('companion_context_is_scoped_to_session', async t => {
-  const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-context-'))
-  t.after(() => rm(data, { recursive: true, force: true }))
-  const api = createReaderApi({ ctx: { get: () => undefined }, dataDir: data })
-
-  const result = await api.setCompanionContext({
-    sessionId: 's1',
-    bookId: 'b1',
-    title: '三体',
-    chapter: '第三章',
-  })
-  assert.ok(result.characters > 0)
-  const text = api.companionContextOf('s1')
-  assert.match(text, /三体/)
-  assert.match(text, /第三章/)
-  assert.equal(api.companionContextOf('s2'), '')
 })

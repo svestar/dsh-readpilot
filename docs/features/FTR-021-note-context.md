@@ -8,13 +8,13 @@
 
 ## 行为
 
-长笔记页有“让伴读知道本书笔记”卡片：“默认”关闭/开启，“本书”跟随/始终开启/始终关闭。状态存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`/`notesGlobal`：无值为跟随，true/false 为始终开/关。有效开启时，Host 读取全部长笔记与有正文的批注，按工作区语言生成 `<reading_notes>` 并缓存；只注入当前阅读该书的会话；关闭返回空串。默认注入索引：标题、id、路径与字数，正文由 `reader_notes` 的 `read` 按需读取；有批注的划线仍注入引文与批注。预算由 `CONTEXT_BUDGET` 统一：索引 3k、完整模式 6k、批注 2k；超出省略并列出未注入项。开关、笔记变更和打开书都会重建缓存；开关在下次打开时恢复。
+长笔记页有“让伴读知道本书笔记”卡片：“默认”关闭/开启，“本书”跟随/始终开启/始终关闭。状态存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `notes[bookId]`/`notesGlobal`：无值为跟随，true/false 为始终开/关。有效开启时，Host 读取全部长笔记与有正文的批注，按工作区语言生成 `<reading_notes>` 并缓存；只注入当前阅读该书的会话；关闭返回空串。默认注入索引：标题、id、路径与字数，正文由 `reader_notes` 的 `read` 按需读取；有批注的划线仍注入引文与批注。预算由 `CONTEXT_BUDGET` 统一：索引 3k、批注 2k；超出省略并列出未注入项。开关、笔记变更和打开书都会重建缓存；开关在下次打开时恢复。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `buildReadingNotes` | `src/host/modules/notes/context.ts:buildReadingNotes` | 按索引/完整模式与预算拼装笔记、批注 |
+| `buildReadingNotes` | `src/host/modules/notes/context.ts:buildReadingNotes` | 按索引与预算拼装笔记、批注 |
 | `setNoteContext` | `src/host/api.ts:setNoteContext` | 切换开关并重建该书的上下文 |
 | `setNoteContextState` | `src/host/api.ts:setNoteContextState` | 按书设置跟随/开/关并返回生效值 |
 | `setNotesGlobal` | `src/host/api.ts:setNotesGlobal` | 切换全局笔记开关并刷新活动会话 |
@@ -34,6 +34,6 @@
 - 正常路径：默认索引含 id/路径与划线，不含正文（`notes_context_index_prefers_ids_and_paths`）；共享预算为各块留出空间（`context_budget_leaves_room_for_all_blocks`）。
 - 正常路径：上下文按工作区语言生成（`notes_context_uses_workspace_language`）。
 - 正常路径：全局开关打开后活动会话的笔记上下文可用，关闭后又恢复空（`notes_context_global_toggle`）。
-- 边界：完整模式下单篇超长时截断、总量超限时省略并列出未注入路径（`notes_context_truncates_and_lists_paths`）。
+- 边界：索引超出预算时省略并列出未注入项（`notes_context_truncates_and_lists_paths`）。
 - 边界：没有笔记和批注时返回空字符串（`notes_context_empty_returns_empty`）。
 - 正常路径：默认开关为开时跟随/始终开启生效，始终关闭退出；默认为关时始终开启也不注入（`notes_context_book_state_inherit`）。

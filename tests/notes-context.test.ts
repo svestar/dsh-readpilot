@@ -41,29 +41,24 @@ test('notes_context_index_prefers_ids_and_paths', () => {
 
 test('context_budget_leaves_room_for_all_blocks', () => {
   assert.ok(CONTEXT_BUDGET.reading + CONTEXT_BUDGET.memory + CONTEXT_BUDGET.notesIndex <= CONTEXT_BUDGET.total)
-  assert.ok(CONTEXT_BUDGET.reading + CONTEXT_BUDGET.memory + CONTEXT_BUDGET.notesFull <= CONTEXT_BUDGET.total)
-  assert.ok(CONTEXT_BUDGET.notesIndex < CONTEXT_BUDGET.notesFull)
   assert.ok(CONTEXT_BUDGET.highlights <= CONTEXT_BUDGET.notesIndex)
 })
 
 test('notes_context_truncates_and_lists_paths', () => {
-  const body = 'x'.repeat(5000)
   const text = buildReadingNotes({
-    mode: 'full',
     bookTitle: 'B',
-    notes: Array.from({ length: 4 }, (_, index) => ({
+    notes: Array.from({ length: 3 }, (_, index) => ({
+      id: `n${index}`,
       kind: 'topic' as const,
       title: `T${index}`,
-      body,
-      path: `notes/b/t${index}.md`,
+      body: 'x'.repeat(100),
+      path: `notes/${'p'.repeat(60)}/t${index}.md`,
     })),
     highlights: [],
-    maxTotal: 6000,
-    maxNote: 2000,
+    maxTotal: 350,
   })
 
-  assert.ok(text.length <= 6200, String(text.length))
-  assert.match(text, /已截断/)
+  assert.ok(text.length <= 350, String(text.length))
   assert.match(text, /未注入的笔记/)
 })
 

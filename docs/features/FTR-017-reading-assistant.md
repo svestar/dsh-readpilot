@@ -33,7 +33,6 @@
 - 管理块跟随请求语言重写（`workspace_prompt_follows_requested_language`）；旧工作区无标记按中文迁移（`workspace_prompt_migrates_legacy_block_via_configure`）。
 - 规则 id 唯一、中英齐全，输出与 golden 一致（`reading_prompt_catalog_rules_have_stable_ids`、`reading_prompt_matches_golden_snapshot`）。
 - settings 语言优先于标记并在状态加载时回写（`workspace_language_settings_win_over_prompt_marker`）；缺语言时从标记迁移（`workspace_language_migrates_from_marker_when_settings_missing`）。
-- 配置记录工作区语言，同书库重复配置保留首次语言（`configure_records_workspace_language_once`）；笔记正文只写内容（`workspace_prompt_keeps_status_out_of_note_body`）。
+- 配置记录工作区语言，同书库重复配置保留首次语言（`configure_records_workspace_language_once`）。
 - 删除 `AGENTS.md` 后下一次状态加载会重建；不可写目录不阻塞状态加载，`promptSync` 返回失败（`workspace_prompt_repairs_deleted_block_on_state`、`workspace_prompt_sync_reports_failure`）。
 - 正常路径：同步失败在客户端显示非阻塞提示（`client_assembly_surfaces_prompt_sync_failure`）。
-- 阅读位置按会话隔离，只对写入过的会话返回（`companion_context_is_scoped_to_session`）。

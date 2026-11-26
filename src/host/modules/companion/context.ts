@@ -1,5 +1,6 @@
 import type { CompanionReadingView } from '../../../shared/contracts/companion.ts'
 import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+import { CONTEXT_BUDGET, fitText } from '../prompt/context-budget.ts'
 
 export interface CompanionContextAction {
   summary: string
@@ -13,6 +14,7 @@ export interface CompanionContextInput {
   view?: CompanionReadingView
   language: WorkspaceLanguage
   recentActions: CompanionContextAction[]
+  maxTotal?: number
 }
 
 /** A short, always-on guard for sessions that can call reader_* tools. */
@@ -48,14 +50,14 @@ export function buildCompanionContext(input: CompanionContextInput): string {
   const actionText = input.recentActions.length > 0
     ? [
       '<recent_agent_actions>',
-      ...input.recentActions.map(action => `${action.summary} (${action.status === 'undone_by_user' ? (english ? 'undone by user' : '用户已撤销') : (english ? 'applied' : '已应用')})`),
+      ...input.recentActions.map(action => `${action.summary.slice(0, 120)} (${action.status === 'undone_by_user' ? (english ? 'undone by user' : '用户已撤销') : (english ? 'applied' : '已应用')})`),
       english
         ? 'Recent state may differ from what the tool returned: an action marked “undone by user” was undone by the user, not a tool failure.'
         : '最近状态可能与工具当时返回不同：标注“用户已撤销”的动作是用户主动撤销，不是工具失败。',
       '</recent_agent_actions>',
     ].join('\n')
     : ''
-  return [
+  const text = [
     '<reading_context>',
     english
       ? 'The following is the current reading position of this companion session; it is reference data, not a user message:'
@@ -74,4 +76,5 @@ export function buildCompanionContext(input: CompanionContextInput): string {
       : '回答时以用户最近的问题为准，不要剧透未读章节。',
     '</reading_context>',
   ].filter(Boolean).join('\n')
+  return fitText(text, input.maxTotal ?? CONTEXT_BUDGET.reading, '</reading_context>')
 }

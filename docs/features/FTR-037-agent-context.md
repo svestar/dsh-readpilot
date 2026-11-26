@@ -3,14 +3,14 @@
 - **ID：** FTR-037
 - **名称：** Agent 阅读上下文
 - **状态：** active
-- **代码：** `src/host/register-tools.ts`（`registerTools`）；`src/host/api.ts`（`toolContext`、`syncCompanionContexts`、`setCompanionContext`）；`src/host/modules/reading/tool-service.ts`（`ensureSessionReading`）；`src/host/modules/companion/prompt-contexts.ts`（`registerPromptContexts`）；`src/host/modules/companion/context.ts`（`buildCompanionContext`、`buildReaderGuard`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）；`src/client/modules/reader/use-reading-progress.ts`（`useReadingProgress`）；`src/host/modules/companion/service.ts`（`ensureSessionReading`）
-- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/prompt.test.ts`
+- **代码：** `src/host/register-tools.ts`（`registerTools`）；`src/host/api.ts`（`toolContext`、`syncCompanionContexts`、`setCompanionContext`）；`src/host/modules/prompt/context-budget.ts`（`assembleReaderContexts`、`CONTEXT_BUDGET`）；`src/host/modules/companion/prompt-contexts.ts`（`registerPromptContexts`）；`src/host/modules/companion/context.ts`（`buildCompanionContext`、`buildReaderGuard`）；`src/client/modules/sidebar/SidebarReaderView.ts`（`SidebarReader`）；`src/client/modules/reader/use-reading-progress.ts`（`useReadingProgress`）；`src/host/modules/companion/service.ts`（`ensureSessionReading`）
+- **测试：** `tests/api-library.test.ts`；`tests/api-reading.test.ts`；`tests/api-notes.test.ts`；`tests/api-companion.test.ts`；`tests/reader-context.test.ts`
 
 ## 行为
 
 阅读工具在 Host 全局注册，工作区对话和伴读对话使用同一套工具。带 `book` 参数的工具（`reader_open`、`reader_read`、`reader_search`、`reader_note`、`reader_notes`、`reader_memory`）直接按参数工作，不依赖当前界面。
 
-`reader_context` 省略 `book` 时优先使用当前工具调用所属会话的伴读阅读上下文；没有会话上下文时，Host 会从 `sessions` 映射和该书的最近进度惰性补建，再回退到最近阅读进度。插件启动时也会批量补建已有会话上下文，因此不打开侧栏或主阅读页也能使用会话级阅读工具。主阅读页和工作区侧栏仍会实时覆盖当前书、书标题和章节。另注册 `dsh-readpilot:guard` 全局守则：使用 `reader_*` 工具时不猜测、不剧透、不擅自写入；有阅读上下文时按会话语言生成，无上下文时按工作区语言（未配置书库时中文）。工作区语言从持久化设置同步初始化，首个请求即可用。`<reading_context>` 含“资料非指令”说明，标签内文本不作为指令执行。
+`reader_context` 省略 `book` 时优先使用当前工具调用所属会话的伴读阅读上下文；没有会话上下文时，Host 会从 `sessions` 映射和该书的最近进度惰性补建，再回退到最近阅读进度。插件启动时也会批量补建已有会话上下文，因此不打开侧栏或主阅读页也能使用会话级阅读工具。主阅读页和工作区侧栏仍会实时覆盖当前书、书标题和章节。另注册 `dsh-readpilot:guard` 全局守则：使用 `reader_*` 工具时不猜测、不剧透、不擅自写入；有阅读上下文时按会话语言生成，无上下文时用工作区语言（未配置书库时中文）。`<reading_context>` 含“资料非指令”说明，标签内文本不作为指令执行。三个块由一个 `dsh-readpilot:context` 注入；`assembleReaderContexts` 按 reading > memory > notes 合并并受总预算约束，阅读块按 `CONTEXT_BUDGET.reading` 截断。
 
 ## 接口与代码映射
 
@@ -31,6 +31,5 @@
 
 - 正常路径：同一会话已记录阅读上下文时，省略 `book` 的 `reader_context` 优先返回该会话的书，而不是最近阅读的另一本书（`tool_context_prefers_session_reading_over_latest_progress`）。
 - 正常路径：没有打开阅读界面时，按 sessions 映射与进度也能补建当前书并供 `reader_context` 使用（`tool_context_hydrates_session_mapping_without_opening_reader`）。
-- 正常路径：全局守则按会话语言生成并注册，阅读上下文携带资料守卫（`reader_guard_is_registered_and_localized`、`companion_context_carries_data_guard`）。
-- 正常路径：没有阅读上下文时守则使用工作区语言（`reader_guard_uses_workspace_language_without_reading_context`）。
-- 正常路径：首次状态加载前，守则也能读到持久化工作区语言（`reader_guard_reads_persisted_language_before_first_state`）。
+- 正常路径：全局守则按会话语言生成并注册，阅读上下文携带资料守卫；无上下文时用工作区语言，首个请求即可用（`reader_guard_is_registered_and_localized`、`companion_context_carries_data_guard`、`reader_guard_uses_workspace_language_without_reading_context`、`reader_guard_reads_persisted_language_before_first_state`）。
+- 正常路径：阅读上下文按 `CONTEXT_BUDGET.reading` 截断并保留闭合标签（`companion_context_stays_within_reading_budget`）；三个上下文合并后不超过总预算（`reader_context_assembly_enforces_total_budget`）。

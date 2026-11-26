@@ -35,5 +35,5 @@
 - 正常路径：整书笔记（id `book`）可生成追加草稿并应用（`note_draft_append_book_note`）。
 - 正常路径：新建主题笔记草稿应用后生成文件（`note_draft_create_and_apply`）。
 - 边界：基准笔记被改动后应用返回冲突，草稿保留且正文不被覆盖（`note_draft_conflict_keeps_draft`）。
-- 边界：提示词禁止把“未保存”等状态写进笔记正文（`workspace_prompt_keeps_status_out_of_note_body`）。
+- 边界：提示词禁止把“未保存”等状态写进笔记正文（`reading_prompt_matches_golden_snapshot`）。
 - 边界：应用草稿不自动打开预览；只有已打开的同一篇笔记跟随更新（`note_apply_keeps_preview_closed`、`note_apply_syncs_open_preview`）。

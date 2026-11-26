@@ -1,3 +1,5 @@
+import { assembleReaderContexts } from '../prompt/context-budget.ts'
+
 export interface PromptContextSource {
   companionContextOf(sessionId: unknown): string
   notesContextFor(sessionId: unknown): string
@@ -5,7 +7,7 @@ export interface PromptContextSource {
   readerGuardOf(sessionId: unknown): string
 }
 
-/** Register the global guard plus the three reader context blocks. */
+/** Register the global guard plus one assembled reader context block. */
 export function registerPromptContexts(ctx: any, source: PromptContextSource): void {
   ctx.inject(['systemPrompt'], (scope: any) => {
     scope.effect(() => scope.systemPrompt.context({
@@ -15,22 +17,17 @@ export function registerPromptContexts(ctx: any, source: PromptContextSource): v
       text: ({ agent }: any) => source.readerGuardOf(agent?.session?.id),
     }), 'dsh-readpilot: reader guard')
     scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:reading',
+      name: 'dsh-readpilot:context',
       order: 9500,
       interpolate: false,
-      text: ({ agent }: any) => source.companionContextOf(agent?.session?.id),
-    }), 'dsh-readpilot: reading context')
-    scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:notes',
-      order: 9510,
-      interpolate: false,
-      text: ({ agent }: any) => source.notesContextFor(agent?.session?.id),
-    }), 'dsh-readpilot: notes context')
-    scope.effect(() => scope.systemPrompt.context({
-      name: 'dsh-readpilot:memory',
-      order: 9520,
-      interpolate: false,
-      text: ({ agent }: any) => source.memoryContextFor(agent?.session?.id),
-    }), 'dsh-readpilot: memory context')
+      text: ({ agent }: any) => {
+        const sessionId = agent?.session?.id
+        return assembleReaderContexts({
+          reading: source.companionContextOf(sessionId),
+          memory: source.memoryContextFor(sessionId),
+          notes: source.notesContextFor(sessionId),
+        })
+      },
+    }), 'dsh-readpilot: reader context')
   })
 }
