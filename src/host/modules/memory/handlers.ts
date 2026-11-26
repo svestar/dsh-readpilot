@@ -175,6 +175,7 @@ export function createMemoryHandlers({
         const scope = memoryScope(payload.scope)
         const cardId = scope === 'reader' ? null : scope === 'role' ? 'role' : book.id
         if (payload.action === 'historyRestore') {
+          if (!scopeActive(settings(), book.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
           await store.restoreHistory(cardId, String(payload.id ?? ''))
         } else if (payload.action === 'historyRemove') {
           await store.removeHistory(cardId, String(payload.id ?? ''))

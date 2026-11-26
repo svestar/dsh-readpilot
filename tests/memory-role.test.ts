@@ -49,6 +49,26 @@ test('memory_role_follows_global_mode_not_book', async t => {
   )
 })
 
+test('memory_history_restore_requires_active_scope', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const state = await api.configureLibrary({ path: library })
+  const bookId = state.books[0].id
+  await api.memory({ action: 'setMode', bookId, mode: 'on' })
+  await api.memory({ action: 'write', bookId, scope: 'role', text: '第一版' })
+  await api.memory({ action: 'write', bookId, scope: 'role', text: '第二版' })
+  const status = await api.memory({ action: 'status', bookId })
+  const id = status.roleHistory[0].id
+
+  await api.memory({ action: 'setMode', bookId, mode: 'off' })
+  await assert.rejects(
+    () => api.memory({ action: 'historyRestore', bookId, scope: 'role', id }),
+    (error: any) => error?.code === 'memory-off',
+  )
+  const removed = await api.memory({ action: 'historyRemove', bookId, scope: 'role', id })
+  assert.equal(removed.roleHistory.length, 0)
+})
+
 test('memory_role_writes_require_global_mode', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
