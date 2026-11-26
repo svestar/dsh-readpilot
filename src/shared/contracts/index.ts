@@ -3,6 +3,7 @@ import { READING_ENDPOINTS } from './reading.ts'
 import { SEARCH_ENDPOINT } from './search.ts'
 import { NOTES_ENDPOINTS } from './notes.ts'
 import { MEMORY_ENDPOINT } from './memory.ts'
+import { ROLE_ENDPOINT } from './role.ts'
 import { PROMPTS_ENDPOINT } from './prompts.ts'
 import { COMPANION_ENDPOINTS } from './companion.ts'
 import { ACTIONS_ENDPOINTS } from './actions.ts'
@@ -15,6 +16,7 @@ export * from './companion.ts'
 export * from './notes.ts'
 export * from './search.ts'
 export * from './memory.ts'
+export * from './role.ts'
 export * from './prompts.ts'
 export * from './actions.ts'
 export * from './backup.ts'
@@ -33,6 +35,7 @@ export const OPERATIONS = [
   { endpoint: SEARCH_ENDPOINT, module: 'search' },
   ...Object.values(NOTES_ENDPOINTS).map(endpoint => ({ endpoint, module: 'notes' })),
   { endpoint: MEMORY_ENDPOINT, module: 'memory' },
+  { endpoint: ROLE_ENDPOINT, module: 'role' },
   { endpoint: PROMPTS_ENDPOINT, module: 'prompts' },
   ...Object.values(COMPANION_ENDPOINTS).map(endpoint => ({ endpoint, module: 'companion' })),
   ...Object.values(ACTIONS_ENDPOINTS).map(endpoint => ({ endpoint, module: 'actions' })),

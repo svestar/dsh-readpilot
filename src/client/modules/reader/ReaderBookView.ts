@@ -5,6 +5,7 @@ import { ChatPanel } from '../companion/ChatPanel.ts'
 import { ChatBody, ChatCompose } from '../companion/ChatContent.ts'
 import { CompanionSessions } from '../companion/CompanionSessions.ts'
 import { MemoryPanel } from '../companion/MemoryPanel.ts'
+import { RolePanel } from '../companion/RolePanel.ts'
 import { LongNotes } from '../notes/LongNotesView.ts'
 import { NotesBody } from '../notes/NotesBodyView.ts'
 import type { ReaderPanelModel } from './use-reader-panel.ts'
@@ -20,7 +21,7 @@ interface ReaderBookProps {
 export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps) {
   const screen = model.screen
   if (screen.kind !== 'book') return null
-  const { prefs, view, notes, companion, composer, longNotes, memory } = model
+  const { prefs, view, notes, companion, composer, longNotes, memory, role } = model
 
   const chatBody = h(ChatBody, {
     t,
@@ -92,6 +93,22 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     onUndo: memory.undo,
     onClear: memory.clear,
   })
+  const roleBody = h(RolePanel, {
+    t,
+    status: role.status,
+    loading: role.loading,
+    error: role.error,
+    busy: role.busy,
+    onRefresh: role.refresh,
+    onEnabled: role.setEnabled,
+    onBookEnabled: role.setBookEnabled,
+    onSave: role.saveCard,
+    onRestoreHistory: role.restoreHistory,
+    onRemoveHistory: role.removeHistory,
+    onClearHistory: role.clearHistory,
+    onUndo: role.undo,
+    onClear: role.clear,
+  })
 
   const sessionBar = h(CompanionSessions, {
     t,
@@ -116,6 +133,7 @@ export function ReaderBookView({ t, model, NativeChatBoundary }: ReaderBookProps
     notesBody,
     longNotesBody,
     memoryBody,
+    roleBody,
     sessionBar,
     chatBody,
     nativeChat,

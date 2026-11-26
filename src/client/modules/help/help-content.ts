@@ -10,6 +10,7 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
   { id: 'annotate', titleKey: 'helpAnnotateTitle', bodyKey: 'helpAnnotateBody' },
   { id: 'translation', titleKey: 'helpTranslationTitle', bodyKey: 'helpTranslationBody' },
   { id: 'companion', titleKey: 'helpCompanionTitle', bodyKey: 'helpCompanionBody' },
+  { id: 'role', titleKey: 'helpRoleTitle', bodyKey: 'helpRoleBody' },
   { id: 'notes', titleKey: 'helpNotesTitle', bodyKey: 'helpNotesBody' },
   { id: 'history', titleKey: 'helpHistoryTitle', bodyKey: 'helpHistoryBody' },
   { id: 'shortcuts', titleKey: 'helpShortcutsTitle', bodyKey: 'helpShortcutsBody' },

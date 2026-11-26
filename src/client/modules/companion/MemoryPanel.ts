@@ -4,7 +4,7 @@ import { ConfirmDialog } from '../common/ConfirmDialog.ts'
 
 export type MemoryMode = 'off' | 'on'
 export type BookMemoryState = 'inherit' | 'on' | 'off'
-export type MemoryScope = 'book' | 'reader' | 'role'
+export type MemoryScope = 'book' | 'reader'
 
 export const MAX_MEMORY_CHARACTERS = 600
 
@@ -21,10 +21,8 @@ export interface MemoryView {
   effective: 'on' | 'off'
   bookText: string
   readerText: string
-  roleText: string
   bookHistory: MemoryHistoryView[]
   readerHistory: MemoryHistoryView[]
-  roleHistory: MemoryHistoryView[]
 }
 
 export interface MemoryPanelProps {
@@ -81,7 +79,7 @@ function cardEditor(
   return h('div', { className: 'dsh-readpilot-memory-card dsh-readpilot-card' },
     h('div', { className: 'dsh-readpilot-memory-card-head' },
       h('span', { className: 'dsh-readpilot-memory-card-title' },
-        scope === 'book' ? t('memoryBookCard') : scope === 'reader' ? t('memoryReaderCard') : t('memoryRoleCard')),
+        scope === 'book' ? t('memoryBookCard') : t('memoryReaderCard')),
       h('span', { className: 'dsh-readpilot-long-meta' },
         `${text.length}/${MAX_MEMORY_CHARACTERS} · ${t('memoryHistoryCount')} ${history.length}`)),
     h('textarea', {
@@ -89,7 +87,7 @@ function cardEditor(
       rows: 5,
       maxLength: MAX_MEMORY_CHARACTERS,
       disabled,
-      placeholder: scope === 'book' ? t('memoryBookPlaceholder') : scope === 'reader' ? t('memoryReaderPlaceholder') : t('memoryRolePlaceholder'),
+      placeholder: scope === 'book' ? t('memoryBookPlaceholder') : t('memoryReaderPlaceholder'),
       onChange: (event: any) => setText(event.target.value),
     }),
     h('div', { className: 'dsh-readpilot-long-editor-actions' },
@@ -151,7 +149,6 @@ export function MemoryPanel(props: MemoryPanelProps) {
   const { t, status } = props
   const [bookDraft, setBookDraft] = React.useState('')
   const [readerDraft, setReaderDraft] = React.useState('')
-  const [roleDraft, setRoleDraft] = React.useState('')
   const [historyConfirm, setHistoryConfirm] = React.useState<HistoryConfirm | null>(null)
 
   const historyActionsFor = (scope: MemoryScope): HistoryActions => ({
@@ -171,8 +168,7 @@ export function MemoryPanel(props: MemoryPanelProps) {
   React.useEffect(() => {
     setBookDraft(status?.bookText ?? '')
     setReaderDraft(status?.readerText ?? '')
-    setRoleDraft(status?.roleText ?? '')
-  }, [status?.bookText, status?.readerText, status?.roleText])
+  }, [status?.bookText, status?.readerText])
 
   const emptyState = (title: string, hint: string) => h('div', { className: 'dsh-readpilot-empty-state' },
     h('div', { className: 'dsh-readpilot-empty-icon' }, '◍'),
@@ -250,7 +246,6 @@ export function MemoryPanel(props: MemoryPanelProps) {
         }, `${t('memoryEffective')} ${effectiveLabel(t, status.effective)}`))),
     cardEditor(t, 'book', bookDraft, setBookDraft, status.bookHistory, props, historyActionsFor('book'), status.effective !== 'on'),
     cardEditor(t, 'reader', readerDraft, setReaderDraft, status.readerHistory, props, historyActionsFor('reader'), status.mode !== 'on'),
-    cardEditor(t, 'role', roleDraft, setRoleDraft, status.roleHistory, props, historyActionsFor('role'), status.mode !== 'on'),
     h('div', { className: 'dsh-readpilot-long-hint dsh-readpilot-memory-hint' }, t('memoryHint')),
     h(ConfirmDialog, {
       t,
@@ -259,9 +254,7 @@ export function MemoryPanel(props: MemoryPanelProps) {
         : historyConfirm.kind === 'clear'
           ? historyConfirm.scope === 'book'
             ? t('memoryBookHistoryClearConfirm')
-            : historyConfirm.scope === 'reader'
-              ? t('memoryHistoryClearConfirm')
-              : t('memoryRoleHistoryClearConfirm')
+            : t('memoryHistoryClearConfirm')
           : t('historyDeleteConfirm'),
       onConfirm: () => settleHistoryConfirm(true),
       onCancel: () => settleHistoryConfirm(false),

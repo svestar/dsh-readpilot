@@ -162,3 +162,42 @@ export async function remapMemory(zip: JSZip, dataDir: string, mapping: Map<stri
     await writeFile(path, await entry.async('nodebuffer'))
   }
 }
+
+function roleEntries(zip: JSZip, mapping: Map<string, string>): Map<string, string> {
+  const result = new Map<string, string>()
+  for (const name of Object.keys(zip.files)) {
+    if (!name.startsWith(`${BACKUP_PREFIX}/roles/`) || zip.files[name].dir) continue
+    const rel = name.slice(`${BACKUP_PREFIX}/roles/`.length)
+    if (rel.startsWith('global.md') || rel.startsWith('.history/global/')) {
+      result.set(`roles/${rel}`, name)
+      continue
+    }
+    const direct = /^([^/]+)\.md$/.exec(rel)
+    if (direct && mapping.has(direct[1])) {
+      result.set(`roles/${mapping.get(direct[1])}.md`, name)
+      continue
+    }
+    const history = /^\.history\/([^/]+)\/(.+)$/.exec(rel)
+    if (history && mapping.has(history[1])) {
+      result.set(`roles/.history/${mapping.get(history[1])}/${history[2]}`, name)
+    }
+  }
+  return result
+}
+
+export async function remapRoles(zip: JSZip, dataDir: string, mapping: Map<string, string>): Promise<void> {
+  const root = join(dataDir, 'roles')
+  for (const targetId of mapping.values()) {
+    await rm(join(root, `${targetId}.md`), { force: true })
+    await rm(join(root, '.history', targetId), { recursive: true, force: true })
+  }
+  await rm(join(root, 'global.md'), { force: true })
+  await rm(join(root, '.history', 'global'), { recursive: true, force: true })
+  for (const [rel, source] of roleEntries(zip, mapping)) {
+    const entry = zip.file(source)
+    if (!entry) continue
+    const path = join(dataDir, rel)
+    await mkdir(dirname(path), { recursive: true })
+    await writeFile(path, await entry.async('nodebuffer'))
+  }
+}

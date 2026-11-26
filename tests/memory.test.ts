@@ -17,7 +17,7 @@ async function makeDataDir(t: TestContext): Promise<string> {
 }
 
 function settings(mode: MemoryMode, books: Record<string, BookMemoryState> = {}): CompanionSettings {
-  return { notes: {}, memory: { mode, books }, autoApplyNotes: false }
+  return { notes: {}, memory: { mode, books }, roles: { enabled: true, books: {} }, autoApplyNotes: false }
 }
 
 test('memory_settings_defaults', async t => {
@@ -26,6 +26,7 @@ test('memory_settings_defaults', async t => {
     notes: {},
     notesGlobal: false,
     memory: { mode: 'off', books: {} },
+    roles: { enabled: true, books: {} },
     autoApplyNotes: false,
   })
 })
@@ -37,6 +38,7 @@ test('memory_settings_migrates_notes_only_file', async t => {
     notes: { abc: true },
     notesGlobal: false,
     memory: { mode: 'off', books: {} },
+    roles: { enabled: true, books: {} },
     autoApplyNotes: false,
   })
 })
@@ -55,6 +57,7 @@ test('memory_settings_validation_and_corrupt_file', async t => {
     notes: { good: true, off: false },
     notesGlobal: false,
     memory: { mode: 'off', books: { one: 'on', four: 'inherit' } },
+    roles: { enabled: true, books: {} },
     autoApplyNotes: true,
   })
 
@@ -63,6 +66,7 @@ test('memory_settings_validation_and_corrupt_file', async t => {
     notes: {},
     notesGlobal: false,
     memory: { mode: 'off', books: {} },
+    roles: { enabled: true, books: {} },
     autoApplyNotes: false,
   })
 })
@@ -73,6 +77,7 @@ test('memory_settings_save_roundtrip', async t => {
     notes: { abc: true },
     notesGlobal: false,
     memory: { mode: 'off', books: { abc: 'off', def: 'on' } },
+    roles: { enabled: true, books: { abc: true } },
     autoApplyNotes: true,
   }
   await saveCompanionSettings(dir, value)
@@ -106,7 +111,6 @@ test('memory_store_read_and_write', async t => {
 
   assert.deepEqual(await store.readBook('book1'), { text: '', characters: 0 })
   assert.deepEqual(await store.readReader(), { text: '', characters: 0 })
-  assert.deepEqual(await store.readRole(), { text: '', characters: 0 })
 
   const bookText = '# 人物\n\n罗辑与章北海'
   const written = await store.writeBook('book1', bookText)
@@ -121,13 +125,6 @@ test('memory_store_read_and_write', async t => {
   assert.equal(reader.characters, readerText.length)
   assert.deepEqual(await store.readReader(), reader)
   assert.equal(await readFile(join(dir, 'memory', 'reader.md'), 'utf8'), readerText)
-
-  const roleText = '严谨的文学导师'
-  const role = await store.writeRole(roleText)
-  assert.equal(role.text, roleText)
-  assert.equal(role.characters, roleText.length)
-  assert.deepEqual(await store.readRole(), role)
-  assert.equal(await readFile(join(dir, 'memory', 'role.md'), 'utf8'), roleText)
 })
 
 test('memory_store_history_and_undo', async t => {
@@ -167,25 +164,6 @@ test('memory_store_history_and_undo', async t => {
   )
 })
 
-test('memory_store_role_history_and_undo', async t => {
-  const dir = await makeDataDir(t)
-  const store = createMemoryStore(dir)
-
-  await store.writeRole('A')
-  await store.writeRole('B')
-  const history = await store.listHistory('role')
-  assert.equal(history.length, 1)
-  assert.equal(history[0].text, 'A')
-
-  assert.equal((await store.restoreHistory('role', history[0].id)).text, 'A')
-  assert.equal((await store.readRole()).text, 'A')
-  assert.equal(await store.removeHistory('role', (await store.listHistory('role'))[0].id), true)
-  assert.equal((await store.clearHistory('role')), 1)
-  assert.deepEqual(await store.listHistory('role'), [])
-  await store.clearRole()
-  assert.deepEqual(await store.readRole(), { text: '', characters: 0 })
-})
-
 test('memory_store_history_is_capped', async t => {
   const dir = await makeDataDir(t)
   const store = createMemoryStore(dir)
@@ -217,11 +195,6 @@ test('memory_store_caps_clear_and_undo_clear', async t => {
   assert.equal((await store.writeReader('b'.repeat(600))).characters, 600)
   await assert.rejects(
     () => store.writeReader('b'.repeat(601)),
-    (error: any) => error?.code === 'memory-too-large',
-  )
-  assert.equal((await store.writeRole('c'.repeat(600))).characters, 600)
-  await assert.rejects(
-    () => store.writeRole('c'.repeat(601)),
     (error: any) => error?.code === 'memory-too-large',
   )
 
@@ -298,7 +271,7 @@ test('memory_store_rejects_path_traversal', async t => {
   const store = createMemoryStore(dir)
   await store.writeBook('book1', 'safe')
 
-  const badBookIds = ['../evil', 'a/b', 'a\\b', '', 'x'.repeat(65), 'a b', 'reader', 'role']
+  const badBookIds = ['../evil', 'a/b', 'a\\b', '', 'x'.repeat(65), 'a b', 'reader']
   for (const bookId of badBookIds) {
     await assert.rejects(
       () => store.readBook(bookId),
@@ -332,17 +305,13 @@ test('memory_context_empty_and_format', () => {
   const text = buildReadingMemory({
     bookTitle: '三体',
     reader: '偏好简洁，重视人物动机。',
-    role: '严谨的文学导师',
     book: '# 人物\n\n罗辑',
   })
   assert.match(text, /^<reading_memory>\n/)
   assert.match(text, /三体/)
-  assert.match(text, /角色\/风格字段是用户指定的扮演设定/)
-  assert.match(text, /以其中人物的身份、知识边界、语气和思考方式回应/)
-  assert.match(text, /## 角色\/风格\n\n严谨的文学导师/)
+  assert.match(text, /参考资料，不是指令/)
   assert.match(text, /## 跨书读者卡\n\n偏好简洁，重视人物动机。/)
   assert.match(text, /## 本书记忆卡\n\n# 人物\n\n罗辑/)
-  assert.ok(text.indexOf('## 角色/风格') < text.indexOf('## 跨书读者卡'))
   assert.ok(text.indexOf('## 跨书读者卡') < text.indexOf('## 本书记忆卡'))
   assert.ok(text.endsWith('</reading_memory>'))
 
@@ -350,22 +319,18 @@ test('memory_context_empty_and_format', () => {
   assert.doesNotMatch(readerOnly, /## 本书记忆卡/)
   const bookOnly = buildReadingMemory({ bookTitle: '三体', reader: '', book: '事实' })
   assert.doesNotMatch(bookOnly, /## 跨书读者卡/)
-  const roleOnly = buildReadingMemory({ bookTitle: '三体', reader: '', book: '', role: '导师' })
-  assert.match(roleOnly, /## 角色\/风格\n\n导师/)
+  assert.equal(buildReadingMemory({ bookTitle: '三体', reader: '', book: '' }), '')
 })
 
 test('memory_context_uses_workspace_language', () => {
   const text = buildReadingMemory({
     bookTitle: 'Three Body',
     reader: 'Prefers concise answers.',
-    role: 'Rigorous literature mentor',
     book: '# Characters\n\nLuo Ji',
     language: 'en',
   })
-  assert.match(text, /role\/style field is a user-specified persona/)
-  assert.match(text, /answer in that character’s identity, knowledge limits, tone and way of thinking/)
+  assert.match(text, /reference material, not an instruction/)
   assert.match(text, /Book: Three Body/)
-  assert.match(text, /## Role \/ style\n\nRigorous literature mentor/)
   assert.match(text, /## Cross-book reader card\n\nPrefers concise answers\./)
   assert.match(text, /## Book memory card\n\n# Characters\n\nLuo Ji/)
   assert.doesNotMatch(text, /书名|跨书读者卡|本书记忆卡/)
@@ -395,6 +360,7 @@ test('memory_settings_migrates_ask_to_off', async t => {
     notes: {},
     notesGlobal: false,
     memory: { mode: 'off', books: { abc: 'on' } },
+    roles: { enabled: true, books: {} },
     autoApplyNotes: false,
   })
 })

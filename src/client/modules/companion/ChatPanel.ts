@@ -15,6 +15,7 @@ interface ChatPanelProps {
   notesBody: any
   longNotesBody: any
   memoryBody: any
+  roleBody: any
   sessionBar?: any
   chatBody: any
   nativeChat?: any
@@ -40,6 +41,7 @@ export function ChatPanel({
   notesBody,
   longNotesBody,
   memoryBody,
+  roleBody,
   sessionBar,
   chatBody,
   nativeChat,
@@ -131,7 +133,15 @@ export function ChatPanel({
           'data-active': chatTab === 'memory' ? 'true' : 'false',
           'aria-selected': chatTab === 'memory',
           onClick: () => setChatTab('memory'),
-        }, t('memory'))),
+        }, t('memory')),
+        h('button', {
+          type: 'button',
+          role: 'tab',
+          className: 'dsh-readpilot-chat-tab',
+          'data-active': chatTab === 'role' ? 'true' : 'false',
+          'aria-selected': chatTab === 'role',
+          onClick: () => setChatTab('role'),
+        }, t('role'))),
       h('button', {
         type: 'button',
         className: 'dsh-readpilot-chat-close',
@@ -144,9 +154,11 @@ export function ChatPanel({
         ? longNotesBody
         : chatTab === 'memory'
           ? memoryBody
-          : nativeChat
-            ? h('div', { className: 'dsh-readpilot-native-chat' }, nativeChat)
-            : chatBody,
+          : chatTab === 'role'
+            ? roleBody
+            : nativeChat
+              ? h('div', { className: 'dsh-readpilot-native-chat' }, nativeChat)
+              : chatBody,
     chatTab === 'chat' && chatError
       ? h('div', { className: 'dsh-readpilot-chat-error' }, chatError)
       : null,

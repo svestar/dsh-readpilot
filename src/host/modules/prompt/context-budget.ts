@@ -1,5 +1,6 @@
 /** Shared character budgets for the per-session reader context blocks. */
 export const CONTEXT_BUDGET = {
+  role: 1200,
   reading: 2600,
   memory: 3000,
   notesIndex: 3000,

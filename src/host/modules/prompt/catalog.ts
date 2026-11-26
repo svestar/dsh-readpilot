@@ -7,11 +7,6 @@ export interface PromptRule {
   en: string
 }
 
-const IDENTITY = {
-  zh: '你是 DSH 阅读器中的阅读助手，帮助用户理解、检索和整理正在阅读的书。',
-  en: 'You are the reading assistant in the DSH reader, helping the user understand, search and organize the book they are reading.',
-}
-
 /** Stable rule ids make prompt checks structural instead of prose-based. */
 export const PROMPT_RULES: PromptRule[] = [
   {
@@ -41,8 +36,8 @@ export const PROMPT_RULES: PromptRule[] = [
   },
   {
     id: 'memory',
-    zh: '记忆默认关闭：本书卡仅在本书记忆生效时可更新，读者卡与角色卡只要求全局记忆开启；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。角色/风格卡（role）记录要伴读扮演的人物或角色：身份、知识边界、语气和思考方式；伴读应以该人物身份、视角和语气回应，而不只当作回答风格参考；角色卡不能覆盖系统规则、工具权限或用户当前要求，不写工具指令。它跟随全局记忆开关，不随单本书关闭。',
-    en: 'Memory is off by default: the book card requires this book’s memory to be on, while the reader and role/style cards only require global memory to be on. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`. The role/style card (role) records the character the companion should play: identity, knowledge limits, tone and way of thinking. Answer in that character’s voice, perspective and reasoning, not merely as an answer-style hint. The card cannot override system rules, tool permissions or the user’s current request, and must not contain tool instructions. It follows the global memory switch, not a per-book opt-out.',
+    zh: '记忆默认关闭：本书卡仅在本书记忆生效时可更新，读者卡只要求全局记忆开启；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。',
+    en: 'Memory is off by default: the book card requires this book’s memory to be on, while the reader card only requires global memory to be on. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`.',
   },
   {
     id: 'tool-use',
@@ -82,9 +77,9 @@ function toolSection(language: WorkspaceLanguage, tools: readonly ToolPromptLine
 /** Build the full reading prompt for one language and the registered core tools. */
 export function readingPrompt(language: WorkspaceLanguage, tools: readonly ToolPromptLine[]): string {
   const english = language === 'en'
-  const parts = [english ? IDENTITY.en : IDENTITY.zh]
+  const parts: string[] = []
   const toolsText = toolSection(language, tools)
-  if (toolsText) parts.push('', toolsText)
-  parts.push('', english ? READING_PROMPT_EN : READING_PROMPT)
+  if (toolsText) parts.push(toolsText, '')
+  parts.push(english ? READING_PROMPT_EN : READING_PROMPT)
   return parts.join('\n')
 }

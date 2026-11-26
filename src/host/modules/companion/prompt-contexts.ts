@@ -4,12 +4,19 @@ export interface PromptContextSource {
   companionContextOf(sessionId: unknown): string
   notesContextFor(sessionId: unknown): string
   memoryContextFor(sessionId: unknown): string
+  roleContextOf(sessionId: unknown): string
   readerGuardOf(sessionId: unknown): string
 }
 
 /** Register the global guard plus one assembled reader context block. */
 export function registerPromptContexts(ctx: any, source: PromptContextSource): void {
   ctx.inject(['systemPrompt'], (scope: any) => {
+    scope.effect(() => scope.systemPrompt.context({
+      name: 'dsh-readpilot:role',
+      order: 9480,
+      interpolate: false,
+      text: ({ agent }: any) => source.roleContextOf(agent?.session?.id),
+    }), 'dsh-readpilot: role context')
     scope.effect(() => scope.systemPrompt.context({
       name: 'dsh-readpilot:guard',
       order: 9490,

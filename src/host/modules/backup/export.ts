@@ -69,6 +69,7 @@ export async function exportBackup(
     await addFileIfExists(zip, join(notesRoot, `${book.id}.json`), `${BACKUP_PREFIX}/notes/${book.id}.json`)
   }
   await addTree(zip, join(dataDir, 'memory'), `${BACKUP_PREFIX}/memory`)
+  await addTree(zip, join(dataDir, 'roles'), `${BACKUP_PREFIX}/roles`)
   if (libraryDir) {
     await addTree(zip, join(libraryDir, NOTES_DIR_NAME), NOTES_PREFIX)
   }

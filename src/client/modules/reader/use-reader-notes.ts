@@ -1,5 +1,6 @@
 import { useLongNotes } from '../notes/use-long-notes.ts'
 import { useMemory } from '../companion/use-memory.ts'
+import { useRole } from '../companion/use-role.ts'
 import { useNotes } from '../notes/use-notes.ts'
 import type { ReaderView } from './use-reader-view.ts'
 import type { ReaderPreferences } from './use-reader-preferences.ts'
@@ -53,6 +54,7 @@ export function useReaderNotes({
     chatVersion,
   })
   const memory = useMemory({ call, t, activeBookId, notesTabActive: chatTab === 'memory' })
+  const role = useRole({ call, t, activeBookId, roleTabActive: chatTab === 'role' })
 
   const notes = useNotes({
     call,
@@ -76,5 +78,5 @@ export function useReaderNotes({
     layoutKey: noteLayoutKey,
   })
 
-  return { longNotes, memory, notes, activeBookId }
+  return { longNotes, memory, role, notes, activeBookId }
 }

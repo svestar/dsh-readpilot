@@ -2,6 +2,7 @@ import { join } from 'node:path'
 import type {
   BookMemoryState,
   CompanionMemorySettings,
+  CompanionRoleSettings,
   CompanionSettings,
   MemoryMode,
 } from '../../../shared/contracts/companion.ts'
@@ -40,6 +41,18 @@ function memoryOf(raw: unknown): CompanionMemorySettings {
   return { mode: isMemoryMode(record.mode) ? record.mode : 'off', books }
 }
 
+function rolesOf(raw: unknown): CompanionRoleSettings {
+  if (!raw || typeof raw !== 'object') return { enabled: true, books: {} }
+  const record = raw as Record<string, unknown>
+  const books: Record<string, boolean> = {}
+  if (record.books && typeof record.books === 'object') {
+    for (const [bookId, enabled] of Object.entries(record.books as Record<string, unknown>)) {
+      if (BOOK_ID_PATTERN.test(bookId) && typeof enabled === 'boolean') books[bookId] = enabled
+    }
+  }
+  return { enabled: record.enabled !== false, books }
+}
+
 export function companionSettingsPath(dataDir: string): string {
   return join(dataDir, 'companion.json')
 }
@@ -57,6 +70,7 @@ export async function loadCompanionSettings(dataDir: string): Promise<CompanionS
     notes: notesOf(record.notes),
     notesGlobal: record.notesGlobal === true,
     memory: memoryOf(record.memory),
+    roles: rolesOf(record.roles),
     autoApplyNotes: record.autoApplyNotes === true,
   }
 }

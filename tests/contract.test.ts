@@ -28,6 +28,7 @@ test('contract_declares_every_registered_endpoint', async () => {
       'notes',
       'prompts',
       'reading',
+      'role',
       'search',
       'translation',
     ])

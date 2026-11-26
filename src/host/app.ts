@@ -10,6 +10,7 @@ import { createReadingModule } from './modules/reading/index.ts'
 import { createSearchModule } from './modules/search/index.ts'
 import { createNotesModule } from './modules/notes/index.ts'
 import { createMemoryModule } from './modules/memory/index.ts'
+import { createRoleModule } from './modules/role/index.ts'
 import { createPromptsModule } from './modules/prompts/index.ts'
 import { createCompanionModule } from './modules/companion/index.ts'
 import { createActionsModule } from './modules/actions/index.ts'
@@ -125,6 +126,17 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     readings,
   })
 
+  const roleModule = createRoleModule({
+    dataDir,
+    resolveBook: library.resolveBook,
+    getSettings,
+    setSettings,
+    loadSettings,
+    saveSettings,
+    readings,
+    workspaceLanguage: () => library.workspaceLanguage(),
+  })
+
   const actionsModule = createActionsModule({
     resolveBook: library.resolveBook,
     notes: notes.notes,
@@ -185,6 +197,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     searchModule.module,
     notesModule.module,
     memoryModule.module,
+    roleModule.module,
     promptsModule.module,
     companionModule.module,
     actionsModule.module,
@@ -225,6 +238,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     notesTools,
     readingTools,
     memory: memoryModule,
+    role: roleModule,
     prompts: promptsModule.prompts,
     companion,
     actions,

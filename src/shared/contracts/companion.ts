@@ -90,10 +90,18 @@ export interface CompanionMemorySettings {
   books: Record<string, BookMemoryState>
 }
 
+export interface CompanionRoleSettings {
+  /** Whether custom role cards may replace the default reading assistant. */
+  enabled: boolean
+  /** Books that explicitly use their own role card instead of the global one. */
+  books: Record<string, boolean>
+}
+
 export interface CompanionSettings {
   notes: Record<string, boolean>
   notesGlobal?: boolean
   memory: CompanionMemorySettings
+  roles: CompanionRoleSettings
   autoApplyNotes: boolean
 }
 
@@ -101,6 +109,7 @@ export const DEFAULT_COMPANION_SETTINGS: CompanionSettings = {
   notes: {},
   notesGlobal: false,
   memory: { mode: 'off', books: {} },
+  roles: { enabled: true, books: {} },
   autoApplyNotes: false,
 }
 

@@ -6,7 +6,7 @@ import type { Book } from '../library/book.ts'
 import { readJson, writeJson } from '../../lib/fs-json.ts'
 import { exportBackup } from './export.ts'
 import { assertArchiveLimits, BACKUP_PREFIX, isObject, normalizeManifest, readZipJson } from './manifest.ts'
-import { remapLongNotes, remapMemory, remapNotes } from './notes.ts'
+import { remapLongNotes, remapMemory, remapNotes, remapRoles } from './notes.ts'
 
 interface RestoreMapping {
   old: { bookId: string }
@@ -67,6 +67,8 @@ async function applyRestore(
   if (!isObject(companion.notes)) companion.notes = {}
   if (!isObject(companion.memory)) companion.memory = { mode: 'off', books: {} }
   if (!isObject(companion.memory.books)) companion.memory.books = {}
+  if (!isObject(companion.roles)) companion.roles = { enabled: true, books: {} }
+  if (!isObject(companion.roles.books)) companion.roles.books = {}
   for (const [oldId, targetId] of mapping) {
     const noteValue = backupCompanion.notes?.[oldId]
     if (typeof noteValue === 'boolean') companion.notes[targetId] = noteValue
@@ -76,8 +78,14 @@ async function applyRestore(
     } else {
       delete companion.memory.books[targetId]
     }
+    if (backupCompanion.roles?.books?.[oldId] !== undefined) {
+      companion.roles.books[targetId] = backupCompanion.roles.books[oldId]
+    } else {
+      delete companion.roles.books[targetId]
+    }
   }
   if (backupCompanion.memory?.mode !== undefined) companion.memory.mode = backupCompanion.memory.mode
+  if (typeof backupCompanion.roles?.enabled === 'boolean') companion.roles.enabled = backupCompanion.roles.enabled
   if (typeof backupCompanion.autoApplyNotes === 'boolean') companion.autoApplyNotes = backupCompanion.autoApplyNotes
   if (typeof backupCompanion.notesGlobal === 'boolean') companion.notesGlobal = backupCompanion.notesGlobal
   await writeJson(join(dataDir, 'companion.json'), companion)
@@ -86,6 +94,7 @@ async function applyRestore(
   if (presets) await writeFile(join(dataDir, 'presets.json'), await presets.async('nodebuffer'))
 
   await remapMemory(zip, dataDir, mapping)
+  await remapRoles(zip, dataDir, mapping)
   const longNotes = await remapLongNotes(zip, libraryDir, mapping, targetById)
   return {
     matched: mappings.length,

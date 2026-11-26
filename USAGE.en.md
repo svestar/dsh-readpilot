@@ -97,9 +97,13 @@ When globally off, no book injects notes; when globally on, each book can follow
 
 ### Memory
 
-Memory is off by default. The Memory tab sets the default and lets this book follow, always enable or always disable it. When on, the companion can record stable reading preferences, views about the book or author, long-term questions and similar facts; the Reader card records cross-book preferences; the Role / style card stores the character the companion should play. Fill in identity, knowledge limits, tone and way of thinking, and the companion answers in that character’s voice and perspective. Keep each item concise (about 60 characters); each card is limited to 600 characters. Memory stores only durable information and does not record plot details, one-off questions or reading progress. The role setup cannot override system rules, tool permissions or your current request.
+Memory is off by default. The Memory tab sets the default and lets this book follow, always enable or always disable it. When on, the companion can record stable reading preferences, views about the book or author, long-term questions and similar facts; the Reader card records cross-book preferences. Keep each item concise (about 60 characters); each card is limited to 600 characters. Memory stores only durable information and does not record plot details, one-off questions or reading progress.
 
-Every overwrite or clear keeps a history snapshot, up to 10 entries. Expand an entry to view the old body; Book memory, the Reader card and the Role / style card all support restoring a selected version, deleting one entry or clearing all history. Restoring first saves the current body to history; deleting and clearing require confirmation and do not change the current card.
+Every overwrite or clear keeps a history snapshot, up to 10 entries. Expand an entry to view the old body; Book memory and the Reader card both support restoring a selected version, deleting one entry or clearing all history. Restoring first saves the current body to history; deleting and clearing require confirmation and do not change the current card.
+
+### Role
+
+The Role tab sets the character the companion plays. A global role is reusable across books; a per-book role can override it. When this book’s switch is on and its card is non-empty, it is used; otherwise the global role applies, and an empty global role falls back to the default reading assistant. A role card holds identity, knowledge limits, tone and way of thinking, up to 600 characters, with history, undo and restore. It never overrides system rules, tool permissions, no-spoiler or quotation rules.
 
 ### History and undo
 

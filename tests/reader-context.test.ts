@@ -33,15 +33,19 @@ test('reader_guard_is_registered_and_localized', () => {
     companionContextOf: () => 'reading',
     notesContextFor: () => 'notes',
     memoryContextFor: () => 'memory',
+    roleContextOf: () => 'role',
     readerGuardOf: () => zh,
   })
   assert.deepEqual(contexts.map(item => item.name), [
+    'dsh-readpilot:role',
     'dsh-readpilot:guard',
     'dsh-readpilot:context',
   ])
   assert.equal(contexts[0].interpolate, false)
-  assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), zh)
-  const assembled = contexts[1].text({ agent: { session: { id: 's1' } } })
+  assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), 'role')
+  assert.equal(contexts[1].interpolate, false)
+  assert.equal(contexts[1].text({ agent: { session: { id: 's1' } } }), zh)
+  const assembled = contexts[2].text({ agent: { session: { id: 's1' } } })
   assert.match(assembled, /reading[\s\S]*memory[\s\S]*notes/)
 })
 

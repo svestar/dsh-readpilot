@@ -1,33 +1,16 @@
-import { randomBytes } from 'node:crypto'
-import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
-import { dirname, join, resolve, sep } from 'node:path'
+import { join } from 'node:path'
+import { CardStoreError, createCardStore, type CardHistoryEntry, type CardValue } from '../../lib/card-store.ts'
 
-export interface MemoryCard {
-  text: string
-  characters: number
-}
-
-export interface MemoryHistoryEntry {
-  id: string
-  text: string
-  createdAt: number
-  characters: number
-}
-
-export interface MemoryHistorySnapshot {
-  id: string
-  text: string
-  createdAt: number
-  characters: number
-}
+export type MemoryCard = CardValue
+export type MemoryHistoryEntry = CardHistoryEntry
+export type MemoryHistorySnapshot = CardHistoryEntry
+export { CardStoreError as MemoryStoreError } from '../../lib/card-store.ts'
 
 export interface MemoryStore {
   readBook(bookId: string): Promise<MemoryCard>
   readReader(): Promise<MemoryCard>
-  readRole(): Promise<MemoryCard>
   writeBook(bookId: string, text: string): Promise<MemoryCard>
   writeReader(text: string): Promise<MemoryCard>
-  writeRole(text: string): Promise<MemoryCard>
   listHistory(bookId: string | null): Promise<MemoryHistoryEntry[]>
   readHistory(bookId: string | null, id: string): Promise<MemoryHistorySnapshot>
   restoreHistory(bookId: string | null, id: string): Promise<MemoryCard>
@@ -36,234 +19,42 @@ export interface MemoryStore {
   undo(bookId: string | null): Promise<MemoryCard>
   clearBook(bookId: string): Promise<void>
   clearReader(): Promise<void>
-  clearRole(): Promise<void>
 }
 
-const MEMORY_DIR = 'memory'
 const READER_CARD = 'reader'
-const ROLE_CARD = 'role'
-const HISTORY_DIR = '.history'
 const BOOK_ID_PATTERN = /^[A-Za-z0-9_-]{1,64}$/
-const HISTORY_ID_PATTERN = /^\d{1,16}-[a-f0-9]{1,32}$/
-const MAX_BOOK_CHARACTERS = 600
-const MAX_READER_CHARACTERS = 600
-const MAX_ROLE_CHARACTERS = 600
-const MAX_HISTORY = 10
-
-export class MemoryStoreError extends Error {
-  code: string
-
-  constructor(code: string, message: string) {
-    super(message)
-    this.name = 'MemoryStoreError'
-    this.code = code
-  }
-}
-
-function assertBookId(bookId: unknown): string {
-  if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId) || bookId === READER_CARD || bookId === ROLE_CARD) {
-    throw new MemoryStoreError('invalid-book', 'bookId 不合法')
-  }
-  return bookId
-}
-
-function assertHistoryId(id: unknown): string {
-  if (typeof id !== 'string' || !HISTORY_ID_PATTERN.test(id)) {
-    throw new MemoryStoreError('invalid-history', '历史记录 ID 不合法')
-  }
-  return id
-}
-
-function assertInside(base: string, path: string): void {
-  const root = resolve(base)
-  const target = resolve(path)
-  if (target !== root && !target.startsWith(`${root}${sep}`)) {
-    throw new MemoryStoreError('invalid-memory', '记忆路径越界')
-  }
-}
-
-function createdAtOf(id: string): number {
-  return Number(id.slice(0, id.indexOf('-')))
-}
-
-function normalizeCardText(value: unknown, max: number): string {
-  if (typeof value !== 'string') throw new MemoryStoreError('invalid-memory', '记忆内容必须是字符串')
-  const text = value.replace(/\r\n?/g, '\n')
-  if (text.length > max) {
-    throw new MemoryStoreError('memory-too-large', `记忆卡最多 ${max} 个字符`)
-  }
-  return text
-}
-
-async function readTextFile(path: string): Promise<string | null> {
-  try {
-    return await readFile(path, 'utf8')
-  } catch (error) {
-    if ((error as NodeJS.ErrnoException | null)?.code === 'ENOENT') return null
-    throw error
-  }
-}
-
-async function atomicWrite(path: string, content: string): Promise<void> {
-  await mkdir(dirname(path), { recursive: true })
-  const temporary = `${path}.${process.pid}.${randomBytes(3).toString('hex')}.tmp`
-  await writeFile(temporary, content, 'utf8')
-  await rename(temporary, path)
-}
 
 export function createMemoryStore(dataDir: string): MemoryStore {
-  const root = join(dataDir, MEMORY_DIR)
-  let lastSnapshotAt = 0
+  const store = createCardStore(join(dataDir, 'memory'), {
+    maxCharacters: 600,
+    namePattern: BOOK_ID_PATTERN,
+    invalidNameCode: 'invalid-book',
+    tooLargeCode: 'memory-too-large',
+    invalidContentCode: 'invalid-memory',
+    invalidPathCode: 'invalid-memory',
+  })
 
-  function cardName(bookId: string | null): string {
-    if (bookId === null) return READER_CARD
-    if (bookId === ROLE_CARD) return ROLE_CARD
-    return assertBookId(bookId)
-  }
-
-  function cardPath(name: string): string {
-    const path = join(root, `${name}.md`)
-    assertInside(root, path)
-    return path
-  }
-
-  function cardHistoryDir(name: string): string {
-    const dir = join(root, HISTORY_DIR, name)
-    assertInside(root, dir)
-    return dir
-  }
-
-  // 同一毫秒内的多次快照也要有稳定顺序，undo 才能准确恢复“上一个”版本。
-  function nextSnapshotStamp(): number {
-    lastSnapshotAt = Math.max(Date.now(), lastSnapshotAt + 1)
-    return lastSnapshotAt
-  }
-
-  async function snapshot(name: string, text: string): Promise<void> {
-    const dir = cardHistoryDir(name)
-    await mkdir(dir, { recursive: true })
-    const file = join(dir, `${nextSnapshotStamp()}-${randomBytes(3).toString('hex')}.md`)
-    await writeFile(file, text, 'utf8')
-    const entries = await readdir(dir)
-    const sorted = entries.filter(entry => entry.endsWith('.md')).sort()
-    for (const entry of sorted.slice(0, Math.max(0, sorted.length - MAX_HISTORY))) {
-      await rm(join(dir, entry), { force: true })
+  function bookName(bookId: unknown): string {
+    if (typeof bookId !== 'string' || !BOOK_ID_PATTERN.test(bookId) || bookId === READER_CARD) {
+      throw new CardStoreError('invalid-book', 'bookId 不合法')
     }
+    return bookId
   }
 
-  async function readCard(name: string): Promise<MemoryCard> {
-    const text = await readTextFile(cardPath(name))
-    return text === null ? { text: '', characters: 0 } : { text, characters: text.length }
-  }
-
-  async function writeCard(name: string, value: string, max: number): Promise<MemoryCard> {
-    const text = normalizeCardText(value, max)
-    const path = cardPath(name)
-    const current = await readTextFile(path)
-    if (current) await snapshot(name, current)
-    if (!text.trim()) {
-      await rm(path, { force: true })
-      return { text: '', characters: 0 }
-    }
-    await atomicWrite(path, text)
-    return { text, characters: text.length }
-  }
-
-  async function clearCard(name: string): Promise<void> {
-    const path = cardPath(name)
-    const current = await readTextFile(path)
-    if (current) await snapshot(name, current)
-    await rm(path, { force: true })
-  }
-
-  async function listHistory(name: string): Promise<MemoryHistoryEntry[]> {
-    const dir = cardHistoryDir(name)
-    let entries: string[]
-    try {
-      entries = await readdir(dir)
-    } catch {
-      // 没有历史目录等价于没有快照。
-      return []
-    }
-    const history: MemoryHistoryEntry[] = []
-    for (const entry of entries) {
-      if (!entry.endsWith('.md')) continue
-      const id = entry.slice(0, -'.md'.length)
-      if (!HISTORY_ID_PATTERN.test(id)) continue
-      const text = await readTextFile(join(dir, entry))
-      if (text === null) continue
-      history.push({ id, text, createdAt: createdAtOf(id), characters: text.length })
-    }
-    return history.sort((left, right) => right.createdAt - left.createdAt || right.id.localeCompare(left.id))
-  }
-
-  async function readHistory(name: string, id: string): Promise<MemoryHistorySnapshot> {
-    const snapshotId = assertHistoryId(id)
-    const dir = cardHistoryDir(name)
-    const path = join(dir, `${snapshotId}.md`)
-    assertInside(dir, path)
-    const text = await readTextFile(path)
-    if (text === null) throw new MemoryStoreError('history-not-found', '历史快照不存在')
-    return { id: snapshotId, text, createdAt: createdAtOf(snapshotId), characters: text.length }
-  }
-
-  async function restoreHistory(name: string, id: string): Promise<MemoryCard> {
-    const restored = await readHistory(name, id)
-    const path = cardPath(name)
-    const current = await readTextFile(path)
-    if (current) await snapshot(name, current)
-    if (!restored.text.trim()) {
-      await rm(path, { force: true })
-      return { text: '', characters: 0 }
-    }
-    await atomicWrite(path, restored.text)
-    return { text: restored.text, characters: restored.text.length }
-  }
-
-  async function removeHistory(name: string, id: string): Promise<boolean> {
-    const snapshotId = assertHistoryId(id)
-    const dir = cardHistoryDir(name)
-    const path = join(dir, `${snapshotId}.md`)
-    assertInside(dir, path)
-    if (await readTextFile(path) === null) return false
-    await rm(path, { force: true })
-    return true
-  }
-
-  async function clearHistory(name: string): Promise<number> {
-    const dir = cardHistoryDir(name)
-    let entries: string[]
-    try {
-      entries = await readdir(dir)
-    } catch {
-      return 0
-    }
-    const ids = entries.filter(entry => entry.endsWith('.md') && HISTORY_ID_PATTERN.test(entry.slice(0, -'.md'.length)))
-    await Promise.all(ids.map(entry => rm(join(dir, entry), { force: true })))
-    return ids.length
-  }
-
-  async function undo(name: string): Promise<MemoryCard> {
-    const entries = await listHistory(name)
-    if (entries.length === 0) throw new MemoryStoreError('history-empty', '没有可撤销的历史快照')
-    return restoreHistory(name, entries[0].id)
-  }
+  const cardName = (bookId: string | null): string => bookId === null ? READER_CARD : bookName(bookId)
 
   return {
-    readBook: async bookId => readCard(assertBookId(bookId)),
-    readReader: async () => readCard(READER_CARD),
-    readRole: async () => readCard(ROLE_CARD),
-    writeBook: async (bookId, text) => writeCard(assertBookId(bookId), text, MAX_BOOK_CHARACTERS),
-    writeReader: async text => writeCard(READER_CARD, text, MAX_READER_CHARACTERS),
-    writeRole: async text => writeCard(ROLE_CARD, text, MAX_ROLE_CHARACTERS),
-    listHistory: async bookId => listHistory(cardName(bookId)),
-    readHistory: async (bookId, id) => readHistory(cardName(bookId), id),
-    restoreHistory: async (bookId, id) => restoreHistory(cardName(bookId), id),
-    removeHistory: async (bookId, id) => removeHistory(cardName(bookId), id),
-    clearHistory: async bookId => clearHistory(cardName(bookId)),
-    undo: async bookId => undo(cardName(bookId)),
-    clearBook: async bookId => clearCard(assertBookId(bookId)),
-    clearReader: async () => clearCard(READER_CARD),
-    clearRole: async () => clearCard(ROLE_CARD),
+    readBook: async bookId => store.read(bookName(bookId)),
+    readReader: async () => store.read(READER_CARD),
+    writeBook: async (bookId, text) => store.write(bookName(bookId), text),
+    writeReader: async text => store.write(READER_CARD, text),
+    listHistory: async bookId => store.listHistory(cardName(bookId)),
+    readHistory: async (bookId, id) => store.readHistory(cardName(bookId), id),
+    restoreHistory: async (bookId, id) => store.restoreHistory(cardName(bookId), id),
+    removeHistory: async (bookId, id) => store.removeHistory(cardName(bookId), id),
+    clearHistory: async bookId => store.clearHistory(cardName(bookId)),
+    undo: async bookId => store.undo(cardName(bookId)),
+    clearBook: async bookId => store.clear(bookName(bookId)),
+    clearReader: async () => store.clear(READER_CARD),
   }
 }

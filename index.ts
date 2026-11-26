@@ -30,6 +30,7 @@ export function apply(ctx: any, config: Partial<Config> = {}): void {
 
   const app = createApp({ dataDir: pluginDataDir(resolveDshHome()), ctx })
   void app.api.syncCompanionContexts().catch(() => {})
+  void app.api.syncRoleContexts().catch(() => {})
   void app.api.syncPrompt().catch(() => {})
 
   ctx.effect(() => registerTools(ctx, app.modules), 'dsh-readpilot: tools')

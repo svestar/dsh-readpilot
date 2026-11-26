@@ -9,6 +9,7 @@ import type { createNotesService } from './modules/notes/service.ts'
 import type { createNotesToolService } from './modules/notes/tool-service.ts'
 import type { createReadingToolService } from './modules/reading/tool-service.ts'
 import type { MemoryModule } from './modules/memory/index.ts'
+import type { RoleModule } from './modules/role/index.ts'
 import type { createPromptsModule } from './modules/prompts/index.ts'
 import type { createCompanionService } from './modules/companion/service.ts'
 import type { createActionsService } from './modules/actions/service.ts'
@@ -23,6 +24,7 @@ export interface ReaderApiDependencies {
   notesTools: ReturnType<typeof createNotesToolService>
   readingTools: ReturnType<typeof createReadingToolService>
   memory: MemoryModule
+  role: RoleModule
   prompts: ReturnType<typeof createPromptsModule>['prompts']
   companion: ReturnType<typeof createCompanionService>
   actions: ReturnType<typeof createActionsService>
@@ -82,7 +84,11 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     configureLibrary: (payload?: { path?: unknown; locale?: unknown }) => deps.library.configure(payload),
     deleteDuplicate: (payload?: { bookId?: unknown }) => deps.library.deleteDuplicate(payload),
     backupExport: () => deps.backup.backupExport(),
-    backupRestore: (payload?: any) => deps.backup.backupRestore(payload),
+    backupRestore: async (payload?: any) => {
+      const value = await deps.backup.backupRestore(payload)
+      await deps.role.handlers.refresh().catch(() => {})
+      return value
+    },
     open: (payload?: any) => deps.reading.open(payload),
     chapter: (payload?: any) => deps.reading.chapter(payload),
     saveReadingProgress: (payload?: any) => deps.reading.saveReadingProgress(payload),
@@ -103,6 +109,9 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     memory: (payload?: any) => deps.memory.handlers.memory(payload),
     memoryTool: (payload?: any) => deps.memory.handlers.memoryTool(payload),
     memoryContextFor: (sessionId: unknown) => deps.memory.handlers.memoryContextFor(sessionId),
+    role: (payload?: any) => deps.role.handlers.role(payload),
+    roleContextOf: (sessionId: unknown) => deps.role.handlers.roleContextFor(sessionId),
+    syncRoleContexts: () => deps.role.handlers.refresh(),
     prompts: (payload?: any) => deps.prompts(payload),
     readerActions: (payload?: any) => deps.actions.readerActions(payload),
     readerReceipts: (payload?: any) => deps.actions.readerReceipts(payload),

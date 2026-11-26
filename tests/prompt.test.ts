@@ -167,19 +167,13 @@ test('workspace_language_migrates_from_marker_when_settings_missing', async t =>
   assert.equal((await loadSettings(data)).workspaceLanguage, 'en')
 })
 
-test('reading_prompt_covers_memory_role_scope', () => {
+test('reading_prompt_covers_memory_scope', () => {
   const zh = readingPrompt('zh', TOOL_LINES)
   const en = readingPrompt('en', TOOL_LINES)
-  assert.match(zh, /scope 为 book\/reader\/role/)
-  assert.match(zh, /角色\/风格卡/)
-  assert.match(zh, /记录要伴读扮演的人物或角色/)
   assert.match(zh, /本书卡仅在本书记忆生效时可更新/)
-  assert.match(zh, /读者卡与角色卡只要求全局记忆开启/)
-  assert.match(en, /scope is book\/reader\/role/)
-  assert.match(en, /role\/style card/)
-  assert.match(en, /records the character the companion should play/)
+  assert.match(zh, /读者卡只要求全局记忆开启/)
   assert.match(en, /the book card requires this book/)
-  assert.match(en, /reader and role\/style cards only require global memory/)
+  assert.match(en, /reader card only requires global memory/)
 })
 
 test('tool_prompt_map_is_derived_from_schema', () => {

@@ -21,12 +21,12 @@ export interface MemoryHandlerDeps {
   cache: Map<string, { text: string; characters: number; updatedAt: number }>
 }
 
-function memoryScope(value: unknown): 'book' | 'reader' | 'role' {
-  return value === 'reader' ? 'reader' : value === 'role' ? 'role' : 'book'
+function memoryScope(value: unknown): 'book' | 'reader' {
+  return value === 'reader' ? 'reader' : 'book'
 }
 
 /** Cross-book cards follow the global switch; the book card follows the per-book state. */
-function scopeActive(settings: CompanionSettings, bookId: string, scope: 'book' | 'reader' | 'role'): boolean {
+function scopeActive(settings: CompanionSettings, bookId: string, scope: 'book' | 'reader'): boolean {
   if (scope === 'book') return effectiveMemoryState(settings, bookId) === 'on'
   return settings.memory.mode === 'on'
 }
@@ -52,11 +52,10 @@ export function createMemoryHandlers({
         return 0
       }
       const [book, settings] = await Promise.all([resolveBook(bookId), librarySettings()])
-      const [reader, role, card] = await Promise.all([store.readReader(), store.readRole(), store.readBook(bookId)])
+      const [reader, card] = await Promise.all([store.readReader(), store.readBook(bookId)])
       const text = buildReadingMemory({
         bookTitle: book.title,
         reader: reader.text,
-        role: role.text,
         book: effectiveMemoryState(current, bookId) === 'on' ? card.text : '',
         language: settings.workspaceLanguage ?? 'zh',
       })
@@ -76,13 +75,11 @@ export function createMemoryHandlers({
 
   async function memoryStatus(book: Book): Promise<any> {
     const settings = getSettings()
-    const [bookCard, readerCard, roleCard, bookHistory, readerHistory, roleHistory] = await Promise.all([
+    const [bookCard, readerCard, bookHistory, readerHistory] = await Promise.all([
       store.readBook(book.id),
       store.readReader(),
-      store.readRole(),
       store.listHistory(book.id),
       store.listHistory(null),
-      store.listHistory('role'),
     ])
     return {
       mode: settings.memory.mode,
@@ -90,10 +87,8 @@ export function createMemoryHandlers({
       effective: effectiveMemoryState(settings, book.id),
       bookText: bookCard.text,
       readerText: readerCard.text,
-      roleText: roleCard.text,
       bookHistory,
       readerHistory,
-      roleHistory,
     }
   }
 
@@ -134,9 +129,6 @@ export function createMemoryHandlers({
         if (scope === 'reader') {
           await store.writeReader(text)
           await rebuildAllMemory()
-        } else if (scope === 'role') {
-          await store.writeRole(text)
-          await rebuildAllMemory()
         } else {
           await store.writeBook(book.id, text)
           await rebuildMemory(book.id)
@@ -147,9 +139,6 @@ export function createMemoryHandlers({
         const scope = memoryScope(payload.scope)
         if (scope === 'reader') {
           await store.undo(null)
-          await rebuildAllMemory()
-        } else if (scope === 'role') {
-          await store.undo('role')
           await rebuildAllMemory()
         } else {
           await store.undo(book.id)
@@ -162,9 +151,6 @@ export function createMemoryHandlers({
         if (scope === 'reader') {
           await store.clearReader()
           await rebuildAllMemory()
-        } else if (scope === 'role') {
-          await store.clearRole()
-          await rebuildAllMemory()
         } else {
           await store.clearBook(book.id)
           await rebuildMemory(book.id)
@@ -173,7 +159,7 @@ export function createMemoryHandlers({
       }
       if (payload.action === 'historyRestore' || payload.action === 'historyRemove' || payload.action === 'historyClear') {
         const scope = memoryScope(payload.scope)
-        const cardId = scope === 'reader' ? null : scope === 'role' ? 'role' : book.id
+        const cardId = scope === 'reader' ? null : book.id
         if (payload.action === 'historyRestore') {
           if (!scopeActive(settings(), book.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
           await store.restoreHistory(cardId, String(payload.id ?? ''))
@@ -203,23 +189,19 @@ export function createMemoryHandlers({
     const scope = memoryScope(payload.scope)
     try {
       if (payload.action === 'read') {
-        const [reader, role, card] = await Promise.all([store.readReader(), store.readRole(), store.readBook(found.id)])
+        const [reader, card] = await Promise.all([store.readReader(), store.readBook(found.id)])
         return {
           bookId: found.id,
           bookTitle: found.title,
           effective,
           bookCard: card.text,
           readerCard: reader.text,
-          roleCard: role.text,
         }
       }
       if (payload.action === 'forget') {
         if (!scopeActive(getSettings(), found.id, scope)) throw new ReaderError('memory-off', '记忆已关闭')
         if (scope === 'reader') {
           await store.clearReader()
-          await rebuildAllMemory()
-        } else if (scope === 'role') {
-          await store.clearRole()
           await rebuildAllMemory()
         } else {
           await store.clearBook(found.id)
@@ -234,15 +216,10 @@ export function createMemoryHandlers({
         const mode = payload.mode === 'replace' ? 'replace' : 'append'
         const current = scope === 'reader'
           ? (await store.readReader()).text
-          : scope === 'role'
-            ? (await store.readRole()).text
-            : (await store.readBook(found.id)).text
+          : (await store.readBook(found.id)).text
         const preview = mode === 'append' && current.trim() ? `${current.trim()}\n\n${text}` : text
         if (scope === 'reader') {
           await store.writeReader(preview)
-          await rebuildAllMemory()
-        } else if (scope === 'role') {
-          await store.writeRole(preview)
           await rebuildAllMemory()
         } else {
           await store.writeBook(found.id, preview)

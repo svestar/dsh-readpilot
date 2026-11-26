@@ -2,7 +2,7 @@
 
 - **状态：** accepted
 - **日期：** 2026-11-03
-- **范围：** FTR-003、FTR-017、FTR-021、FTR-022、FTR-023、FTR-059
+- **范围：** FTR-003、FTR-017、FTR-021、FTR-022、FTR-023
 
 ## 背景
 
@@ -11,11 +11,11 @@
 ## 决策
 
 1. Host 在 `ctx.inject(['systemPrompt'])` 中注册 `systemPrompt.context`，`text` 回调按 `agent?.session?.id` 查会话到书的映射，只对本书伴读会话返回内容；不写 `AGENTS.md`，不向对话插入可见消息。
-2. 一个 `dsh-readpilot:context`，内部按 reading > memory > notes 合并；守卫单独注册为 `dsh-readpilot:guard`，均 `interpolate:false`。（2026-11-26 修订：由笔记/记忆两个独立注册块合并为一个装配块。）
+2. 一个 `dsh-readpilot:context`，内部按 reading > memory > notes 合并；守卫单独注册为 `dsh-readpilot:guard`；角色卡由独立的 `dsh-readpilot:role` 注入，见 ADR-027，均 `interpolate:false`。（2026-11-26 修订：由笔记/记忆两个独立注册块合并为一个装配块；角色卡移出记忆。）
 3. 笔记开关按书、默认关；开启时注入笔记索引（标题、id、路径、字数）与有批注的划线，索引预算约 3k；正文由 `reader_notes` 的 `read` 按需读取；关闭只停止自动注入，不禁止伴读读取文件。（2026-11-26 修订：由全量注入改为索引优先。）
 4. 记忆默认关闭，只保留全局开关（关闭 / 开启）与单书状态（跟随、始终开启、始终关闭）。开启后伴读主动记录长期有效的偏好与结论，每张卡上限 600 字，超限必须先压缩；更新留 changelog 与撤销。涉及隐私的能力一律默认关闭，由用户显式开启。
-5. 记忆存 `$DSH_HOME/dsh-readpilot/memory/`：每书一张卡、一张跨书读者卡与一张跨书角色/风格卡；读者卡与角色卡随全局记忆开关注入，本书卡随本书生效状态注入；角色卡保存人物扮演设定，伴读以其身份、知识边界和思考方式回应；只记读者、阅读关系与角色设定，不记书内情节。
-6. 注入内容用 `<reading_context>`、`<reading_notes>` 与 `<reading_memory>` 包裹并声明为资料而非指令，降低笔记中的指令注入风险。
+5. 记忆存 `$DSH_HOME/dsh-readpilot/memory/`：每书一张卡与一张跨书读者卡；读者卡随全局记忆开关注入，本书卡随本书生效状态注入；只记读者与阅读关系，不记书内情节。
+6. 注入内容用 `<reading_context>`、`<reading_notes>` 与 `<reading_memory>` 包裹并声明为资料而非指令；角色使用独立的 `<reading_role>`，见 ADR-027。
 
 ## 备选方案
 
@@ -30,4 +30,4 @@
 
 代价：context 是持久 user-role 快照，频繁变化会增加历史；长笔记索引注入受预算限制；关闭笔记开关时伴读仍可通过文件工具读取，属软语义；依赖 `agent.session.id` 与 `systemPrompt.context` 的跨版本稳定性。
 
-验证：只对本书会话注入；开关下一轮生效；压缩后恢复；其他会话不泄漏；预算截断；默认关闭与单书例外；读者卡与角色卡不泄漏。
+验证：只对本书会话注入；开关下一轮生效；压缩后恢复；其他会话不泄漏；预算截断；默认关闭与单书例外；读者卡不泄漏。

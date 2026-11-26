@@ -25,7 +25,7 @@ DSH（DeepSeek Harness）Web GUI 的阅读插件，支持 TXT、Markdown、EPUB 
 
 - 五种颜色划线/批注、书签、筛选与跳转。
 - 长笔记 Markdown、草稿 diff、历史恢复与导出。
-- 记忆（含独立角色/风格卡）、笔记上下文、备份与恢复。
+- 记忆、角色卡、笔记上下文、备份与恢复。
 
 ## 安装
 

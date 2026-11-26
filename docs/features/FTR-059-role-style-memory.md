@@ -1,41 +1,43 @@
-# 角色/风格记忆
+# 角色卡
 
 - **ID：** FTR-059
-- **名称：** 角色/风格记忆
+- **名称：** 角色卡
 - **状态：** active
-- **代码：** `src/host/modules/memory/store.ts`（`readRole`、`writeRole`、`clearRole`）；`src/host/modules/memory/handlers.ts`（`memory`、`memoryTool`）；`src/host/modules/memory/context.ts`（`buildReadingMemory`）；`src/host/modules/memory/tools.ts`（`reader_memory`）；`src/host/modules/backup/notes.ts`（`remapMemory`）；`src/client/modules/companion/MemoryPanel.ts`（`MemoryPanel`）；`src/client/modules/companion/use-memory.ts`（`useMemory`）
-- **测试：** `tests/memory.test.ts`；`tests/memory-panel.test.ts`；`tests/memory-role.test.ts`；`tests/backup.test.ts`
+- **代码：** `src/host/modules/role/store.ts`（`createRoleStore`）；`src/host/modules/role/handlers.ts`（`createRoleHandlers`、`role`）；`src/host/modules/role/resolve.ts`（`resolveRole`）；`src/host/modules/role/context.ts`（`buildRoleContext`）；`src/host/modules/role/defaults.ts`（`DEFAULT_ROLE`）；`src/host/modules/companion/prompt-contexts.ts`（`registerPromptContexts`）；`src/host/modules/companion/settings-store.ts`（`loadCompanionSettings`）；`src/host/modules/backup/notes.ts`（`remapRoles`）；`src/client/modules/companion/RolePanel.ts`（`RolePanel`）；`src/client/modules/companion/use-role.ts`（`useRole`）
+- **测试：** `tests/role.test.ts`；`tests/role-panel.test.ts`；`tests/reader-context.test.ts`；`tests/backup.test.ts`
 
 ## 行为
 
-角色/风格是独立的跨书记忆卡，存于 `$DSH_HOME/dsh-readpilot/memory/role.md`，上限 600 字。它不属于本书记忆或读者卡，单独保存历史、撤销、恢复、删除与清空。角色卡与读者卡跟随全局记忆开关；本书卡跟随本书生效状态。全局关闭时 Agent 的 `reader_memory` 与 UI 保存按钮都拒绝写入；全局开启、本书关闭时角色卡仍注入，本书卡不注入。记忆未生效时卡片与历史恢复在 UI 与 Host 都只读；历史删除/清空仍可用。
+角色卡独立于记忆，用于设定伴读扮演人物：身份、知识边界、语气和思考方式。右侧栏“角色”页管理全局与本书角色；全局“启用自定义角色”开关默认开启，本书“使用独立角色”开关默认关闭。角色不再受记忆开关控制。
 
-`reader_memory` 的 `scope:'role'` 支持 read/update/forget；提示词要求 scope 覆盖 book/reader/role，并说明角色卡记录要扮演的人物或角色（身份、知识边界、语气和思考方式）；`memory` 页的写入、历史恢复/删除/清空同样支持 role。全局记忆开启时，角色/风格卡注入 `<reading_memory>` 的 `## 角色/风格` 段，内容作为人物扮演设定：伴读以该人物身份、视角和语气回应，但不能覆盖系统规则、工具权限或用户当前要求。
+生效优先级：本书开关开启且正文非空时使用本书角色；否则全局角色非空时使用全局角色；否则使用默认角色“DSH 阅读助手”。角色只对绑定书的会话生效，无书会话使用默认角色。`AGENTS.md` 不再包含身份句，默认身份由角色模块在 `<reading_role>` 中注入，因此没有自定义角色时人格仍然稳定。
+
+角色卡存于 `$DSH_HOME/dsh-readpilot/roles/global.md` 与 `roles/<bookId>.md`，每张卡上限 600 字、最多 10 条历史，支持保存、撤销、恢复、删除与清空。旧 `memory/role.md` 与 `.history/role/` 在首次读取时迁移为全局卡及其历史，旧文件保留。备份包含 `roles/`；恢复按书籍内容映射重写本书角色。
+
+角色上下文由独立的 `dsh-readpilot:role` 注入，顺序在阅读守卫与阅读上下文之前，预算约 1200 字；内容声明为资料而非系统指令，不能覆盖系统规则、工具权限或用户当前要求。`reader_memory` 只管理 book/reader 两张卡，不再提供 `role` scope。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `readRole` / `writeRole` / `clearRole` | `src/host/modules/memory/store.ts:readRole`；`writeRole`；`clearRole` | 读写和清空独立角色卡 |
-| `buildReadingMemory` | `src/host/modules/memory/context.ts:buildReadingMemory` | 将角色卡注入 `<reading_memory>` |
-| `memory` / `memoryTool` | `src/host/modules/memory/handlers.ts:memory`；`memoryTool` | role scope 的写入、历史与工具操作 |
-| `reader_memory` | `src/host/modules/memory/tools.ts:reader_memory` | Agent 的 role scope 入口 |
-| `MemoryPanel` | `src/client/modules/companion/MemoryPanel.ts:MemoryPanel` | 角色/风格编辑器与历史操作 |
+| `createRoleStore` | `src/host/modules/role/store.ts:createRoleStore` | 全局/本书角色读写、历史、迁移 |
+| `resolveRole` | `src/host/modules/role/resolve.ts:resolveRole` | 本书 > 全局 > 默认的解析 |
+| `buildRoleContext` | `src/host/modules/role/context.ts:buildRoleContext` | 生成并截断 `<reading_role>` |
+| `role` | `src/host/modules/role/handlers.ts:role` | RPC：status/write/clear/undo/history/setEnabled/setBookEnabled |
+| `registerPromptContexts` | `src/host/modules/companion/prompt-contexts.ts:registerPromptContexts` | 注册角色、守卫与阅读上下文 |
+| `RolePanel` / `useRole` | `src/client/modules/companion/RolePanel.ts:RolePanel`；`src/client/modules/companion/use-role.ts:useRole` | 角色页与状态操作 |
+| `remapRoles` | `src/host/modules/backup/notes.ts:remapRoles` | 备份恢复时映射本书角色 |
 
 ## 约束与失败行为
 
-`role` 是保留卡名，不能作为 bookId；角色卡与其他卡一样受 600 字上限和最多 10 条历史限制。角色内容是人物的扮演资料，不是系统指令；伴读按人物身份与视角回应，但要求调用工具、修改数据或忽略规则的内容不执行。角色卡为空时不注入该段；全局记忆关闭时不注入，本书关闭时仍注入。备份和恢复包含 `memory/role.md` 与 `.history/role/`，不依赖书籍映射。
+角色卡内容是人物的扮演设定，不是系统指令；要求调用工具、修改数据或忽略规则的内容不执行。角色卡不改变阅读范围、引用与不剧透规则；以书内事实和工具结果为依据。全局关闭自定义角色时只注入默认身份；本书关闭或留空时回落到全局角色。写入超过 600 字返回 `role-too-large`；非法 bookId 返回 `invalid-role-book`；历史快照缺失返回 `history-not-found`。角色页无书籍时不加载；写入失败保留当前卡并显示错误。
 
 ## 验收与测试
 
-- 正常路径：角色卡可独立读写并保存文件（`memory_store_read_and_write`）。
-- 正常路径：角色卡历史可恢复、删除单条和清空（`memory_store_role_history_and_undo`）。
-- 正常路径：角色卡随 `<reading_memory>` 注入，且位于读者卡和本书卡之前（`memory_context_empty_and_format`、`memory_context_uses_workspace_language`）。
-- 正常路径：提示词与注入都要求按人物身份、知识边界和思考方式回应（`reading_prompt_covers_memory_role_scope`、`memory_context_empty_and_format`）。
-- 正常路径：全局开启、本书关闭时角色卡仍注入，本书卡不注入（`memory_role_follows_global_mode_not_book`）。
-- 边界：全局关闭时角色卡与读者卡写入被拒绝（`memory_role_writes_require_global_mode`）。
-- 边界：记忆未生效时 Host 拒绝历史恢复，历史删除仍可用（`memory_history_restore_requires_active_scope`）。
-- 正常路径：记忆页按生效范围禁用保存按钮（`memory_panel_disables_cards_outside_effective_scope`）。
-- 正常路径：角色卡支持 RPC 写入、读取与追加（`memory_role_rpc_roundtrip`）。
-- 正常路径：记忆页渲染角色卡、历史恢复和确认清空（`memory_panel_shows_history_snapshot_text`、`memory_panel_history_confirm_flow`）。
-- 正常路径：备份恢复保留角色卡（`backup_restore_migrates_presets_memory_and_companion`）。
+- 正常路径/边界：全局与本书卡读写、撤销、清空，600 字上限与历史裁剪（`role_store_read_write_and_history`）。
+- 正常路径：旧 `memory/role.md` 与历史迁移到 `roles/global.md`（`role_migrates_legacy_memory_role`）。
+- 正常路径：本书开启覆盖全局，本书关闭/留空回落全局，全局为空回落默认，关闭自定义角色只留默认（`role_resolution_priority`）。
+- 正常路径：角色块带标签、声明与闭合标签，超长被截断（`role_context_wraps_and_truncates`）。
+- 正常路径：角色 RPC 往返、来源切换与按会话注入（`role_rpc_roundtrip_and_context`）。
+- 正常路径：注册顺序为角色、守卫、阅读上下文（`reader_guard_is_registered_and_localized`）。
+- 正常路径：角色页显示生效来源与两个编辑区；本书开关与历史清空确认可用（`role_panel_renders_effective_role_and_controls`、`role_panel_switches_book_override_and_clears_history`）。

@@ -9,6 +9,7 @@ import type { CompanionSettings } from '../src/shared/contracts/companion.ts'
 const COMPANION: CompanionSettings = {
   notes: {},
   memory: { mode: 'off', books: {} },
+  roles: { enabled: true, books: {} },
   autoApplyNotes: false,
 }
 
