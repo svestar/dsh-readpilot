@@ -61,13 +61,20 @@ test('prompt_presets_migrate_new_defaults_once', async t => {
   ]), 'utf8')
   const migrated = await store.list()
   assert.ok(migrated.some(item => item.id === 'explain'))
+  assert.equal(migrated.find(item => item.id === 'explain')?.title, '旧解释')
   assert.ok(migrated.some(item => item.id === 'character'))
   assert.equal(migrated.some(item => item.id === 'terms'), false)
   const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
-  assert.equal(file.version, 4)
+  assert.equal(file.version, 5)
+  assert.deepEqual(file.overrides.explain, { title: '旧解释', template: '旧 {{selection}}' })
+  assert.ok(file.hidden.includes('terms'))
 
   assert.equal(await store.remove('character'), true)
   assert.equal((await store.list()).some(item => item.id === 'character'), false)
+  const character = DEFAULT_PROMPT_PRESETS.find(item => item.id === 'character')
+  assert.ok(character)
+  await store.save({ id: 'character', title: character.title, template: character.template })
+  assert.ok((await store.list()).some(item => item.id === 'character'))
 })
 
 test('prompt_presets_localize_unedited_builtins', async t => {
@@ -97,22 +104,51 @@ test('prompt_presets_save_unchanged_builtin_keeps_localization', async t => {
   await store.save({ id: 'explain', title: explain.title, template: explain.template }, 'en')
   assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '解释这段')
   const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
-  assert.equal(file.presets.find((item: any) => item.id === 'explain').edited, undefined)
+  assert.equal(file.version, 5)
+  assert.equal(file.overrides.explain, undefined)
 
   await store.save({ id: 'explain', title: '自定义解释', template: '自定义 {{selection}}' })
   assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '自定义解释')
 })
 
 test('prompt_presets_other_language_default_is_an_edit', async t => {
-  const { store } = await tempStore(t)
+  const { dataDir, store } = await tempStore(t)
   const zh = DEFAULT_PROMPT_PRESETS.find(item => item.id === 'explain')
   assert.ok(zh)
   await store.save({ title: '临时预设', template: '临时 {{selection}}' })
 
   const saved = await store.save({ id: 'explain', title: zh.title, template: zh.template }, 'en')
-  assert.equal(saved.edited, true)
+  assert.equal(saved.builtin, true)
   assert.equal((await store.list('en')).find(item => item.id === 'explain')?.title, zh.title)
   assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, zh.title)
+  const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
+  assert.deepEqual(file.overrides.explain, { title: zh.title, template: zh.template })
+})
+
+test('prompt_presets_v4_migrates_edited_and_hidden', async t => {
+  const { dataDir, store } = await tempStore(t)
+  const terms = DEFAULT_PROMPT_PRESETS.find(item => item.id === 'terms')
+  assert.ok(terms)
+  await writeFile(join(dataDir, 'presets.json'), JSON.stringify({
+    version: 4,
+    presets: [
+      { id: 'explain', title: '我的解释', template: '自定义 {{selection}}', builtin: true, edited: true },
+      { id: 'terms', title: terms.title, template: terms.template, builtin: true },
+      { id: 'my-custom', title: '自定义', template: '自定义 {{selection}}', builtin: false },
+    ],
+  }), 'utf8')
+
+  const list = await store.list()
+  assert.equal(list.find(item => item.id === 'explain')?.title, '我的解释')
+  assert.equal(list.find(item => item.id === 'terms')?.title, terms.title)
+  assert.equal(list.find(item => item.id === 'my-custom')?.builtin, false)
+  assert.equal(list.some(item => item.id === 'character'), false)
+
+  const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
+  assert.equal(file.version, 5)
+  assert.deepEqual(file.overrides.explain, { title: '我的解释', template: '自定义 {{selection}}' })
+  assert.equal(file.overrides.terms, undefined)
+  assert.ok(file.hidden.includes('character'))
 })
 
 test('prompt_presets_simplify_untouched_defaults_on_v2', async t => {
