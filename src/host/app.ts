@@ -1,7 +1,7 @@
 import type { MediaRoute, HostModule } from './types.ts'
 import type { CompanionSettings } from '../shared/contracts/companion.ts'
 import { DEFAULT_COMPANION_SETTINGS, effectiveMemoryState, effectiveNotesEnabled } from '../shared/contracts/companion.ts'
-import type { ReaderState } from '../shared/contracts/library.ts'
+import type { ReaderState, WorkspaceLanguage } from '../shared/contracts/library.ts'
 import { createRouter, type Router } from './router.ts'
 import { createMediaModule } from './modules/media/index.ts'
 import { createTranslationModule } from './modules/translation/index.ts'
@@ -49,7 +49,7 @@ export interface PluginApp {
 export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): PluginApp {
   const companionState: { settings: CompanionSettings } = { settings: { ...DEFAULT_COMPANION_SETTINGS } }
   const readings = new Map<string, { bookId: string; title: string; chapter: string; view?: any; updatedAt: number }>()
-  const contexts = new Map<string, { text: string; updatedAt: number }>()
+  const contexts = new Map<string, { text: string; updatedAt: number; language: WorkspaceLanguage }>()
   const getSettings = () => companionState.settings
   const setSettings = (value: CompanionSettings) => { companionState.settings = value }
   const loadSettings = () => loadCompanionSettings(dataDir)

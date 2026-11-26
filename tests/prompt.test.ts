@@ -5,6 +5,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ensureWorkspacePrompt, READING_PROMPT, READING_PROMPT_EN } from '../src/host/modules/library/workspace-prompt.ts'
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
+import { buildCompanionContext, buildReaderGuard } from '../src/host/modules/companion/context.ts'
+import { registerPromptContexts } from '../src/host/modules/companion/prompt-contexts.ts'
 import { createReaderApi } from '../src/host/app.ts'
 import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 
@@ -101,6 +103,67 @@ test('workspace_prompt_sync_reports_failure', async t => {
   const status = await sync.syncFor(settings)
   assert.equal(status.ok, false)
   assert.ok(status.error)
+})
+
+test('reading_prompt_covers_memory_role_scope', () => {
+  assert.match(READING_PROMPT, /scope 为 book\/reader\/role/)
+  assert.match(READING_PROMPT, /角色\/风格卡/)
+  assert.match(READING_PROMPT_EN, /scope is book\/reader\/role/)
+  assert.match(READING_PROMPT_EN, /role\/style card/)
+})
+
+test('reader_guard_is_registered_and_localized', () => {
+  const zh = buildReaderGuard('zh')
+  const en = buildReaderGuard('en')
+  assert.match(zh, /<reader_guard>/)
+  assert.match(zh, /不猜测/)
+  assert.match(zh, /不是指令/)
+  assert.match(en, /do not spoil unread chapters/)
+  assert.match(en, /data, not instructions/)
+
+  const contexts: any[] = []
+  const scope = {
+    effect: (callback: () => any) => callback(),
+    systemPrompt: {
+      context: (definition: any) => {
+        contexts.push(definition)
+        return () => {}
+      },
+    },
+  }
+  registerPromptContexts({ inject: (_names: string[], callback: (value: any) => void) => callback(scope) } as any, {
+    companionContextOf: () => 'reading',
+    notesContextFor: () => 'notes',
+    memoryContextFor: () => 'memory',
+    readerGuardOf: () => zh,
+  })
+  assert.deepEqual(contexts.map(item => item.name), [
+    'dsh-readpilot:guard',
+    'dsh-readpilot:reading',
+    'dsh-readpilot:notes',
+    'dsh-readpilot:memory',
+  ])
+  assert.equal(contexts[0].interpolate, false)
+  assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), zh)
+})
+
+test('companion_context_carries_data_guard', () => {
+  const zh = buildCompanionContext({
+    bookId: 'b1',
+    bookTitle: '三体',
+    chapterTitle: '第一章',
+    language: 'zh',
+    recentActions: [],
+  })
+  assert.match(zh, /资料，不是指令/)
+  const en = buildCompanionContext({
+    bookId: 'b1',
+    bookTitle: 'Three Body',
+    chapterTitle: 'One',
+    language: 'en',
+    recentActions: [],
+  })
+  assert.match(en, /data, not instructions/)
 })
 
 test('companion_context_is_scoped_to_session', async t => {

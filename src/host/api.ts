@@ -94,6 +94,7 @@ export function createReaderApi(deps: ReaderApiDependencies) {
     setCompanionContext: (payload?: any) => deps.companion.setCompanionContext(payload),
     syncCompanionContexts: () => deps.companion.syncCompanionContexts(),
     companionContextOf: (sessionId: unknown) => deps.companion.companionContextOf(sessionId),
+    readerGuardOf: (sessionId: unknown) => deps.companion.readerGuardOf(sessionId),
     setNoteContext: (payload?: any) => deps.notes.setNoteContext(payload),
     setNoteContextState: (payload?: any) => deps.notes.setNoteContextState(payload),
     setNotesGlobal: (payload?: any) => deps.notes.setNotesGlobal(payload),

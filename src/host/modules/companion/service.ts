@@ -5,12 +5,12 @@ import type {
   SessionBookResult,
 } from '../../../shared/contracts/companion.ts'
 import { normalizeReadingView } from '../../../shared/contracts/companion.ts'
-import type { ProgressMap, Settings } from '../../../shared/contracts/library.ts'
+import type { ProgressMap, Settings, WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import type { Book } from '../library/book.ts'
 import type { HostContext } from '../../types.ts'
 import { ReaderError } from '../../lib/errors.ts'
 import { enqueueWrite } from '../../lib/write-queue.ts'
-import { buildCompanionContext } from './context.ts'
+import { buildCompanionContext, buildReaderGuard } from './context.ts'
 import { createCompanionSessionList } from './session-list.ts'
 import { loadSessions, saveSessions } from './session-store.ts'
 
@@ -27,7 +27,7 @@ export interface CompanionServiceOptions {
   memory: { enabled(bookId: string): boolean; rebuild(bookId: string): Promise<number> }
   recentActions(bookId: string): Array<{ summary: string; status: string }>
   readings: Map<string, { bookId: string; title: string; chapter: string; view?: CompanionReadingView; updatedAt: number }>
-  contexts: Map<string, { text: string; updatedAt: number }>
+  contexts: Map<string, { text: string; updatedAt: number; language: WorkspaceLanguage }>
 }
 
 export function createCompanionService(options: CompanionServiceOptions) {
@@ -162,7 +162,7 @@ export function createCompanionService(options: CompanionServiceOptions) {
       language,
       recentActions: book ? recentActionsOf(book) : [],
     })
-    options.contexts.set(sessionId, { text, updatedAt: Date.now() })
+    options.contexts.set(sessionId, { text, updatedAt: Date.now(), language })
     if (options.contexts.size > 200) {
       const oldest = [...options.contexts.entries()]
         .sort((left, right) => left[1].updatedAt - right[1].updatedAt)
@@ -240,6 +240,11 @@ export function createCompanionService(options: CompanionServiceOptions) {
     return typeof sessionId === 'string' ? options.contexts.get(sessionId)?.text ?? '' : ''
   }
 
+  function readerGuardOf(sessionId: unknown): string {
+    const language = typeof sessionId === 'string' ? options.contexts.get(sessionId)?.language : undefined
+    return buildReaderGuard(language ?? 'en')
+  }
+
   async function refreshCompanionContexts(bookId: string): Promise<void> {
     for (const [sessionId, reading] of options.readings) {
       if (reading.bookId !== bookId) continue
@@ -267,6 +272,7 @@ export function createCompanionService(options: CompanionServiceOptions) {
     ensureSessionReading,
     syncCompanionContexts,
     companionContextOf,
+    readerGuardOf,
     refreshCompanionContexts,
   }
 }
