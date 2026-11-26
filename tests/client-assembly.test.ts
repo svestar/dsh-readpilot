@@ -86,6 +86,14 @@ async function loadClient(harness: ReturnType<typeof createHarness>) {
   return { plugin, main, mainSpec, companion, sidebarTab, sidebarBodySpec, disposers }
 }
 
+function collectText(element: any): string {
+  if (element == null) return ''
+  if (typeof element === 'string' || typeof element === 'number') return String(element)
+  if (Array.isArray(element)) return element.map(collectText).join('')
+  if (typeof element.type === 'function') return collectText(element.type(element.props))
+  return (element.children ?? []).map(collectText).join('')
+}
+
 function collectClasses(element: any, output: any[] = []) {
   if (!element || typeof element !== 'object') return output
   if (Array.isArray(element)) {
@@ -107,6 +115,22 @@ test('client_assembly_registers_main_panel', async () => {
   const classes = collectClasses(main({ t: (key: string) => key }))
   assert.ok(classes.includes('dsh-readpilot-panel'))
   for (const dispose of disposers.reverse()) dispose()
+})
+
+test('client_assembly_surfaces_prompt_sync_failure', async () => {
+  const harness = createHarness()
+  harness.state.snapshot = {
+    settings: { libraryDir: 'E:/Books', workspaceId: 'w1' },
+    books: [],
+    sessions: {},
+    tags: {},
+    promptSync: { ok: false, error: 'read-only' },
+  }
+  harness.state.screen = { kind: 'library' }
+  const { main } = await loadClient(harness)
+  harness.reset()
+  const text = collectText(main({ t: (key: string) => key }))
+  assert.match(text, /promptSyncFailed/)
 })
 
 test('client_assembly_renders_library_and_text_reader', async () => {

@@ -7,6 +7,7 @@ import {
   ensureWorkspacePrompt,
   READING_PROMPT,
   READING_PROMPT_EN,
+  readWorkspacePromptLanguage,
   readingPrompt,
 } from '../src/host/modules/library/workspace-prompt.ts'
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
@@ -38,7 +39,8 @@ test('workspace_prompt_created_and_managed', async t => {
   const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.match(created, /dsh-readpilot:prompt:begin/)
   assert.match(created, /dsh-readpilot:prompt:end/)
-  assert.match(created, /workspace-language:zh;version:4/)
+  assert.match(created, /workspace-language:zh/)
+  assert.doesNotMatch(created, /version:/)
   assert.ok(created.includes(READING_PROMPT))
   assert.ok(created.includes(readingPrompt('zh', TOOL_LINES)))
   assert.ok(created.includes('reader_context'))
@@ -149,6 +151,18 @@ test('workspace_language_settings_win_over_prompt_marker', async t => {
   const repaired = await readFile(file, 'utf8')
   assert.match(repaired, /workspace-language:en/)
   assert.ok(repaired.includes(READING_PROMPT_EN))
+})
+
+test('workspace_language_reads_legacy_marker_version', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-legacy-marker-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  await writeFile(
+    join(root, 'AGENTS.md'),
+    '<!-- dsh-readpilot:prompt:begin -->\n<!-- dsh-readpilot:workspace-language:en;version:4 -->\n旧内容\n<!-- dsh-readpilot:prompt:end -->\n',
+    'utf8',
+  )
+
+  assert.equal(await readWorkspacePromptLanguage(root), 'en')
 })
 
 test('workspace_language_migrates_from_marker_when_settings_missing', async t => {

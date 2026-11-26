@@ -101,6 +101,12 @@ export function ReaderPanelView(props: ReaderPanelProps) {
       }, '×'))
     : null,
   error ? h('div', { className: 'dsh-readpilot-error' }, error) : null,
+  snapshot?.promptSync && !snapshot.promptSync.ok
+    ? h('div', {
+      className: 'dsh-readpilot-error dsh-readpilot-prompt-sync',
+      title: snapshot.promptSync.error ?? '',
+    }, t('promptSyncFailed'))
+    : null,
   h(SearchPanel, {
     t,
     open: find.searchOpen && !prefs.scanOnly,

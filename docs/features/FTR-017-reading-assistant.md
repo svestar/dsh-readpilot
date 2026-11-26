@@ -3,12 +3,12 @@
 - **ID：** FTR-017
 - **名称：** 阅读助手
 - **状态：** active
-- **代码：** `src/host/modules/library/workspace-prompt.ts`（`readingPrompt`、`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/host/modules/library/state.ts`（`createWorkspaceSync`、`createLibraryState`）；`src/host/modules/library/configure.ts`（`createLibraryConfigure`）；`src/host/api.ts`（`state`、`setCompanionContext`、`companionContextOf`）；`src/host/modules/library/book.ts`（扫描跳过 `AGENTS.md`）；`index.ts`（`apply`）
-- **测试：** `tests/prompt.test.ts`；`tests/api-library.test.ts`
+- **代码：** `src/host/modules/library/workspace-prompt.ts`（`readingPrompt`、`READING_PROMPT`、`ensureWorkspacePrompt`）；`src/host/modules/library/state.ts`（`createWorkspaceSync`、`createLibraryState`）；`src/host/modules/library/configure.ts`（`createLibraryConfigure`）；`src/host/api.ts`（`state`、`setCompanionContext`、`companionContextOf`）；`src/host/modules/library/book.ts`（扫描跳过 `AGENTS.md`）；`src/client/modules/reader/ReaderPanelView.ts`（`ReaderPanelView`）；`index.ts`（`apply`）
+- **测试：** `tests/prompt.test.ts`；`tests/api-library.test.ts`；`tests/client-assembly.test.ts`
 
 ## 行为
 
-阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为工作区指令加载，非全局系统提示词。Host 每次书库状态加载都校验管理块（`dsh-readpilot:prompt:begin` 到 `end`）：不存在时创建，保留块外用户内容，只替换块内内容；删除或改写后自动重建。同步失败不阻塞页面，结果写入 `ReaderState.promptSync`。`settings.workspaceLanguage` 是唯一语言权威，管理块标记只用于旧工作区迁移；首次配置按 UI 选中/英，之后切换 UI 不改语言。工具地图由已注册工具定义生成，见 [FTR-004](FTR-004-tools.md)。扫描跳过 `AGENTS.md`。
+阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为工作区指令加载，非全局系统提示词。Host 每次书库状态加载都校验管理块（`dsh-readpilot:prompt:begin` 到 `end`）：不存在时创建，保留块外用户内容，只替换块内内容；删除或改写后自动重建。同步失败不阻塞页面，结果写入 `ReaderState.promptSync`，客户端以非阻塞提示展示。`settings.workspaceLanguage` 是唯一语言权威，管理块只记录语言标记并用于旧工作区迁移；首次配置按 UI 选中/英，之后切换 UI 不改语言。工具地图由已注册工具定义生成，见 [FTR-004](FTR-004-tools.md)。扫描跳过 `AGENTS.md`。
 
 阅读位置注入走 Host `systemPrompt.context`：客户端就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 按 `agent.session.id` 返回 `<reading_context>`，只对该会话可见，不写 `AGENTS.md`，说明按工作区语言生成。书名/章节各截 300 字符，最多 200 个会话。笔记/记忆规则见 [FTR-022](FTR-022-note-drafts.md)、[FTR-023](FTR-023-memory.md)，笔记上下文见 [FTR-021](FTR-021-note-context.md)，PDF 页码见 [FTR-026](FTR-026-chat-jump.md)。
 
@@ -34,4 +34,5 @@
 - 正常路径：settings 语言优先于标记并在状态加载时回写（`workspace_language_settings_win_over_prompt_marker`）；settings 缺语言时从标记迁移（`workspace_language_migrates_from_marker_when_settings_missing`）。
 - 正常路径：配置时记录工作区语言，重复配置同一书库保留首次语言（`configure_records_workspace_language_once`）；笔记正文只写内容（`workspace_prompt_keeps_status_out_of_note_body`）。
 - 删除 `AGENTS.md` 后下一次状态加载会重建；不可写目录不阻塞状态加载，`promptSync` 返回失败（`workspace_prompt_repairs_deleted_block_on_state`、`workspace_prompt_sync_reports_failure`）。
+- 正常路径：同步失败在客户端显示非阻塞提示（`client_assembly_surfaces_prompt_sync_failure`）。
 - 阅读位置按会话隔离，只对写入过的会话返回（`companion_context_is_scoped_to_session`）。

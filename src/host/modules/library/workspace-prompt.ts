@@ -5,8 +5,7 @@ import type { ToolPromptLine } from '../tools/prompt-map.ts'
 
 const BEGIN = '<!-- dsh-readpilot:prompt:begin -->'
 const END = '<!-- dsh-readpilot:prompt:end -->'
-const PROMPT_VERSION = 4
-const LANGUAGE_MARKER = /<!--\s*dsh-readpilot:workspace-language:\s*(zh|en)\s*;\s*version:\s*\d+\s*-->/
+const LANGUAGE_MARKER = /<!--\s*dsh-readpilot:workspace-language:\s*(zh|en)(?:\s*;\s*version:\s*\d+)?\s*-->/
 
 const IDENTITY_ZH = '你是 DSH 阅读器中的阅读助手，帮助用户理解、检索和整理正在阅读的书。'
 const IDENTITY_EN = 'You are the reading assistant in the DSH reader, helping the user understand, search and organize the book they are reading.'
@@ -98,7 +97,7 @@ export async function readWorkspacePromptLanguage(libraryDir: string): Promise<W
 
 function managedBlock(language: WorkspaceLanguage, tools: readonly ToolPromptLine[]) {
   const heading = language === 'en' ? '## Reading assistant' : '## 阅读助手'
-  const marker = `<!-- dsh-readpilot:workspace-language:${language};version:${PROMPT_VERSION} -->`
+  const marker = `<!-- dsh-readpilot:workspace-language:${language} -->`
   return [BEGIN, marker, heading, '', readingPrompt(language, tools), '', END].join('\n')
 }
 

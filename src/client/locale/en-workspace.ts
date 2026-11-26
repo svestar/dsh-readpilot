@@ -2,6 +2,7 @@ export const enWorkspace = {
       editBook: 'Book details',
       askCompanion: 'Ask companion',
       loadFailed: 'Could not load',
+      promptSyncFailed: 'Could not sync the reading prompt; the library is still usable',
       errorSeparator: ': ',
       renderFailed: 'Reader failed to render',
       mdCopy: 'Copy',
