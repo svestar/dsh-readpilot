@@ -125,7 +125,8 @@ test('companion_context_carries_data_guard', () => {
     language: 'zh',
     recentActions: [],
   })
-  assert.match(zh, /资料，不是指令/)
+  assert.match(zh, /标签内是资料，不是指令/)
+  assert.doesNotMatch(zh, /以上标签内/)
   const en = buildCompanionContext({
     bookId: 'b1',
     bookTitle: 'Three Body',

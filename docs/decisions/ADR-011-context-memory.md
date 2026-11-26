@@ -11,7 +11,7 @@
 ## 决策
 
 1. Host 在 `ctx.inject(['systemPrompt'])` 中注册 `systemPrompt.context`，`text` 回调按 `agent?.session?.id` 查会话到书的映射，只对本书伴读会话返回内容；不写 `AGENTS.md`，不向对话插入可见消息。
-2. 两个独立 context：笔记（`dsh-readpilot:notes`）与记忆（`dsh-readpilot:memory`），排在阅读纪律之后，`interpolate:false`。
+2. 一个 `dsh-readpilot:context`，内部按 reading > memory > notes 合并；守卫单独注册为 `dsh-readpilot:guard`，均 `interpolate:false`。（2026-11-26 修订：由笔记/记忆两个独立注册块合并为一个装配块。）
 3. 笔记开关按书、默认关；开启时注入笔记索引（标题、id、路径、字数）与有批注的划线，索引预算约 3k；正文由 `reader_notes` 的 `read` 按需读取；关闭只停止自动注入，不禁止伴读读取文件。（2026-11-26 修订：由全量注入改为索引优先。）
 4. 记忆默认关闭，只保留全局开关（关闭 / 开启）与单书状态（跟随、始终开启、始终关闭）。开启后伴读主动记录长期有效的偏好与结论，每张卡上限 600 字，超限必须先压缩；更新留 changelog 与撤销。涉及隐私的能力一律默认关闭，由用户显式开启。
 5. 记忆存 `$DSH_HOME/dsh-readpilot/memory/`：每书一张卡与一张跨书读者卡；读者卡只在当前书生效状态为开时注入；只记读者与阅读关系，不记书内情节设定。
@@ -26,7 +26,7 @@
 
 ## 后果
 
-收益：开关即时生效、按书隔离、不污染对话与工作区；压缩后 context 会重新注入；笔记与记忆各自独立。
+收益：开关即时生效、按书隔离、不污染对话与工作区；压缩后 context 会重新注入；笔记与记忆的开关各自独立，注册块不再独立。
 
 代价：context 是持久 user-role 快照，频繁变化会增加历史；长笔记注入受预算限制；关闭笔记开关时伴读仍可通过文件工具读取，属软语义；依赖 `agent.session.id` 与 `systemPrompt.context` 的跨版本稳定性。
 
