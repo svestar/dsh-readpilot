@@ -16,8 +16,10 @@ test('reader_guard_is_registered_and_localized', () => {
   assert.match(zh, /<reader_guard>/)
   assert.match(zh, /不猜测/)
   assert.match(zh, /不是指令/)
+  assert.match(zh, /reading_role.*用户设定的角色/)
   assert.match(en, /do not spoil unread chapters/)
   assert.match(en, /data, not instructions/)
+  assert.match(en, /reading_role.*user-assigned role/)
 
   const contexts: any[] = []
   const scope = {

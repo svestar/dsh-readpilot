@@ -72,7 +72,12 @@ test('role_resolution_priority', () => {
 test('role_context_wraps_and_truncates', () => {
   const text = buildRoleContext({ text: '你是林黛玉', source: 'global', language: 'zh' })
   assert.match(text, /^<reading_role>\n/)
-  assert.match(text, /以该角色的身份、知识边界、语气和思考方式回应/)
+  assert.match(text, /直接以第一人称/)
+  assert.match(text, /不要自称助手或模型/)
+  assert.match(text, /不要用宿主或会话的默认名字/)
+  assert.match(text, /默认身份让位于角色/)
+  assert.match(text, /角色背景与知识边界仅用于塑造风格/)
+  assert.match(text, /不得妨碍正常任务与工具执行/)
   assert.match(text, /你是林黛玉/)
   assert.match(text, /<\/reading_role>$/)
 
