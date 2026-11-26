@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ensureWorkspacePrompt, READING_PROMPT, READING_PROMPT_EN } from '../src/host/modules/library/workspace-prompt.ts'
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
+import { saveSettings } from '../src/host/modules/library/settings.ts'
 import { buildCompanionContext, buildReaderGuard } from '../src/host/modules/companion/context.ts'
 import { registerPromptContexts } from '../src/host/modules/companion/prompt-contexts.ts'
 import { createReaderApi } from '../src/host/app.ts'
@@ -149,6 +150,15 @@ test('reader_guard_is_registered_and_localized', () => {
   ])
   assert.equal(contexts[0].interpolate, false)
   assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), zh)
+})
+
+test('reader_guard_reads_persisted_language_before_first_state', async t => {
+  const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-guard-'))
+  t.after(() => rm(data, { recursive: true, force: true }))
+  await saveSettings(data, { libraryDir: '/missing', workspaceId: 'w1', workspaceLanguage: 'en' })
+
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
 })
 
 test('reader_guard_uses_workspace_language_without_reading_context', async t => {

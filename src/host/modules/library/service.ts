@@ -16,7 +16,7 @@ import { createDuplicateService } from './duplicate.ts'
 import { createLibraryMetaService, type LibraryMetaService } from './meta-service.ts'
 import { createLibraryMetaStore } from './meta-store.ts'
 import { createLibraryScan } from './scan.ts'
-import { loadSettings } from './settings.ts'
+import { loadSettings, readWorkspaceLanguageSync } from './settings.ts'
 import { createLibraryState, createWorkspaceSync } from './state.ts'
 
 export interface LibraryServiceDependencies {
@@ -45,7 +45,7 @@ export interface LibraryService extends LibraryMetaService {
 }
 
 export function createLibraryService(deps: LibraryServiceDependencies): LibraryService {
-  let cachedLanguage: WorkspaceLanguage = 'zh'
+  let cachedLanguage: WorkspaceLanguage = readWorkspaceLanguageSync(deps.dataDir)
   const currentSettings = async () => {
     const settings = await loadSettings(deps.dataDir)
     cachedLanguage = settings.workspaceLanguage ?? 'zh'
