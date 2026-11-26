@@ -156,12 +156,15 @@ test('memory_panel_disables_cards_outside_effective_scope', () => {
     roleText: 'S',
     bookHistory: [],
     readerHistory: [],
-    roleHistory: [],
+    roleHistory: [{ id: '3-c', text: 'old role', createdAt: 1, characters: 8 }],
   })
-  const disabledSaves = (view: any) => findAll(view, node => node.type === 'button' && collectText(node) === 'save')
-    .map(node => node.props.disabled)
+  const buttons = (view: any, label: string) => findAll(view, node => node.type === 'button' && collectText(node) === label)
+  const disabledSaves = (view: any) => buttons(view, 'save').map(node => node.props.disabled)
 
-  assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('off', 'inherit', 'off') })), [true, true, true])
+  const off = MemoryPanel({ ...base, status: status('off', 'inherit', 'off') })
+  assert.deepEqual(disabledSaves(off), [true, true, true])
+  assert.deepEqual(buttons(off, 'historyRestore').map(node => node.props.disabled), [true])
+  assert.deepEqual(buttons(off, 'historyDelete').map(node => node.props.disabled), [false])
   assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('on', 'off', 'off') })), [true, false, false])
   assert.deepEqual(disabledSaves(MemoryPanel({ ...base, status: status('on', 'inherit', 'on') })), [false, false, false])
 })
