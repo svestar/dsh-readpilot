@@ -18,7 +18,7 @@ test('workspace_prompt_created_and_managed', async t => {
   const created = await readFile(join(root, 'AGENTS.md'), 'utf8')
   assert.match(created, /dsh-readpilot:prompt:begin/)
   assert.match(created, /dsh-readpilot:prompt:end/)
-  assert.match(created, /workspace-language:zh;version:2/)
+  assert.match(created, /workspace-language:zh;version:3/)
   assert.ok(created.includes(READING_PROMPT))
   assert.match(created, /reader_context/)
 
@@ -108,8 +108,12 @@ test('workspace_prompt_sync_reports_failure', async t => {
 test('reading_prompt_covers_memory_role_scope', () => {
   assert.match(READING_PROMPT, /scope 为 book\/reader\/role/)
   assert.match(READING_PROMPT, /角色\/风格卡/)
+  assert.match(READING_PROMPT, /本书卡仅在本书记忆生效时可更新/)
+  assert.match(READING_PROMPT, /读者卡与角色卡只要求全局记忆开启/)
   assert.match(READING_PROMPT_EN, /scope is book\/reader\/role/)
   assert.match(READING_PROMPT_EN, /role\/style card/)
+  assert.match(READING_PROMPT_EN, /the book card requires this book/)
+  assert.match(READING_PROMPT_EN, /reader and role\/style cards only require global memory/)
 })
 
 test('reader_guard_is_registered_and_localized', () => {
@@ -145,6 +149,14 @@ test('reader_guard_is_registered_and_localized', () => {
   ])
   assert.equal(contexts[0].interpolate, false)
   assert.equal(contexts[0].text({ agent: { session: { id: 's1' } } }), zh)
+})
+
+test('reader_guard_uses_workspace_language_without_reading_context', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library, locale: 'en' })
+
+  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
 })
 
 test('companion_context_carries_data_guard', () => {

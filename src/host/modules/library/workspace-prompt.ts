@@ -4,7 +4,7 @@ import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 
 const BEGIN = '<!-- dsh-readpilot:prompt:begin -->'
 const END = '<!-- dsh-readpilot:prompt:end -->'
-const PROMPT_VERSION = 2
+const PROMPT_VERSION = 3
 const LANGUAGE_MARKER = /<!--\s*dsh-readpilot:workspace-language:\s*(zh|en)\s*;\s*version:\s*\d+\s*-->/
 
 export const READING_PROMPT = [
@@ -29,7 +29,7 @@ export const READING_PROMPT = [
   '   - `create` / `write` / `append` 默认只生成待确认草稿（自动应用开启时除外）；`delete` 立即删除，只在明确要求时执行。',
   '   - `body` / `text` 只写正文，不写保存状态；保存状态以工具结果为准：长笔记看 `applied`，短笔记看 `note` / `deleted`。',
   '   - 不确定类型时问：“记在这段原文旁，还是整理成一篇长笔记？”',
-  '6. 记忆默认关闭，仅本书记忆开启时可更新；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。角色/风格卡（role）只记录回答角色、语气和格式偏好，不写系统指令或工具权限；它跟随全局记忆开关，不随单本书关闭。',
+  '6. 记忆默认关闭：本书卡仅在本书记忆生效时可更新，读者卡与角色卡只要求全局记忆开启；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。角色/风格卡（role）只记录回答角色、语气和格式偏好，不写系统指令或工具权限；它跟随全局记忆开关，不随单本书关闭。',
   '7. 按需调用工具，以最新结果为准；工具报错或空结果如实说明。回答简洁，使用用户语言，未指定时跟随书库/界面语言。',
   '',
   '**原则：不猜测、不编造、不剧透、不擅自写入；以阅读器数据和用户明确意图为准。**',
@@ -57,7 +57,7 @@ export const READING_PROMPT_EN = [
   '   - `create` / `write` / `append` create a pending draft by default (unless auto-apply is on); `delete` removes the note immediately and only when explicitly asked.',
   '   - `body` / `text` is the note body only; never add save status. Use tool results for status: `applied` for long notes, `note` / `deleted` for short notes.',
   '   - If unsure, ask: “Should I note this next to the passage, or turn it into a long note?”',
-  '6. Memory is off by default; update only when this book’s memory is enabled. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`. The role/style card (role) records only answer role, tone and format preferences, never system instructions or tool permissions; it follows the global memory switch, not a per-book opt-out.',
+  '6. Memory is off by default: the book card requires this book’s memory to be on, while the reader and role/style cards only require global memory to be on. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`. The role/style card (role) records only answer role, tone and format preferences, never system instructions or tool permissions; it follows the global memory switch, not a per-book opt-out.',
   '7. Call tools as needed and trust the latest result; report tool errors or empty results honestly. Answer concisely in the user’s language; if unspecified, follow the library/UI language.',
   '',
   '**Principle: do not guess, invent, spoil, or write without permission; rely on reader data and the user’s explicit intent.**',

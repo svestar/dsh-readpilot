@@ -20,6 +20,7 @@ export interface CompanionServiceOptions {
   books(): Promise<Book[]>
   progress(): Promise<ProgressMap>
   librarySettings(): Promise<Settings>
+  workspaceLanguage(): WorkspaceLanguage
   getSettings(): CompanionSettings
   setSettings(value: CompanionSettings): void
   loadSettings(): Promise<CompanionSettings>
@@ -242,7 +243,7 @@ export function createCompanionService(options: CompanionServiceOptions) {
 
   function readerGuardOf(sessionId: unknown): string {
     const language = typeof sessionId === 'string' ? options.contexts.get(sessionId)?.language : undefined
-    return buildReaderGuard(language ?? 'en')
+    return buildReaderGuard(language ?? options.workspaceLanguage())
   }
 
   async function refreshCompanionContexts(bookId: string): Promise<void> {

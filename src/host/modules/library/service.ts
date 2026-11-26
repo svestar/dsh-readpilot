@@ -3,6 +3,7 @@ import type {
   PromptSyncState,
   ReaderState,
   Settings,
+  WorkspaceLanguage,
 } from '../../../shared/contracts/library.ts'
 import type { CompanionSettings, SessionMap } from '../../../shared/contracts/companion.ts'
 import type { NoteFileRecord } from '../../../shared/contracts/notes.ts'
@@ -34,6 +35,7 @@ export interface LibraryService extends LibraryMetaService {
   resolveBook(bookId: unknown): Promise<Book>
   findBook(key: unknown): Promise<Book | undefined>
   currentSettings(): Promise<Settings>
+  workspaceLanguage(): WorkspaceLanguage
   state(): Promise<ReaderState>
   rescan(): Promise<ReaderState>
   syncPrompt(): Promise<PromptSyncState>
@@ -43,7 +45,12 @@ export interface LibraryService extends LibraryMetaService {
 }
 
 export function createLibraryService(deps: LibraryServiceDependencies): LibraryService {
-  const currentSettings = () => loadSettings(deps.dataDir)
+  let cachedLanguage: WorkspaceLanguage = 'zh'
+  const currentSettings = async () => {
+    const settings = await loadSettings(deps.dataDir)
+    cachedLanguage = settings.workspaceLanguage ?? 'zh'
+    return settings
+  }
   const scan = createLibraryScan({ dataDir: deps.dataDir, ctx: deps.ctx, currentSettings })
   const workspace = createWorkspaceSync(currentSettings)
   const metaStore = createLibraryMetaStore(deps.dataDir)
@@ -95,6 +102,7 @@ export function createLibraryService(deps: LibraryServiceDependencies): LibraryS
     resolveBook,
     findBook: async key => findBookByKey(await scan.books(), key),
     currentSettings,
+    workspaceLanguage: () => cachedLanguage,
     state,
     rescan: async () => {
       scan.invalidate()

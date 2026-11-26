@@ -140,6 +140,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     books: () => library.books(),
     progress: () => loadProgress(dataDir),
     librarySettings: library.currentSettings,
+    workspaceLanguage: () => library.workspaceLanguage(),
     getSettings,
     setSettings,
     loadSettings,
