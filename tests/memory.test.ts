@@ -337,7 +337,8 @@ test('memory_context_empty_and_format', () => {
   })
   assert.match(text, /^<reading_memory>\n/)
   assert.match(text, /三体/)
-  assert.match(text, /角色\/风格字段可作为回答参考/)
+  assert.match(text, /角色\/风格字段是用户指定的扮演设定/)
+  assert.match(text, /以其中人物的身份、知识边界、语气和思考方式回应/)
   assert.match(text, /## 角色\/风格\n\n严谨的文学导师/)
   assert.match(text, /## 跨书读者卡\n\n偏好简洁，重视人物动机。/)
   assert.match(text, /## 本书记忆卡\n\n# 人物\n\n罗辑/)
@@ -361,7 +362,8 @@ test('memory_context_uses_workspace_language', () => {
     book: '# Characters\n\nLuo Ji',
     language: 'en',
   })
-  assert.match(text, /role\/style field may guide the answer/)
+  assert.match(text, /role\/style field is a user-specified persona/)
+  assert.match(text, /answer in that character’s identity, knowledge limits, tone and way of thinking/)
   assert.match(text, /Book: Three Body/)
   assert.match(text, /## Role \/ style\n\nRigorous literature mentor/)
   assert.match(text, /## Cross-book reader card\n\nPrefers concise answers\./)

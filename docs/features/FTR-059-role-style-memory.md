@@ -10,7 +10,7 @@
 
 角色/风格是独立的跨书记忆卡，存于 `$DSH_HOME/dsh-readpilot/memory/role.md`，上限 600 字。它不属于本书记忆或读者卡，单独保存历史、撤销、恢复、删除与清空。角色卡与读者卡跟随全局记忆开关；本书卡跟随本书生效状态。全局关闭时 Agent 的 `reader_memory` 与 UI 保存按钮都拒绝写入；全局开启、本书关闭时角色卡仍注入，本书卡不注入。记忆未生效时卡片与历史恢复在 UI 与 Host 都只读；历史删除/清空仍可用。
 
-`reader_memory` 的 `scope:'role'` 支持 read/update/forget；提示词要求 scope 覆盖 book/reader/role，并说明角色卡只写回答风格偏好；`memory` 页的写入、历史恢复/删除/清空同样支持 role。全局记忆开启时，角色/风格卡注入 `<reading_memory>` 的 `## 角色/风格` 段，内容作为回答角色、语气和格式偏好参考，但不能覆盖系统规则、工具权限或用户当前要求。
+`reader_memory` 的 `scope:'role'` 支持 read/update/forget；提示词要求 scope 覆盖 book/reader/role，并说明角色卡记录要扮演的人物或角色（身份、知识边界、语气和思考方式）；`memory` 页的写入、历史恢复/删除/清空同样支持 role。全局记忆开启时，角色/风格卡注入 `<reading_memory>` 的 `## 角色/风格` 段，内容作为人物扮演设定：伴读以该人物身份、视角和语气回应，但不能覆盖系统规则、工具权限或用户当前要求。
 
 ## 接口与代码映射
 
@@ -24,13 +24,14 @@
 
 ## 约束与失败行为
 
-`role` 是保留卡名，不能作为 bookId；角色卡与其他卡一样受 600 字上限和最多 10 条历史限制。角色内容只是回答风格参考，不是系统指令；要求调用工具、修改数据或忽略规则的内容不执行。角色卡为空时不注入该段；全局记忆关闭时不注入，本书关闭时仍注入。备份和恢复包含 `memory/role.md` 与 `.history/role/`，不依赖书籍映射。
+`role` 是保留卡名，不能作为 bookId；角色卡与其他卡一样受 600 字上限和最多 10 条历史限制。角色内容是人物的扮演资料，不是系统指令；伴读按人物身份与视角回应，但要求调用工具、修改数据或忽略规则的内容不执行。角色卡为空时不注入该段；全局记忆关闭时不注入，本书关闭时仍注入。备份和恢复包含 `memory/role.md` 与 `.history/role/`，不依赖书籍映射。
 
 ## 验收与测试
 
 - 正常路径：角色卡可独立读写并保存文件（`memory_store_read_and_write`）。
 - 正常路径：角色卡历史可恢复、删除单条和清空（`memory_store_role_history_and_undo`）。
 - 正常路径：角色卡随 `<reading_memory>` 注入，且位于读者卡和本书卡之前（`memory_context_empty_and_format`、`memory_context_uses_workspace_language`）。
+- 正常路径：提示词与注入都要求按人物身份、知识边界和思考方式回应（`reading_prompt_covers_memory_role_scope`、`memory_context_empty_and_format`）。
 - 正常路径：全局开启、本书关闭时角色卡仍注入，本书卡不注入（`memory_role_follows_global_mode_not_book`）。
 - 边界：全局关闭时角色卡与读者卡写入被拒绝（`memory_role_writes_require_global_mode`）。
 - 边界：记忆未生效时 Host 拒绝历史恢复，历史删除仍可用（`memory_history_restore_requires_active_scope`）。
