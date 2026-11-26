@@ -3,13 +3,13 @@ import assert from 'node:assert/strict'
 import { mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import { ensureWorkspacePrompt, readWorkspacePromptLanguage } from '../src/host/modules/library/workspace-prompt.ts'
 import {
-  ensureWorkspacePrompt,
+  PROMPT_RULES,
   READING_PROMPT,
   READING_PROMPT_EN,
-  readWorkspacePromptLanguage,
   readingPrompt,
-} from '../src/host/modules/library/workspace-prompt.ts'
+} from '../src/host/modules/prompt/catalog.ts'
 import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
 import { loadSettings, saveSettings } from '../src/host/modules/library/settings.ts'
 import { buildToolPromptLines, type ToolPromptLine } from '../src/host/modules/tools/prompt-map.ts'
@@ -254,11 +254,43 @@ test('reading_prompt_zh_en_have_same_structure', () => {
   const numbered = (text: string) => text.split('\n').filter(line => /^\d+\./.test(line))
   const tools = (text: string) => [...text.matchAll(/^- `([^`]+)`/gm)].map(match => match[1])
 
-  assert.equal(numbered(zh).length, numbered(en).length)
+  assert.equal(numbered(zh).length, PROMPT_RULES.length)
+  assert.equal(numbered(en).length, PROMPT_RULES.length)
   assert.deepEqual(tools(zh), TOOL_LINES.map(line => line.name))
   assert.deepEqual(tools(en), TOOL_LINES.map(line => line.name))
   assert.ok(zh.length < 3200, String(zh.length))
   assert.ok(en.length < 3800, String(en.length))
+})
+
+test('reading_prompt_catalog_rules_have_stable_ids', () => {
+  const ids = PROMPT_RULES.map(rule => rule.id)
+  assert.equal(new Set(ids).size, ids.length)
+  assert.ok(ids.every(id => /^[a-z][a-z0-9-]*$/.test(id)))
+  for (const rule of PROMPT_RULES) {
+    assert.ok(rule.zh.trim())
+    assert.ok(rule.en.trim())
+    assert.ok(readingPrompt('zh', []).includes(rule.zh))
+    assert.ok(readingPrompt('en', []).includes(rule.en))
+  }
+})
+
+test('reading_prompt_matches_golden_snapshot', async t => {
+  const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-golden-'))
+  t.after(() => rm(dataDir, { recursive: true, force: true }))
+  const app = createApp({ dataDir })
+  try {
+    const tools = buildToolPromptLines(app.modules.flatMap(module => module.tools))
+    assert.equal(
+      readingPrompt('zh', tools),
+      await readFile(new URL('./fixtures/reading-prompt.zh.txt', import.meta.url), 'utf8'),
+    )
+    assert.equal(
+      readingPrompt('en', tools),
+      await readFile(new URL('./fixtures/reading-prompt.en.txt', import.meta.url), 'utf8'),
+    )
+  } finally {
+    await app.dispose()
+  }
 })
 
 test('reader_guard_is_registered_and_localized', () => {
