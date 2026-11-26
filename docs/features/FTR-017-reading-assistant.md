@@ -21,7 +21,7 @@
 | `state` | `src/host/api.ts:state` | 加载书库时同步提示词文件 |
 | `setCompanionContext` | `src/host/api.ts:setCompanionContext` | 保存会话的当前书名、章节与书籍 id |
 | `companionContextOf` | `src/host/api.ts:companionContextOf` | 按会话 id 取 `<reading_context>` 文本 |
-| `apply` | `index.ts:apply` | 注册阅读位置动态上下文 |
+| `apply` | `index.ts:apply` | 注册合并上下文与守卫（见 FTR-037） |
 
 ## 约束与失败行为
 

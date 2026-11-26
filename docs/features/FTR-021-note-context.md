@@ -21,7 +21,7 @@
 | `effectiveNotesEnabled` | `src/shared/contracts/companion.ts:effectiveNotesEnabled` | 全局或按书开关的有效值 |
 | `notesContextFor` | `src/host/api.ts:notesContextFor` | 按会话取缓存的 `<reading_notes>` 文本 |
 | `rebuildNotesContext` | `src/host/modules/notes/context-service.ts:rebuildNotesContext` | 读取长笔记与批注、构建并缓存 |
-| `apply` | `index.ts:apply` | 注册笔记动态上下文 |
+| `apply` | `index.ts:apply` | 注册合并上下文与守卫（含笔记，见 FTR-037） |
 | `LongNotes` | `src/client/modules/notes/LongNotesView.ts:LongNotes` | 笔记开关 UI |
 
 ## 约束与失败行为
