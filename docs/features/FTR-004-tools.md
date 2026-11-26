@@ -3,18 +3,19 @@
 - **ID：** FTR-004
 - **名称：** Agent 工具
 - **状态：** active
-- **代码：** `src/host/register-tools.ts`；`src/host/api.ts`；`src/host/modules/notes/files/store.ts`；`src/host/modules/notes/drafts.ts`；`src/host/modules/memory/handlers.ts`；`src/host/modules/notes/tools.ts`（`createNotesTools`）；`src/host/modules/memory/tools.ts`（`createMemoryTools`）；`src/host/modules/notes/note-file-handlers.ts`（`createNoteFileHandlers`）；`src/host/modules/notes/draft-handlers.ts`（`createDraftHandlers`）
-- **测试：** `tests/tools.test.ts`
+- **代码：** `src/host/register-tools.ts`；`src/host/api.ts`；`src/host/modules/tools/prompt-map.ts`（`buildToolPromptLines`）；`src/host/types.ts`（`ToolDefinition`）；`src/host/modules/notes/files/store.ts`；`src/host/modules/notes/drafts.ts`；`src/host/modules/memory/handlers.ts`；`src/host/modules/notes/tools.ts`（`createNotesTools`）；`src/host/modules/memory/tools.ts`（`createMemoryTools`）；`src/host/modules/notes/note-file-handlers.ts`（`createNoteFileHandlers`）；`src/host/modules/notes/draft-handlers.ts`（`createDraftHandlers`）
+- **测试：** `tests/tools.test.ts`；`tests/prompt.test.ts`
 
 ## 行为
 
-Host 向 `ctx.tools` 注册十四个工具：`reader_books` 列出书库与进度；`reader_context` 返回当前/最近阅读的书、进度、目录、最近笔记与最近动作状态；`reader_open` 按 id 或标题打开书籍并返回目录；`reader_read` 按章节 id 或标题读取一段文本；`reader_search` 做书内或全库字面量检索；`reader_digest` 返回全书章节标题与抽取式关键摘录，供全书概括；`reader_note` 按书新增、列出、重写或删除批注；`reader_notes` 查看/读取/删除长笔记，或为 `create`/`write`/`append` 生成待确认草稿；自动应用开启时直接应用并返回 `applied`；`reader_memory` 读取/更新记忆，默认关闭，开启后才写入；`reader_goto`/`reader_open_panel` 排队导航，`reader_mark`/`reader_tag`/`reader_status` 写批注或库元数据并排队刷新。工具返回 JSON；读取默认 4000、上限 8000 字符，并返回 `nextOffset`、`hasMore`、`locator`。books/search 声明结构化输出。`reader_open` 目录最多 200 章，`reader_search` 默认 20 条、上限 50 条；`reader_note` add 需要书名、章节与引文，update/delete 按 noteId 重写或删除；`note` 可空。工具说明、动作摘要、错误消息和 `reader_digest` 的 note 按工作区语言生成。
+Host 向 `ctx.tools` 注册十四个工具。核心工具为 `reader_books`、`reader_context`、`reader_open`、`reader_read`、`reader_search`、`reader_digest`、`reader_note`、`reader_notes`、`reader_memory`；另有五个导航/库元数据工具。工具返回 JSON；读取默认 4000、上限 8000 字符，返回 `nextOffset`、`hasMore`、`locator`。books/search 声明结构化输出。`reader_open` 目录最多 200 章，`reader_search` 默认 20 条、上限 50 条。工具说明、动作摘要、错误消息和 `reader_digest` 的 note 按工作区语言生成。核心工具地图由 `buildToolPromptLines` 从工具定义生成，只收录 `prompt.core`，动作/scope 取自 schema，无需手改提示词。
 
 ## 接口与代码映射
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `registerTools` | `src/host/register-tools.ts:registerTools` | 注册十四个工具 |
+| `registerTools` | `src/host/register-tools.ts:registerTools` | 注册十四个工具，剥离提示词元数据 |
+| `buildToolPromptLines` | `src/host/modules/tools/prompt-map.ts:buildToolPromptLines` | 从 schema 生成核心工具地图 |
 | `toolContext` | `src/host/api.ts:toolContext` | 最近阅读/指定书的进度、目录、笔记摘要与最近动作 |
 | `toolRead` | `src/host/api.ts:toolRead` | 计算偏移、裁剪长度、生成续读信息 |
 | `toolSearch` | `src/host/api.ts:toolSearch` | 把书名解析为书 id 后调用检索 |
@@ -31,3 +32,4 @@ Host 向 `ctx.tools` 注册十四个工具：`reader_books` 列出书库与进�
 - 正常路径：工具列表包含十四个工具，`reader_digest` 返回章节与摘录；空书库下 index 返回空、memory read 返回默认 `off`；`reader_read` 在 `limit` 为 300 时只返回 300 字符，并给出 `hasMore` 与带章节 id 的定位符；books/search 声明输出字段；找不到书与未知操作抛出错误（`tools_read_bounded`）。
 - 边界：工具结果丢弃 `undefined`，数组中的空位转 `null`，可无损 JSON 往返（`tool_values_are_lossless_json`）。
 - 正常路径：英文工作区工具说明与摘要为英文（`tools_use_workspace_language`）。
+- 正常路径：核心工具地图由 schema 生成，覆盖核心工具并排除非核心工具（`tool_prompt_map_is_derived_from_schema`、`reading_prompt_tool_map_covers_core_tools`）。

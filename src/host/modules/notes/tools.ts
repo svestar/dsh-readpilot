@@ -14,6 +14,10 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_note',
       description:
         'Create, list, rewrite or delete passage-anchored annotations for one book. An annotation is a quote plus optional note text; a highlight is the same annotation with empty note text. Use only when the user selects or quotes a passage and wants a brief annotation; do NOT use it for chapter, topic or whole-book write-ups (use reader_notes for those). For add, pass the book, chapter and quoted passage; blockIndex/offset come from a reader_read locator when available. update/delete operate on noteId returned by add or list; only do them when the user explicitly asks to rewrite or delete that annotation. list also returns recentActions; status "undone_by_user" means the user undid an action and it did not fail. Color is optional and defaults to yellow.',
+      prompt: {
+        core: true,
+        summary: { zh: '原文旁的短批注', en: 'short annotations next to a passage' },
+      },
       parameters: {
         type: 'object',
         properties: {
@@ -52,6 +56,10 @@ export function createNotesTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_notes',
       description:
         'Read LONG-FORM markdown notes (chapter, topic or whole-book documents) for one book, create a pending draft, or delete one when the user explicitly asks. Use it when the user asks to organize, write, append, expand, rewrite or delete a long note or document. index/read are read-only. create/write/append never save directly: they create a draft the user must review and apply in the Notes tab. delete removes the note file immediately; only do it on explicit request. Use write actions only when the user explicitly asks to write or edit a long note; never claim it was saved. Pass the final document itself as body/text: never embed status remarks such as "unsaved" or "pending confirmation" in the document; report that only in your reply.',
+      prompt: {
+        core: true,
+        summary: { zh: '长笔记', en: 'long notes' },
+      },
       parameters: {
         type: 'object',
         properties: {

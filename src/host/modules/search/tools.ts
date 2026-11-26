@@ -7,6 +7,10 @@ export function createSearchTools(api: ReaderToolApi): ToolDefinition[] {
     name: 'reader_search',
     description:
       'Search the library or one book for a literal phrase and return snippets with stable locators. Use it to find a passage before reader_read; do not use it to dump whole chapters. The tool result card has a jump button that opens the sidebar reader at the match.',
+    prompt: {
+      core: true,
+      summary: { zh: '书内或全库检索', en: 'search inside a book or across the library' },
+    },
     parameters: {
       type: 'object',
       properties: {

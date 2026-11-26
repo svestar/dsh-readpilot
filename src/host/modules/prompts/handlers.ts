@@ -1,23 +1,27 @@
+import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import type { PromptPresetStore } from './store.ts'
 import { ReaderError } from '../../lib/errors.ts'
 
-export function createPromptHandlers({ store }: { store: PromptPresetStore }) {
+export function createPromptHandlers({ store, language }: {
+  store: PromptPresetStore
+  language(): WorkspaceLanguage
+}) {
   async function prompts(payload: any = {}): Promise<any> {
-    const language = payload.locale === 'en' ? 'en' : 'zh'
+    const currentLanguage = language()
     try {
       if (payload.action === 'list') {
-        return { presets: await store.list(language) }
+        return { presets: await store.list(currentLanguage) }
       }
       if (payload.action === 'save') {
-        const preset = await store.save(payload, language)
-        return { preset, presets: await store.list(language) }
+        const preset = await store.save(payload, currentLanguage)
+        return { preset, presets: await store.list(currentLanguage) }
       }
       if (payload.action === 'delete') {
-        return { deleted: await store.remove(payload.id), presets: await store.list(language) }
+        return { deleted: await store.remove(payload.id), presets: await store.list(currentLanguage) }
       }
       if (payload.action === 'reset') {
         await store.reset()
-        return { presets: await store.list(language) }
+        return { presets: await store.list(currentLanguage) }
       }
       throw new ReaderError('invalid-prompt-action', `未知预设操作：${String(payload.action)}`)
     } catch (error) {

@@ -51,6 +51,9 @@ test('tools_use_workspace_language', async t => {
   const state = await app.api.configureLibrary({ path: library, locale: 'en' })
   const book = state.books[0].title
   registerTools(ctx, app.modules)
+  for (const definition of registered.values()) {
+    assert.equal('prompt' in definition, false)
+  }
 
   const goto = await registered.get('reader_goto')!.execute({ book })
   assert.match(goto.message, /Jump queued/)

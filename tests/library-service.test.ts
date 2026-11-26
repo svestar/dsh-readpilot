@@ -43,6 +43,7 @@ function createService(dataDir: string, ctx: any): LibraryService {
     sessions: async () => ({}),
     companion: async () => COMPANION,
     archivedSessionIds: () => ctx.get('workspaceRegistry')?.archivedSessionIds ?? [],
+    toolPromptLines: () => [],
   })
 }
 

@@ -8,6 +8,10 @@ export function createReadingTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_open',
       description:
         'Open one book for this conversation and return metadata plus its table of contents. This only loads data for the model; it does not change the reader panel. The tool result card has a jump button that opens the sidebar reader. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. Use the returned chapter ids with reader_read. The book may be addressed by id or by title.',
+      prompt: {
+        core: true,
+        summary: { zh: '按 id 或标题打开书籍并返回目录', en: 'open a book by id or title and return its TOC' },
+      },
       parameters: {
         type: 'object',
         properties: {
@@ -25,6 +29,10 @@ export function createReadingTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_digest',
       description:
         'Return an extractive whole-book digest: every chapter title plus selected key excerpts under a character budget. Use it when the user explicitly asks for a whole-book summary or to read the whole book. It is not full text; disclose the extractive coverage and use reader_read for details in specific chapters. Do not loop reader_read over every chapter just to write a whole-book summary.',
+      prompt: {
+        core: true,
+        summary: { zh: '全书章节的抽取式摘要，不是全文', en: 'an extractive whole-book digest, not the full text' },
+      },
       parameters: {
         type: 'object',
         properties: {
@@ -44,6 +52,10 @@ export function createReadingTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_context',
       description:
         'Return the current or most recently read book, its chapter progress, TOC, recent notes and recentActions. TOC page values are the reader\'s PDF page numbers, not the book\'s printed page numbers. recentActions includes status "undone_by_user" when the user undid a prior action; check it before assuming an action failed. Call this first when the user says "this book" or asks about what they are reading. Read-only.',
+      prompt: {
+        core: true,
+        summary: { zh: '当前/最近书籍、进度、目录、最近笔记', en: 'current/recent book, progress, TOC and recent notes' },
+      },
       parameters: {
         type: 'object',
         properties: {
@@ -60,6 +72,10 @@ export function createReadingTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_read',
       description:
         'Read a bounded passage from one chapter. offset is a 0-based character offset; limit defaults to 4000 and is capped at 8000. Continue with nextOffset while hasMore is true. Quote the locator when citing the passage.',
+      prompt: {
+        core: true,
+        summary: { zh: '读取章节正文；续读用 nextOffset', en: 'read chapter text; continue with nextOffset' },
+      },
       parameters: {
         type: 'object',
         properties: {

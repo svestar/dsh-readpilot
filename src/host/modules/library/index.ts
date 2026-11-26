@@ -9,6 +9,7 @@ export interface LibraryModuleOptions extends HostModuleOptions {
   sessions: LibraryServiceDependencies['sessions']
   companion: LibraryServiceDependencies['companion']
   archivedSessionIds: LibraryServiceDependencies['archivedSessionIds']
+  toolPromptLines: LibraryServiceDependencies['toolPromptLines']
 }
 
 export function createLibraryModule(options: LibraryModuleOptions): { module: HostModule; service: LibraryService } {
@@ -21,6 +22,7 @@ export function createLibraryModule(options: LibraryModuleOptions): { module: Ho
     sessions: options.sessions,
     companion: options.companion,
     archivedSessionIds: options.archivedSessionIds,
+    toolPromptLines: options.toolPromptLines,
   })
   return {
     service,

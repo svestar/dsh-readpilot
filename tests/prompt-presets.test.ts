@@ -9,6 +9,8 @@ import {
   DEFAULT_PROMPT_PRESETS_EN,
 } from '../src/host/modules/prompts/store.ts'
 import { renderPrompt } from '../src/shared/prompt-render.ts'
+import { createReaderApi } from '../src/host/app.ts'
+import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 
 async function tempStore(t: any) {
   const dataDir = await mkdtemp(join(tmpdir(), 'dsh-readpilot-presets-'))
@@ -131,6 +133,15 @@ test('prompt_presets_simplify_untouched_defaults_on_v2', async t => {
   assert.equal(list.find(item => item.id === 'explain')?.template, '解释这段，结合《{{book}}》{{chapter}} 的上下文：\n\n{{selection}}')
   assert.equal(list.find(item => item.id === 'custom')?.template, '自定义 {{selection}}')
   assert.equal(list.some(item => item.id === 'character'), false)
+})
+
+test('prompts_rpc_uses_host_workspace_language', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  await api.configureLibrary({ path: library, locale: 'en' })
+
+  const value = await api.prompts({ action: 'list', locale: 'zh' })
+  assert.equal(value.presets.find((item: any) => item.id === 'explain')?.title, 'Explain this passage')
 })
 
 test('render_prompt_replaces_placeholders_literally', () => {

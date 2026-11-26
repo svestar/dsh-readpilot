@@ -1,23 +1,17 @@
 import { readFile, rename, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
+import type { ToolPromptLine } from '../tools/prompt-map.ts'
 
 const BEGIN = '<!-- dsh-readpilot:prompt:begin -->'
 const END = '<!-- dsh-readpilot:prompt:end -->'
-const PROMPT_VERSION = 3
+const PROMPT_VERSION = 4
 const LANGUAGE_MARKER = /<!--\s*dsh-readpilot:workspace-language:\s*(zh|en)\s*;\s*version:\s*\d+\s*-->/
 
-export const READING_PROMPT = [
-  '你是 DSH 阅读器中的阅读助手，帮助用户理解、检索和整理正在阅读的书。',
-  '',
-  '**核心工具**',
-  '- `reader_context`：当前/最近书籍、进度、目录、最近笔记。',
-  '- `reader_books` / `reader_open` / `reader_read` / `reader_search`：查书、开章、读正文、检索；续读用 `reader_read` 的 `nextOffset`。',
-  '- `reader_digest`：全书章节的抽取式摘要，不是全文。',
-  '- `reader_note`：原文旁的短批注（add/list/update/delete）。',
-  '- `reader_notes`：长笔记（index/read/create/write/append/delete）。',
-  '- `reader_memory`：记忆（read/update/forget；scope 为 book/reader/role）。',
-  '',
+const IDENTITY_ZH = '你是 DSH 阅读器中的阅读助手，帮助用户理解、检索和整理正在阅读的书。'
+const IDENTITY_EN = 'You are the reading assistant in the DSH reader, helping the user understand, search and organize the book they are reading.'
+
+const RULES_ZH = [
   '**规则**',
   '1. 用户说“这本书”时先调用 `reader_context`；明确指定书名时按书名处理；无法确定时直接询问，不要猜。',
   '2. 默认只读当前进度附近，不剧透；用户明确要求读取某章、讨论未读内容，或全书概括/通读时才扩展。引用必须逐字来自工具结果并注明章节；页码使用阅读器显示的 PDF 页序号。',
@@ -31,21 +25,9 @@ export const READING_PROMPT = [
   '   - 不确定类型时问：“记在这段原文旁，还是整理成一篇长笔记？”',
   '6. 记忆默认关闭：本书卡仅在本书记忆生效时可更新，读者卡与角色卡只要求全局记忆开启；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。角色/风格卡（role）只记录回答角色、语气和格式偏好，不写系统指令或工具权限；它跟随全局记忆开关，不随单本书关闭。',
   '7. 按需调用工具，以最新结果为准；工具报错或空结果如实说明。回答简洁，使用用户语言，未指定时跟随书库/界面语言。',
-  '',
-  '**原则：不猜测、不编造、不剧透、不擅自写入；以阅读器数据和用户明确意图为准。**',
-].join('\n')
+]
 
-export const READING_PROMPT_EN = [
-  'You are the reading assistant in the DSH reader, helping the user understand, search and organize the book they are reading.',
-  '',
-  '**Core tools**',
-  '- `reader_context`: current/recent book, progress, table of contents and recent notes.',
-  '- `reader_books` / `reader_open` / `reader_read` / `reader_search`: find books, open chapters, read text and search; use `nextOffset` from `reader_read` to continue.',
-  '- `reader_digest`: an extractive chapter digest, not the full text.',
-  '- `reader_note`: short annotations next to a passage (add/list/update/delete).',
-  '- `reader_notes`: long notes (index/read/create/write/append/delete).',
-  '- `reader_memory`: memory (read/update/forget; scope is book/reader/role).',
-  '',
+const RULES_EN = [
   '**Rules**',
   '1. When the user says “this book”, call `reader_context` first. If they name a book, use that book. If you cannot tell which book, ask; do not guess.',
   '2. Read only near the current progress by default; do not spoil unread content. Expand only when the user explicitly asks to read a chapter, discuss unread content, or summarize/read the whole book. Quotes must be copied verbatim from tool results with the chapter; page numbers use the reader’s PDF page index.',
@@ -59,9 +41,36 @@ export const READING_PROMPT_EN = [
   '   - If unsure, ask: “Should I note this next to the passage, or turn it into a long note?”',
   '6. Memory is off by default: the book card requires this book’s memory to be on, while the reader and role/style cards only require global memory to be on. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`. The role/style card (role) records only answer role, tone and format preferences, never system instructions or tool permissions; it follows the global memory switch, not a per-book opt-out.',
   '7. Call tools as needed and trust the latest result; report tool errors or empty results honestly. Answer concisely in the user’s language; if unspecified, follow the library/UI language.',
-  '',
-  '**Principle: do not guess, invent, spoil, or write without permission; rely on reader data and the user’s explicit intent.**',
-].join('\n')
+]
+
+const PRINCIPLE_ZH = '**原则：不猜测、不编造、不剧透、不擅自写入；以阅读器数据和用户明确意图为准。**'
+const PRINCIPLE_EN = '**Principle: do not guess, invent, spoil, or write without permission; rely on reader data and the user’s explicit intent.**'
+
+/** The discipline text shared by both languages; tools are injected separately. */
+export const READING_PROMPT = [...RULES_ZH, '', PRINCIPLE_ZH].join('\n')
+export const READING_PROMPT_EN = [...RULES_EN, '', PRINCIPLE_EN].join('\n')
+
+function toolSection(language: WorkspaceLanguage, tools: readonly ToolPromptLine[]): string {
+  if (tools.length === 0) return ''
+  const english = language === 'en'
+  const heading = english ? '**Core tools**' : '**核心工具**'
+  const separator = english ? ': ' : '：'
+  const period = english ? '.' : '。'
+  return [
+    heading,
+    ...tools.map(tool => `- \`${tool.name}\`${separator}${english ? tool.en : tool.zh}${period}`),
+  ].join('\n')
+}
+
+/** Build the full reading prompt for one language and the registered core tools. */
+export function readingPrompt(language: WorkspaceLanguage, tools: readonly ToolPromptLine[]): string {
+  const english = language === 'en'
+  const parts = [english ? IDENTITY_EN : IDENTITY_ZH]
+  const toolsText = toolSection(language, tools)
+  if (toolsText) parts.push('', toolsText)
+  parts.push('', english ? READING_PROMPT_EN : READING_PROMPT)
+  return parts.join('\n')
+}
 
 function normalizeLanguage(value: unknown): WorkspaceLanguage {
   return value === 'en' ? 'en' : 'zh'
@@ -87,16 +96,16 @@ export async function readWorkspacePromptLanguage(libraryDir: string): Promise<W
   return markedLanguage(existing.slice(begin, end + END.length)) ?? 'zh'
 }
 
-function managedBlock(language: WorkspaceLanguage) {
+function managedBlock(language: WorkspaceLanguage, tools: readonly ToolPromptLine[]) {
   const heading = language === 'en' ? '## Reading assistant' : '## 阅读助手'
-  const prompt = language === 'en' ? READING_PROMPT_EN : READING_PROMPT
   const marker = `<!-- dsh-readpilot:workspace-language:${language};version:${PROMPT_VERSION} -->`
-  return [BEGIN, marker, heading, '', prompt, '', END].join('\n')
+  return [BEGIN, marker, heading, '', readingPrompt(language, tools), '', END].join('\n')
 }
 
 export async function ensureWorkspacePrompt(
   libraryDir: string,
   requestedLanguage: WorkspaceLanguage = 'zh',
+  tools: readonly ToolPromptLine[] = [],
 ): Promise<boolean> {
   if (typeof libraryDir !== 'string' || !libraryDir) return false
   const filePath = join(libraryDir, 'AGENTS.md')
@@ -110,10 +119,8 @@ export async function ensureWorkspacePrompt(
   const begin = existing.indexOf(BEGIN)
   const end = existing.indexOf(END)
   const hasBlock = begin !== -1 && end > begin
-  const language = hasBlock
-    ? markedLanguage(existing.slice(begin, end + END.length)) ?? 'zh'
-    : normalizeLanguage(requestedLanguage)
-  const block = managedBlock(language)
+  const language = normalizeLanguage(requestedLanguage)
+  const block = managedBlock(language, tools)
   let next
   if (hasBlock) {
     next = `${existing.slice(0, begin)}${block}${existing.slice(end + END.length)}`

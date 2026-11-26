@@ -1,7 +1,14 @@
+export interface ToolPromptMeta {
+  /** Include this tool in the generated core tool map of the reading prompt. */
+  core?: boolean
+  summary: { zh: string; en: string }
+}
+
 export interface ToolDefinition {
   name: string
   description: string
   parameters: Record<string, unknown>
+  prompt?: ToolPromptMeta
   output: {
     schema: Record<string, unknown>
     render: (args: unknown, value: unknown) => Array<{ type: string; text: string }>

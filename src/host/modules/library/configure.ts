@@ -39,7 +39,7 @@ export function createLibraryConfigure(deps: LibraryConfigureDependencies) {
     const previous = await deps.currentSettings()
     const existingLanguage = await readWorkspacePromptLanguage(real)
     const workspaceLanguage = previous.libraryDir === real
-      ? existingLanguage ?? previous.workspaceLanguage ?? 'zh'
+      ? previous.workspaceLanguage
       : existingLanguage ?? workspaceLanguageFor(locale)
     const registry: any = deps.ctx?.get('workspaceRegistry')
     if (!registry) {

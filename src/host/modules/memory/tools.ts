@@ -7,6 +7,10 @@ export function createMemoryTools(api: ReaderToolApi): ToolDefinition[] {
     name: 'reader_memory',
     description:
       'Read or update reading memory for one book. Memory is opt-in and off by default; update/forget only work when memory is on for this book. When on, proactively record only durable reader facts: stable preferences, views on the book or author, recurring questions and goals. The role scope is the independent role/style card: record answer role, tone and format preferences, not system instructions or tool permissions. Never store plot facts, one-off questions or reading progress. Write one short line per fact (at most 60 characters); each card is capped at 600 characters, so read it back and compress with mode=replace instead of appending forever. Never claim memory was saved until the result says saved.',
+    prompt: {
+      core: true,
+      summary: { zh: '记忆', en: 'memory' },
+    },
     parameters: {
       type: 'object',
       properties: {

@@ -18,6 +18,7 @@ import { createLibraryMetaStore } from './meta-store.ts'
 import { createLibraryScan } from './scan.ts'
 import { loadSettings, readWorkspaceLanguageSync } from './settings.ts'
 import { createLibraryState, createWorkspaceSync } from './state.ts'
+import type { ToolPromptLine } from '../tools/prompt-map.ts'
 
 export interface LibraryServiceDependencies {
   dataDir: string
@@ -28,6 +29,7 @@ export interface LibraryServiceDependencies {
   sessions(): Promise<SessionMap>
   companion(): Promise<CompanionSettings>
   archivedSessionIds(): string[]
+  toolPromptLines(): readonly ToolPromptLine[]
 }
 
 export interface LibraryService extends LibraryMetaService {
@@ -52,7 +54,7 @@ export function createLibraryService(deps: LibraryServiceDependencies): LibraryS
     return settings
   }
   const scan = createLibraryScan({ dataDir: deps.dataDir, ctx: deps.ctx, currentSettings })
-  const workspace = createWorkspaceSync(currentSettings)
+  const workspace = createWorkspaceSync(currentSettings, deps.toolPromptLines)
   const metaStore = createLibraryMetaStore(deps.dataDir)
 
   async function resolveBook(bookId: unknown): Promise<Book> {

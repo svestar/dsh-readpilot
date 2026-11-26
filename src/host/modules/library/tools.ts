@@ -14,6 +14,10 @@ export function createLibraryTools(api: ReaderToolApi): ToolDefinition[] {
       name: 'reader_books',
       description:
         'List the configured ebook library and each book\'s reading progress. Call this first to find a book id or title before reader_open or reader_read.',
+      prompt: {
+        core: true,
+        summary: { zh: '列出书库与阅读进度', en: 'list the library and reading progress' },
+      },
       parameters: {
         type: 'object',
         properties: {},

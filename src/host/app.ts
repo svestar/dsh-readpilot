@@ -14,6 +14,7 @@ import { createPromptsModule } from './modules/prompts/index.ts'
 import { createCompanionModule } from './modules/companion/index.ts'
 import { createActionsModule } from './modules/actions/index.ts'
 import { createBackupModule } from './modules/backup/index.ts'
+import { buildToolPromptLines, type ToolPromptLine } from './modules/tools/prompt-map.ts'
 import { createReadingToolService } from './modules/reading/tool-service.ts'
 import { createNotesToolService } from './modules/notes/tool-service.ts'
 import { createLibraryTools } from './modules/library/tools.ts'
@@ -66,6 +67,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
 
   const notesRef: { current?: ReturnType<typeof createNotesModule> } = {}
   const companionRef: { current?: ReturnType<typeof createCompanionModule> } = {}
+  const toolPromptLines: ToolPromptLine[] = []
 
   const libraryModule = createLibraryModule({
     dataDir,
@@ -79,6 +81,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     sessions: () => loadSessions(dataDir),
     companion: () => loadCompanionSettings(dataDir),
     archivedSessionIds,
+    toolPromptLines: () => toolPromptLines,
   })
   const library = libraryModule.service
 
@@ -164,7 +167,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     libraryBooks: () => library.books(),
     ensureParsed: book => reading.ensureParsed(book),
   })
-  const promptsModule = createPromptsModule({ dataDir })
+  const promptsModule = createPromptsModule({ dataDir, workspaceLanguage: () => library.workspaceLanguage() })
   const backupModule = createBackupModule({
     dataDir,
     appVersion: APP_VERSION,
@@ -189,6 +192,7 @@ export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): Plu
     translationModule.module,
     mediaModule,
   ]
+  toolPromptLines.push(...buildToolPromptLines(modules.flatMap(module => module.tools)))
   const router = createRouter(modules)
   const state = (): Promise<ReaderState> => library.state()
 

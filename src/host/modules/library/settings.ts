@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import type { Settings, WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import { pathsFor } from '../../lib/data-paths.ts'
 import { readJson, writeJson } from '../../lib/fs-json.ts'
+import { readWorkspacePromptLanguage } from './workspace-prompt.ts'
 
 const EMPTY_SETTINGS: Settings = { libraryDir: null, workspaceId: null, workspaceLanguage: 'zh' }
 
@@ -16,7 +17,12 @@ export function readWorkspaceLanguageSync(dataDir: string): WorkspaceLanguage {
 }
 
 export async function loadSettings(dataDir: string): Promise<Settings> {
-  const stored = await readJson<Partial<Settings>>(pathsFor(dataDir).settings, EMPTY_SETTINGS)
+  const stored = await readJson<Partial<Settings>>(pathsFor(dataDir).settings, {})
+  if (stored.workspaceLanguage == null && stored.libraryDir) {
+    // Settings is the authority; the prompt marker only supplies the language
+    // for workspaces created before settings stored one.
+    stored.workspaceLanguage = (await readWorkspacePromptLanguage(stored.libraryDir)) ?? 'zh'
+  }
   return { ...EMPTY_SETTINGS, ...stored }
 }
 

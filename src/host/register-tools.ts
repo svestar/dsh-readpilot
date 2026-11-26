@@ -6,8 +6,10 @@ export function registerTools(ctx: ToolContext, modules: readonly HostModule[]):
   try {
     for (const module of modules) {
       for (const tool of module.tools) {
+        const definition = { ...tool }
+        delete definition.prompt
         disposers.push(ctx.tools.register({
-          ...tool,
+          ...definition,
           async execute(args?: any, exec?: any) {
             return losslessJson(await tool.execute(args, exec))
           },

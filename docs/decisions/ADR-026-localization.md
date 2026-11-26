@@ -20,9 +20,10 @@
 2. **工作区语言只初始化一次**
    - 工作区首次创建/初始化时捕获当前 UI 语言，作为 `workspaceLanguage`。
    - 已有工作区没有语言标记时按 `zh` 处理，避免升级后把既有中文工作区改成英文。
-   - `AGENTS.md` 的管理块记录语言标记与内容版本；Host 以该标记为准，可在内存中缓存。
+   - `settings.workspaceLanguage` 是唯一权威；`AGENTS.md` 管理块记录语言标记与内容版本，只用于旧工作区迁移和诊断。
    - 之后切换 DSH UI 语言，不重写 `AGENTS.md` 的语言，也不改变工作区生成的 Agent 内容语言。
    - 换工作区、删除后重新初始化时，才按当时 UI 语言重新确定。
+   - **修订（2026-11-26）：** 语言权威从管理块标记改为 `settings.workspaceLanguage`；标记不再决定运行时语言，settings 缺语言时才从标记迁移。
 
 3. **内容版本与语言分离**
    - 插件升级仍更新 `AGENTS.md` 管理块的规则内容，但保留原 `workspaceLanguage`。
