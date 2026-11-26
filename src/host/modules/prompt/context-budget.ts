@@ -5,5 +5,5 @@ export const CONTEXT_BUDGET = {
   notesIndex: 3000,
   notesFull: 6000,
   highlights: 2000,
-  total: 11000,
+  total: 12000,
 } as const

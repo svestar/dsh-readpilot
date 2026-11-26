@@ -41,6 +41,7 @@ test('notes_context_index_prefers_ids_and_paths', () => {
 
 test('context_budget_leaves_room_for_all_blocks', () => {
   assert.ok(CONTEXT_BUDGET.reading + CONTEXT_BUDGET.memory + CONTEXT_BUDGET.notesIndex <= CONTEXT_BUDGET.total)
+  assert.ok(CONTEXT_BUDGET.reading + CONTEXT_BUDGET.memory + CONTEXT_BUDGET.notesFull <= CONTEXT_BUDGET.total)
   assert.ok(CONTEXT_BUDGET.notesIndex < CONTEXT_BUDGET.notesFull)
   assert.ok(CONTEXT_BUDGET.highlights <= CONTEXT_BUDGET.notesIndex)
 })
