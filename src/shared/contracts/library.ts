@@ -50,6 +50,12 @@ export interface BookWithProgress extends BookSummary {
   progress: ReadingProgress | null
 }
 
+/** Non-fatal result of syncing the managed block in the library `AGENTS.md`. */
+export interface PromptSyncState {
+  ok: boolean
+  error?: string
+}
+
 export interface ReaderState {
   settings: Settings
   books: BookWithProgress[]
@@ -59,6 +65,7 @@ export interface ReaderState {
   status: StatusMap
   rating: RatingMap
   companion: CompanionSettings
+  promptSync: PromptSyncState
 }
 
 export const READER_STATE_KEYS = [
@@ -70,6 +77,7 @@ export const READER_STATE_KEYS = [
   'status',
   'rating',
   'companion',
+  'promptSync',
 ] as const
 
 export const BOOK_FORMATS: readonly BookFormat[] = ['txt', 'md', 'epub', 'pdf']

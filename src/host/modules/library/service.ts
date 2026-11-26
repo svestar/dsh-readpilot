@@ -1,5 +1,6 @@
 import type {
   ProgressMap,
+  PromptSyncState,
   ReaderState,
   Settings,
 } from '../../../shared/contracts/library.ts'
@@ -35,7 +36,7 @@ export interface LibraryService extends LibraryMetaService {
   currentSettings(): Promise<Settings>
   state(): Promise<ReaderState>
   rescan(): Promise<ReaderState>
-  syncPrompt(): Promise<void>
+  syncPrompt(): Promise<PromptSyncState>
   configure(payload?: { path?: unknown; locale?: unknown }): Promise<ReaderState>
   deleteDuplicate(payload?: { bookId?: unknown }): Promise<ReaderState>
   dispose(): Promise<void>

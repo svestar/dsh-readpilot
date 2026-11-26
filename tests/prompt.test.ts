@@ -4,7 +4,9 @@ import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { ensureWorkspacePrompt, READING_PROMPT, READING_PROMPT_EN } from '../src/host/modules/library/workspace-prompt.ts'
+import { createWorkspaceSync } from '../src/host/modules/library/state.ts'
 import { createReaderApi } from '../src/host/app.ts'
+import { fakeContext, makeLibrary } from './support/api-helpers.ts'
 
 test('workspace_prompt_created_and_managed', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-prompt-'))
@@ -73,6 +75,32 @@ test('workspace_prompt_keeps_status_out_of_note_body', () => {
   assert.ok(READING_PROMPT.includes('短笔记看 `note` / `deleted`'))
   assert.ok(READING_PROMPT_EN.includes('`applied` for long notes'))
   assert.ok(READING_PROMPT_EN.includes('`note` / `deleted` for short notes'))
+})
+
+test('workspace_prompt_repairs_deleted_block_on_state', async t => {
+  const { library, data } = await makeLibrary(t)
+  const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
+  const first = await api.configureLibrary({ path: library })
+  assert.equal(first.promptSync.ok, true)
+
+  await rm(join(library, 'AGENTS.md'))
+  const second = await api.state()
+  assert.equal(second.promptSync.ok, true)
+  const repaired = await readFile(join(library, 'AGENTS.md'), 'utf8')
+  assert.match(repaired, /dsh-readpilot:prompt:begin/)
+  assert.ok(repaired.includes(READING_PROMPT))
+})
+
+test('workspace_prompt_sync_reports_failure', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-sync-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const missing = join(root, 'missing')
+  const settings = { libraryDir: missing, workspaceId: null, workspaceLanguage: 'zh' as const }
+  const sync = createWorkspaceSync(async () => settings)
+
+  const status = await sync.syncFor(settings)
+  assert.equal(status.ok, false)
+  assert.ok(status.error)
 })
 
 test('companion_context_is_scoped_to_session', async t => {
