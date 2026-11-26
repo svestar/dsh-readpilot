@@ -86,6 +86,15 @@ function isKnownDefault(preset: PromptPreset): boolean {
   return preset.title === zh?.title
 }
 
+/** A built-in value that still matches one of the shipped defaults in either language. */
+function isDefaultPresetValue(preset: PromptPreset, title: string, template: string): boolean {
+  for (const defaults of [DEFAULT_PROMPT_PRESETS, DEFAULT_PROMPT_PRESETS_EN]) {
+    const item = defaults.find(candidate => candidate.id === preset.id)
+    if (item && item.title === title && item.template === template) return true
+  }
+  return LEGACY_DEFAULT_TEMPLATES[preset.id] === template
+}
+
 function localizePreset(preset: PromptPreset, language: WorkspaceLanguage): PromptPreset {
   if (!preset.builtin || preset.edited) return preset
   const fallback = defaultPresetOf(preset, language)
@@ -170,11 +179,17 @@ export function createPromptPresetStore(dataDir: string): PromptPresetStore {
         const index = id ? presets.findIndex(item => item.id === id) : -1
         if (id && index === -1) throw new Error(`preset not found: ${id}`)
         if (index >= 0) {
+          const current = presets[index]
+          const unchanged = current.title === title && current.template === template
+          if (unchanged) return current
+          if (current.builtin && !current.edited && isDefaultPresetValue(current, title, template)) {
+            return current
+          }
           presets[index] = {
-            ...presets[index],
+            ...current,
             title,
             template,
-            ...(presets[index].builtin ? { edited: true } : {}),
+            ...(current.builtin ? { edited: true } : {}),
           }
           await writePresetState(path, presets)
           return presets[index]

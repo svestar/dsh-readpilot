@@ -86,6 +86,21 @@ test('prompt_presets_localize_unedited_builtins', async t => {
   assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '解释这段')
 })
 
+test('prompt_presets_save_unchanged_builtin_keeps_localization', async t => {
+  const { dataDir, store } = await tempStore(t)
+  const explain = (await store.list('en')).find(item => item.id === 'explain')
+  assert.ok(explain)
+  await store.save({ title: '临时预设', template: '临时 {{selection}}' })
+
+  await store.save({ id: 'explain', title: explain.title, template: explain.template })
+  assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '解释这段')
+  const file = JSON.parse(await readFile(join(dataDir, 'presets.json'), 'utf8'))
+  assert.equal(file.presets.find((item: any) => item.id === 'explain').edited, undefined)
+
+  await store.save({ id: 'explain', title: '自定义解释', template: '自定义 {{selection}}' })
+  assert.equal((await store.list('zh')).find(item => item.id === 'explain')?.title, '自定义解释')
+})
+
 test('prompt_presets_simplify_untouched_defaults_on_v2', async t => {
   const { dataDir, store } = await tempStore(t)
   await writeFile(join(dataDir, 'presets.json'), JSON.stringify({

@@ -69,6 +69,10 @@ export function PromptPresetManager({ t, presets, error, onSave, onDelete, onRes
       setLocalError(t('presetRequired'))
       return
     }
+    if (selected && title.trim() === selected.title && template.trim() === selected.template) {
+      onClose()
+      return
+    }
     setBusy(true)
     setLocalError('')
     try {
