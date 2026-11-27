@@ -16,8 +16,8 @@ export const PROMPT_RULES: PromptRule[] = [
   },
   {
     id: 'quotes',
-    zh: '引用必须逐字来自工具结果并注明章节；页码使用阅读器显示的 PDF 页序号。',
-    en: 'Quotes must be copied verbatim from tool results with the chapter; page numbers use the reader’s PDF page index.',
+    zh: '引用必须逐字来自工具结果并注明章节。',
+    en: 'Quotes must be copied verbatim from tool results with the chapter.',
   },
   {
     id: 'missing-content',
