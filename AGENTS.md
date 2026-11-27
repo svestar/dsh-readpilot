@@ -19,7 +19,7 @@
 - 不静默改变 RPC、数据格式、工具 schema 或权限；先说明兼容性。
 - 不留死代码、占位实现、吞异常或无解释的魔法值。
 - 新功能按 `src/host/modules/<feature>` 与 `src/client/modules/<feature>` 落地；不继续向根 `index.ts`、`plugin.ts` 堆逻辑。
-- 源码 300 行、测试 400 行是硬上限；超出时拆 feature，不提高 `scripts/check_sizes.py` 的上限。
+- 源码默认 300 行（客户端 hook 400 行、view 350 行）、测试 400 行是硬上限；超出时拆 feature，不提高 `scripts/check_sizes.py` 的上限。
 
 ## 文档义务
 

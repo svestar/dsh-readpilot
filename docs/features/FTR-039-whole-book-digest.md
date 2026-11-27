@@ -18,7 +18,7 @@
 |---|---|---|
 | `buildBookDigest` | `src/host/modules/reading/digest.ts:buildBookDigest` | 按预算生成每章摘录与覆盖信息 |
 | `toolDigest` | `src/host/api.ts:toolDigest` | 解析书籍并返回工具结果 |
-| `reader_digest` | `src/host/register-tools.ts:registerTools` | 暴露给模型的工具定义 |
+| `reader_digest` | `src/host/modules/reading/tools.ts:reader_digest` | 暴露给模型的工具定义 |
 | `readingPrompt` | `src/host/modules/prompt/catalog.ts:readingPrompt` | 全书请求的阅读纪律 |
 
 ## 约束与失败行为
