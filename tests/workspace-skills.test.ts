@@ -59,6 +59,40 @@ test('workspace_skills_repair_missing_frontmatter', async t => {
   assert.equal((repaired.match(/dsh-readpilot:skill:begin/g) ?? []).length, 1)
 })
 
+test('workspace_skills_repair_empty_frontmatter', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-skills-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const file = skillFile(root, 'dsh-readpilot-notes')
+  await mkdir(dirname(file), { recursive: true })
+  await writeFile(file, '---\n---\n<!-- dsh-readpilot:skill:begin -->\n旧正文\n<!-- dsh-readpilot:skill:end -->\n', 'utf8')
+
+  assert.equal(await ensureWorkspaceSkills(root, 'zh'), true)
+  const repaired = await readFile(file, 'utf8')
+  assert.match(repaired, /^---\nname: dsh-readpilot-notes\ndescription: Use when/)
+  assert.equal(repaired.split('\n').filter(line => line === '---').length, 2)
+  assert.match(repaired, /阅读笔记流程/)
+  assert.doesNotMatch(repaired, /旧正文/)
+})
+
+test('workspace_skills_preserve_extra_frontmatter', async t => {
+  const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-skills-'))
+  t.after(() => rm(root, { recursive: true, force: true }))
+  const file = skillFile(root, 'dsh-readpilot-notes')
+  await mkdir(dirname(file), { recursive: true })
+  await writeFile(
+    file,
+    '---\nname: 旧技能\ndescription: 旧描述\nlicense: MIT\n---\n<!-- dsh-readpilot:skill:begin -->\n旧正文\n<!-- dsh-readpilot:skill:end -->\n',
+    'utf8',
+  )
+
+  assert.equal(await ensureWorkspaceSkills(root, 'zh'), true)
+  const repaired = await readFile(file, 'utf8')
+  assert.match(repaired, /^---\nname: dsh-readpilot-notes\ndescription: Use when/)
+  assert.match(repaired, /license: MIT/)
+  assert.match(repaired, /阅读笔记流程/)
+  assert.doesNotMatch(repaired, /旧正文|旧描述/)
+})
+
 test('workspace_skills_preserve_user_owned_file', async t => {
   const root = await mkdtemp(join(tmpdir(), 'dsh-readpilot-skills-'))
   t.after(() => rm(root, { recursive: true, force: true }))

@@ -26,17 +26,30 @@ function replaceBlock(existing: string, block: string): string | null {
 }
 
 function repairFrontmatter(existing: string, name: string, description: string): string {
-  const expected = frontmatter(name, description)
-  if (existing.startsWith(`${expected}\n`) || existing.startsWith(`${expected}\r\n`)) return existing
-  const offset = existing.startsWith('---\r\n') ? 5 : 4
-  if (existing.startsWith('---\n') || existing.startsWith('---\r\n')) {
-    const close = existing.indexOf('\n---', offset)
-    if (close !== -1) {
-      const rest = existing.slice(close + 4).replace(/^\r?\n/, '')
-      return `${expected}\n\n${rest}`
+  const lines = existing.split(/\r?\n/)
+  if (lines[0]?.replace(/^\uFEFF/, '') !== '---') return `${frontmatter(name, description)}\n\n${existing}`
+  const close = lines.findIndex((line, index) => index > 0 && (line === '---' || line === '...'))
+  if (close === -1) return `${frontmatter(name, description)}\n\n${existing}`
+
+  let hasName = false
+  let hasDescription = false
+  const fields: string[] = []
+  for (const line of lines.slice(1, close)) {
+    if (/^\s*name\s*:/.test(line)) {
+      if (!hasName) fields.push(`name: ${name}`)
+      hasName = true
+      continue
     }
+    if (/^\s*description\s*:/.test(line)) {
+      if (!hasDescription) fields.push(`description: ${description}`)
+      hasDescription = true
+      continue
+    }
+    fields.push(line)
   }
-  return `${expected}\n\n${existing}`
+  if (!hasName) fields.unshift(`name: ${name}`)
+  if (!hasDescription) fields.push(`description: ${description}`)
+  return ['---', ...fields, '---', ...lines.slice(close + 1)].join('\n')
 }
 
 async function writeAtomic(path: string, content: string): Promise<void> {
