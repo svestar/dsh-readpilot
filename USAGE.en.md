@@ -66,7 +66,7 @@ Prompt preset management lets you create, edit and delete templates or restore d
 
 ## 6. Companion and Agent
 
-Each book has its own companion conversation. The right panel switches between Chat, Notes, Long notes and Memory. You can ask questions directly or let the Agent operate the reader and library.
+Each book has its own companion conversation. The right panel switches between Chat, Notes, Long notes, Memory and Role. You can ask questions directly or let the Agent operate the reader and library.
 
 The top of the Chat tab shows the current companion conversation. Click the title to create a new conversation or bind an old one from the current library workspace; a conversation belongs to one book at a time, and rebinding unbinds the previous book. Switching to a running conversation does not stop its original task.
 
@@ -132,7 +132,7 @@ Exports download directly and are not written into the library; they do not incl
 
 ## 9. Backup and migration
 
-Backup and restore in Settings exports a ReadPilot data zip. Backups include annotations, long notes, prompt presets, memory, reading progress, tags/status/rating and companion settings; they exclude book files, workspaces, sessions and caches.
+Backup and restore in Settings exports a ReadPilot data zip. Backups include annotations, long notes, prompt presets, memory, role cards, reading progress, tags/status/rating and companion settings; they exclude book files, workspaces, sessions and caches.
 
 When moving machines, copy the book folder to the new machine, choose the backup zip and target library, then confirm Overwrite restore:
 
@@ -147,7 +147,7 @@ Books are not copied or uploaded. Settings, progress, session bindings and parse
 
 ## 11. Help and FAQ
 
-The top-bar “?” opens the help manual: browse setup, reading, annotations/prompts, translation and bilingual reading, companion, long notes, history, shortcuts and FAQ. The footer links to the full USAGE and GitHub.
+The top-bar “?” opens the help manual: browse setup, reading, annotations/prompts, translation and bilingual reading, companion, role, long notes, history, shortcuts and FAQ. The footer links to the full USAGE and GitHub.
 
 - **Scanned PDF cannot be searched or annotated?** It can only be viewed page by page in original mode; use an OCR tool to create a PDF with a text layer first.
 - **Does translation upload the whole book?** No; only the selected paragraph or currently visible paragraphs are sent, and the translation cache can be cleared from Translate ▾.

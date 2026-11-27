@@ -23,6 +23,7 @@ test('workspace_skills_created_with_frontmatter', async t => {
   assert.match(notes, /阅读笔记流程/)
   assert.match(notes, /reader_note/)
   assert.match(notes, /reader_notes/)
+  assert.match(notes, /不要写“未保存”/)
 
   const memory = await readFile(skillFile(root, 'dsh-readpilot-memory'), 'utf8')
   assert.match(memory, /^---\nname: dsh-readpilot-memory\ndescription: Use when/)

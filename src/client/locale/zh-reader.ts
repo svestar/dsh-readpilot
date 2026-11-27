@@ -40,7 +40,7 @@ export const zhReader = {
       setupHint: '选择一个存放电子书的目录。创建后它会在左侧成为一个独立工作区，每本书的伴读会话也保存在那里。',
       chooseDir: '选择目录',
       helpTitle: '帮助手册',
-      helpIntro: '按主题查看安装、阅读、批注、翻译、伴读、历史与常见问题；不会弹出首次使用向导。',
+      helpIntro: '按主题查看安装、阅读、批注、翻译、伴读、角色、长笔记、历史与常见问题；不会弹出首次使用向导。',
       helpQuickStartTitle: '安装与书库',
       helpQuickStartBody: '可通过 Agent 安装、插件页“添加插件”或 npm 安装，然后刷新 DSH。打开“智读”选择本地书籍目录作为书库；原书不会被复制。',
       helpReadingTitle: '阅读与设置',

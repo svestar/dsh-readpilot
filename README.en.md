@@ -52,7 +52,7 @@ Full steps: [USAGE.en.md](USAGE.en.md).
 - **Books**: not copied or uploaded.
 - **Translation**: only the selected or visible paragraphs are sent to the selected online translation service; the source text leaves this device. Translations are cached locally only and are not written to the companion conversation.
 - **Local data**: settings, progress, session bindings, parse cache and translation cache live in `$DSH_HOME/dsh-readpilot/`; long notes live in the library `notes/`.
-- **Backup**: includes annotations, long notes, prompt presets, memory, reading progress, tags/status/rating and companion settings; excludes books, workspaces, sessions and caches.
+- **Backup**: includes annotations, long notes, prompt presets, memory, role cards, reading progress, tags/status/rating and companion settings; excludes books, workspaces, sessions and caches.
 
 ## Development and architecture
 

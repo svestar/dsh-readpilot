@@ -40,7 +40,7 @@ export const enReader = {
       setupHint: 'Choose a folder that holds your ebooks. It becomes a dedicated workspace, and every book keeps its companion session there.',
       chooseDir: 'Choose folder',
       helpTitle: 'Help',
-      helpIntro: 'Browse setup, reading, annotations, translation, companion, history and FAQ. No first-run wizard.',
+      helpIntro: 'Browse setup, reading, annotations, translation, companion, role, long notes, history and FAQ. No first-run wizard.',
       helpQuickStartTitle: 'Install & library',
       helpQuickStartBody: 'Install through the Agent, Plugins → Add plugin, or npm, then refresh DSH. Open ReadPilot and choose a local book folder as the library; books are not copied.',
       helpReadingTitle: 'Reading & settings',

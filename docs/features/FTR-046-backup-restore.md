@@ -8,18 +8,18 @@
 
 ## 行为
 
-“导出备份”生成一个 zip，写入 `$DSH_HOME/dsh-readpilot/backups/`。备份 manifest 记录版本、创建时间与每本书的 `bookId`、`contentKey`、书名和格式；数据包含短批注、长笔记、提示词预设、记忆、阅读进度、标签/状态/评分与伴读设置。原书文件、`settings.json`、workspaceId、会话、缓存与动作回执不进入备份；旧 `memory/role.md` 与 `.history/role/` 也不进入备份。
+“导出备份”生成一个 zip，写入 `$DSH_HOME/dsh-readpilot/backups/`。备份 manifest 记录版本、创建时间与每本书的 `bookId`、`contentKey`、书名和格式；数据包含短批注、长笔记、提示词预设、记忆、角色卡、阅读进度、标签/状态/评分与伴读设置。原书文件、`settings.json`、workspaceId、会话、缓存与动作回执不进入备份；旧 `memory/role.md` 与 `.history/role/` 也不进入备份。
 
 “覆盖恢复”选择备份 zip 和目标书库目录。恢复时扫描目标书库，用 `contentKey` 匹配备份书籍；目标书库的 `bookId` 作为权威 ID，把备份数据重映射过去。匹配到的书整体覆盖：
 
 - 短批注 JSON 替换；
 - 长笔记目录替换，frontmatter 与 `.book.json` 的 bookId/sourcePath 改写；
 - 阅读进度、标签、状态、评分替换；
-- 记忆卡与历史替换；
+- 记忆卡、角色卡与各自历史替换；
 - 伴读设置中的笔记上下文、记忆开关与自动应用替换；
 - 目标书库当前已绑定的伴读会话保留，不导入或覆盖旧机器的会话。
 
-备份中有、目标书库中找不到的书籍跳过；目标书库中不在备份里的书保持现状。全局提示词、记忆 reader 卡和伴读全局开关按备份覆盖；备份没有 `presets.json` 时保留目标预设。
+备份中有、目标书库中找不到的书籍跳过；目标书库中不在备份里的书保持现状。全局提示词、记忆 reader 卡、全局角色和伴读全局开关按备份覆盖；备份没有 `presets.json` 时保留目标预设。
 
 恢复前自动导出目标书库数据快照（`pre-restore-*.zip`）；应用失败时尝试用快照回滚，并在错误中返回快照路径。成功后调用现有 `configureLibrary` 把目标书库绑定到新工作区，不恢复旧 workspaceId。
 

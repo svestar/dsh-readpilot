@@ -8,7 +8,7 @@
 
 ## 行为
 
-打开一本可读的书籍后，正文右侧出现“伴读”栏。书籍已有伴读会话且宿主支持 Conversation Factory 时，面板用 `SessionProvider` 绑定该书会话，并渲染 `conversation.content` 的 embedded occurrence：原生正文、工具卡、推理、审批、队列、模型选择、附件与 Composer 一起出现，和 Chat 面板是同一个会话。原生路径只保留会话引用与事件序号，折叠仅在 fallback 使用。面板顶部保留“伴读 / 笔记 / 长笔记 / 记忆”四个标签；阅读器仍提供书名与章节标题。选中正文后的“问伴读”打开伴读标签，并把引用通过原生 `inputActions.setDraft` 写进 Composer，不自动发送；只写引用，不重复书名/章节（阅读上下文已由 FTR-017 注入）。原生输入不可用时退回面板内的草稿输入框；助手消息正文用 DSH MarkdownText 渲染。还没有会话时，面板内输入框在首次发送时创建会话并保存映射，随后切换到原生会话。会话被归档、删除或失效时清除 book→session 映射并提示“发送消息会自动新建会话”；发送阶段检测到会话失效会重试一次，仍失败则保留输入并显示错误。
+打开一本可读的书籍后，正文右侧出现“伴读”栏。书籍已有伴读会话且宿主支持 Conversation Factory 时，面板用 `SessionProvider` 绑定该书会话，并渲染 `conversation.content` 的 embedded occurrence：原生正文、工具卡、推理、审批、队列、模型选择、附件与 Composer 一起出现，和 Chat 面板是同一个会话。原生路径只保留会话引用与事件序号，折叠仅在 fallback 使用。面板顶部保留“伴读/笔记/长笔记/记忆/角色”五个标签；阅读器仍提供书名与章节标题。选中正文后的“问伴读”打开伴读标签，并把引用通过原生 `inputActions.setDraft` 写进 Composer，不自动发送；只写引用，不重复书名/章节（阅读上下文已由 FTR-017 注入）。原生输入不可用时退回面板内的草稿输入框；助手消息正文用 DSH MarkdownText 渲染。还没有会话时，面板内输入框在首次发送时创建会话并保存映射，随后切换到原生会话。会话被归档、删除或失效时清除 book→session 映射并提示“发送消息会自动新建会话”；发送阶段检测到会话失效会重试一次，仍失败则保留输入并显示错误。
 
 ## 接口与代码映射
 
@@ -16,7 +16,7 @@
 |---|---|---|
 | `NativeCompanion` | `src/client/modules/companion/NativeCompanion.ts:NativeCompanion` | 在 SessionProvider 内渲染 embedded `conversation.content`，固定 Chat 视图 |
 | `createNativeChatBoundary` | `src/client/modules/companion/NativeCompanion.ts:createNativeChatBoundary` | 捕获 Factory 渲染失败并退回折叠聊天 |
-| `ChatPanel` | `src/client/modules/companion/ChatPanel.ts:ChatPanel` | 四个标签、原生/折叠聊天与输入区 |
+| `ChatPanel` | `src/client/modules/companion/ChatPanel.ts:ChatPanel` | 五个标签、原生/折叠聊天与输入区 |
 | `useCompanion` | `src/client/modules/companion/use-companion.ts:useCompanion` | 会话绑定、折叠兜底、拖动调宽、新建会话后应用只读策略 |
 | `askCompanion` | `src/client/modules/reader/use-reader-composer.ts:askCompanion` | 选中文字后预填引用并聚焦伴读输入框 |
 
