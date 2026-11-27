@@ -12,7 +12,7 @@
 
 生效优先级：本书开关开启且正文非空时使用本书角色；否则全局角色非空时使用全局角色；否则使用默认角色“DSH 阅读助手”。默认角色包含原身份与默认风格（简洁、不剧透），不套扮演前缀；自定义角色才直接以第一人称回应，不声明在扮演；用户询问真实身份或要求退出时除外。角色只注入绑书会话，无书不注入；`AGENTS.md` 不再包含身份。
 
-角色卡存于 `$DSH_HOME/dsh-readpilot/roles/global.md` 与 `roles/<bookId>.md`，每卡 600 字、10 条历史，支持保存、撤销、恢复、删除与清空。旧 `memory/role.md` 与 `.history/role/` 在首次读取时迁移为全局卡及其历史，旧文件保留。备份含 `roles/`；恢复按内容映射本书角色。
+角色卡存于 `$DSH_HOME/dsh-readpilot/roles/global.md` 与 `roles/<bookId>.md`，每卡 600 字、10 条历史，支持保存、撤销、恢复、删除与清空。旧 `memory/role.md` 不迁移也不参与解析。备份含 `roles/`；恢复按内容映射本书角色。
 
 角色上下文由独立的 `dsh-readpilot:role` 注入，顺序先于守卫与阅读上下文，预算约 1200 字；角色是用户指令，但不能覆盖系统规则、工具权限或用户当前要求。`reader_memory` 只管理 book/reader 两张卡，不再提供 `role` scope。
 
@@ -20,7 +20,7 @@
 
 | 入口/符号 | 位置 | 职责 |
 |---|---|---|
-| `createRoleStore` | `src/host/modules/role/store.ts:createRoleStore` | 全局/本书角色读写、历史、迁移 |
+| `createRoleStore` | `src/host/modules/role/store.ts:createRoleStore` | 全局/本书角色读写与历史 |
 | `resolveRole` | `src/host/modules/role/resolve.ts:resolveRole` | 本书 > 全局 > 默认的解析 |
 | `buildRoleContext` | `src/host/modules/role/context.ts:buildRoleContext` | 默认原样返回；自定义角色包裹 |
 | `role` | `src/host/modules/role/handlers.ts:role` | RPC：status/write/clear/undo/history/setEnabled/setBookEnabled |
@@ -35,7 +35,6 @@
 ## 验收与测试
 
 - 正常路径/边界：全局与本书卡读写、撤销、清空，600 字上限与历史裁剪（`role_store_read_write_and_history`）。
-- 正常路径：旧 `memory/role.md` 与历史迁移到 `roles/global.md`（`role_migrates_legacy_memory_role`）。
 - 正常路径：本书开启覆盖全局，本书关闭/留空回落全局，全局为空回落默认，关闭自定义角色只留默认（`role_resolution_priority`）。
 - 正常路径：自定义角色块带标签与声明，超长被截断；默认角色原样返回（`role_context_wraps_and_truncates`）。
 - 正常路径：角色 RPC 往返、来源切换与按会话注入（`role_rpc_roundtrip_and_context`）。

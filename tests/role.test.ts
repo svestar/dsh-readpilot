@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { mkdtemp, readFile, rm, writeFile, mkdir } from 'node:fs/promises'
+import { mkdtemp, readFile, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { createReaderApi, createApp } from '../src/host/app.ts'
@@ -34,17 +34,6 @@ test('role_store_read_write_and_history', async t => {
   assert.equal(await readFile(join(dir, 'roles', 'book1.md'), 'utf8'), '本书角色')
   await store.clear('book', 'book1')
   assert.deepEqual(await store.read('book', 'book1'), { text: '', characters: 0 })
-})
-
-test('role_migrates_legacy_memory_role', async t => {
-  const dir = await tempDir(t)
-  await mkdir(join(dir, 'memory', '.history', 'role'), { recursive: true })
-  await writeFile(join(dir, 'memory', 'role.md'), '旧角色', 'utf8')
-  await writeFile(join(dir, 'memory', '.history', 'role', '1-a.md'), '更旧角色', 'utf8')
-  const store = createRoleStore(dir)
-  assert.equal((await store.read('global')).text, '旧角色')
-  assert.equal(await readFile(join(dir, 'roles', 'global.md'), 'utf8'), '旧角色')
-  assert.equal((await store.listHistory('global'))[0].text, '更旧角色')
 })
 
 test('reader_memory_no_longer_exposes_role_scope', async t => {

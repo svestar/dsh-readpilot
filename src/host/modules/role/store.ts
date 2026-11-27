@@ -1,4 +1,4 @@
-import { cp, readFile, readdir } from 'node:fs/promises'
+import { readdir } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { RoleScope } from '../../../shared/contracts/role.ts'
 import {
@@ -35,7 +35,6 @@ export function createRoleStore(dataDir: string): RoleStore {
     invalidContentCode: 'invalid-role',
     invalidPathCode: 'invalid-role',
   })
-  let migration: Promise<void> | null = null
 
   function cardName(scope: RoleScope, bookId?: string): string {
     if (scope === 'global') return GLOBAL_CARD
@@ -45,75 +44,35 @@ export function createRoleStore(dataDir: string): RoleStore {
     return bookId
   }
 
-  async function migrateLegacyRole(): Promise<void> {
-    const current = await store.read(GLOBAL_CARD)
-    if (current.text) return
-    let legacy: string
-    try {
-      legacy = await readFile(join(dataDir, 'memory', 'role.md'), 'utf8')
-    } catch {
-      return
-    }
-    if (legacy.trim()) await store.write(GLOBAL_CARD, legacy)
-    const source = join(dataDir, 'memory', '.history', 'role')
-    const target = join(root, '.history', GLOBAL_CARD)
-    try {
-      const entries = await readdir(target)
-      if (entries.length > 0) return
-    } catch {
-      // No migrated history yet.
-    }
-    try {
-      await cp(source, target, { recursive: true })
-    } catch {
-      // Legacy snapshots are optional; the current card is already preserved.
-    }
-  }
-
-  function ensureMigrated(): Promise<void> {
-    if (!migration) migration = migrateLegacyRole()
-    return migration
-  }
-
   return {
     async read(scope, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.read(cardName(scope, bookId))
     },
     async write(scope, text, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.write(cardName(scope, bookId), text)
     },
     async clear(scope, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.clear(cardName(scope, bookId))
     },
     async listHistory(scope, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.listHistory(cardName(scope, bookId))
     },
     async readHistory(scope, id, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.readHistory(cardName(scope, bookId), id)
     },
     async restoreHistory(scope, id, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.restoreHistory(cardName(scope, bookId), id)
     },
     async removeHistory(scope, id, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.removeHistory(cardName(scope, bookId), id)
     },
     async clearHistory(scope, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.clearHistory(cardName(scope, bookId))
     },
     async undo(scope, bookId) {
-      if (scope === 'global') await ensureMigrated()
       return store.undo(cardName(scope, bookId))
     },
     async readAll() {
-      await ensureMigrated()
       const global = await store.read(GLOBAL_CARD)
       const books: Record<string, CardValue> = {}
       let entries: string[]
