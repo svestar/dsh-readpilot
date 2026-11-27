@@ -30,16 +30,6 @@ export const PROMPT_RULES: PromptRule[] = [
     en: 'When the user asks for a whole-book summary or to read the whole book, call `reader_digest` first and answer from chapter excerpts; state that it is extractive, do not loop through chapters with `reader_read`, and do not claim to have read every word.',
   },
   {
-    id: 'notes',
-    zh: '只在用户明确要求时写笔记：短批注用 `reader_note`，章节/主题/全书用 `reader_notes`；长笔记默认生成待确认草稿。选择与状态语义见 `dsh-readpilot-notes` skill。',
-    en: 'Write notes only when the user explicitly asks: use `reader_note` for short passage annotations and `reader_notes` for chapter, topic or whole-book notes; long-note writes create a pending draft. See the `dsh-readpilot-notes` skill for type choice and status rules.',
-  },
-  {
-    id: 'memory',
-    zh: '记忆默认关闭；只在开启时记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题或进度。详细规则见 `dsh-readpilot-memory` skill。',
-    en: 'Memory is off by default; when on, record only durable preferences, views, recurring questions and goals, never plot facts, one-off questions or progress. See the `dsh-readpilot-memory` skill for details.',
-  },
-  {
     id: 'tool-use',
     zh: '按需调用工具，以最新结果为准；工具报错或空结果如实说明。',
     en: 'Call tools as needed and trust the latest result; report tool errors or empty results honestly.',

@@ -167,15 +167,13 @@ test('workspace_language_migrates_from_marker_when_settings_missing', async t =>
   assert.equal((await loadSettings(data)).workspaceLanguage, 'en')
 })
 
-test('reading_prompt_points_to_workspace_skills', () => {
+test('reading_prompt_defers_notes_and_memory_to_skills', () => {
   const zh = readingPrompt('zh', TOOL_LINES)
   const en = readingPrompt('en', TOOL_LINES)
-  assert.match(zh, /dsh-readpilot-notes/)
-  assert.match(zh, /dsh-readpilot-memory/)
-  assert.match(zh, /记忆默认关闭/)
-  assert.match(en, /dsh-readpilot-notes/)
-  assert.match(en, /dsh-readpilot-memory/)
-  assert.match(en, /Memory is off by default/)
+  assert.doesNotMatch(zh, /dsh-readpilot-notes|dsh-readpilot-memory/)
+  assert.doesNotMatch(zh, /记忆默认关闭|只在用户明确要求时写笔记/)
+  assert.doesNotMatch(en, /dsh-readpilot-notes|dsh-readpilot-memory/)
+  assert.doesNotMatch(en, /Memory is off by default|Write notes only when/)
 })
 
 test('tool_prompt_map_is_derived_from_schema', () => {

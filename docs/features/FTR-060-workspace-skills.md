@@ -12,7 +12,7 @@
 
 技能文件包含稳定的 `name` / `description` frontmatter 和由 `dsh-readpilot:skill` 标记包裹的正文。文件缺失时创建；已有标记时按当前 `settings.workspaceLanguage` 替换正文；没有标记的同名文件视为用户所有，不覆盖。语言切换只改正文，frontmatter 保持不变。
 
-`AGENTS.md` 的笔记与记忆规则缩短为硬边界和技能名：短批注/长笔记的选择、草稿应用与状态回报由笔记技能承载；记忆开关、可记内容、字符上限与压缩写回由记忆技能承载。技能是工作区级、按需加载，不替代每轮常驻的引用和写入边界；默认不剧透属于 FTR-059 的默认角色卡风格。
+`AGENTS.md` 不再包含笔记与记忆细则：短批注/长笔记选择、草稿应用、状态回报、记忆开关与压缩写回全部由对应技能承载。技能是工作区级、按需加载，不替代每轮常驻的引用和写入边界；默认不剧透属于 FTR-059 的默认角色卡风格。
 
 ## 接口与代码映射
 
@@ -33,4 +33,4 @@
 - 正常路径：删除技能后下一次状态加载会重建（`workspace_skills_repair_deleted_on_state`）。
 - 正常路径：切换书库语言后正文切换，frontmatter 不变（`workspace_skills_follow_language`）。
 - 边界：用户所有或无标记的同名技能不被覆盖（`workspace_skills_preserve_user_owned_file`）。
-- 正常路径：AGENTS 只保留边界并引用技能名（`reading_prompt_points_to_workspace_skills`）。
+- 正常路径：AGENTS 不再包含笔记/记忆细则，也不引用技能名（`reading_prompt_defers_notes_and_memory_to_skills`）。
