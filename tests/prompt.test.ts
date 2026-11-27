@@ -24,8 +24,8 @@ const TOOL_LINES: ToolPromptLine[] = [
   },
   {
     name: 'reader_memory',
-    zh: '记忆（read/update/forget；scope 为 book/reader/role）',
-    en: 'memory (read/update/forget; scope is book/reader/role)',
+    zh: '记忆（read/update/forget；scope 为 book/reader）',
+    en: 'memory (read/update/forget; scope is book/reader)',
   },
 ]
 
@@ -167,13 +167,15 @@ test('workspace_language_migrates_from_marker_when_settings_missing', async t =>
   assert.equal((await loadSettings(data)).workspaceLanguage, 'en')
 })
 
-test('reading_prompt_covers_memory_scope', () => {
+test('reading_prompt_points_to_workspace_skills', () => {
   const zh = readingPrompt('zh', TOOL_LINES)
   const en = readingPrompt('en', TOOL_LINES)
-  assert.match(zh, /本书卡仅在本书记忆生效时可更新/)
-  assert.match(zh, /读者卡只要求全局记忆开启/)
-  assert.match(en, /the book card requires this book/)
-  assert.match(en, /reader card only requires global memory/)
+  assert.match(zh, /dsh-readpilot-notes/)
+  assert.match(zh, /dsh-readpilot-memory/)
+  assert.match(zh, /记忆默认关闭/)
+  assert.match(en, /dsh-readpilot-notes/)
+  assert.match(en, /dsh-readpilot-memory/)
+  assert.match(en, /Memory is off by default/)
 })
 
 test('tool_prompt_map_is_derived_from_schema', () => {
@@ -185,7 +187,7 @@ test('tool_prompt_map_is_derived_from_schema', () => {
         type: 'object',
         properties: {
           action: { enum: ['read', 'update', 'forget'] },
-          scope: { enum: ['book', 'reader', 'role'] },
+          scope: { enum: ['book', 'reader'] },
         },
       },
       prompt: { core: true, summary: { zh: '记忆', en: 'memory' } },
@@ -203,8 +205,8 @@ test('tool_prompt_map_is_derived_from_schema', () => {
   ] as any)
   assert.deepEqual(lines, [{
     name: 'reader_memory',
-    zh: '记忆（read/update/forget；scope 为 book/reader/role）',
-    en: 'memory (read/update/forget; scope is book/reader/role)',
+    zh: '记忆（read/update/forget；scope 为 book/reader）',
+    en: 'memory (read/update/forget; scope is book/reader)',
   }])
 })
 

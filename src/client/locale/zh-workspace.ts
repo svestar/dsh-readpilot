@@ -2,7 +2,7 @@ export const zhWorkspace = {
       editBook: '书籍信息',
       askCompanion: '问伴读',
       loadFailed: '加载失败',
-      promptSyncFailed: '阅读提示词同步失败，书库仍可使用',
+      promptSyncFailed: '阅读提示词与技能同步失败，书库仍可使用',
       errorSeparator: '：',
       renderFailed: '阅读器渲染失败',
       mdCopy: '复制',

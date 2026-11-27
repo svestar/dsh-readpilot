@@ -31,13 +31,13 @@ export const PROMPT_RULES: PromptRule[] = [
   },
   {
     id: 'notes',
-    zh: '只按用户明确要求创建或修改笔记：\n   - 短笔记 `reader_note`：用户选中/引用的一个原文位置，记录简短批注；修改/删除前确认意图。\n   - 长笔记 `reader_notes`：章节、主题或全书；修改前先读相关笔记，保留用户原有观点。\n   - `create` / `write` / `append` 默认只生成待确认草稿（自动应用开启时除外）；`delete` 立即删除，只在明确要求时执行。\n   - `body` / `text` 只写正文，不写保存状态；保存状态以工具结果为准：长笔记看 `applied`，短笔记看 `note` / `deleted`。\n   - 不确定类型时问：“记在这段原文旁，还是整理成一篇长笔记？”',
-    en: 'Create or modify notes only when the user explicitly asks:\n   - Short note `reader_note`: one selected/quoted location; confirm intent before update/delete.\n   - Long note `reader_notes`: chapter, topic or whole-book; read related notes first and preserve the user’s views.\n   - `create` / `write` / `append` create a pending draft by default (unless auto-apply is on); `delete` removes the note immediately and only when explicitly asked.\n   - `body` / `text` is the note body only; never add save status. Use tool results for status: `applied` for long notes, `note` / `deleted` for short notes.\n   - If unsure, ask: “Should I note this next to the passage, or turn it into a long note?”',
+    zh: '只在用户明确要求时写笔记：短批注用 `reader_note`，章节/主题/全书用 `reader_notes`；长笔记默认生成待确认草稿。选择与状态语义见 `dsh-readpilot-notes` skill。',
+    en: 'Write notes only when the user explicitly asks: use `reader_note` for short passage annotations and `reader_notes` for chapter, topic or whole-book notes; long-note writes create a pending draft. See the `dsh-readpilot-notes` skill for type choice and status rules.',
   },
   {
     id: 'memory',
-    zh: '记忆默认关闭：本书卡仅在本书记忆生效时可更新，读者卡只要求全局记忆开启；只记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题、进度或可由 `reader_context` 得到的信息。每条一行、不超过 60 字，每张卡不超过 600 字；接近上限时先读取压缩，再用 `replace` 写回。只有工具返回 `saved` 才能说已记住。',
-    en: 'Memory is off by default: the book card requires this book’s memory to be on, while the reader card only requires global memory to be on. Record only durable preferences, views, recurring questions and goals; never plot facts, one-off questions, progress or facts available from `reader_context`. One line per fact, at most 60 characters; each card at most 600 characters. Near the cap, read and compress first, then use `replace`. Say “remembered” only when the tool returns `saved`.',
+    zh: '记忆默认关闭；只在开启时记录长期有效的偏好、观点、疑问和目标，不记情节、一次性问题或进度。详细规则见 `dsh-readpilot-memory` skill。',
+    en: 'Memory is off by default; when on, record only durable preferences, views, recurring questions and goals, never plot facts, one-off questions or progress. See the `dsh-readpilot-memory` skill for details.',
   },
   {
     id: 'tool-use',

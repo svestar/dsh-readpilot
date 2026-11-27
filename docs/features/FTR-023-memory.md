@@ -10,7 +10,7 @@
 
 记忆是**默认关闭**的可选能力。设置存 `$DSH_HOME/dsh-readpilot/companion.json` 的 `memory`：全局模式 `off | on`，默认 `off`；单书状态 `inherit | on | off`，默认 `inherit`。生效需全局为 `on` 且单书不为 `off`。旧配置里的 `ask` 一律迁移为 `off`。
 
-开启后，提示词要求伴读主动记录长期有效的信息：稳定的阅读偏好、对书或作者的判断、反复出现的疑问、明确目标；不记录书内情节、一次性问题、阅读进度或能从 `reader_context` 查到的事实。`reader_memory` 的 `update`/`forget` 按 scope 校验：本书卡要求本书生效，读者卡只要求全局开启；未生效返回 `memory-off`。每张卡（本书、读者）最多 **600 字**，超出返回 `memory-too-large`，要求先压缩再用 `mode=replace` 写回；存储拒绝写入而不是静默截断。
+开启后，提示词要求伴读主动记录长期有效的信息：稳定的阅读偏好、对书或作者的判断、反复出现的疑问、明确目标；不记录书内情节、一次性问题、阅读进度或能从 `reader_context` 查到的事实。详细记忆流程由 FTR-060 的 `dsh-readpilot-memory` 技能承载。`reader_memory` 的 `update`/`forget` 按 scope 校验：本书卡要求本书生效，读者卡只要求全局开启；未生效返回 `memory-off`。每张卡（本书、读者）最多 **600 字**，超出返回 `memory-too-large`，要求先压缩再用 `mode=replace` 写回；存储拒绝写入而不是静默截断。
 
 全局记忆开启时，Host 通过 `systemPrompt.context` 按会话注入 `<reading_memory>`，说明按工作区语言生成；没有内容时注入空串；本书关闭时仍注入读者卡，只省略本书卡；全局关闭时不注入。右栏“记忆”提供全局模式、单书状态、生效状态、两张卡编辑、历史、撤销与清空。历史条目可展开查看完整正文；历史都可恢复、删除单条与清空，见 FTR-057。角色卡独立于记忆，见 FTR-059。
 
