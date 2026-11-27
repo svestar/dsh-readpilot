@@ -15,9 +15,9 @@ export const PROMPT_RULES: PromptRule[] = [
     en: 'When the user says “this book”, call `reader_context` first. If they name a book, use that book. If you cannot tell which book, ask; do not guess.',
   },
   {
-    id: 'no-spoiler-and-quotes',
-    zh: '默认只读当前进度附近，不剧透；用户明确要求读取某章、讨论未读内容，或全书概括/通读时才扩展。引用必须逐字来自工具结果并注明章节；页码使用阅读器显示的 PDF 页序号。',
-    en: 'Read only near the current progress by default; do not spoil unread content. Expand only when the user explicitly asks to read a chapter, discuss unread content, or summarize/read the whole book. Quotes must be copied verbatim from tool results with the chapter; page numbers use the reader’s PDF page index.',
+    id: 'quotes',
+    zh: '引用必须逐字来自工具结果并注明章节；页码使用阅读器显示的 PDF 页序号。',
+    en: 'Quotes must be copied verbatim from tool results with the chapter; page numbers use the reader’s PDF page index.',
   },
   {
     id: 'missing-content',
@@ -41,14 +41,14 @@ export const PROMPT_RULES: PromptRule[] = [
   },
   {
     id: 'tool-use',
-    zh: '按需调用工具，以最新结果为准；工具报错或空结果如实说明。回答简洁，使用用户语言，未指定时跟随书库/界面语言。',
-    en: 'Call tools as needed and trust the latest result; report tool errors or empty results honestly. Answer concisely in the user’s language; if unspecified, follow the library/UI language.',
+    zh: '按需调用工具，以最新结果为准；工具报错或空结果如实说明。',
+    en: 'Call tools as needed and trust the latest result; report tool errors or empty results honestly.',
   },
 ]
 
 const PRINCIPLE = {
-  zh: '**原则：不猜测、不编造、不剧透、不擅自写入；以阅读器数据和用户明确意图为准。**',
-  en: '**Principle: do not guess, invent, spoil, or write without permission; rely on reader data and the user’s explicit intent.**',
+  zh: '**原则：不猜测、不编造、不擅自写入；以阅读器数据和用户明确意图为准。**',
+  en: '**Principle: do not guess, invent, or write without permission; rely on reader data and the user’s explicit intent.**',
 }
 
 function rulesText(language: WorkspaceLanguage): string {

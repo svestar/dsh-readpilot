@@ -72,6 +72,8 @@ test('role_resolution_priority', () => {
 test('role_context_wraps_and_truncates', () => {
   const fallback = buildRoleContext({ text: DEFAULT_ROLE.zh, source: 'default', language: 'zh' })
   assert.equal(fallback, DEFAULT_ROLE.zh)
+  assert.match(fallback, /回答简洁/)
+  assert.match(fallback, /不剧透/)
   assert.doesNotMatch(fallback, /你现在就是这个角色|未设置自定义角色/)
 
   const text = buildRoleContext({ text: '你是林黛玉', source: 'global', language: 'zh' })

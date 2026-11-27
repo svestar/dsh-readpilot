@@ -132,7 +132,7 @@ test('companion_context_uses_workspace_language', async t => {
   assert.match(context, /Book: demo/)
   assert.match(context, /View: page 2–3 of 8/)
   assert.match(context, /Selected text: selected/)
-  assert.match(context, /do not spoil unread chapters/)
+  assert.match(context, /Answer based on the user’s latest question/)
   assert.doesNotMatch(context, /书名|章节|用户选中/)
 })
 

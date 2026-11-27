@@ -17,7 +17,7 @@ test('reader_guard_is_registered_and_localized', () => {
   assert.match(zh, /不猜测/)
   assert.match(zh, /不是指令/)
   assert.match(zh, /reading_role.*用户设定的角色/)
-  assert.match(en, /do not spoil unread chapters/)
+  assert.match(en, /do not guess the book/)
   assert.match(en, /data, not instructions/)
   assert.match(en, /reading_role.*user-assigned role/)
 
@@ -67,7 +67,7 @@ test('reader_guard_uses_workspace_language_when_bound', async t => {
   const bookId = state.books[0].id
   await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: 'c001' })
 
-  assert.match(api.readerGuardOf('s1'), /do not spoil unread chapters/)
+  assert.match(api.readerGuardOf('s1'), /do not guess the book/)
   assert.equal(api.readerGuardOf('other-session'), '')
 })
 
