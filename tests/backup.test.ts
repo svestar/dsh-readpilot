@@ -3,6 +3,7 @@ import assert from 'node:assert/strict'
 import { copyFile, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
+import JSZip from 'jszip'
 import { createReaderApi } from '../src/host/app.ts'
 
 function fakeContext() {
@@ -181,6 +182,25 @@ test('backup_restore_overwrites_target_data_and_snapshot_can_roll_back', async t
 })
 
 
+test('backup_skips_legacy_memory_role_files', async t => {
+  const { sourceLibrary, sourceData, targetLibrary, targetData } = await makeRoot(t)
+  const source = createReaderApi({ ctx: fakeContext() as any, dataDir: sourceData })
+  await source.configureLibrary({ path: sourceLibrary })
+  await mkdir(join(sourceData, 'memory', '.history', 'role'), { recursive: true })
+  await writeFile(join(sourceData, 'memory', 'role.md'), 'role memory', 'utf8')
+  await writeFile(join(sourceData, 'memory', '.history', 'role', '1-a.md'), 'role history', 'utf8')
+
+  const backup = await source.backupExport()
+  const zip = await JSZip.loadAsync(await readFile(backup.path))
+  assert.equal(zip.file('data/memory/role.md'), null)
+  assert.equal(zip.file('data/memory/.history/role/1-a.md'), null)
+
+  await copyFile(join(sourceLibrary, 'demo.txt'), join(targetLibrary, 'target.txt'))
+  const target = createReaderApi({ ctx: fakeContext() as any, dataDir: targetData })
+  await target.backupRestore({ archivePath: backup.path, libraryPath: targetLibrary })
+  await assert.rejects(readFile(join(targetData, 'memory', 'role.md'), 'utf8'))
+})
+
 test('backup_restore_migrates_presets_memory_and_companion', async t => {
   const { sourceLibrary, sourceData, targetLibrary, targetData } = await makeRoot(t)
   const source = createReaderApi({ ctx: fakeContext() as any, dataDir: sourceData })
@@ -190,7 +210,6 @@ test('backup_restore_migrates_presets_memory_and_companion', async t => {
   await writeFile(join(sourceData, 'presets.json'), '{"version":3,"presets":[]}\n', 'utf8')
   await writeFile(join(sourceData, 'memory', `${sourceBookId}.md`), 'book memory', 'utf8')
   await writeFile(join(sourceData, 'memory', 'reader.md'), 'reader memory', 'utf8')
-  await writeFile(join(sourceData, 'memory', 'role.md'), 'role memory', 'utf8')
   await source.role({ action: 'write', bookId: sourceBookId, scope: 'global', text: 'global role' })
   await source.role({ action: 'write', bookId: sourceBookId, scope: 'book', text: 'book role' })
   await source.role({ action: 'setBookEnabled', bookId: sourceBookId, enabled: true })
@@ -205,7 +224,6 @@ test('backup_restore_migrates_presets_memory_and_companion', async t => {
   const targetBookId = (await target.state()).books[0].id
   assert.equal(await readFile(join(targetData, 'memory', `${targetBookId}.md`), 'utf8'), 'book memory')
   assert.equal(await readFile(join(targetData, 'memory', 'reader.md'), 'utf8'), 'reader memory')
-  assert.equal(await readFile(join(targetData, 'memory', 'role.md'), 'utf8'), 'role memory')
   assert.equal(await readFile(join(targetData, 'roles', 'global.md'), 'utf8'), 'global role')
   assert.equal(await readFile(join(targetData, 'roles', `${targetBookId}.md`), 'utf8'), 'book role')
   assert.equal((await target.role({ action: 'status', bookId: targetBookId })).bookEnabled, true)

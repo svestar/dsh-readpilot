@@ -22,7 +22,12 @@ async function addFileIfExists(zip: JSZip, source: string, name: string): Promis
   }
 }
 
-async function addTree(zip: JSZip, root: string, prefix: string): Promise<void> {
+async function addTree(
+  zip: JSZip,
+  root: string,
+  prefix: string,
+  skip: (relative: string) => boolean = () => false,
+): Promise<void> {
   let entries
   try {
     entries = await readdir(root, { withFileTypes: true })
@@ -31,10 +36,11 @@ async function addTree(zip: JSZip, root: string, prefix: string): Promise<void> 
     throw error
   }
   for (const entry of entries) {
+    if (skip(entry.name)) continue
     const source = join(root, entry.name)
     const name = `${prefix}/${entry.name}`
     if (entry.isDirectory()) {
-      await addTree(zip, source, name)
+      await addTree(zip, source, name, relative => skip(`${entry.name}/${relative}`))
     } else if (entry.isFile() && entry.name !== '.DS_Store') {
       await addFileIfExists(zip, source, name)
     }
@@ -68,7 +74,12 @@ export async function exportBackup(
   for (const book of books) {
     await addFileIfExists(zip, join(notesRoot, `${book.id}.json`), `${BACKUP_PREFIX}/notes/${book.id}.json`)
   }
-  await addTree(zip, join(dataDir, 'memory'), `${BACKUP_PREFIX}/memory`)
+  await addTree(
+    zip,
+    join(dataDir, 'memory'),
+    `${BACKUP_PREFIX}/memory`,
+    relative => relative === 'role.md' || relative === '.history/role' || relative.startsWith('.history/role/'),
+  )
   await addTree(zip, join(dataDir, 'roles'), `${BACKUP_PREFIX}/roles`)
   if (libraryDir) {
     await addTree(zip, join(libraryDir, NOTES_DIR_NAME), NOTES_PREFIX)

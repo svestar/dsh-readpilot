@@ -127,7 +127,7 @@ function memoryEntries(zip: JSZip, mapping: Map<string, string>): Map<string, st
   for (const name of Object.keys(zip.files)) {
     if (!name.startsWith(`${BACKUP_PREFIX}/memory/`) || zip.files[name].dir) continue
     const rel = name.slice(`${BACKUP_PREFIX}/memory/`.length)
-    if (rel === 'reader.md' || rel === 'role.md' || rel.startsWith('.history/reader/') || rel.startsWith('.history/role/')) {
+    if (rel === 'reader.md' || rel.startsWith('.history/reader/')) {
       result.set(`memory/${rel}`, name)
       continue
     }
@@ -152,8 +152,6 @@ export async function remapMemory(zip: JSZip, dataDir: string, mapping: Map<stri
   }
   await rm(join(root, 'reader.md'), { force: true })
   await rm(join(root, '.history', 'reader'), { recursive: true, force: true })
-  await rm(join(root, 'role.md'), { force: true })
-  await rm(join(root, '.history', 'role'), { recursive: true, force: true })
   for (const [rel, source] of memoryEntries(zip, mapping)) {
     const entry = zip.file(source)
     if (!entry) continue

@@ -8,7 +8,7 @@
 
 ## 行为
 
-“导出备份”生成一个 zip，写入 `$DSH_HOME/dsh-readpilot/backups/`。备份 manifest 记录版本、创建时间与每本书的 `bookId`、`contentKey`、书名和格式；数据包含短批注、长笔记、提示词预设、记忆、阅读进度、标签/状态/评分与伴读设置。原书文件、`settings.json`、workspaceId、会话、缓存与动作回执不进入备份。
+“导出备份”生成一个 zip，写入 `$DSH_HOME/dsh-readpilot/backups/`。备份 manifest 记录版本、创建时间与每本书的 `bookId`、`contentKey`、书名和格式；数据包含短批注、长笔记、提示词预设、记忆、阅读进度、标签/状态/评分与伴读设置。原书文件、`settings.json`、workspaceId、会话、缓存与动作回执不进入备份；旧 `memory/role.md` 与 `.history/role/` 也不进入备份。
 
 “覆盖恢复”选择备份 zip 和目标书库目录。恢复时扫描目标书库，用 `contentKey` 匹配备份书籍；目标书库的 `bookId` 作为权威 ID，把备份数据重映射过去。匹配到的书整体覆盖：
 
@@ -46,3 +46,4 @@
 - 边界：目标书库缺少书籍时跳过并保留目标数据（`backup_restore_skips_books_missing_from_target_library`）。
 - 正常路径：目标旧数据被覆盖，使用恢复前快照可以回滚批注、长笔记与进度（`backup_restore_overwrites_target_data_and_snapshot_can_roll_back`）。
 - 正常路径：预设、记忆卡与伴读设置按目标 bookId 迁移（`backup_restore_migrates_presets_memory_and_companion`）。
+- 边界：旧记忆角色文件不进入备份，也不在恢复时写入（`backup_skips_legacy_memory_role_files`）。
