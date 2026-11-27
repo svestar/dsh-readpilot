@@ -70,6 +70,10 @@ test('role_resolution_priority', () => {
 })
 
 test('role_context_wraps_and_truncates', () => {
+  const fallback = buildRoleContext({ text: DEFAULT_ROLE.zh, source: 'default', language: 'zh' })
+  assert.equal(fallback, DEFAULT_ROLE.zh)
+  assert.doesNotMatch(fallback, /你现在就是这个角色|未设置自定义角色/)
+
   const text = buildRoleContext({ text: '你是林黛玉', source: 'global', language: 'zh' })
   assert.match(text, /^<reading_role>\n/)
   assert.match(text, /直接以第一人称/)
@@ -97,7 +101,8 @@ test('role_rpc_roundtrip_and_context', async t => {
   assert.equal(initial.enabled, true)
   assert.equal(initial.effectiveSource, 'default')
   assert.equal(initial.effectiveText, DEFAULT_ROLE.zh)
-  assert.match(api.roleContextOf('s1'), /未设置自定义角色/)
+  assert.equal(api.roleContextOf('s1'), DEFAULT_ROLE.zh)
+  assert.doesNotMatch(api.roleContextOf('s1'), /你现在就是这个角色/)
 
   const global = await api.role({ action: 'write', bookId, scope: 'global', text: '全局角色' })
   assert.equal(global.globalText, '全局角色')

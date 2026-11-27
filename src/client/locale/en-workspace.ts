@@ -211,7 +211,7 @@ export const enWorkspace = {
       roleSourceBook: 'Book role',
       roleSourceGlobal: 'Global role',
       roleSourceDefault: 'Default role',
-      roleDefaultHint: 'When the global role is empty, the default reading assistant is used.',
+      roleDefaultHint: 'When the global role is empty, the original reading-assistant prompt is used without role-play.',
       roleGlobalPlaceholder: 'Global role: identity, name, knowledge limits, tone and way of thinking. The companion answers directly in this identity without saying it is playing a role.',
       roleBookPlaceholder: 'A role just for this book; when enabled and non-empty, it overrides the global role.',
       roleLoad: 'Load role',

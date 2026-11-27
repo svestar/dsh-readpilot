@@ -8,7 +8,7 @@
 
 ## 行为
 
-阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为工作区指令加载。Host 每次书库状态加载都校验管理块（`dsh-readpilot:prompt:begin` 到 `end`）：不存在时创建，保留块外用户内容，只替换块内内容；删除或改写后自动重建。同步失败不阻塞页面，结果写入 `ReaderState.promptSync`，客户端以非阻塞提示展示。`settings.workspaceLanguage` 是唯一语言权威，管理块只记录语言标记并用于旧工作区迁移；首次配置按 UI 选中/英，之后切换 UI 不改语言。工具地图由已注册工具定义生成，见 [FTR-004](FTR-004-tools.md)；规则以稳定 id 存于 `catalog.ts`，输出由 golden 校验。管理块不再包含身份；默认身份与自定义角色由 FTR-059 的 `<reading_role>` 注入。扫描跳过 AGENTS.md。
+阅读助手纪律写入**书库工作区根目录的 `AGENTS.md`**，由 DSH 作为工作区指令加载。Host 每次书库状态加载都校验管理块（`dsh-readpilot:prompt:begin` 到 `end`）：不存在时创建，保留块外用户内容，只替换块内内容；删除或改写后自动重建。同步失败不阻塞页面，结果写入 `ReaderState.promptSync`，客户端以非阻塞提示展示。`settings.workspaceLanguage` 是唯一语言权威，管理块只记录语言标记并用于旧工作区迁移；首次配置按 UI 选中/英，之后切换 UI 不改语言。工具地图由已注册工具定义生成，见 [FTR-004](FTR-004-tools.md)；规则以稳定 id 存于 `catalog.ts`，输出由 golden 校验。管理块不含身份；默认身份原样注入，自定义角色包裹为 `<reading_role>`，见 FTR-059。扫描跳过 AGENTS.md。
 
 阅读位置注入走 Host `systemPrompt.context`：客户端就绪后调用 `companionContext`，Host 按会话 id 保存书名、章节和书籍 id；`text` 按 `agent.session.id` 返回合并的阅读/笔记/记忆上下文（见 FTR-037），只对该会话可见，不写 `AGENTS.md`。角色由独立的 `<reading_role>` 注入，见 [FTR-059](FTR-059-role-style-memory.md)。书名/章节各截 300 字符，最多 200 个会话。笔记/记忆规则见 [FTR-022](FTR-022-note-drafts.md)、[FTR-023](FTR-023-memory.md)，笔记上下文见 [FTR-021](FTR-021-note-context.md)，PDF 页码见 [FTR-026](FTR-026-chat-jump.md)。
 

@@ -211,7 +211,7 @@ export const zhWorkspace = {
       roleSourceBook: '本书角色',
       roleSourceGlobal: '全局角色',
       roleSourceDefault: '默认角色',
-      roleDefaultHint: '全局角色为空时使用默认角色：DSH 阅读助手。',
+      roleDefaultHint: '全局角色为空时沿用原阅读助手提示，不进入扮演。',
       roleGlobalPlaceholder: '全局角色设定：身份、名字、知识边界、语气和思考方式。伴读会直接以该身份回应，不声明在扮演。',
       roleBookPlaceholder: '本书专属角色；开启并填写后覆盖全局角色。',
       roleLoad: '加载角色',
