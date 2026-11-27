@@ -51,21 +51,24 @@ test('reader_guard_is_registered_and_localized', () => {
   assert.match(assembled, /reading[\s\S]*memory[\s\S]*notes/)
 })
 
-test('reader_guard_reads_persisted_language_before_first_state', async t => {
+test('reader_guard_is_empty_without_book_binding', async t => {
   const data = await mkdtemp(join(tmpdir(), 'dsh-readpilot-guard-'))
   t.after(() => rm(data, { recursive: true, force: true }))
   await saveSettings(data, { libraryDir: '/missing', workspaceId: 'w1', workspaceLanguage: 'en' })
 
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
-  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
+  assert.equal(api.readerGuardOf('missing-session'), '')
 })
 
-test('reader_guard_uses_workspace_language_without_reading_context', async t => {
+test('reader_guard_uses_workspace_language_when_bound', async t => {
   const { library, data } = await makeLibrary(t)
   const api = createReaderApi({ ctx: fakeContext(), dataDir: data })
-  await api.configureLibrary({ path: library, locale: 'en' })
+  const state = await api.configureLibrary({ path: library, locale: 'en' })
+  const bookId = state.books[0].id
+  await api.setCompanionContext({ sessionId: 's1', bookId, title: 'demo', chapter: 'c001' })
 
-  assert.match(api.readerGuardOf('missing-session'), /do not spoil unread chapters/)
+  assert.match(api.readerGuardOf('s1'), /do not spoil unread chapters/)
+  assert.equal(api.readerGuardOf('other-session'), '')
 })
 
 test('companion_context_stays_within_reading_budget', () => {

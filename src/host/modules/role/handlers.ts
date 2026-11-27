@@ -141,15 +141,15 @@ export function createRoleHandlers({
   }
 
   function roleContextFor(sessionId: unknown): string {
+    const bookId = typeof sessionId === 'string' ? readings.get(sessionId)?.bookId : undefined
+    if (!bookId) return ''
     const settings = getSettings()
     const language = workspaceLanguage()
-    const bookId = typeof sessionId === 'string' ? readings.get(sessionId)?.bookId : undefined
-    // Custom roles are book-scoped; sessions without a book keep the default identity.
     const resolved = resolveRole({
       enabled: settings.roles.enabled,
-      bookEnabled: bookId ? settings.roles.books[bookId] === true : false,
-      globalText: bookId ? globalText : '',
-      bookText: bookId ? bookTexts.get(bookId) ?? '' : '',
+      bookEnabled: settings.roles.books[bookId] === true,
+      globalText,
+      bookText: bookTexts.get(bookId) ?? '',
       language,
     })
     return buildRoleContext({ ...resolved, language })

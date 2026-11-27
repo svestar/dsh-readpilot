@@ -105,8 +105,7 @@ test('role_rpc_roundtrip_and_context', async t => {
   const updated = await api.role({ action: 'write', bookId, scope: 'global', text: '全局角色二' })
   assert.equal(updated.globalHistory[0].text, '全局角色')
   assert.match(api.roleContextOf('s1'), /全局角色二/)
-  assert.match(api.roleContextOf('no-book'), /DSH 阅读器中的阅读助手/)
-  assert.doesNotMatch(api.roleContextOf('no-book'), /全局角色二/)
+  assert.equal(api.roleContextOf('no-book'), '')
 
   const book = await api.role({ action: 'write', bookId, scope: 'book', text: '本书角色' })
   assert.equal(book.effectiveSource, 'global')
