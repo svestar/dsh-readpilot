@@ -1,4 +1,4 @@
-import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises'
+import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
 import { dirname, join } from 'node:path'
 import type { WorkspaceLanguage } from '../../../shared/contracts/library.ts'
 import { WORKSPACE_SKILLS, workspaceSkillBody } from '../prompt/skills.ts'
@@ -6,8 +6,8 @@ import { WORKSPACE_SKILLS, workspaceSkillBody } from '../prompt/skills.ts'
 const BEGIN = '<!-- dsh-readpilot:skill:begin -->'
 const END = '<!-- dsh-readpilot:skill:end -->'
 
-function skillFile(skillsDir: string, name: string): string {
-  return join(skillsDir, name, 'SKILL.md')
+function skillFile(libraryDir: string, name: string): string {
+  return join(libraryDir, '.dsh', 'skills', name, 'SKILL.md')
 }
 
 function frontmatter(name: string, description: string): string {
@@ -45,34 +45,15 @@ async function writeAtomic(path: string, content: string): Promise<void> {
   await rename(temporary, path)
 }
 
-/** Remove plugin-managed skills left in a library workspace by older versions. */
-export async function removeLegacyWorkspaceSkills(libraryDir: string): Promise<boolean> {
-  if (typeof libraryDir !== 'string' || !libraryDir) return false
-  const root = join(libraryDir, '.dsh', 'skills')
-  let changed = false
-  for (const skill of WORKSPACE_SKILLS) {
-    const dir = join(root, skill.name)
-    try {
-      const text = await readFile(join(dir, 'SKILL.md'), 'utf8')
-      if (!text.includes(BEGIN) || !text.includes(END)) continue
-      await rm(dir, { recursive: true, force: true })
-      changed = true
-    } catch (error) {
-      if ((error as NodeJS.ErrnoException | null)?.code !== 'ENOENT') throw error
-    }
-  }
-  return changed
-}
-
-/** Create or refresh the plugin's on-demand skills in the DSH user skill directory. */
-export async function ensureUserSkills(
-  skillsDir: string,
+/** Create or refresh the plugin's on-demand skills under the library workspace. */
+export async function ensureWorkspaceSkills(
+  libraryDir: string,
   language: WorkspaceLanguage,
 ): Promise<boolean> {
-  if (typeof skillsDir !== 'string' || !skillsDir) return false
+  if (typeof libraryDir !== 'string' || !libraryDir) return false
   let changed = false
   for (const skill of WORKSPACE_SKILLS) {
-    const file = skillFile(skillsDir, skill.name)
+    const file = skillFile(libraryDir, skill.name)
     const block = managedBlock(workspaceSkillBody(skill, language))
     let existing = ''
     try {

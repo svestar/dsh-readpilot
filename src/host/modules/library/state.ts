@@ -9,7 +9,7 @@ import type { CompanionSettings, SessionMap } from '../../../shared/contracts/co
 import type { ToolPromptLine } from '../tools/prompt-map.ts'
 import type { Book } from './book.ts'
 import { ensureWorkspacePrompt } from './workspace-prompt.ts'
-import { ensureUserSkills, removeLegacyWorkspaceSkills } from './user-skills.ts'
+import { ensureWorkspaceSkills } from './workspace-skills.ts'
 
 export interface WorkspaceSync {
   syncPrompt(): Promise<PromptSyncState>
@@ -19,16 +19,13 @@ export interface WorkspaceSync {
 export function createWorkspaceSync(
   currentSettings: () => Promise<Settings>,
   toolPromptLines: () => readonly ToolPromptLine[],
-  userSkillsDir?: string,
 ): WorkspaceSync {
   async function syncFor(settings: Settings): Promise<PromptSyncState> {
+    if (!settings.libraryDir) return { ok: true }
     try {
       const language = settings.workspaceLanguage ?? 'zh'
-      if (settings.libraryDir) {
-        await ensureWorkspacePrompt(settings.libraryDir, language, toolPromptLines())
-        await removeLegacyWorkspaceSkills(settings.libraryDir)
-      }
-      await ensureUserSkills(userSkillsDir ?? '', language)
+      await ensureWorkspacePrompt(settings.libraryDir, language, toolPromptLines())
+      await ensureWorkspaceSkills(settings.libraryDir, language)
       return { ok: true }
     } catch (error) {
       // A read-only or removed library must not make the whole library page fail.

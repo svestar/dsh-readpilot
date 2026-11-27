@@ -44,7 +44,7 @@
 - [FTR-004 Agent 工具](FTR-004-tools.md)
 - [FTR-005 伴读面板](FTR-005-companion-panel.md)
 - [FTR-017 阅读助手](FTR-017-reading-assistant.md)
-- [FTR-060 阅读技能](FTR-060-readpilot-skills.md)
+- [FTR-060 工作区技能](FTR-060-workspace-skills.md)
 - [FTR-023 记忆](FTR-023-memory.md)
 - [FTR-057 记忆历史管理](FTR-057-memory-history.md)
 - [FTR-059 角色卡](FTR-059-role-style-memory.md)

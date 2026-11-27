@@ -38,7 +38,6 @@ export interface CreateAppOptions {
   dataDir: string
   ctx?: any
   maxBookBytes?: number
-  userSkillsDir?: string
 }
 
 export interface PluginApp {
@@ -49,7 +48,7 @@ export interface PluginApp {
   dispose(): Promise<void>
 }
 
-export function createApp({ dataDir, ctx, maxBookBytes, userSkillsDir }: CreateAppOptions): PluginApp {
+export function createApp({ dataDir, ctx, maxBookBytes }: CreateAppOptions): PluginApp {
   const companionState: { settings: CompanionSettings } = { settings: { ...DEFAULT_COMPANION_SETTINGS } }
   const readings = new Map<string, { bookId: string; title: string; chapter: string; view?: any; updatedAt: number }>()
   const contexts = new Map<string, { text: string; updatedAt: number; language: WorkspaceLanguage }>()
@@ -74,7 +73,6 @@ export function createApp({ dataDir, ctx, maxBookBytes, userSkillsDir }: CreateA
   const libraryModule = createLibraryModule({
     dataDir,
     ctx,
-    userSkillsDir,
     notes: async bookId => notesRef.current?.service.notes.list(bookId) ?? [],
     noteFiles: async book => {
       const store = await notesRef.current?.service.noteFiles()

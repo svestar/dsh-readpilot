@@ -3,7 +3,6 @@ import { createLibraryHandlers } from './handlers.ts'
 import { createLibraryService, type LibraryService, type LibraryServiceDependencies } from './service.ts'
 
 export interface LibraryModuleOptions extends HostModuleOptions {
-  userSkillsDir?: string
   notes: LibraryServiceDependencies['notes']
   noteFiles: LibraryServiceDependencies['noteFiles']
   progress: LibraryServiceDependencies['progress']
@@ -17,7 +16,6 @@ export function createLibraryModule(options: LibraryModuleOptions): { module: Ho
   const service = createLibraryService({
     dataDir: options.dataDir,
     ctx: options.ctx,
-    userSkillsDir: options.userSkillsDir,
     notes: options.notes,
     noteFiles: options.noteFiles,
     progress: options.progress,

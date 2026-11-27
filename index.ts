@@ -1,5 +1,4 @@
 import z from '@deepseek-ai/schemastery'
-import { join } from 'node:path'
 import { createApp } from './src/host/app.ts'
 import { pluginDataDir, resolveDshHome } from './src/host/home.ts'
 import { registerHttp } from './src/host/http.ts'
@@ -29,12 +28,7 @@ export function apply(ctx: any, config: Partial<Config> = {}): void {
   // A disabled plugin registers nothing, so it also writes no state.
   if (config.enabled === false) return
 
-  const dshHome = resolveDshHome()
-  const app = createApp({
-    dataDir: pluginDataDir(dshHome),
-    userSkillsDir: join(dshHome, 'skills'),
-    ctx,
-  })
+  const app = createApp({ dataDir: pluginDataDir(resolveDshHome()), ctx })
   void app.api.syncCompanionContexts().catch(() => {})
   void app.api.syncRoleContexts().catch(() => {})
   void app.api.syncPrompt().catch(() => {})

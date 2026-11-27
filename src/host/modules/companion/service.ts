@@ -243,8 +243,8 @@ export function createCompanionService(options: CompanionServiceOptions) {
 
   function readerGuardOf(sessionId: unknown): string {
     const context = typeof sessionId === 'string' ? options.contexts.get(sessionId) : undefined
-    const language = context?.language ?? options.workspaceLanguage()
-    return buildReaderGuard(language, Boolean(context))
+    if (!context) return ''
+    return buildReaderGuard(context.language ?? options.workspaceLanguage())
   }
 
   async function refreshCompanionContexts(bookId: string): Promise<void> {

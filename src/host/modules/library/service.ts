@@ -23,7 +23,6 @@ import type { ToolPromptLine } from '../tools/prompt-map.ts'
 export interface LibraryServiceDependencies {
   dataDir: string
   ctx?: HostContext
-  userSkillsDir?: string
   notes(bookId: string): Promise<unknown[]>
   noteFiles(book: { id: string; title: string; path?: string }): Promise<NoteFileRecord[]>
   progress(): Promise<ProgressMap>
@@ -55,7 +54,7 @@ export function createLibraryService(deps: LibraryServiceDependencies): LibraryS
     return settings
   }
   const scan = createLibraryScan({ dataDir: deps.dataDir, ctx: deps.ctx, currentSettings })
-  const workspace = createWorkspaceSync(currentSettings, deps.toolPromptLines, deps.userSkillsDir)
+  const workspace = createWorkspaceSync(currentSettings, deps.toolPromptLines)
   const metaStore = createLibraryMetaStore(deps.dataDir)
 
   async function resolveBook(bookId: unknown): Promise<Book> {
